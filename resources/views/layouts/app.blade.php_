@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Language" content="en">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>ابعت - @yield('title')</title>
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />
+    <meta name="description" content="This is an example dashboard created using build-in elements and components.">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <meta name="msapplication-tap-highlight" content="no">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    @if(app()->getLocale() == 'ar')
+        <link href="{{ asset('architect/main.d810cf0ae7f39f28f336.css') }}" rel="stylesheet">
+    @else
+        <link href="{{ asset('architect/main.d810cf0ae7f39f28f336-ltr.css') }}" rel="stylesheet">
+    @endif
+    <style>
+
+        label {
+            font-weight: 500;
+        }
+
+        td > form {
+            display: inline;
+        }
+
+        .required > label:after {
+            content: "*";
+            color: red;
+            font-size: 1.1em;
+        }
+        .btn-warning,.btn-warning:hover {
+            color:white;
+        }
+
+        h1, .h1 {
+            font-size: 2em;
+        }
+
+        @font-face {
+			font-family: "CairoRegular";
+			src: url("{{ asset('fonts/Cairo-Regular.ttf') }}");
+		}
+
+		body, h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+            font-family: "CairoRegular";
+        }
+
+        input, select {
+            font-family: Arial, sans-serif;
+        }
+
+        .form-control {
+            border-radius: 0px !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container app-theme-white body-tabs-shadow fixed-header fixed-sidebar">
+
+        <div class="app-header header-shadow bg-dark header-text-light">
+            <div class="app-header__logo">
+                {{-- <div class="logo-src"></div> --}}
+                <strong style="color: white;text-align: center;display: block;margin: auto;">Eb3at</strong>
+                <div class="header__pane ml-auto">
+                    <div>
+                        <button type="button" class="hamburger close-sidebar-btn hamburger--elastic" data-class="closed-sidebar">
+                            <span class="hamburger-box">
+                                <span class="hamburger-inner"></span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="app-header__mobile-menu">
+                <div>
+                    <button type="button" class="hamburger hamburger--elastic mobile-toggle-nav">
+                        <span class="hamburger-box">
+                            <span class="hamburger-inner"></span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+            <div class="app-header__menu">
+                <span>
+                    <button type="button" class="btn-icon btn-icon-only btn btn-primary btn-sm mobile-toggle-header-nav">
+                        <span class="btn-icon-wrapper">
+                            <i class="fa fa-ellipsis-v fa-w-6"></i>
+                        </span>
+                    </button>
+                </span>
+            </div>
+            <div class="app-header__content">
+                <div class="app-header-left">
+
+                </div>
+                <div class="app-header-right">
+                    <div class="header-btn-lg pr-0">
+                        <div class="widget-content p-0">
+                            <div class="widget-content-wrapper">
+                                <div class="widget-content-left">
+                                    <div class="btn-group">
+                                        <a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="p-0 btn">
+                                            <img width="42" class="rounded-circle" src="{{ asset('architect/assets/images/avatars/4.jpg') }}" alt="">
+                                            <i class="fa fa-angle-down ml-2 opacity-8"></i>
+                                        </a>
+                                        <div tabindex="-1" role="menu" aria-hidden="true" class="rm-pointers dropdown-menu-lg dropdown-menu dropdown-menu-right">
+                                            <div class="dropdown-menu-header">
+                                                <div class="dropdown-menu-header-inner bg-info">
+                                                    <div class="menu-header-image opacity-2" style="background-image: url('assets/images/dropdown-header/city3.jpg');"></div>
+                                                    <div class="menu-header-content text-left">
+                                                        <div class="widget-content p-0">
+                                                            <div class="widget-content-wrapper">
+                                                                <div class="widget-content-left mr-3">
+                                                                    <img width="42" class="rounded-circle" src="{{ asset('architect/assets/images/avatars/4.jpg') }}" alt="">
+                                                                </div>
+                                                                <div class="widget-content-left">
+                                                                    <div class="widget-heading">{{ auth()->user()->name }}</div>
+                                                                    <div class="widget-subheading opacity-8">{{ __(Str::studly(auth()->user()->role)) }}</div>
+                                                                </div>
+                                                                <div class="widget-content-right mr-2">
+                                                                    <form action="{{ route('logout') }}" method="POST">
+                                                                        @csrf
+                                                                        <button type="submit" class="btn-pill btn-shadow btn-shine btn btn-focus">
+                                                                            {{__('Logout')}}
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="widget-content-left  ml-3 header-user-info">
+                                    <div class="widget-heading"> {{ auth()->user()->name }} </div>
+                                    <div class="widget-subheading"> {{ __(Str::studly(auth()->user()->role)) }} </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="app-main">
+            <div class="app-sidebar sidebar-shadow bg-dark sidebar-text-light">
+                <div class="app-header__logo">
+                    <div class="logo-src"></div>
+                    <div class="header__pane ml-auto">
+                        <div>
+                            <button type="button" class="hamburger close-sidebar-btn hamburger--elastic" data-class="closed-sidebar">
+                                <span class="hamburger-box">
+                                    <span class="hamburger-inner"></span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="app-header__mobile-menu">
+                    <div>
+                        <button type="button" class="hamburger hamburger--elastic mobile-toggle-nav">
+                            <span class="hamburger-box">
+                                <span class="hamburger-inner"></span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+                <div class="app-header__menu">
+                    <span>
+                        <button type="button" class="btn-icon btn-icon-only btn btn-primary btn-sm mobile-toggle-header-nav">
+                            <span class="btn-icon-wrapper">
+                                <i class="fa fa-ellipsis-v fa-w-6"></i>
+                            </span>
+                        </button>
+                    </span>
+                </div>
+                @include('elements.sidebar')
+            </div>
+            <div class="app-main__outer">
+                <div class="app-main__inner">
+                    @if (session('success'))
+                        <div class='alert alert-success'>{{ session('success') }}</div>
+                    @endif
+                    @if (session('error'))
+                        <div class='alert alert-danger'>{{ session('error') }}</div>
+                    @endif
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                    @yield('content')
+                </div>
+                <div class="app-wrapper-footer">
+                    <div class="app-footer">
+                        <div class="app-footer__inner text-center">
+                            <div class="app-footer-left">
+                                <div class="copyright text-center">
+                                    Copyright © {{ date('Y') }}. All rights reserved.
+                                </div>
+                            </div>
+                            <div class="app-footer-right">
+                                <div class="float-right">
+                                    v1.0.0
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="app-drawer-overlay d-none animated fadeIn">
+    </div>
+    <script type="text/javascript" src="{{ asset('architect/assets/scripts/main.d810cf0ae7f39f28f336.js') }}"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2({dir:"rtl"});
+        });
+    </script>
+</body>
+</html>

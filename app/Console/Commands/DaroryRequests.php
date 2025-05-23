@@ -198,8 +198,13 @@ class DaroryRequests extends Command
     protected function generateRequest($className, $rules, $messages, $stubFile)
     {
         $requestPath = app_path("Http/Requests/$className.php");
+        $directory = dirname($requestPath);
 
-        // Check if the request file already exists
+        // ✅ Create directory if it doesn't exist
+        if (!File::exists($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
+
         if (File::exists($requestPath)) {
             if (!$this->confirm("$className already exists. Do you want to overwrite it?")) {
                 $this->info("Skipping $className generation.");
@@ -224,6 +229,7 @@ class DaroryRequests extends Command
         File::put($requestPath, $stubContent);
         $this->info("Created: $className");
     }
+
 
 
     protected function generateValidationRules($columns, $tableName)
