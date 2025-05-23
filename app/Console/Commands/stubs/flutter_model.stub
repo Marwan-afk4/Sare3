@@ -1,0 +1,20 @@
+{{ imports }}
+class {{ className }} {
+{{ fields }}
+
+  {{ className }}({
+{{ constructorParams }}
+  });
+
+  factory {{ className }}.fromJson(Map<String, dynamic> json) {
+    return {{ className }}(
+{{ fromJson }}
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+{{ toJson }}
+    };
+  }
+}

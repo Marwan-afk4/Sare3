@@ -1,0 +1,44 @@
+@extends('layouts.app')
+
+@php
+    $currentPage = '{{tableName}}';
+@endphp
+
+@section('title', __('{{title}}'))
+
+@section('content')
+<div class="container-fluid">
+    <h1 class="mb-3">{{ __('{{title}}') }}</h1>
+
+    <div class="mb-3">
+        <a href="{{ route('{{tableName}}.create') }}" class="btn btn-primary btn-sm me-1">
+            {{ __('Create {{modelName}}') }} <i class="fa fa-plus"></i>
+        </a>
+    </div>
+
+    <div class="main-card mb-3 card">
+        <div class="card-body">
+            <table class="mb-0 table table-hover">
+                <tr>
+                    {{columnsHeaders}}
+                    <th class="text-center">{{ __('Actions') }}</th>
+                </tr>
+                @foreach(${{modelsVariable}} as ${{modelVariable}})
+                <tr>
+                    {{columnsData}}
+                    <td>
+                        <a href="{{ route('{{tableName}}.show', ${{modelVariable}}) }}" class="btn btn-subtle-primary btn-sm me-1">
+                            {{ __('Details') }} <i class="fa fa-eye"></i>
+                        </a>
+                        <a href="{{ route('{{tableName}}.edit', ${{modelVariable}}) }}" class="btn btn-subtle-warning btn-sm me-1">
+                            {{ __('Edit') }} <i class="fa fa-edit"></i>
+                        </a>
+                    </td>
+                </tr>
+                @endforeach
+            </table>
+            {{ ${{modelsVariable}}->links('pagination::custom') }}
+        </div>
+    </div>
+</div>
+@endsection

@@ -1,0 +1,101 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+
+use App\Models\{{model}};
+use App\Http\Requests\Store{{model}}Request;
+use App\Http\Requests\Update{{model}}Request;
+use App\Http\Resources\{{model}}Resource;
+
+class {{model}}Controller extends Controller
+{
+    public function index(Request $request)
+    {
+        try{
+            $page = $request->input('page', 1);
+            $sortField = $request->get('sort', 'id');
+            $sortOrder = $request->get('order', 'ASC');
+            ${{modelsVariable}} = {{model}}::{{withQuery}}orderBy($sortField, $sortOrder)->
+            paginate(20, ['*'], 'page', $page);
+
+            if (${{modelsVariable}}->isEmpty()){
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'No data to retrieve',
+                    '{{modelsVariable}}' => []
+                ]);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                '{{modelsVariable}}' => {{model}}Resource::collection(${{modelsVariable}}->items()),
+                'meta' => [
+                    'currentPage' => ${{modelsVariable}}->currentPage(),
+                    'lastPage' => ${{modelsVariable}}->lastPage(),
+                    'total' => ${{modelsVariable}}->total(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'server error'
+            ]);
+        }
+    }
+
+    public function store(Store{{model}}Request $request)
+    {
+        ${{modelVariable}} = {{model}}::create($request->validated());
+        {{relationsToload}}
+
+        return response()->json([
+            'status' => 'success',
+            '{{modelVariable}}' => new {{model}}Resource(${{modelVariable}}),
+        ]);
+    }
+
+    public function show(Request $request)
+    {
+        try {
+            $id = $request->input('id');
+            if (!$id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'not found'
+                ]);
+            }
+            ${{modelVariable}} = {{model}}::{{withQuery}}find($id);
+            if (!${{modelVariable}}) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'not found'
+                ]);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                '{{modelVariable}}' => new {{model}}Resource(${{modelVariable}})
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error processing'
+            ]);
+        }
+    }
+
+    public function update(Update{{model}}Request $request, {{model}} ${{modelVariable}})
+    {
+        ${{modelVariable}}->update($request->validated());
+        {{relationsToload}}
+
+        return response()->json([
+            'status' => 'success',
+            '{{modelVariable}}' => new {{model}}Resource(${{modelVariable}}),
+        ]);
+    }
+}

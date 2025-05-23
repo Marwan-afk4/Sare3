@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Http\Controllers;
+
+{{useStatements}}
+
+use Illuminate\Http\Request;
+use App\Http\Requests\Store{{model}}Request;
+use App\Http\Requests\Update{{model}}Request;
+use App\Http\Controllers\Controller;
+
+class {{model}}Controller extends Controller
+{
+    public function index(Request $request)
+    {
+        $sortField = $request->get('sort', 'id');
+        $sortOrder = $request->get('order', 'ASC');
+        ${{modelsVariable}} = {{model}}::{{withQuery}}orderBy($sortField, $sortOrder)->paginate(30);
+        return view('{{kebabName}}.index', compact('{{modelsVariable}}', 'sortField', 'sortOrder'));
+    }
+
+    public function create()
+    {
+        {{relationsList}}{{createReturnStatement}}
+    }
+
+    public function store(Store{{model}}Request $request)
+    {
+        {{model}}::create($request->validated());
+        return redirect()->route('{{kebabName}}.index')->with('success', 'Created successfully');
+    }
+
+    public function show({{model}} ${{modelVariable}})
+    {
+        return view('{{kebabName}}.show', compact('{{modelVariable}}'));
+    }
+
+    public function edit({{model}} ${{modelVariable}})
+    {
+        {{relationsList}}{{editReturnStatement}}
+    }
+
+    public function update(Update{{model}}Request $request, {{model}} ${{modelVariable}})
+    {
+        ${{modelVariable}}->update($request->validated());
+        return redirect()->route('{{kebabName}}.index')->with('success', 'Updated successfully.');
+    }
+}

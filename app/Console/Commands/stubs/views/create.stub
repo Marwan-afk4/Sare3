@@ -1,0 +1,28 @@
+@extends('layouts.app')
+
+@php
+    $currentPage = '{{tableName}}';
+@endphp
+
+@section('title', __('Create {{modelName}}'))
+
+@section('content')
+<div class="container">
+    <h1>{{ __('Create {{modelName}}') }}</h1>
+    <div class="mb-3">
+        <a href="{{ route('{{tableName}}.index') }}" class="btn btn-secondary btn-square">
+            <i class="fa fa-arrow-right"></i>  {{ __('Back to') }} {{ __('{{pluralTitle}}') }}
+        </a>
+    </div>
+
+    <div class="main-card mb-3 card">
+        <div class="card-body">
+            <form method="POST" action="{{ route('{{tableName}}.store') }}">
+                @csrf
+                {{formFields}}
+                <button type="submit" class="btn btn-primary btn-sm me-1">{{ __('Add') }}</button>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection
