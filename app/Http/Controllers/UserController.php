@@ -16,7 +16,8 @@ class UserController extends Controller
     {
         $sortField = $request->get('sort', 'id');
         $sortOrder = $request->get('order', 'ASC');
-        $users = User::orderBy($sortField, $sortOrder)->paginate(30);
+        $users = User::where('role', 'user')
+        ->orderBy($sortField, $sortOrder)->paginate(30);
         return view('users.index', compact('users', 'sortField', 'sortOrder'));
     }
 
@@ -27,6 +28,8 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request)
     {
+        $request->setRole('user');
+
         User::create($request->validated());
         return redirect()->route('users.index')->with('success', 'Created successfully');
     }

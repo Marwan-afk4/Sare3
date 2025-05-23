@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ActivtyType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -23,6 +24,7 @@ class User extends Authenticatable
     ];
 
     protected $fillable = [
+        'name',
         'email',
         'phone',
         'password',
@@ -31,6 +33,10 @@ class User extends Authenticatable
         'activity',
         'wallet',
         'role'
+    ];
+
+    protected $casts = [
+        'activity' => ActivtyType::class,
     ];
 
     public $timestamps = true;
