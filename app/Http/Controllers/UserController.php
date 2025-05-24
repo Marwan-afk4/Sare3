@@ -16,7 +16,15 @@ class UserController extends Controller
     {
         $sortField = $request->get('sort', 'id');
         $sortOrder = $request->get('order', 'ASC');
+        $keyword = $request->get('keyword');
+
         $users = User::where('role', 'user')
+            ->when($keyword, function ($query, $keyword) {
+                $query->where(function ($q) use ($keyword) {
+                    $q->where('name', 'LIKE', "%{$keyword}%")
+                    ->orWhere('phone', 'LIKE', "%{$keyword}%");
+                });
+            })
         ->orderBy($sortField, $sortOrder)->paginate(30);
         return view('users.index', compact('users', 'sortField', 'sortOrder'));
     }
