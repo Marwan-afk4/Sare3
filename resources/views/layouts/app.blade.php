@@ -1580,6 +1580,7 @@
     <script src="/phoenix/assets/js/dashboards/ecommerce-dashboard.js"></script>
 
     @livewireScripts
+    @stack('scripts')
 </body>
 
 </html>
