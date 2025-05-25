@@ -18,7 +18,7 @@ class DaroryApiControllers extends Command
             $this->error("This command cannot be executed in production.");
             return;
         }
-        
+
         $this->info("✨ Darory Controllers Api Generator ✨");
 
         $modelName = $this->argument('model');
@@ -103,64 +103,69 @@ class DaroryApiControllers extends Command
     }
 
     protected function generateController($modelName)
-    {
-        $controllerName = "{$modelName}Controller";
-        $controllerPath = app_path("Http/Controllers/Api/{$controllerName}.php");
+{
+    $controllerName = "{$modelName}Controller";
+    $controllerDir = app_path("Http/Controllers/Api");
+    $controllerPath = "$controllerDir/{$controllerName}.php";
 
-        if (File::exists($controllerPath) && !$this->confirm("The controller '$controllerName' already exists. Overwrite?")) {
-            $this->info("⏩ Skipping $controllerName.");
-            return;
-        }
+    // ✅ Ensure the 'Api' directory exists
+    File::ensureDirectoryExists($controllerDir);
 
-        $stubPath = app_path('Console/Commands/stubs/controller-api.stub');
-        if (!File::exists($stubPath)) {
-            $this->error("❌ Stub file missing at: $stubPath");
-            return;
-        }
-
-        // Generate relations
-        $relations = $this->getBelongsToRelations($modelName);
-        $withQuery = $this->generateWithQuery($relations);
-        $relationsList = $this->generateRelationsListWithoutNamespace($relations);
-        $compactVariables = !empty($relations) 
-        ? "'" . implode("', '", array_map([Str::class, 'plural'], $relations)) . "'" 
-        : '';
-        $editCompact = $compactVariables ? "'".lcfirst($modelName)."', $compactVariables" : "'".lcfirst($modelName)."'";
-        $tableName = Str::plural(Str::snake($modelName));
-
-        $relationsToload = $relations ? "$".lcfirst($modelName)."->load(['" . implode("', '", $relations) . "']);" : '';
-
-        // Replace in stub
-        $template = File::get($stubPath);
-        $template = str_replace(
-            [
-                '{{model}}',
-                '{{tableName}}',
-                '{{modelVariable}}',
-                '{{modelsVariable}}',
-                '{{withQuery}}',
-                '{{relationsList}}',
-                '{{createReturnStatement}}',
-                '{{editReturnStatement}}',
-                '{{relationsToload}}'
-            ],
-            [
-                $modelName,
-                $tableName,
-                lcfirst($modelName),
-                lcfirst(Str::plural($modelName)),
-                $withQuery,
-                $relationsList,
-                "return view('{$tableName}.create'" . ($compactVariables ? ", compact($compactVariables)" : "") . ");",
-                "return view('{$tableName}.edit', compact($editCompact));",
-                $relationsToload
-            ],
-            $template
-        );
-
-        File::put($controllerPath, $template);
-        $this->info("✅ Controller '$controllerName' created successfully.");
+    if (File::exists($controllerPath) && !$this->confirm("The controller '$controllerName' already exists. Overwrite?")) {
+        $this->info("⏩ Skipping $controllerName.");
+        return;
     }
+
+    $stubPath = app_path('Console/Commands/stubs/controller-api.stub');
+    if (!File::exists($stubPath)) {
+        $this->error("❌ Stub file missing at: $stubPath");
+        return;
+    }
+
+    // Generate relations
+    $relations = $this->getBelongsToRelations($modelName);
+    $withQuery = $this->generateWithQuery($relations);
+    $relationsList = $this->generateRelationsListWithoutNamespace($relations);
+    $compactVariables = !empty($relations)
+        ? "'" . implode("', '", array_map([Str::class, 'plural'], $relations)) . "'"
+        : '';
+    $editCompact = $compactVariables ? "'" . lcfirst($modelName) . "', $compactVariables" : "'" . lcfirst($modelName) . "'";
+    $tableName = Str::plural(Str::snake($modelName));
+
+    $relationsToload = $relations ? "$" . lcfirst($modelName) . "->load(['" . implode("', '", $relations) . "']);" : '';
+
+    // Replace in stub
+    $template = File::get($stubPath);
+    $template = str_replace(
+        [
+            '{{model}}',
+            '{{tableName}}',
+            '{{modelVariable}}',
+            '{{modelsVariable}}',
+            '{{withQuery}}',
+            '{{relationsList}}',
+            '{{createReturnStatement}}',
+            '{{editReturnStatement}}',
+            '{{relationsToload}}'
+        ],
+        [
+            $modelName,
+            $tableName,
+            lcfirst($modelName),
+            lcfirst(Str::plural($modelName)),
+            $withQuery,
+            $relationsList,
+            "return view('{$tableName}.create'" . ($compactVariables ? ", compact($compactVariables)" : "") . ");",
+            "return view('{$tableName}.edit', compact($editCompact));",
+            $relationsToload
+        ],
+        $template
+    );
+
+    File::put($controllerPath, $template);
+    $this->info("✅ Controller '$controllerName' created successfully.");
+}
+
 
     protected function getAllModels()
     {

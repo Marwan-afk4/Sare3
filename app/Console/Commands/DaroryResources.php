@@ -99,95 +99,95 @@ class DaroryResources extends Command
     }
 
     private function generateResource($requestClass)
-    {
-        $requestNamespace = "App\\Http\\Requests\\{$requestClass}";
-        $requestPath = app_path("Http/Requests/{$requestClass}.php");
+{
+    $requestNamespace = "App\\Http\\Requests\\{$requestClass}";
+    $requestPath = app_path("Http/Requests/{$requestClass}.php");
 
-        if (!File::exists($requestPath)) {
-            $this->error("Request file not found: {$requestPath}");
-            return;
-        }
-
-        if (!class_exists($requestNamespace)) {
-            require_once $requestPath;
-        }
-
-        if (!class_exists($requestNamespace)) {
-            $this->error("Class {$requestNamespace} not found.");
-            return;
-        }
-
-        // Extract validation rules
-        $rules = $this->getRulesFromRequest($requestNamespace);
-
-        if (empty($rules)) {
-            $this->error("No validation rules found in {$requestNamespace}.");
-            return;
-        }
-
-        // Define resource name and path
-        $modelName = Str::replaceFirst('Store', '', $requestClass);
-        $modelName = Str::replaceLast('Request', '', $modelName);
-        $resourceName = "{$modelName}Resource";
-        $resourcePath = app_path("Http/Resources/{$resourceName}.php");
-
-        // Check if resource file exists
-        if (File::exists($resourcePath)) {
-            if (!$this->confirm("Resource file already exists: {$resourcePath}. Do you want to replace it?", false)) {
-                $this->info("Skipped creating resource: {$resourceName}");
-                return;
-            }
-        }
-
-        // Load stub file
-        $stubPath = app_path('/Console/Commands/stubs/resource.stub');
-        if (!File::exists($stubPath)) {
-            $this->error("Stub file not found: {$stubPath}");
-            return;
-        }
-
-        $stubContent = File::get($stubPath);
-
-        // Generate fields array (including relations)
-        $fields = collect(['id' => '(string) $this->id'])
-            ->merge(collect($rules)->keys()->mapWithKeys(fn ($field) => [
-                $field => Str::endsWith($field, '_id') ? "(string) \$this->$field" : "\$this->$field"
-            ]));
-
-        // Handle BelongsTo relationships
-        $belongsToRelations = $this->getBelongsToRelations($modelName);
-        //$modelUses = [];
-
-        foreach ($belongsToRelations as $relation) {
-            $relationClass = Str::studly($relation); // Convert to PascalCase
-            $fields[$relation] = "new {$relationClass}Resource(\$this->$relation)";
-            //$modelUses[] = "use App\Http\\Resources\\{$relationClass}Resource;";
-        }
-
-        if ($this->hasTimestamps($modelName)) {
-            $fields['created_at'] = "\$this->created_at";
-            $fields['updated_at'] = "\$this->updated_at";
-        }
-
-        // Convert fields array to string format
-        $fieldsString = collect($fields)
-            ->map(fn ($value, $key) => "'".Str::camel($key)."' => $value")
-            ->implode(",\n            ");
-
-        // Insert model use statements
-        //$useStatements = implode("\n", $modelUses);
-
-        // Replace stub placeholders
-        $resourceContent = str_replace(
-            ['{{ resourceName }}', '{{ fields }}'],
-            [$resourceName, $fieldsString],
-            $stubContent
-        );
-
-        File::put($resourcePath, $resourceContent);
-
-        $this->info("Resource {$resourceName} created successfully.");
+    if (!File::exists($requestPath)) {
+        $this->error("Request file not found: {$requestPath}");
+        return;
     }
+
+    if (!class_exists($requestNamespace)) {
+        require_once $requestPath;
+    }
+
+    if (!class_exists($requestNamespace)) {
+        $this->error("Class {$requestNamespace} not found.");
+        return;
+    }
+
+    // Extract validation rules
+    $rules = $this->getRulesFromRequest($requestNamespace);
+
+    if (empty($rules)) {
+        $this->error("No validation rules found in {$requestNamespace}.");
+        return;
+    }
+
+    // Define resource name and path
+    $modelName = Str::replaceFirst('Store', '', $requestClass);
+    $modelName = Str::replaceLast('Request', '', $modelName);
+    $resourceName = "{$modelName}Resource";
+    $resourcePath = app_path("Http/Resources/{$resourceName}.php");
+
+    // ✅ Ensure the Resources directory exists
+    File::ensureDirectoryExists(app_path('Http/Resources'));
+
+    // Check if resource file exists
+    if (File::exists($resourcePath)) {
+        if (!$this->confirm("Resource file already exists: {$resourcePath}. Do you want to replace it?", false)) {
+            $this->info("Skipped creating resource: {$resourceName}");
+            return;
+        }
+    }
+
+    // Load stub file
+    $stubPath = app_path('/Console/Commands/stubs/resource.stub');
+    if (!File::exists($stubPath)) {
+        $this->error("Stub file not found: {$stubPath}");
+        return;
+    }
+
+    $stubContent = File::get($stubPath);
+
+    // Generate fields array (including relations)
+    $fields = collect(['id' => '(string) $this->id'])
+        ->merge(collect($rules)->keys()->mapWithKeys(fn ($field) => [
+            $field => Str::endsWith($field, '_id') ? "(string) \$this->$field" : "\$this->$field"
+        ]));
+
+    // Handle BelongsTo relationships
+    $belongsToRelations = $this->getBelongsToRelations($modelName);
+
+    foreach ($belongsToRelations as $relation) {
+        $relationClass = Str::studly($relation); // Convert to PascalCase
+        $fields[$relation] = "new {$relationClass}Resource(\$this->$relation)";
+    }
+
+    if ($this->hasTimestamps($modelName)) {
+        $fields['created_at'] = "\$this->created_at";
+        $fields['updated_at'] = "\$this->updated_at";
+    }
+
+    // Convert fields array to string format
+    $fieldsString = collect($fields)
+        ->map(fn ($value, $key) => "'".Str::camel($key)."' => $value")
+        ->implode(",\n            ");
+
+    // Replace stub placeholders
+    $resourceContent = str_replace(
+        ['{{ resourceName }}', '{{ fields }}'],
+        [$resourceName, $fieldsString],
+        $stubContent
+    );
+
+    // Write the resource file
+    File::put($resourcePath, $resourceContent);
+
+    $this->info("Resource {$resourceName} created successfully.");
+}
+
 
 
 
