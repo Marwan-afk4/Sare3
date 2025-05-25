@@ -32,7 +32,9 @@ class User extends Authenticatable
         'image',
         'activity',
         'wallet',
-        'role'
+        'role',
+        'email_code',
+        'email_verified',
     ];
 
     protected $casts = [

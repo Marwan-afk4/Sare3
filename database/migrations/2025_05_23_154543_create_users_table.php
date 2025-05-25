@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('email')->nullable()->unique();
             $table->string('phone')->unique();
-            $table->string('password');
+            $table->string('password')->nullable();
             $table->string('image')->nullable();
-            $table->string('activity')->default('active');
+            $table->string('activity')->default('active')->nullable();
             $table->float('wallet', 20, 3)->nullable();
             $table->enum('role', ['user', 'driver', 'admin']);
             $table->timestamps();

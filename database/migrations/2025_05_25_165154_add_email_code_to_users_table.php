@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('name')->after('id')->nullable();
+            $table->string('email_code')->nullable()->after('email');
+            $table->enum('email_verified', ['verified', 'unverified'])->nullable()->after('email_code');
         });
     }
 
