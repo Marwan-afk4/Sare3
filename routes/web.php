@@ -21,7 +21,7 @@ Route::controller(AuthController::class)->group(function () {
         Route::post('/logout', 'logout')->middleware('auth:sanctum')->name('logout');
     });
 
-Route::middleware(['auth:sanctum'])->prefix('admin')
+Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
     ->group(function () {
         Route::resources([
             '/users' => UserController::class,

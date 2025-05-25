@@ -36,10 +36,14 @@ class AuthController extends Controller
             return back()->withErrors(['error' => 'Mobile number or password is incorrect'])->withInput();
         }
 
+        if($user->role !== 'admin') {
+            return back()->withErrors(['error' => 'You are not authorized to access this area'])->withInput();
+        }
+
         Auth::login($user,true);
         $request->session()->regenerate();
 
-        return redirect()->intended(route('users.index'))->with('success', 'Logged in successfully');
+        return redirect()->intended(route('home'))->with('success', 'Logged in successfully');
     }
 
     public function logout(Request $request)
