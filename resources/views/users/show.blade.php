@@ -7,10 +7,10 @@
     <div class="container-fluid">
         <h1>{{ $user->name }}</h1>
         <div class="mb-3">
-            <a href="{{ route('users.index') }}" class="btn btn-secondary btn-sm me-1">
+            <a wire:navigate href="{{ route('users.index') }}" class="btn btn-secondary btn-sm me-1">
                 <i class="fa fa-arrow-right"></i> {{ __('Back to') }} {{ __('Users') }}
             </a>
-            <a href='{{ route('users.edit', $user) }}' class="btn btn-warning btn-sm me-1">
+            <a wire:navigate href='{{ route('users.edit', $user) }}' class="btn btn-warning btn-sm me-1">
                 {{ __('Edit') }} <i class="fa fa-edit"></i>
             </a>
         </div>

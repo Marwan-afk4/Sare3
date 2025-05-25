@@ -7,7 +7,7 @@
 <div class="container">
 	<h1>{{ __('Create User') }}</h1>
 	<div class="mb-3">
-		<a href="{{ route('users.index') }}" class="btn btn-secondary btn-sm me-1"> <i class="fa fa-arrow-right"></i> {{__('Back to')}} {{__('Users')}}</a>
+		<a wire:navigate href="{{ route('users.index') }}" class="btn btn-secondary btn-sm me-1"> <i class="fa fa-arrow-right"></i> {{__('Back to')}} {{__('Users')}}</a>
 	</div>
 	<div class="main-card mb-3 card">
 		<div class="card-body">
