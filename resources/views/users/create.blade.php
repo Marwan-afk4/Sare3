@@ -30,12 +30,6 @@
 					label="{{__('Phone')}}"
 					required
 				/>
-                <x-form-input
-                    name="password"
-                    type="password"
-                    label="{{__('Password')}}"
-                    required
-                />
 				{{-- <x-form-input
 					name="image"
 					type="text"

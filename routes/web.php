@@ -8,7 +8,8 @@ use App\Http\Controllers\{
     DriverDocumentController,
     HomePageController,
     RatingController,
-    UserController
+    UserController,
+    DriverController
 };
 
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -28,5 +29,6 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
             '/ratings' => RatingController::class,
             '/driver-documents' => DriverDocumentController::class,
             '/driver-cars' => DriverCarController::class,
+            '/drivers' => DriverController::class
         ]);
     });

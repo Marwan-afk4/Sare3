@@ -1,11 +1,12 @@
 <?php
 
 namespace App\Http\Requests;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateUserRequest extends FormRequest
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
+
+class UpdateDriverRequest extends FormRequest
 {
     public function authorize()
     {
@@ -15,9 +16,11 @@ class UpdateUserRequest extends FormRequest
     public function rules()
     {
         return [
-            'email' => 'nullable|email|unique:users,email,' . $this->user->id,
-            'phone' => 'nullable|unique:users,phone,' . $this->user->id,
-            'image' => 'nullable',
+            'name' => 'nullable|string',
+            'email' => 'nullable|email|unique:users,email,' . $this->driver->id,
+            'phone' => 'nullable|unique:users,phone,' . $this->driver->id,
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'password' => 'nullable|string|min:8',
             'activity' => 'nullable',
             'wallet' => 'nullable',
             'role' => 'nullable'
@@ -30,6 +33,8 @@ class UpdateUserRequest extends FormRequest
             'email.email' => __('The Email must be a valid email address.'),
             'email.unique' => __('The Email has already been taken.'),
             'phone.unique' => __('The Phone has already been taken.'),
+            'password.min' => __('The Password must be at least 8 characters.'),
+            'password.string' => __('The Password must be a string.'),
         ];
     }
 
