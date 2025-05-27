@@ -17,9 +17,14 @@ class AuthController extends Controller
 
     public function postOtp(Request $request)
     {
-        $request->validate([
+        $validation = Validator::make($request->all(), [
             'phone' => 'required|string|unique:users,phone'
         ]);
+        if ($validation->fails()) {
+            return response()->json([
+                'message' => $validation->errors()->first()
+            ], 200);
+        }
         $this->sendOtp($request->phone);
         return response()->json([
             'message' => 'OTP sent successfully'
