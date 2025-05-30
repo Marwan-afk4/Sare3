@@ -15,16 +15,6 @@ class AuthController extends Controller
 {
     use twilio;
 
-    /**
-     * send otp to phone
-     * @bodyparam phone string required The user's phone number. Example: +201012345678
-     * @response 200 {
-     *      "message": "OTP sent successfully"
-     *    }
-     * @response 200 scenario="Validation error" {
-     *      "message": "The phone field is required."
-     *    }
-     */
     public function postOtp(Request $request)
     {
         $validation = Validator::make($request->all(), [
@@ -41,29 +31,6 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Verify phone OTP and optionally bind to email
-     *
-     * This endpoint verifies the OTP sent to the user's phone. If an email is included and exists,
-     * it will bind the phone number to the user with that email. Otherwise, it creates a new user with the phone number.
-     *
-     * @bodyParam phone string required The user's phone number. Example: +201012345678
-     * @bodyParam code string required The OTP code received by the user. Example: 123456
-     * @bodyParam email string nullable The user's email (must already exist if provided). Example: test@example.com
-     *
-     * @response 200 {
-     *   "message": "OTP verified successfully",
-     *   "token": "1|a1b2c3d4e5f6g7h8"
-     * }
-     *
-     * @response 200 scenario="OTP failure" {
-     *   "message": "OTP verification failed, try again"
-     * }
-     *
-     * @response 404 scenario="Email not found" {
-     *   "message": "Email not found"
-     * }
-     */
     public function CheckOtp(Request $request)
     {
         $request->validate([
@@ -108,24 +75,6 @@ class AuthController extends Controller
         ], 200);
     }
 
-
-    /**
-     * Send email verification code
-     *
-     * This endpoint sends a 6-digit verification code to the user's email.
-     * It links the email to an existing user by phone if provided.
-     *
-     * @bodyParam phone string nullable The user's phone number (must exist in the users table). Example: +201012345678
-     * @bodyParam email string nullable The user's email address (must be unique). Example: user@example.com
-     *
-     * @response 200 {
-     *   "message": "Email verification code sent successfully"
-     * }
-     *
-     * @response 200 scenario="Validation error" {
-     *   "message": "The email field must be a valid email address."
-     * }
-     */
     public function sendEmailVerificationCode(Request $request)
     {
         $validation = Validator::make($request->all(), [
@@ -135,7 +84,7 @@ class AuthController extends Controller
         if ($validation->fails()) {
             return response()->json([
                 'message' => $validation->errors()->first()
-            ], 200);
+            ], 401);
         }
         $user = User::where('phone', $request->phone)->first();
         $code = rand(100000, 999999);
@@ -151,39 +100,17 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Verify email with code
-     *
-     * This endpoint verifies the user's email using the provided 6-digit code.
-     * The email must be unique and the phone must exist in the users table (if provided).
-     *
-     * @bodyParam phone string nullable The user's phone number (must exist in the users table). Example: +201012345678
-     * @bodyParam email string required The user's email address (must be unique). Example: user@example.com
-     * @bodyParam code integer required The 6-digit verification code sent to the user's email. Example: 123456
-     *
-     * @response 200 {
-     *   "message": "Email verified successfully"
-     * }
-     *
-     * @response 200 scenario="Invalid code" {
-     *   "message": "Email verification code is incorrect"
-     * }
-     *
-     * @response 200 scenario="Validation error" {
-     *   "message": "The email field is required."
-     * }
-     */
     public function verifyEmailCode(Request $request)
     {
         $validation = Validator::make($request->all(), [
             'phone' => 'nullable|string|exists:users,phone',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|email|exists:users,email',
             'code' => 'required|integer'
         ]);
         if ($validation->fails()) {
             return response()->json([
                 'message' => $validation->errors()->first()
-            ], 200);
+            ], 401);
         }
         $user = User::where('phone', $request->phone)->first();
         if ($user->email_code == $request->code) {
@@ -197,30 +124,9 @@ class AuthController extends Controller
         }
         return response()->json([
             'message' => 'Email verification code is incorrect'
-        ], 200);
+        ], 401);
     }
 
-
-    /**
-     * Update user's name
-     *
-     * This endpoint updates the user's name based on their phone number.
-     *
-     * @bodyParam phone string required The user's phone number. Must exist in the database. Example: +201012345678
-     * @bodyParam name string required The name to be set for the user. Example: John Doe
-     *
-     * @response 200 {
-     *   "message": "Name updated successfully"
-     * }
-     *
-     * @response 200 scenario="Validation error" {
-     *   "message": "The name field is required."
-     * }
-     *
-     * @response 200 scenario="User not found" {
-     *   "message": "User not found"
-     * }
-     */
     public function Postname(Request $request)
     {
         $validation = Validator::make($request->all(), [
@@ -230,7 +136,7 @@ class AuthController extends Controller
         if ($validation->fails()) {
             return response()->json([
                 'message' => $validation->errors()->first()
-            ], 200);
+            ], 401);
         }
         $user = User::where('phone', $request->phone)->first();
         if ($user) {
@@ -242,38 +148,18 @@ class AuthController extends Controller
         }
         return response()->json([
             'message' => 'User not found'
-        ], 200);
+        ], 401);
     }
 
-
-    /**
-     * Send email verification code (first step)
-     *
-     * This endpoint starts the email verification process. It sends a 6-digit verification code to the provided email.
-     *
-     * @bodyParam email string nullable The user's email. Must be unique if not already registered. Example: user@example.com
-     *
-     * @response 200 scenario="New user or unverified email" {
-     *   "message": "Go and check your email to verify your account , the code will expire after 5 min"
-     * }
-     *
-     * @response 409 scenario="Email already verified" {
-     *   "message": "This email is already registered"
-     * }
-     *
-     * @response 200 scenario="Validation error" {
-     *   "message": "The email has already been taken."
-     * }
-     */
     public function emailVerficationFirst(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            'email' => 'nullable|email|unique:users,email'
+            'email' => 'nullable|email|exists:users,email'
         ]);
         if ($validation->fails()) {
             return response()->json([
                 'message' => $validation->errors()->first()
-            ], 200);
+            ], 401);
         }
         $excistUser = User::where('email', $request->email)->first();
         $code = rand(100000, 999999);
@@ -295,7 +181,7 @@ class AuthController extends Controller
         } elseif($excistUser->email_verified == 'verified') {
             return response()->json([
                 'message' => 'This email is already registered',
-            ], 409);
+            ], 401);
         }
     }
 
@@ -311,34 +197,8 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Go and check your email to verify your account , the code will expire after 5 min',
         ]);
-
     }
 
-    /**
-     * Verify email using code (first step)
-     *
-     * This endpoint verifies the user's email using the code sent previously.
-     *
-     * @bodyParam email string required The email address to verify. Must already exist in the users table. Example: user@example.com
-     * @bodyParam code string required The 6-digit verification code sent to the email. Example: 123456
-     *
-     * @response 200 {
-     *   "message": "Email verified successfully"
-     * }
-     *
-     * @response 400 scenario="Invalid code" {
-     *   "error": "Invalid verification code."
-     * }
-     *
-     * @response 422 scenario="Validation error" {
-     *   "email": [
-     *     "The selected email is invalid."
-     *   ],
-     *   "code": [
-     *     "The code field is required."
-     *   ]
-     * }
-     */
     public function verifyEmailFirst(Request $request)
     {
         $validation = Validator::make($request->all(), [
@@ -347,13 +207,13 @@ class AuthController extends Controller
         ]);
 
         if ($validation->fails()) {
-            return response()->json($validation->errors(), 422);
+            return response()->json($validation->errors(), 401);
         }
 
         $user = User::where('email', $request->email)->first();
 
         if ($user->email_code !== $request->code) {
-            return response()->json(['error' => 'Invalid verification code.'], 400);
+            return response()->json(['error' => 'Invalid verification code.'], 401);
         }
 
         $user->update([
@@ -365,25 +225,6 @@ class AuthController extends Controller
         return response()->json(['message' => 'Email verified successfully']);
     }
 
-    /**
-     * Authenticate using Google
-     *
-     * This endpoint allows users to authenticate or register using their Google account. You must send a valid `id_token` obtained from Google Sign-In.
-     *
-     * @bodyParam id_token string required The ID token received from Google. Example: ya29.a0AfH6SMC...xyz
-     *
-     * @response 200 {
-     *   "message": "Google account registered successfully"
-     * }
-     *
-     * @response 200 scenario="Invalid token" {
-     *   "message": "Invalid Google ID token"
-     * }
-     *
-     * @response 200 scenario="Validation error" {
-     *   "message": "The id token field is required."
-     * }
-     */
     public function googleAuth(Request $request)
     {
         $validation = Validator::make($request->all(), [
@@ -392,7 +233,7 @@ class AuthController extends Controller
         if ($validation->fails()) {
             return response()->json([
                 'message' => $validation->errors()->first()
-            ], 200);
+            ], 401);
         }
 
         $client = new Google_Client(['client_id' => env('GOOGLE_CLIENT_ID')]);
@@ -417,7 +258,7 @@ class AuthController extends Controller
         else{
             return response()->json([
                 'message' => 'Invalid Google ID token'
-            ], 200);
+            ], 401);
         }
     }
 }
