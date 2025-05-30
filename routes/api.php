@@ -15,3 +15,9 @@ Route::post('/verify-email-otp', [AuthController::class, 'verifyEmailCode']);
 //post name
 Route::post('/post-name', [AuthController::class, 'postName']);
 
+//email verfication fisrt
+Route::post('/email-verfication', [AuthController::class, 'emailVerficationFirst']);
+Route::post('/verify-email', [AuthController::class, 'verifyEmailFirst']);
+
+//google auth
+Route::post('/google-auth', [AuthController::class, 'googleAuth']);

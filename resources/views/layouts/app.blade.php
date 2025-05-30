@@ -300,7 +300,7 @@
                     <li class="nav-item d-lg-none"><a class="nav-link" href="index.html#" data-bs-toggle="modal"
                             data-bs-target="#searchBoxModal"><span data-feather="search"
                                 style="height:19px;width:19px;margin-bottom: 2px;"></span></a></li>
-                    <li class="nav-item dropdown">
+                    {{-- <li class="nav-item dropdown">
                         <a class="nav-link" href="index.html#" style="min-width: 2.25rem" role="button"
                             data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                             data-bs-auto-close="outside"><span class="d-block" style="height:20px;width:20px;"><span
@@ -513,8 +513,8 @@
                                 </div>
                             </div>
                         </div>
-                    </li>
-                    <li class="nav-item dropdown">
+                    </li> --}}
+                    {{-- <li class="nav-item dropdown">
                         <a class="nav-link" id="navbarDropdownNindeDots" href="index.html#" role="button"
                             data-bs-toggle="dropdown" aria-haspopup="true" data-bs-auto-close="outside"
                             aria-expanded="false"><svg width="16" height="16" viewbox="0 0 16 16"
@@ -649,7 +649,7 @@
                                 </div>
                             </div>
                         </div>
-                    </li>
+                    </li> --}}
                     <li class="nav-item dropdown"><a class="nav-link lh-1 pe-0" id="navbarDropdownUser"
                             href="index.html#!" role="button" data-bs-toggle="dropdown"
                             data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false">
