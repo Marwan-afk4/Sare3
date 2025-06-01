@@ -35,12 +35,6 @@
 					:value="$driver->phone ?? ''"
 					required
 				/>
-				<x-form-input
-					name="image"
-					type="file"
-					label="{{__('Image')}}"
-					:value="$driver->image ?? ''"
-				/>
 				<x-form-select
 					name="activity"
 					type="select"

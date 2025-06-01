@@ -21,7 +21,8 @@
                     {{-- Profile Image --}}
                     <div class="col-md-2 text-center">
                         @if ($driver->image)
-                            <img src="{{ asset('storage/' . $driver->image) }}" alt="{{ $driver->name }}"
+                            <img src="{{ $driver->image_link ?? 'https://th.bing.com/th/id/OIP.hGSCbXlcOjL_9mmzerqAbQHaHa?rs=1&pid=ImgDetMain' }}"
+                                alt="{{ $driver->name }}"
                                 class="img-thumbnail mb-3" style="max-width: 100%;">
                         @else
                             <img src="https://th.bing.com/th/id/OIP.hGSCbXlcOjL_9mmzerqAbQHaHa?rs=1&pid=ImgDetMain"
