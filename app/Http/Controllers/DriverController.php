@@ -12,7 +12,6 @@ use Illuminate\Http\Request;
 class DriverController extends Controller
 {
     use ImageUpload;
-
     public function index(Request $request)
     {
         $sortField = $request->get('sort', 'id');
@@ -45,7 +44,6 @@ class DriverController extends Controller
 
     public function show(User $driver)
     {
-
         return view('drivers.show', compact('driver'));
     }
 
@@ -54,50 +52,14 @@ class DriverController extends Controller
         return view('drivers.edit', compact('driver'));
     }
 
-   
-
     public function update(UpdateDriverRequest $request, User $driver)
-{
-    try {
-        // Step 1: Get validated input
+    {
         $data = $request->validated();
-
-        // Step 2: Check if image file exists and process it
-        if ($request->hasFile('image')) {
-            $uploadResult = $this->uploadFromFile($request->file('image'), 'drivers');
-
-            if ($uploadResult['status'] === 'success') {
-                $data['image'] = $uploadResult['paths']['original'];
-            } else {
-                // Manual dump instead of redirect
-                return response()->json([
-                    'status' => 'fail',
-                    'message' => 'Image upload failed',
-                    'error' => $uploadResult['message']
-                ]);
-            }
-        }
-
-        // Step 3: Update driver
         $driver->update($data);
 
-        // Step 4: Return success as JSON (because session flash won't work)
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Driver updated',
-            'updated_data' => $data,
-        ]);
-
-    } catch (\Exception $e) {
-        // Catch any unexpected error and show it
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Something went wrong',
-            'exception' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
+        return redirect()->route('drivers.index')->with('success', 'Driver updated successfully.');
     }
-}
+
 
 
 }

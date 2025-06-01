@@ -13,11 +13,8 @@ class DriverDocument extends Model
 
     protected $fillable = [
         'driver_id',
-        'identity_number',
-        'selfi_image',
-        'face_identity',
-        'back_identity',
-        'driving_license'
+        'document_type_id',
+        'image_path',
     ];
 
     public $timestamps = true;
@@ -26,6 +23,11 @@ class DriverDocument extends Model
     public function driver()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function documentType()
+    {
+        return $this->belongsTo(DocumentType::class);
     }
 
 }

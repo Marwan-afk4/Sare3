@@ -13,11 +13,11 @@ class DriverCar extends Model
 
     protected $fillable = [
         'driver_id',
+        'car_categories_id',
         'car_image',
         'car_type',
         'car_number',
         'car_color',
-        'car_category',
         'car_license'
     ];
 
