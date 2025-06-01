@@ -44,6 +44,13 @@ class User extends Authenticatable
 
     public $timestamps = true;
 
+    protected $appends =['image_link'];
+
+    public function getImageLinkAttribute()
+    {
+        return $this->image ? asset('storage/' . $this->image) : null;
+    }
+
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = Hash::make($value);
