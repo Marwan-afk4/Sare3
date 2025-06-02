@@ -38,6 +38,9 @@ Route::post('/driver/verify-email-otp', [DriverAuthController::class, 'verifyEma
 Route::post('/driver/email-verfication', [DriverAuthController::class, 'emailVerficationFirst']);
 Route::post('/driver/verify-email', [DriverAuthController::class, 'verifyEmailFirst']);
 
+//post name
+Route::post('/driver/post-name', [DriverAuthController::class, 'postName']);
+
 //google auth
 Route::post('/driver/google-auth', [DriverAuthController::class, 'googleAuth']);
 
