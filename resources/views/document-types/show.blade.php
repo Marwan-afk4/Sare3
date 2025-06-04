@@ -7,7 +7,7 @@
 <div class="container-fluid">
 	<h1>{{ $documentType->name }}</h1>
 	<div class="mb-3">
-		<a href="{{ route('document-types.index') }}" class="btn btn-secondary btn-sm me-1"> <i class="fa fa-arrow-right"></i> {{__('Back to')}} {{__('Document Types')}}</a>
+		<a wire:navigate href="{{ route('document-types.index') }}" class="btn btn-secondary btn-sm me-1"> <i class="fa fa-arrow-right"></i> {{__('Back to')}} {{__('Document Types')}}</a>
 	</div>
 	<div class="card">
 		<div class="card-body">
@@ -35,7 +35,7 @@
 			</ul>
 		</div>
             <div class="card-footer">
-                <a href='{{ route('document-types.edit', $documentType) }}' class="btn btn-warning btn-sm me-1">{{ __('Change Status') }} <i class="fa fa-edit"></i></a>
+                <a wire:navigate href='{{ route('document-types.edit', $documentType) }}' class="btn btn-warning btn-sm me-1">{{ __('Change Status') }} <i class="fa fa-edit"></i></a>
             </div>
 	</div>
 </div>

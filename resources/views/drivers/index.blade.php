@@ -45,7 +45,7 @@
             <table class="mb-0 table table-hover">
                 <tr>
                     <th>
-                        <a
+                        <a 
                             href="{{ route('drivers.index', ['sort' => 'id', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
                             {{ __('Id') }}
                             @if ($sortField === 'id')
