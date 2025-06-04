@@ -45,6 +45,14 @@ class DriverController extends Controller
         return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts'));
     }
 
+    public function documents(User $driver)
+    {
+        $documents = $driver->documents()->with('documentType')->get();
+
+        return view('drivers.documents', compact('driver', 'documents'));
+    }
+
+
 
     public function create()
     {
@@ -66,7 +74,8 @@ class DriverController extends Controller
 
     public function edit(User $driver)
     {
-        return view('drivers.edit', compact('driver'));
+        $diverActivityStatus = ActivtyType::labels();
+        return view('drivers.edit', compact('driver', 'diverActivityStatus'));
     }
 
     public function update(UpdateDriverRequest $request, User $driver)

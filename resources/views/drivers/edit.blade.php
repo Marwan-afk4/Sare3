@@ -43,6 +43,7 @@
 					label="{{__('Activity')}}"
 					:value="$driver->activity ?? ''"
 					:selected="$driver->activity->value ?? ''"
+                    :options="$diverActivityStatus"
 					required
 				/>
 				<button type='submit' class="btn btn-warning btn-sm me-1">{{ __('Save') }}</button>

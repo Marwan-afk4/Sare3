@@ -145,6 +145,7 @@
                         </tr>
                     @endforeach
                 </table>
+                {{ $users->links('pagination::custom') }}
             </div>
         </div>
     </div>

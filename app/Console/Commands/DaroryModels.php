@@ -16,12 +16,12 @@ class DaroryModels extends Command
 
     public function handle()
     {
-        
+
         if (app()->environment('production')) {
             $this->error("This command cannot be executed in production.");
             return;
         }
-        
+
         $this->displayDaroryLogo();
         $tableName = $this->argument('table');
 
@@ -51,8 +51,8 @@ class DaroryModels extends Command
                     '#'           => $index + 1,
                     'Table Name'  => $table,
                     'Model'       => $this->fileIcon($modelExists),
-                    'Store Req'   => $this->fileIcon(File::exists(app_path("Http/Requests/{$modelName}StoreRequest.php"))),
-                    'Update Req'  => $this->fileIcon(File::exists(app_path("Http/Requests/{$modelName}UpdateRequest.php"))),
+                    'Store Req'   => $this->fileIcon(File::exists(app_path("Http/Requests/Store{$modelName}Request.php"))),
+                    'Update Req'  => $this->fileIcon(File::exists(app_path("Http/Requests/Update{$modelName}Request.php"))),
                     'Controller'  => $this->fileIcon(File::exists(app_path("Http/Controllers/{$modelName}Controller.php"))),
                 ];
 

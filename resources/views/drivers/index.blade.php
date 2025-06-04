@@ -152,6 +152,7 @@
                     </tr>
                 @endforeach
             </table>
+            {{ $drivers->links('pagination::custom') }}
         </div>
     </div>
 @endsection

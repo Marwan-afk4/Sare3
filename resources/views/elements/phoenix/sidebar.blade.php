@@ -39,7 +39,19 @@
                                     <span class="nav-link-text">{{ __('Drivers') }}</span>
                                 </span>
                             </div>
-                        </a>    
+                        </a>
+                    </div>
+                    <div class="nav-item-wrapper">
+                        <a wire:navigate class="nav-link label-1" {{ isset($currentPage) && $currentPage == 'document-types' ? 'active' : '' }} href="{{ route('document-types.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon">
+                                    <span data-feather="file-text"></span>
+                                </span>
+                                <span class="nav-link-text-wrapper">
+                                    <span class="nav-link-text">{{ __('Document Types') }}</span>
+                                </span>
+                            </div>
+                        </a>
                     </div>
                     {{-- <div class="nav-item-wrapper">
                         <a wire:navigate class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'employees' ? 'active' : '' }}" href="{{ route('employees.index') }}" role="button" data-bs-toggle="" aria-expanded="false">

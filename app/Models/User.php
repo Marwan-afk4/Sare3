@@ -56,4 +56,9 @@ class User extends Authenticatable
         $this->attributes['password'] = Hash::make($value);
     }
 
+    public function documents()
+    {
+        return $this->hasMany(DriverDocument::class, 'driver_id');
+    }
+
 }

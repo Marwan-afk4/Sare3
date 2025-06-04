@@ -54,6 +54,9 @@
             </div>
             <div class="card-footer">
                 <a wire:navigate href='{{ route('drivers.edit', $driver) }}' class="btn btn-subtle-warning btn-sm me-1">{{ __("Edit") }} <i class="fa fa-edit"></i></a>
+                <a wire:navigate href="{{ route('drivers.documents', $driver->id) }}" class="btn btn-subtle-info btn-sm me-1">
+                    {{ __("Documents") }} <i class="fa fa-file-alt"></i>
+                </a>
             </div>
         </div>
     </div>
