@@ -43,7 +43,6 @@
                                 </span>
                             </li>
                             <li class="list-group-item"><strong>{{ __('Wallet') }}:</strong> {{ $user->wallet }}</li>
-                            <li class="list-group-item"><strong>{{ __('Role') }}:</strong> {{ $user->role }}</li>
                             <li class="list-group-item"><strong>{{ __('Created At') }}:</strong>
                                 {{ $user->created_at?->diffForHumans() }}</li>
                             <li class="list-group-item"><strong>{{ __('Updated At') }}:</strong>

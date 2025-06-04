@@ -44,29 +44,36 @@ class DaroryTranslations extends Command
         // Remove duplicates
         $translations = array_unique($translations);
 
-        // Load existing translations
+        // Define file paths
+        $langDir = resource_path('lang');
+        $localeDir = resource_path('lang/ar');
         $outputPath = resource_path('lang/ar.json');
         $metaOutputPath = resource_path('lang/ar_meta.json');
 
+        // Ensure required directories exist
+        File::ensureDirectoryExists($langDir);
+        File::ensureDirectoryExists($localeDir);
+
+        // Load existing translations
         $existingTranslations = File::exists($outputPath) ? json_decode(File::get($outputPath), true) : [];
         $existingMeta = File::exists($metaOutputPath) ? json_decode(File::get($metaOutputPath), true) : [];
 
-        // Get only new translations that do not exist in the current file
+        // Get only new translations
         $newTranslations = array_diff($translations, array_keys($existingTranslations));
 
-        // Maintain old order and append new ones at the end
+        // Maintain old order and append new ones
         $finalTranslations = $existingTranslations;
         foreach ($newTranslations as $key) {
             $finalTranslations[$key] = '';
         }
 
-        // Merge metadata (comments) for each translation key
+        // Merge metadata (file locations)
         $finalMeta = $existingMeta;
         foreach ($translations as $key) {
             $finalMeta[$key] = array_unique($this->foundLocations[$key] ?? []);
         }
 
-        // Save to JSON
+        // Save to JSON files
         File::put($outputPath, json_encode($finalTranslations, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         File::put($metaOutputPath, json_encode($finalMeta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 

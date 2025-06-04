@@ -20,20 +20,21 @@
 					type="text"
 					label="{{__('Name')}}"
 					:value="$driver->name ?? ''"
-					required
+					disabled
 				/>
 				<x-form-input
 					name="email"
 					type="text"
 					label="{{__('Email')}}"
 					:value="$driver->email ?? ''"
+                    disabled
 				/>
 				<x-form-input
 					name="phone"
 					type="text"
 					label="{{__('Phone')}}"
 					:value="$driver->phone ?? ''"
-					required
+					disabled
 				/>
 				<x-form-select
 					name="activity"

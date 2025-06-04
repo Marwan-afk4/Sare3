@@ -12,14 +12,14 @@
         <div class="row gx-4 gy-6 pb-5">
             <div class="col-xxl-6">
                 <div class="mb-3">
-                    <h3>New Users & Drivers</h3>
-                    <p class="text-body-tertiary mb-0">Number of new registered accounts</p>
+                    <h3>{{ __('New Users & Drivers') }}</h3>
+                    <p class="text-body-tertiary mb-0">{{ __('Number of new registered accounts') }}</p>
                 </div>
                 <div class="row g-6">
                     <div class="col-md-6 mb-2 mb-sm-0">
                         <div class="d-flex align-items-center">
                             <span class="me-2 text-info" data-feather="users" style="min-height:24px; width:24px"></span>
-                            <h4 class="text-body-tertiary mb-0">New Users : <span class="text-body-emphasis"> {{ $userCount }} </span></h4>
+                            <h4 class="text-body-tertiary mb-0">{{ __('New Users') }} : <span class="text-body-emphasis"> {{ $userCount }} </span></h4>
                         </div>
                         <div class="pb-0 pt-4">
                             <div class="echarts-new-users" style="min-height:300px;width:100%; background:#f9f9f9;"></div>
@@ -28,7 +28,7 @@
                     <div class="col-md-6">
                         <div class="d-flex align-items-center">
                             <span class="me-2 text-primary" data-feather="user-check" style="height:24px; width:24px"></span>
-                            <h4 class="text-body-tertiary mb-0">New Drivers : <span class="text-body-emphasis"> {{ $driverCount }} </span></h4>
+                            <h4 class="text-body-tertiary mb-0">{{ __('New Drivers') }} : <span class="text-body-emphasis"> {{ $driverCount }} </span></h4>
                         </div>
                         <div class="pb-0 pt-4">
                             <div class="echarts-new-drivers" style="min-height:300px;width:100%; background:#f9f9f9;"></div>

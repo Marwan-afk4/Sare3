@@ -1,0 +1,335 @@
+{
+    "You try to access a page that requires authentication": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\auth\\confirm-password.blade.php"
+    ],
+    "Welcome": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\auth\\confirm-password.blade.php"
+    ],
+    "Please confirm your password before continuing.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\auth\\confirm-password.blade.php"
+    ],
+    "Password": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\auth\\confirm-password.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\auth\\login.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\create.blade.php"
+    ],
+    "Confirm": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\auth\\confirm-password.blade.php"
+    ],
+    "Login": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\auth\\login.blade.php"
+    ],
+    "Phone": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\auth\\login.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\create.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\show.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\create.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\show.blade.php"
+    ],
+    "Create Driver": {
+        "0": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\create.blade.php",
+        "2": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\index.blade.php"
+    },
+    "Back to": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\create.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\show.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\create.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\show.blade.php"
+    ],
+    "Drivers": {
+        "0": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\create.blade.php",
+        "1": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\edit.blade.php",
+        "2": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\index.blade.php",
+        "4": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\show.blade.php",
+        "5": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\phoenix\\sidebar.blade.php"
+    },
+    "Name": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\create.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\show.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\create.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\show.blade.php"
+    ],
+    "Email": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\create.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\show.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\create.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\show.blade.php"
+    ],
+    "Add": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\create.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\create.blade.php"
+    ],
+    "Edit User": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\edit.blade.php"
+    ],
+    "Edit Driver": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\edit.blade.php"
+    ],
+    "Details": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\index.blade.php"
+    ],
+    "Active": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Enums\\ActivtyType.php"
+    ],
+    "Inactive": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Enums\\ActivtyType.php"
+    ],
+    "Activity": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\show.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\create.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\show.blade.php"
+    ],
+    "Save": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\edit.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\edit.blade.php"
+    ],
+    "Keyword": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\index.blade.php"
+    ],
+    "Id": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\show.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\show.blade.php"
+    ],
+    "Image": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\create.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\index.blade.php"
+    ],
+    "Wallet": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\show.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\create.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\show.blade.php"
+    ],
+    "Role": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\show.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\create.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\show.blade.php"
+    ],
+    "Created At": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\show.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\show.blade.php"
+    ],
+    "Actions": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\index.blade.php"
+    ],
+    "Edit": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\show.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\show.blade.php"
+    ],
+    "Delete": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\show.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\index.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\show.blade.php"
+    ],
+    "Updated At": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\drivers\\show.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\show.blade.php"
+    ],
+    "Home": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\phoenix\\sidebar.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\sidebar.blade.php"
+    ],
+    "Users": {
+        "0": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\phoenix\\sidebar.blade.php",
+        "1": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\sidebar.blade.php",
+        "2": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\create.blade.php",
+        "3": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\edit.blade.php",
+        "4": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\index.blade.php",
+        "6": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\show.blade.php"
+    },
+    "Employees": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\phoenix\\sidebar.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\sidebar.blade.php"
+    ],
+    "Suppliers": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\phoenix\\sidebar.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\sidebar.blade.php"
+    ],
+    "Clients": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\phoenix\\sidebar.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\sidebar.blade.php"
+    ],
+    "Order Channels": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\phoenix\\sidebar.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\sidebar.blade.php"
+    ],
+    "Delivery Vehicles": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\phoenix\\sidebar.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\sidebar.blade.php"
+    ],
+    "Delivery Agents": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\phoenix\\sidebar.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\sidebar.blade.php"
+    ],
+    "Delivery Orders": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\phoenix\\sidebar.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\sidebar.blade.php"
+    ],
+    "Supplier Product Lists": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\phoenix\\sidebar.blade.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\sidebar.blade.php"
+    ],
+    "Complains": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\phoenix\\sidebar.blade.php"
+    ],
+    "Money Transactions": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\phoenix\\sidebar.blade.php"
+    ],
+    "Dashboard": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\elements\\sidebar.blade.php"
+    ],
+    "Logout": {
+        "0": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\layouts\\app.blade.php",
+        "2": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\layouts\\app.blade.php_"
+    },
+    "This device is currently offline.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\livewire\\offline.blade.php"
+    ],
+    "Supplier": [
+        "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\livewire\\supplier-autocomplete.blade.php"
+    ],
+    "Create User": {
+        "0": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\create.blade.php",
+        "2": "D:\\XAMPP\\htdocs\\Sare3\\resources\\views\\users\\index.blade.php"
+    },
+    "The selected Driver is invalid.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverCarRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverDocumentRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\UpdateDriverCarRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\UpdateDriverDocumentRequest.php"
+    ],
+    "The Car Image field is required.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverCarRequest.php"
+    ],
+    "The Car Type field is required.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverCarRequest.php"
+    ],
+    "The Car Number field is required.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverCarRequest.php"
+    ],
+    "The Car Color field is required.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverCarRequest.php"
+    ],
+    "The Car Category field is required.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverCarRequest.php"
+    ],
+    "The Car License field is required.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverCarRequest.php"
+    ],
+    "The Identity Number field is required.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverDocumentRequest.php"
+    ],
+    "The Selfi Image field is required.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverDocumentRequest.php"
+    ],
+    "The selected Faceentity is invalid.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverDocumentRequest.php"
+    ],
+    "The selected Backentity is invalid.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverDocumentRequest.php"
+    ],
+    "The Driving License field is required.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverDocumentRequest.php"
+    ],
+    "The Name field is required.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreUserRequest.php"
+    ],
+    "The Name must be a string.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreUserRequest.php"
+    ],
+    "The Email must be a valid email address.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreUserRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\UpdateDriverRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\UpdateUserRequest.php"
+    ],
+    "The Email has already been taken.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreUserRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\UpdateDriverRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\UpdateUserRequest.php"
+    ],
+    "The Phone has already been taken.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreUserRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\UpdateDriverRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\UpdateUserRequest.php"
+    ],
+    "The Password field is required.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverRequest.php"
+    ],
+    "The Password must be a string.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\UpdateDriverRequest.php"
+    ],
+    "The Password must be at least 8 characters.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\UpdateDriverRequest.php"
+    ],
+    "The Phone field is required.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreUserRequest.php"
+    ],
+    "The Role field is required.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreDriverRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreUserRequest.php"
+    ],
+    "The selected Rater is invalid.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreRatingRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\UpdateRatingRequest.php"
+    ],
+    "The selected Ratee is invalid.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreRatingRequest.php",
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\UpdateRatingRequest.php"
+    ],
+    "The Rate field is required.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreRatingRequest.php"
+    ],
+    "The Comment field is required.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreRatingRequest.php"
+    ],
+    "The Ratee Type field is required.": [
+        "D:\\XAMPP\\htdocs\\Sare3\\app\\Http\\Requests\\StoreRatingRequest.php"
+    ]
+}

@@ -22,6 +22,7 @@ class UserController extends Controller
             ->when($keyword, function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->where('name', 'LIKE', "%{$keyword}%")
+                    ->orWhere('email', 'LIKE', "%{$keyword}%")
                     ->orWhere('phone', 'LIKE', "%{$keyword}%");
                 });
             })

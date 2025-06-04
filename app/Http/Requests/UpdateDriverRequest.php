@@ -16,14 +16,14 @@ class UpdateDriverRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'nullable|string',
-            'email' => 'nullable|email|unique:users,email,' . $this->driver->id,
-            'phone' => 'nullable|unique:users,phone,' . $this->driver->id,
+            // 'name' => 'nullable|string',
+            // 'email' => 'nullable|email|unique:users,email,' . $this->driver->id,
+            // 'phone' => 'nullable|unique:users,phone,' . $this->driver->id,
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'password' => 'nullable|string|min:8',
             'activity' => 'nullable',
             'wallet' => 'nullable',
-            'role' => 'nullable'
+            // 'role' => 'nullable'
         ];
     }
 

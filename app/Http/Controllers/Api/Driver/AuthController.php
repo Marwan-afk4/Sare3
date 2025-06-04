@@ -56,6 +56,7 @@ class AuthController extends Controller
                 if ($user) {
                     $user->phone = $request->phone;
                     $user->role = 'driver';
+                    $user->activity = 'in_progress';
                     $user->save();
                 } else {
                     return response()->json([
@@ -98,6 +99,8 @@ class AuthController extends Controller
             $user->email_code = $code;
             $user->email_verified = 'unverified';
             $user->role = 'driver';
+            $user->activity = 'in_progress';
+            $user->email = $request->email;
             $user->save();
             Mail::to($request->email)->send(new EmailVerificationCode($code));
             return response()->json([
@@ -124,6 +127,7 @@ class AuthController extends Controller
             $user->email = $request->email;
             $user->email_code = null; // Clear the code after verification
             $user->role = 'driver';
+            $user->activity = 'in_progress';
             $user->save();
             return response()->json([
                 'message' => 'Email verified successfully'
@@ -179,6 +183,7 @@ class AuthController extends Controller
                 'role' => 'driver',
                 'email_code' => $code,
                 'email_verified' => 'unverified',
+                'activity' => 'in_progress'
             ]);
 
             Mail::to($excistUser->email)->send(new EmailVerificationCode($code));
@@ -198,6 +203,7 @@ class AuthController extends Controller
             'role' => 'driver',
             'email_code' => $code,
             'email_verified' => 'unverified',
+            'activity' => 'in_progress'
         ]);
 
         Mail::to($user->email)->send(new EmailVerificationCode($code));
@@ -227,7 +233,7 @@ class AuthController extends Controller
         $user->update([
             'email_verified' => 'verified',
             'email_code' => null,
-            'activity' => 'active',
+            'activity' => 'in_progress',
         ]);
 
         return response()->json(['message' => 'Email verified successfully']);
@@ -257,6 +263,7 @@ class AuthController extends Controller
                 'name' => $name,
                 'id_token' => $id_token,
                 'role' => 'driver',
+                'activity' => 'in_progress'
             ]);
 
             return response()->json([

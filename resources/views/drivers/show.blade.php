@@ -10,9 +10,9 @@
             <a wire:navigate href="{{ route('drivers.index') }}" class="btn btn-secondary btn-sm me-1">
                 <i class="fa fa-arrow-right"></i> {{ __('Back to') }} {{ __('Drivers') }}
             </a>
-            <a wire:navigate href='{{ route('drivers.edit', $driver) }}' class="btn btn-warning btn-sm me-1">
+            {{-- <a wire:navigate href='{{ route('drivers.edit', $driver) }}' class="btn btn-warning btn-sm me-1">
                 {{ __('Edit') }} <i class="fa fa-edit"></i>
-            </a>
+            </a> --}}
         </div>
 
         <div class="card">
@@ -44,7 +44,6 @@
                                 </span>
                             </li>
                             <li class="list-group-item"><strong>{{ __('Wallet') }}:</strong> {{ $driver->wallet }}</li>
-                            <li class="list-group-item"><strong>{{ __('Role') }}:</strong> {{ $driver->role }}</li>
                             <li class="list-group-item"><strong>{{ __('Created At') }}:</strong>
                                 {{ $driver->created_at?->diffForHumans() }}</li>
                             <li class="list-group-item"><strong>{{ __('Updated At') }}:</strong>
@@ -53,17 +52,9 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="mt-3">
-            {{-- Optional Delete Form --}}
-            {{--
-		<form method='POST' action='{{ route('users.destroy', $user) }}' onsubmit='return confirm("Are you sure?")'>
-			@csrf
-			@method('DELETE')
-			<button type='submit' class="btn btn-danger">{{ __('Delete') }}</button>
-		</form>
-		--}}
+            <div class="card-footer">
+                <a wire:navigate href='{{ route('drivers.edit', $driver) }}' class="btn btn-subtle-warning btn-sm me-1">{{ __("Edit") }} <i class="fa fa-edit"></i></a>
+            </div>
         </div>
     </div>
 @endsection

@@ -92,6 +92,7 @@ class AuthController extends Controller
             $user->email_code = $code;
             $user->email_verified = 'unverified';
             $user->role = 'user';
+            $user->email = $request->email;
             $user->save();
             Mail::to($request->email)->send(new EmailVerificationCode($code));
             return response()->json([
