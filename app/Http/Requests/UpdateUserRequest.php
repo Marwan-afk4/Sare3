@@ -15,12 +15,12 @@ class UpdateUserRequest extends FormRequest
     public function rules()
     {
         return [
-            'email' => 'nullable|email|unique:users,email,' . $this->user->id,
-            'phone' => 'nullable|unique:users,phone,' . $this->user->id,
-            'image' => 'nullable',
+            // 'email' => 'nullable|email|unique:users,email,' . $this->user->id,
+            // 'phone' => 'nullable|unique:users,phone,' . $this->user->id,
+            // 'image' => 'nullable',
             'activity' => 'nullable',
-            'wallet' => 'nullable',
-            'role' => 'nullable'
+            // 'wallet' => 'nullable',
+            // 'role' => 'nullable'
         ];
     }
 
