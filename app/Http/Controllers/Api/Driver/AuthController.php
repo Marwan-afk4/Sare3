@@ -121,7 +121,7 @@ class AuthController extends Controller
                 'message' => $validation->errors()->first()
             ], 401);
         }
-        $user = User::where('phone', $request->phone)->first();
+        $user = User::where('email', $request->email)->first();
         if ($user->email_code == $request->code) {
             $user->email_verified = 'verified';
             $user->email = $request->email;
