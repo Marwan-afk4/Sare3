@@ -43,9 +43,9 @@
 @endsection
 
 @push('scripts')
-<!-- Feather Icons -->
+<!-- Feather Icons (no defer) -->
 <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-<!-- ECharts -->
+<!-- ECharts (no defer) -->
 <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
 
 @php
@@ -54,68 +54,85 @@
 @endphp
 
 <script>
-    feather.replace();
+    function initHomePageScripts() {
+        feather.replace();
 
-    const renderLineChart = (selector, seriesName, seriesData) => {
-        const months = [
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
-        ];
+        const renderLineChart = (selector, seriesName, seriesData) => {
+            const months = [
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
 
-        const el = document.querySelector(selector);
-        if (!el) return;
+            const el = document.querySelector(selector);
+            if (!el) return;
 
-        const chart = echarts.init(el);
+            if (echarts.getInstanceByDom(el)) {
+                echarts.getInstanceByDom(el).dispose();
+            }
 
-        chart.setOption({
-            tooltip: {
-                trigger: 'axis',
-                formatter: function (params) {
-                    return `
-                        <div>
-                            <h6 class="fs-9 text-body-tertiary mb-0">
-                                <span class="fas fa-circle me-1" style='color:${params[0].color}'></span>
-                                ${params[0].seriesName} : ${params[0].value}
-                            </h6>
-                        </div>
-                    `;
-                }
-            },
-            xAxis: {
-                type: 'category',
-                data: months,
-                axisLabel: {
-                    formatter: value => value.substring(0, 3)
-                }
-            },
-            yAxis: {
-                type: 'value',
-                min: 0
-            },
-            series: [{
-                name: seriesName,
-                type: 'line',
-                data: seriesData,
-                smooth: true,
-                symbol: 'circle',
-                symbolSize: 8,
-                lineStyle: {
-                    width: 3
+            const chart = echarts.init(el);
+
+            chart.setOption({
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: function (params) {
+                        return `
+                            <div>
+                                <h6 class="fs-9 text-body-tertiary mb-0">
+                                    <span class="fas fa-circle me-1" style='color:${params[0].color}'></span>
+                                    ${params[0].seriesName} : ${params[0].value}
+                                </h6>
+                            </div>
+                        `;
+                    }
                 },
-                itemStyle: {
-                    borderWidth: 2
-                }
-            }]
-        });
-    };
+                xAxis: {
+                    type: 'category',
+                    data: months,
+                    axisLabel: {
+                        formatter: value => value.substring(0, 3)
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    min: 0
+                },
+                series: [{
+                    name: seriesName,
+                    type: 'line',
+                    data: seriesData,
+                    smooth: true,
+                    symbol: 'circle',
+                    symbolSize: 8,
+                    lineStyle: {
+                        width: 3
+                    },
+                    itemStyle: {
+                        borderWidth: 2
+                    }
+                }]
+            });
+        };
 
-    document.addEventListener('DOMContentLoaded', () => {
         const userMonthlyCounts = @json($safeUserCounts);
         const driverMonthlyCounts = @json($safeDriverCounts);
 
-        renderLineChart('.echarts-new-users', 'Users', userMonthlyCounts);
-        renderLineChart('.echarts-new-drivers', 'Drivers', driverMonthlyCounts);
-    });
-</script>
+        setTimeout(() => {
+            renderLineChart('.echarts-new-users', 'Users', userMonthlyCounts);
+            renderLineChart('.echarts-new-drivers', 'Drivers', driverMonthlyCounts);
+        }, 100);
+    }
 
+   // Safe call even after page load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initHomePageScripts);
+    } else {
+        initHomePageScripts();
+    }
+
+    document.addEventListener('turbo:load', initHomePageScripts);
+    document.addEventListener('livewire:load', initHomePageScripts);
+
+</script>
 @endpush
+
