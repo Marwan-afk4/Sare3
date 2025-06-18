@@ -23,63 +23,88 @@ class AuthController extends Controller
     public function postOtp(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            'phone' => 'required|string|unique:users,phone'
+            'phone' => 'required|string'
         ]);
+
         if ($validation->fails()) {
             return response()->json([
                 'message' => $validation->errors()->first()
             ], 200);
         }
         $this->sendOtp($request->phone);
+
+        $exists = User::where('phone', $request->phone)->exists();
+
         return response()->json([
-            'message' => 'OTP sent successfully'
+            'message' => $exists ? 'Otp sent for login' : 'Otp sent for signup'
         ]);
     }
 
     public function CheckOtp(Request $request)
     {
-        $request->validate([
+        $validation = Validator::make($request->all(), [
             'phone' => 'required|string',
             'code' => 'required|string',
             'email' => 'nullable|email|exists:users,email'
         ]);
 
-        $verification = $this->verifyOtp($request->phone, $request->code);
-
-        if ($verification->status === 'approved') {
-
-            $user = null;
-
-            if ($request->filled('email')) {
-                $user = User::where('email', $request->email)->first();
-
-                if ($user) {
-                    $user->phone = $request->phone;
-                    $user->role = 'driver';
-                    $user->activity = 'in_progress';
-                    $user->save();
-                } else {
-                    return response()->json([
-                        'message' => 'Email not found'
-                    ], 404);
-                }
-            }
-
-            if (!$user) {
-                $user = User::firstOrCreate(['phone' => $request->phone,'role'=>'driver']);
-            }
-
-            $token = $user->createToken('auth_token')->plainTextToken;
-
+        if ($validation->fails()) {
             return response()->json([
-                'message' => 'OTP verified successfully',
-                'token' => $token
-            ]);
+                'message' => $validation->errors()->first()
+            ], 422);
         }
 
+        // Step 1: Verify OTP
+        $verification = $this->verifyOtp($request->phone, $request->code);
+
+        if ($verification->status !== 'approved') {
+            return response()->json([
+                'message' => 'OTP verification failed, try again'
+            ], 422);
+        }
+
+        $user = null;
+
+        // Step 2: Handle case when email is provided (user started with email first)
+        if ($request->filled('email')) {
+            $user = User::where('email', $request->email)->first();
+
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Email not found'
+                ], 404);
+            }
+
+            // If phone is already used by another user (avoid duplicate phone numbers)
+            $phoneUsedByAnother = User::where('phone', $request->phone)
+                                    ->where('id', '!=', $user->id)
+                                    ->exists();
+
+            if ($phoneUsedByAnother) {
+                return response()->json([
+                    'message' => 'Phone number already used by another account'
+                ], 409);
+            }
+
+            // Attach phone to existing email user
+            $user->phone = $request->phone;
+            $user->role = 'driver';
+            $user->activity = 'in_progress';
+            $user->save();
+        }
+
+        // Step 3: If email is not provided, login/register using phone
+        if (!$user) {
+            $user = User::firstOrCreate(['phone' => $request->phone, 'role' => 'driver', 'activity' => 'in_progress']);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
-            'message' => 'OTP verification failed, try again'
-        ], 200);
+            'message' => 'OTP verified successfully',
+            'token' => $token,
+            'user' => $user
+        ]);
     }
 
     public function sendEmailVerificationCode(Request $request)
@@ -153,6 +178,7 @@ class AuthController extends Controller
         if ($user) {
             $user->name = $request->name;
             $user->role = 'driver';
+            $user->activity = 'in_progress';
             $user->save();
             return response()->json([
                 'message' => 'Name updated successfully'
@@ -166,38 +192,49 @@ class AuthController extends Controller
     public function emailVerficationFirst(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            'email' => 'nullable|email|unique:users,email'
+            'email' => 'required|email'
         ]);
+
         if ($validation->fails()) {
             return response()->json([
                 'message' => $validation->errors()->first()
             ], 401);
         }
-        $excistUser = User::where('email', $request->email)->first();
+
+        $existingUser = User::where('email', $request->email)->first();
         $code = rand(100000, 999999);
 
-        if ($excistUser) {
-        if ($excistUser->email_verified == 'unverified') {
-            $excistUser->update([
-                'email' => $request->email,
-                'role' => 'driver',
-                'email_code' => $code,
-                'email_verified' => 'unverified',
-                'activity' => 'in_progress'
-            ]);
+        if ($existingUser) {
+            if ($existingUser->email_verified == 'unverified') {
+                // Resend verification code
+                $existingUser->update([
+                    'email_code' => $code,
+                    'email_verified' => 'unverified',
+                    'activity' => 'in_progress',
+                    'role' => 'driver'
+                ]);
 
-            Mail::to($excistUser->email)->send(new EmailVerificationCode($code));
+                Mail::to($existingUser->email)->send(new EmailVerificationCode($code));
 
-            return response()->json([
-                'message' => 'Go and check your email to verify your account , the code will expire after 5 min',
-            ]);
-        } elseif($excistUser->email_verified == 'verified') {
-            return response()->json([
-                'message' => 'This email is already registered',
-            ], 401);
+                return response()->json([
+                    'message' => 'Verification code resent. Please check your email.',
+                ]);
+            } else {
+                // Email already verified, proceed to login or notify
+                Mail::to($existingUser->email)->send(new EmailVerificationCode($code));
+                $existingUser->update([
+                    'email_code' => $code,
+                    'email_verified' => 'unverified',
+                    'activity' => 'in_progress',
+                    'role' => 'driver'
+                ]);
+                return response()->json([
+                    'message' => "Email already verified. You can login but we will send to verify it's you",
+                ]);
+            }
         }
-    }
 
+        // Email doesn't exist, create new user and send verification
         $user = User::create([
             'email' => $request->email,
             'role' => 'driver',
@@ -209,7 +246,7 @@ class AuthController extends Controller
         Mail::to($user->email)->send(new EmailVerificationCode($code));
 
         return response()->json([
-            'message' => 'Go and check your email to verify your account , the code will expire after 5 min',
+            'message' => 'Verification code sent. Please check your email.',
         ]);
     }
 
@@ -234,9 +271,24 @@ class AuthController extends Controller
             'email_verified' => 'verified',
             'email_code' => null,
             'activity' => 'in_progress',
+            'role' => 'driver'
         ]);
 
-        return response()->json(['message' => 'Email verified successfully']);
+        // Check if user has phone number to generate token (means login)
+        if ($user->phone) {
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'message' => 'Email verified successfully you can login now',
+                'token' => $token,
+            ]);
+        }
+
+        // No phone number yet, so just return verification success without token
+        return response()->json([
+            'message' => 'Email verified successfully, please verify your phone number to complete login.',
+            'user' => $user,
+        ]);
     }
 
     public function googleAuth(Request $request)
