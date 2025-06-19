@@ -22,7 +22,7 @@ class DriverDocument extends Model
 
     public function driver()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,'driver_id');
     }
 
     public function documentType()

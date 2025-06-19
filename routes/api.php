@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
+use App\Http\Controllers\Api\Driver\DriverActivtyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 //======= USER AUTH ========
@@ -22,6 +23,9 @@ Route::post('/verify-email', [AuthController::class, 'verifyEmailFirst']);
 
 //google auth
 Route::post('/google-auth', [AuthController::class, 'googleAuth']);
+
+//login
+Route::post('/login', [AuthController::class, 'login']);
 
 
 
@@ -47,3 +51,13 @@ Route::post('/driver/google-auth', [DriverAuthController::class, 'googleAuth']);
 //required docs
 Route::get('/driver/required-docs', [DriverAuthController::class, 'requiredDocs']);
 Route::post('/driver/store-docs', [DriverAuthController::class, 'storeDriverDocs']);
+
+//login
+Route::post('/driver/login', [DriverAuthController::class, 'login']);
+
+
+//======= DRIVER ACTIVITY ========
+Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(function () {
+
+    Route::get('/driver-activity',[DriverActivtyController::class,'getDriverActivity']);
+});
