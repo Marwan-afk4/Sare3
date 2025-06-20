@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
 use App\Http\Controllers\Api\Driver\DriverActivtyController;
+use App\Http\Controllers\Api\Driver\PointController as DriverPointController;
+use App\Http\Controllers\Api\User\PointController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 //======= USER AUTH ========
@@ -56,8 +58,21 @@ Route::post('/driver/store-docs', [DriverAuthController::class, 'storeDriverDocs
 Route::post('/driver/login', [DriverAuthController::class, 'login']);
 
 
-//======= DRIVER ACTIVITY ========
+//======= DRIVER ========
 Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(function () {
 
+//driver status
     Route::get('/driver-activity',[DriverActivtyController::class,'getDriverActivity']);
+
+//driver location
+    Route::post('/driver/update-location', [DriverPointController::class, 'updatePointDriverLocation']);
 });
+
+
+//======= USER ========
+Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function () {
+
+    Route::post('/point/pickup', [PointController::class, 'storePointPickup']);
+    Route::post('/point/drop', [PointController::class, 'storePointDrop']);
+});
+

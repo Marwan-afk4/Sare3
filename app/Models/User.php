@@ -61,4 +61,9 @@ class User extends Authenticatable
         return $this->hasMany(DriverDocument::class, 'driver_id');
     }
 
+    public function points()
+    {
+        return $this->hasMany(Point::class, 'user_id');
+    }
+
 }
