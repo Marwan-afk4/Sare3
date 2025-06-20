@@ -12,50 +12,36 @@ class PointController extends Controller
 {
 
 
-    public function storePointPickup(Request $request)
+    public function storePointPickupandDrop(Request $request)
     {
         $user = $request->user();
         $validation = Validator::make($request->all(), [
-            'longitude' => 'required|numeric',
-            'latitude' => 'required|numeric',
+            'longitude_pickup' => 'required|numeric',
+            'latitude_pickup' => 'required|numeric',
+            'longitude_drop' => 'required|numeric',
+            'latitude_drop' => 'required|numeric'
         ]);
         if ($validation->fails()) {
             return response()->json(['message' => $validation->errors()->first()], 422);}
 
-            $point = Point::create([
+            $pointPickUp = Point::create([
                 'user_id' => $user->id,
-                'longitude' => $request->longitude,
-                'latitude' => $request->latitude,
+                'longitude' => $request->longitude_pickup,
+                'latitude' => $request->latitude_pickup,
                 'point_type' =>'pickup',
+            ]);
+
+            $pointDrop = Point::create([
+                'user_id' => $user->id,
+                'longitude' => $request->longitude_drop,
+                'latitude' => $request->latitude_drop,
+                'point_type' =>'dropoff',
             ]);
 
             return response()->json([
                 'message' => 'Pickup point created successfully',
-                'point' => $point,
+                'point_pickup' => $pointPickUp,
+                'point_drop' => $pointDrop,
             ], 200);
-    }
-
-    public function storePointDrop(Request $request)
-    {
-        $user = $request->user();
-        $validation = Validator::make($request->all(), [
-            'longitude' => 'required|numeric',
-            'latitude' => 'required|numeric',
-        ]);
-        if ($validation->fails()) {
-            return response()->json(['message' => $validation->errors()->first()], 422);
-        }
-
-        $point = Point::create([
-            'user_id' => $user->id,
-            'longitude' => $request->longitude,
-            'latitude' => $request->latitude,
-            'point_type' =>'dropoff',
-        ]);
-
-        return response()->json([
-            'message' => 'Drop point created successfully',
-            'point' => $point,
-        ], 200);
     }
 }

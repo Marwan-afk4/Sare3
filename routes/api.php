@@ -72,7 +72,6 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 //======= USER ========
 Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function () {
 
-    Route::post('/point/pickup', [PointController::class, 'storePointPickup']);
-    Route::post('/point/drop', [PointController::class, 'storePointDrop']);
+    Route::post('/point/pickup-drop', [PointController::class, 'storePointPickupandDrop']);
 });
 
