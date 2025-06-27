@@ -66,4 +66,9 @@ class User extends Authenticatable
         return $this->hasMany(Point::class, 'user_id');
     }
 
+    public function rideEstimate()
+    {
+        return $this->hasMany(RideEstimate::class);
+    }
+
 }
