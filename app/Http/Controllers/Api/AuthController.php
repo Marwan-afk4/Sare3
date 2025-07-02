@@ -104,7 +104,8 @@ class AuthController extends Controller
     {
         $validation = Validator::make($request->all(), [
             'phone' => 'required|string',
-            'id_token'=>'required|string'
+            'id_token'=>'required|string',
+            'email' => 'nullable|email'
         ]);
 
         if ($validation->fails()) {
@@ -113,14 +114,52 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $user = User::create([
-            'phone'=> $request->phone,
-            'id_token'=>$request->id_token,
-            'role' => 'user',
-        ]);
+        $user = null;
+
+        if ($request->filled('email')) {
+            $user = User::where('email', $request->email)->first();
+
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Email not found'
+                ], 404);
+            }
+
+            // If phone is already used by another user (avoid duplicate phone numbers)
+            $phoneUsedByAnother = User::where('phone', $request->phone)
+                                    ->where('id', '!=', $user->id)
+                                    ->exists();
+
+            if ($phoneUsedByAnother) {
+                return response()->json([
+                    'message' => 'Phone number already used by another account'
+                ], 409);
+            }
+
+            // Attach phone to existing email user
+            $user->phone = $request->phone;
+            $user->id_token = $request->id_token;
+            $user->save();
+        }
+
+        // Step 3: If email is not provided, login/register using phone
+        if (!$user) {
+            $user = User::firstOrCreate(['phone' => $request->phone,'id_token'=>$request->id_token]);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+
+
+        // $user = User::create([
+        //     'phone'=> $request->phone,
+        //     'id_token'=>$request->id_token,
+        //     'role' => 'user',
+        // ]);
 
         return response()->json([
             'message' => 'Phone number verified successfully',
+            'token'=> $token,
         ]);
     }
 
