@@ -35,8 +35,9 @@ Route::post('/login', [AuthController::class, 'login']);
 
 //======= DRIVER AUTH ========
 //phone otp
-Route::post('/driver/send-otp', [DriverAuthController::class, 'postOtp']);
-Route::post('/driver/check-otp', [DriverAuthController::class, 'CheckOtp']);
+// Route::post('/driver/send-otp', [DriverAuthController::class, 'postOtp']);
+// Route::post('/driver/check-otp', [DriverAuthController::class, 'CheckOtp']);
+Route::post('/driver/phone-otp', [AuthController::class,'phoneVerified']);
 
 //email otp
 Route::post('/driver/send-email-otp', [DriverAuthController::class, 'sendEmailVerificationCode']);
