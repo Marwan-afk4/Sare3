@@ -15,88 +15,112 @@ class AuthController extends Controller
 {
     use twilio;
 
-    public function postOtp(Request $request)
-    {
-        $validation = Validator::make($request->all(), [
-            'phone' => 'required|string'
-        ]);
+    // public function postOtp(Request $request)
+    // {
+    //     $validation = Validator::make($request->all(), [
+    //         'phone' => 'required|string'
+    //     ]);
 
-        if ($validation->fails()) {
-            return response()->json([
-                'message' => $validation->errors()->first()
-            ], 200);
-        }
-        $this->sendOtp($request->phone);
+    //     if ($validation->fails()) {
+    //         return response()->json([
+    //             'message' => $validation->errors()->first()
+    //         ], 200);
+    //     }
+    //     $this->sendOtp($request->phone);
 
-        $exists = User::where('phone', $request->phone)->exists();
+    //     $exists = User::where('phone', $request->phone)->exists();
 
-        return response()->json([
-            'message' => $exists ? 'Otp sent for login' : 'Otp sent for signup'
-        ]);
-    }
+    //     return response()->json([
+    //         'message' => $exists ? 'Otp sent for login' : 'Otp sent for signup'
+    //     ]);
+    // }
 
-    public function CheckOtp(Request $request)
+    // public function CheckOtp(Request $request)
+    // {
+    //     $validation = Validator::make($request->all(), [
+    //         'phone' => 'required|string',
+    //         'code' => 'required|string',
+    //         'email' => 'nullable|email|exists:users,email'
+    //     ]);
+
+    //     if ($validation->fails()) {
+    //         return response()->json([
+    //             'message' => $validation->errors()->first()
+    //         ], 422);
+    //     }
+
+    //     // Step 1: Verify OTP
+    //     $verification = $this->verifyOtp($request->phone, $request->code);
+
+    //     if ($verification->status !== 'approved') {
+    //         return response()->json([
+    //             'message' => 'OTP verification failed, try again'
+    //         ], 422);
+    //     }
+
+    //     $user = null;
+
+    //     // Step 2: Handle case when email is provided (user started with email first)
+    //     if ($request->filled('email')) {
+    //         $user = User::where('email', $request->email)->first();
+
+    //         if (!$user) {
+    //             return response()->json([
+    //                 'message' => 'Email not found'
+    //             ], 404);
+    //         }
+
+    //         // If phone is already used by another user (avoid duplicate phone numbers)
+    //         $phoneUsedByAnother = User::where('phone', $request->phone)
+    //                                 ->where('id', '!=', $user->id)
+    //                                 ->exists();
+
+    //         if ($phoneUsedByAnother) {
+    //             return response()->json([
+    //                 'message' => 'Phone number already used by another account'
+    //             ], 409);
+    //         }
+
+    //         // Attach phone to existing email user
+    //         $user->phone = $request->phone;
+    //         $user->save();
+    //     }
+
+    //     // Step 3: If email is not provided, login/register using phone
+    //     if (!$user) {
+    //         $user = User::firstOrCreate(['phone' => $request->phone]);
+    //     }
+
+    //     $token = $user->createToken('auth_token')->plainTextToken;
+
+    //     return response()->json([
+    //         'message' => 'OTP verified successfully',
+    //         'token' => $token,
+    //         'user' => $user
+    //     ]);
+    // }
+
+    public function phoneVerified(Request $request)
     {
         $validation = Validator::make($request->all(), [
             'phone' => 'required|string',
-            'code' => 'required|string',
-            'email' => 'nullable|email|exists:users,email'
+            'id_token'=>'required|string'
         ]);
 
         if ($validation->fails()) {
             return response()->json([
                 'message' => $validation->errors()->first()
-            ], 422);
+            ], 401);
         }
 
-        // Step 1: Verify OTP
-        $verification = $this->verifyOtp($request->phone, $request->code);
-
-        if ($verification->status !== 'approved') {
-            return response()->json([
-                'message' => 'OTP verification failed, try again'
-            ], 422);
-        }
-
-        $user = null;
-
-        // Step 2: Handle case when email is provided (user started with email first)
-        if ($request->filled('email')) {
-            $user = User::where('email', $request->email)->first();
-
-            if (!$user) {
-                return response()->json([
-                    'message' => 'Email not found'
-                ], 404);
-            }
-
-            // If phone is already used by another user (avoid duplicate phone numbers)
-            $phoneUsedByAnother = User::where('phone', $request->phone)
-                                    ->where('id', '!=', $user->id)
-                                    ->exists();
-
-            if ($phoneUsedByAnother) {
-                return response()->json([
-                    'message' => 'Phone number already used by another account'
-                ], 409);
-            }
-
-            // Attach phone to existing email user
-            $user->phone = $request->phone;
-            $user->save();
-        }
-
-        // Step 3: If email is not provided, login/register using phone
-        if (!$user) {
-            $user = User::firstOrCreate(['phone' => $request->phone]);
-        }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $user = User::create([
+            'phone'=> $request->phone,
+            'id_token'=>$request->id_token,
+            'role' => 'user',
+        ]);
 
         return response()->json([
-            'message' => 'OTP verified successfully',
-            'token' => $token,
-            'user' => $user
+            'message' => 'Phone number verified successfully',
         ]);
     }
 

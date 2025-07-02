@@ -10,8 +10,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 //======= USER AUTH ========
 //phone otp
-Route::post('/send-otp', [AuthController::class, 'postOtp']);
-Route::post('/check-otp', [AuthController::class, 'checkOtp']);
+// Route::post('/send-otp', [AuthController::class, 'postOtp']);
+// Route::post('/check-otp', [AuthController::class, 'checkOtp']);
+Route::post('/phone-otp', [AuthController::class, 'phoneVerified']);
 
 //email otp
 Route::post('/send-email-otp', [AuthController::class, 'sendEmailVerificationCode']);
