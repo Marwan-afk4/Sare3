@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
 use App\Http\Controllers\Api\Driver\DriverActivtyController;
 use App\Http\Controllers\Api\Driver\PointController as DriverPointController;
+use App\Http\Controllers\Api\User\LoggedUserController;
 use App\Http\Controllers\Api\User\PointController;
 use App\Http\Controllers\Api\User\RideEstimateController;
 use Illuminate\Http\Request;
@@ -81,5 +82,7 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
     Route::post('/ride-estimate', [RideEstimateController::class, 'estimateForAllCategories']);
     Route::post('/ride-estimate/store', [RideEstimateController::class,'storeEstimate']);
 
+//LoggedUser
+    Route::get('/logged-user', [LoggedUserController::class, 'getLoggedUser']);
 });
 
