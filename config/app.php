@@ -1,5 +1,7 @@
 <?php
 
+use Paytabscom\Laravel_paytabs\PaypageServiceProvider;
+
 return [
 
     /*
@@ -14,6 +16,37 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
+
+
+
+//     'providers' => [
+
+//     // Laravel default service providers
+//     Illuminate\Auth\AuthServiceProvider::class,
+//     Illuminate\Broadcasting\BroadcastServiceProvider::class,
+//     Illuminate\Bus\BusServiceProvider::class,
+//     Illuminate\Cache\CacheServiceProvider::class,
+//     Illuminate\Foundation\Providers\ConsoleSupportServiceProvider::class,
+//     Illuminate\Hashing\HashServiceProvider::class,
+//     Illuminate\Mail\MailServiceProvider::class,
+//     Illuminate\Pagination\PaginationServiceProvider::class,
+//     Illuminate\Pipeline\PipelineServiceProvider::class,
+//     Illuminate\Queue\QueueServiceProvider::class,
+//     Illuminate\Session\SessionServiceProvider::class,
+//     Illuminate\Validation\ValidationServiceProvider::class,
+//     Illuminate\View\ViewServiceProvider::class, // ✅ This line is crucial
+//     Illuminate\Foundation\Providers\FoundationServiceProvider::class,
+//     Illuminate\Encryption\EncryptionServiceProvider::class,
+
+
+//     // Package Service Providers
+//     Paytabscom\Laravel_paytabs\PaypageServiceProvider::class,
+
+//     // App Providers
+//     App\Providers\AppServiceProvider::class,
+//     Illuminate\Filesystem\FilesystemServiceProvider::class,
+//     Illuminate\Database\DatabaseServiceProvider::class,
+// ],
 
     /*
     |--------------------------------------------------------------------------

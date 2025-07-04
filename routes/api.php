@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
 use App\Http\Controllers\Api\Driver\DriverActivtyController;
 use App\Http\Controllers\Api\Driver\PointController as DriverPointController;
+use App\Http\Controllers\Api\Paytabs\PaymentController;
 use App\Http\Controllers\Api\User\LoggedUserController;
 use App\Http\Controllers\Api\User\PointController;
 use App\Http\Controllers\Api\User\RideEstimateController;
@@ -84,5 +85,9 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 
 //LoggedUser
     Route::get('/logged-user', [LoggedUserController::class, 'getLoggedUser']);
+
+//Payments
+    Route::post('/paytabs/card/save',   [PaymentController::class, 'storeTokenizedCard']);
+    Route::post('/paytabs/card/charge', [PaymentController::class, 'chargeSavedCard']);
 });
 
