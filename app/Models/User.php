@@ -36,6 +36,8 @@ class User extends Authenticatable
         'email_code',
         'email_verified',
         'id_token',
+        'status',
+        'rejected_reason',
     ];
 
     protected $casts = [

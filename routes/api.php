@@ -71,6 +71,9 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 
 //driver location
     Route::post('/driver/update-location', [DriverPointController::class, 'updatePointDriverLocation']);
+
+//driver status
+    Route::get('/driver-status', [DriverActivtyController::class, 'getDriverStatus']);
 });
 
 

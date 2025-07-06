@@ -17,6 +17,7 @@ class DriverActivtyController extends Controller
         $driver = $request->user();
 
         $data = [
+            'id' => $driver->id,
             'name' => $driver->name,
             'email' => $driver->email,
             'phone' => $driver->phone,
@@ -24,5 +25,21 @@ class DriverActivtyController extends Controller
         ];
 
         return response()->json(['driver' => $data]);
+    }
+
+
+    public function getDriverStatus(Request $request)
+    {
+        $driver = $request->user();
+
+        $data =[
+            'id'=> $driver->id,
+            'name'=> $driver->name,
+            'email'=> $driver->email,
+            'phone'=> $driver->phone,
+            'status'=> $driver->status,
+        ];
+
+        return response()->json(['driver'=> $data]);
     }
 }
