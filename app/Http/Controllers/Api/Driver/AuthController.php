@@ -407,6 +407,7 @@ class AuthController extends Controller
             'phone' => 'required|string|exists:users,phone',
             'documents' => 'required|array',
             'documents.*' => 'required',
+            'documents.selfie_image' => 'required',
         ]);
 
         if ($validation->fails()) {
@@ -443,6 +444,10 @@ class AuthController extends Controller
                 'image_path' => $path,
             ]);
         }
+
+        $selfiePath = $this->storeBase64Image($documents['selfie_image'], 'driver/selfies');
+        $driver->update(['image' => $selfiePath]);
+
 
         return response()->json([
             'message' => 'Documents uploaded successfully'
