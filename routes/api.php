@@ -3,10 +3,12 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
 use App\Http\Controllers\Api\Driver\DriverActivtyController;
+use App\Http\Controllers\Api\Driver\DriverProfileController;
 use App\Http\Controllers\Api\Driver\PointController as DriverPointController;
 use App\Http\Controllers\Api\Paytabs\PaymentController;
 use App\Http\Controllers\Api\User\LoggedUserController;
 use App\Http\Controllers\Api\User\PointController;
+use App\Http\Controllers\Api\User\ProfileController;
 use App\Http\Controllers\Api\User\RideEstimateController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -74,6 +76,10 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 
 //driver status
     Route::get('/driver-status', [DriverActivtyController::class, 'getDriverStatus']);
+
+//Profile
+    Route::get('/get-profile', [DriverProfileController::class, 'getProfileData']);
+    Route::put('/update-profile', [DriverProfileController::class, 'updateDriverProfile']);
 });
 
 
@@ -92,5 +98,9 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 //Payments
     Route::post('/paytabs/card/save',   [PaymentController::class, 'storeTokenizedCard']);
     Route::post('/paytabs/card/charge', [PaymentController::class, 'chargeSavedCard']);
+
+//Profile
+    Route::get('/get-profile', [ProfileController::class, 'getProfileData']);
+    Route::put('/update-profile', [ProfileController::class, 'updateUserProfile']);
 });
 
