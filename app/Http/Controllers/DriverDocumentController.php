@@ -31,7 +31,7 @@ class DriverDocumentController extends Controller
     public function store(StoreDriverDocumentRequest $request)
     {
         DriverDocument::create($request->validated());
-        return redirect()->route('driver-documents.index')->with('success', 'Created successfully');
+        return redirect()->route('driver-documents.index')->with('success',  __('Created successfully'));
     }
 
     public function show(DriverDocument $driverDocument)

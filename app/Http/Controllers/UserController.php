@@ -40,7 +40,7 @@ class UserController extends Controller
         $request->setRole('user');
 
         User::create($request->validated());
-        return redirect()->route('users.index')->with('success', 'Created successfully');
+        return redirect()->route('users.index')->with('success',  __('Created successfully'));
     }
 
     public function show(User $user)

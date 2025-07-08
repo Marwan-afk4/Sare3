@@ -134,9 +134,9 @@
                                 <a href='{{ route('users.show', $user) }}'
                                     class="btn btn-subtle-primary btn-sm me-1">{{ __('Details') }} <i
                                         class="fa fa-eye"></i></a>
-                                <a href='{{ route('users.edit', $user) }}'
+                                {{-- <a href='{{ route('users.edit', $user) }}'
                                     class="btn btn-subtle-warning btn-sm me-1">{{ __('Edit') }} <i
-                                        class="fa fa-edit"></i></a>
+                                        class="fa fa-edit"></i></a> --}}
                                 {{-- <form method='POST' action='{{ route('users.destroy', $user) }}' onsubmit='return confirm("Are you sure you want to delete this item?")'>
 							<input type='hidden' name='_method' value='DELETE'>
 							<button type='submit' class="btn btn-square btn-danger">{{ __('Delete') }}</button>

@@ -64,7 +64,7 @@ class DriverController extends Controller
         $request->setRole('driver');
 
         User::create($request->validated());
-        return redirect()->route('drivers.index')->with('success', 'Created successfully');
+        return redirect()->route('drivers.index')->with('success',  __('Created successfully'));
     }
 
     public function show(User $driver)

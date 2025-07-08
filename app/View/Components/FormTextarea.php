@@ -23,7 +23,7 @@ class FormTextarea extends Component
         $this->label = $label;
         $this->value = $value;
         $this->required = $required;
-        $this->attrs = $attrs;        
+        $this->attrs = $attrs;
     }
 
     public function render()

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\{
     AuthController,
+    CarCategoryController,
     DocumentTypeController,
     DriverCarController,
     DriverDocumentController,
@@ -31,7 +32,8 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
             '/driver-documents' => DriverDocumentController::class,
             '/driver-cars' => DriverCarController::class,
             '/drivers' => DriverController::class,
-            '/document-types' => DocumentTypeController::class
+            '/document-types' => DocumentTypeController::class,
+            '/car-categories' => CarCategoryController::class,
         ]);
 
         Route::get('/drivers/{driver}/documents', [DriverController::class, 'documents'])->name('drivers.documents');

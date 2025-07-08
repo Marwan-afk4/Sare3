@@ -13,6 +13,10 @@ class FormSelect extends Component
     public ?string $selected;
     public bool $required;
 
+    public bool $disabled;
+    public ?array $attrs;
+
+
 
 
     public function __construct(
@@ -21,7 +25,9 @@ class FormSelect extends Component
         array $options = [],
         array $disabledOptions = [],
         $selected = null,
-        bool $required = false
+        bool $required = false,
+        bool $disabled = false,
+        ?array $attrs = array()
     ) {
         $this->name = $name;
         $this->label = $label;
@@ -29,6 +35,8 @@ class FormSelect extends Component
         $this->disabledOptions = $disabledOptions;
         $this->selected = $selected;
         $this->required = $required;
+        $this->disabled = $disabled;
+        $this->attrs = $attrs;
     }
 
     public function render()

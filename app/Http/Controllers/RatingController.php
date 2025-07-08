@@ -33,7 +33,7 @@ class RatingController extends Controller
     public function store(StoreRatingRequest $request)
     {
         Rating::create($request->validated());
-        return redirect()->route('ratings.index')->with('success', 'Created successfully');
+        return redirect()->route('ratings.index')->with('success',  __('Created successfully'));
     }
 
     public function show(Rating $rating)

@@ -20,7 +20,6 @@
 					type="text"
 					label="{{__('Name')}}"
 					:value="$documentType->name ?? ''"
-					disabled
 				/>
 				<x-form-select
 					name="is_required"

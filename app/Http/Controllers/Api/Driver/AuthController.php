@@ -405,9 +405,9 @@ class AuthController extends Controller
     {
         $validation = Validator::make($request->all(), [
             'phone' => 'required|string|exists:users,phone',
+            'selfie_image' => 'required|string',
             'documents' => 'required|array',
             'documents.*' => 'required',
-            'documents.selfie_image' => 'required',
         ]);
 
         if ($validation->fails()) {
@@ -445,7 +445,7 @@ class AuthController extends Controller
             ]);
         }
 
-        $selfiePath = $this->storeBase64Image($documents['selfie_image'], 'driver/selfies');
+        $selfiePath = $this->storeBase64Image($request->selfie_image, 'driver/selfies');
         $driver->update(['image' => $selfiePath]);
 
 

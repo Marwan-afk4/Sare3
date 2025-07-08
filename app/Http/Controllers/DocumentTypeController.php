@@ -28,7 +28,7 @@ class DocumentTypeController extends Controller
     public function store(StoreDocumentTypeRequest $request)
     {
         DocumentType::create($request->validated());
-        return redirect()->route('document-types.index')->with('success', 'Created successfully');
+        return redirect()->route('document-types.index')->with('success',  __('Created successfully'));
     }
 
     public function show(DocumentType $documentType)

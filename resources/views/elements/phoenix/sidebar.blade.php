@@ -42,14 +42,25 @@
                         </a>
                     </div>
                     <div class="nav-item-wrapper">
-                        <a wire:navigate class="nav-link label-1" {{ isset($currentPage) && $currentPage == 'document-types' ? 'active' : '' }} href="{{ route('document-types.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'document-types' ? 'active' : '' }}"
+                            wire:navigate
+                            href="{{ route('document-types.index') }}">
                             <div class="d-flex align-items-center">
-                                <span class="nav-link-icon">
-                                    <span data-feather="file-text"></span>
-                                </span>
-                                <span class="nav-link-text-wrapper">
-                                    <span class="nav-link-text">{{ __('Document Types') }}</span>
-                                </span>
+                                <span class="nav-link-icon"><span data-feather="list"></span></span>
+                                <span class="nav-link-text-wrapper"><span
+                                        class="nav-link-text">{{ __('Document Types') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+                    {{-- carCategories --}}
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'car-categories' ? 'active' : '' }}"
+                            wire:navigate
+                            href="{{ route('car-categories.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="layers"></span></span>
+                                <span class="nav-link-text-wrapper"><span
+                                        class="nav-link-text">{{ __('Car Categories') }}</span></span>
                             </div>
                         </a>
                     </div>

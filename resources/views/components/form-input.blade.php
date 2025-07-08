@@ -1,13 +1,13 @@
-<div class="form-floating mb-3 {{ ($required ?? false) ? 'required' : '' }}">
+<div class="{{ $divClass }} {{ $required ? 'required' : '' }}">
     <input
-        type="{{ $type ?? 'text' }}"
+        type="{{ $type }}"
         name="{{ $name }}"
+        value="{{ old($name, $value) }}"
         id="{{ $name }}"
         placeholder="{{ $label }}"
-        class="form-control @error($name) is-invalid @enderror"
-        value="{{ old($name, $value ?? '') }}"
-        {{ ($required ?? false) ? 'required' : '' }}
-        {{ ($disabled ?? false) ? 'disabled' : '' }}
+        class="{{ $class }} @error($name) is-invalid @enderror"
+        {{ $required ? 'required' : '' }}
+        {{ $disabled ? 'disabled' : '' }}
         @foreach($attrs ?? [] as $attribute => $v)
             @if(is_numeric($attribute))
                 {{ $v }}

@@ -10,9 +10,9 @@
             <a wire:navigate href="{{ route('users.index') }}" class="btn btn-secondary btn-sm me-1">
                 <i class="fa fa-arrow-right"></i> {{ __('Back to') }} {{ __('Users') }}
             </a>
-            <a wire:navigate href='{{ route('users.edit', $user) }}' class="btn btn-warning btn-sm me-1">
+            {{-- <a wire:navigate href='{{ route('users.edit', $user) }}' class="btn btn-warning btn-sm me-1">
                 {{ __('Edit') }} <i class="fa fa-edit"></i>
-            </a>
+            </a> --}}
         </div>
 
         <div class="card">

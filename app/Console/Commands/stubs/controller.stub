@@ -27,7 +27,7 @@ class {{model}}Controller extends Controller
     public function store(Store{{model}}Request $request)
     {
         {{model}}::create($request->validated());
-        return redirect()->route('{{kebabName}}.index')->with('success', 'Created successfully');
+        return redirect()->route('{{kebabName}}.index')->with('success',  __('Created successfully'));
     }
 
     public function show({{model}} ${{modelVariable}})

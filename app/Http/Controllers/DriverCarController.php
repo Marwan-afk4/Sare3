@@ -31,7 +31,7 @@ class DriverCarController extends Controller
     public function store(StoreDriverCarRequest $request)
     {
         DriverCar::create($request->validated());
-        return redirect()->route('driver-cars.index')->with('success', 'Created successfully');
+        return redirect()->route('driver-cars.index')->with('success',  __('Created successfully'));
     }
 
     public function show(DriverCar $driverCar)
