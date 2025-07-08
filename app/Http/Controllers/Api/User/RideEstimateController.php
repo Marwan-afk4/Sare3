@@ -41,6 +41,7 @@ class RideEstimateController extends Controller
                 'name' => $category->name,
                 'description' => $category->description,
                 'estimated_price' => round($price, 2),
+                'estimated_time' => $estimatedTime,
                 'icon_url' => $category->getIconUrlAttribute()
             ];
         });
