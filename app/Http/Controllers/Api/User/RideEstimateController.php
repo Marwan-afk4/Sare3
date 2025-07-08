@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\CarCategory;
+use App\Models\Ride;
 use App\Models\RideEstimate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Kreait\Firebase\Factory;
 
 class RideEstimateController extends Controller
 {
@@ -53,7 +55,7 @@ class RideEstimateController extends Controller
     }
 
 
-    public function storeEstimate(Request $request)
+    public function storeRide(Request $request)
     {
         $user = $request->user();
         $validation = Validator::make($request->all(), [
@@ -86,9 +88,56 @@ class RideEstimateController extends Controller
             'calculated_price' => $price,
         ]);
 
+        $ride =Ride::create([
+            'user_id'=> $user->id,
+            'car_category_id'=> $request->car_category_id,
+            'pickup_lat' => $request->pickup_lat,
+            'pickup_lng' => $request->pickup_lng,
+            'dropoff_lat' => $request->dropoff_lat,
+            'dropoff_lng' => $request->dropoff_lng,
+            'status' => 'pending',
+            'estimated_km' => $request->estimated_km,
+            'estimated_time' => $request->estimated_time,
+            'calculated_initial_price' => $price,
+        ]);
+
+        $firebaseRideId = 'ride_' . $ride->id;
+
+        try{
+            $firebase = (new Factory)
+                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-c1bd05e41d.json'))
+                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                ->createDatabase();
+
+            $firebaseData =[
+                'ride_id' => $ride->id,
+                'user_id' => $ride->user_id,
+                'car_category_id' => $ride->car_category_id,
+                'pickup' => [
+                    'lat'=> $ride->pickup_lat,
+                    'lng'=> $ride->pickup_lng,
+                ],
+                'dropoff' => [
+                    'lat'=> $ride->dropoff_lat,
+                    'lng'=> $ride->dropoff_lng,
+                ],
+                'status' => $ride->status,
+                'created_at' => now()->toIso8601String(),
+            ];
+
+            $firebase->getReference("rides/$firebaseRideId")->set($firebaseData);
+
+            $ride->update([
+                'firebase_ride_id' => $firebaseRideId,
+            ]);
+        }
+        catch (\Exception $e) {
+            return response()->json(['message' => 'Ride created, but failed to sync with Firebase', 'error' => $e->getMessage()], 500);
+        }
+
         return response()->json([
-            'message'=> 'Success',
-            'date'=> $estimate,
+            'message' => 'Ride created successfully',
+            'data' => $ride,
         ]);
     }
 }

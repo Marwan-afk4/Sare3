@@ -90,7 +90,6 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 
 //Ride Estimate
     Route::post('/ride-estimate', [RideEstimateController::class, 'estimateForAllCategories']);
-    Route::post('/ride-estimate/store', [RideEstimateController::class,'storeEstimate']);
 
 //LoggedUser
     Route::get('/logged-user', [LoggedUserController::class, 'getLoggedUser']);
@@ -102,5 +101,8 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 //Profile
     Route::get('/get-profile', [ProfileController::class, 'getProfileData']);
     Route::put('/update-profile', [ProfileController::class, 'updateUserProfile']);
+
+//Ride
+    Route::post('/ride/store', [RideEstimateController::class,'storeRide']);
 });
 
