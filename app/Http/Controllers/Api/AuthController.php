@@ -131,8 +131,10 @@ class AuthController extends Controller
                                     ->exists();
 
             if ($phoneUsedByAnother) {
+                $token = $user->createToken('auth_token')->plainTextToken;
                 return response()->json([
-                    'message' => 'Phone number already used by another account'
+                    'message' => 'Phone number already used by another account',
+                    'token'=> $token
                 ], 409);
             }
 
