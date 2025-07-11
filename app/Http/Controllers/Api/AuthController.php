@@ -147,7 +147,7 @@ class AuthController extends Controller
             $existingUser = User::where('phone', $request->phone)->first();
 
             if ($existingUser) {
-                $token = $user->createToken('auth_token')->plainTextToken;
+                $token = $existingUser->createToken('auth_token')->plainTextToken;
                 return response()->json([
                     'message' => 'Phone number already used',
                     'token'=> $token
