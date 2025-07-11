@@ -73,4 +73,9 @@ class User extends Authenticatable
         return $this->hasMany(RideEstimate::class);
     }
 
+    public function driverCars()
+    {
+        return $this->hasMany(DriverCar::class,'driver_id');
+    }
+
 }

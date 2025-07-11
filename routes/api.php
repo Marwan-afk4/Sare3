@@ -103,6 +103,7 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
     Route::put('/update-profile', [ProfileController::class, 'updateUserProfile']);
 
 //Ride
-    Route::post('/ride/store', [RideEstimateController::class,'storeRide']);
+    Route::post('/ride/create', [RideEstimateController::class,'createRide']);
+    // Route::post('/ride/store', [RideEstimateController::class,'storeRide']);
 });
 
