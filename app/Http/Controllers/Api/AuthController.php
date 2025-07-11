@@ -131,10 +131,8 @@ class AuthController extends Controller
                                     ->exists();
 
             if ($phoneUsedByAnother) {
-                $token = $user->createToken('auth_token')->plainTextToken;
                 return response()->json([
-                    // 'message' => 'Phone number already used by another account',
-                    'token'=> $token
+                    'message' => 'Phone number already used by another account'
                 ], 409);
             }
 
@@ -149,8 +147,10 @@ class AuthController extends Controller
             $existingUser = User::where('phone', $request->phone)->first();
 
             if ($existingUser) {
+                $token = $user->createToken('auth_token')->plainTextToken;
                 return response()->json([
-                    'message' => 'Phone number already used'
+                    'message' => 'Phone number already used',
+                    'token'=> $token
                 ], 409);
             }
 
