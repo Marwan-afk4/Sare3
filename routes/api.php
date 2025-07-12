@@ -5,10 +5,13 @@ use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
 use App\Http\Controllers\Api\Driver\DriverActivtyController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
 use App\Http\Controllers\Api\Driver\PointController as DriverPointController;
+use App\Http\Controllers\Api\Driver\RaitingController as DriverRaitingController;
+use App\Http\Controllers\Api\Driver\RideActionsController;
 use App\Http\Controllers\Api\Paytabs\PaymentController;
 use App\Http\Controllers\Api\User\LoggedUserController;
 use App\Http\Controllers\Api\User\PointController;
 use App\Http\Controllers\Api\User\ProfileController;
+use App\Http\Controllers\Api\User\RaitingController;
 use App\Http\Controllers\Api\User\RideEstimateController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -80,6 +83,17 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 //Profile
     Route::get('/get-profile', [DriverProfileController::class, 'getProfileData']);
     Route::put('/update-profile', [DriverProfileController::class, 'updateDriverProfile']);
+
+//Ride Acrions
+    Route::post('/ride/accept', [RideActionsController::class, 'acceptRide']);
+    Route::post('/ride/cancel', [RideActionsController::class, 'cancelRide']);
+    Route::post('/ride/arrived', [RideActionsController::class, 'arrived']);
+    Route::post('/ride/start', [RideActionsController::class, 'startRide']);
+    Route::post('/ride/complete', [RideActionsController::class, 'completeRide']);
+
+//Raiting
+    Route::post('/ride/rating', [DriverRaitingController::class,'raiting']);
+
 });
 
 
@@ -105,5 +119,8 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 //Ride
     Route::post('/ride/create', [RideEstimateController::class,'createRide']);
     // Route::post('/ride/store', [RideEstimateController::class,'storeRide']);
+
+//Raiting
+    Route::post('/ride/rating', [RaitingController::class,'raiting']);
 });
 
