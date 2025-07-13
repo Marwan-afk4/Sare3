@@ -157,7 +157,7 @@ class AuthController extends Controller
             $user = User::create([
                 'phone' => $request->phone,
                 'id_token' => $request->id_token,
-                'role' => 'user',
+                'role' => 'driver',
             ]);
         }
 
