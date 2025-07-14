@@ -156,6 +156,8 @@ class RideEstimateController extends Controller
             'pickup_lng'=> 'required|numeric',
             'dropoff_lat' => 'required|numeric',
             'dropoff_lng'=> 'required|numeric',
+            'dropoff_address'=> 'nullable|string',
+            'pickup_address' => 'nullable|string'
         ]);
 
         if ($validation->fails()) {
@@ -192,6 +194,8 @@ class RideEstimateController extends Controller
             'estimated_km' => $request->estimated_km,
             'estimated_time' => $request->estimated_time,
             'calculated_initial_price' => $price,
+            'pickup_address' =>$request->pickup_address,
+            'dropoff_address' => $request->dropoff_address,
         ]);
 
         $firebaseRideId = 'ride_' . $ride->id;
@@ -210,11 +214,15 @@ class RideEstimateController extends Controller
                 'pickup' => [
                     'lat'=> $ride->pickup_lat,
                     'lng'=> $ride->pickup_lng,
+                    'address'=>$request->pickup_address,
                 ],
                 'dropoff' => [
                     'lat'=> $ride->dropoff_lat,
                     'lng'=> $ride->dropoff_lng,
+                    'address' => $request->dropoff_address,
                 ],
+                'estimated_time'=>$request->estimated_time,
+                'initial_price' => $price,
                 'status' => $ride->status,
                 'created_at' => now()->toIso8601String(),
             ];
