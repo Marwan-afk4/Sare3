@@ -208,7 +208,13 @@ class RideEstimateController extends Controller
 
             $firebaseData =[
                 'ride_id' => $ride->id,
-                'user_id' => $ride->user_id,
+                'user' => [
+                    'user_id'=>$user,
+                    'user_name' => $user->name,
+                    'user_phone'=> $user->phone,
+                    'user_email' => $user->email,
+                    'user_image'=> $user->image,
+                ],
                 'driver_id' => $request->driver_id,
                 'car_category_id' => $ride->car_category_id,
                 'pickup' => [
