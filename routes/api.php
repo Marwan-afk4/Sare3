@@ -91,6 +91,7 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
     Route::post('/ride/arrived', [RideActionsController::class, 'arrived']);
     Route::post('/ride/start', [RideActionsController::class, 'startRide']);
     Route::post('/ride/complete', [RideActionsController::class, 'completeRide']);
+    Route::post('/ride/finish', [RideActionsController::class, 'finishRide']);
 
 //Raiting
     Route::post('/ride/rating', [DriverRaitingController::class,'raiting']);

@@ -173,7 +173,7 @@ class RideActionsController extends Controller
             'calculated_final_price' => round($fare, 2),
             'status' => 'completed',
             'ended_at' => $endTime,
-            'duration_minutes' => $durationMinutes,
+            'time_taken' => $durationMinutes,
         ]);
 
         // 6️⃣ Push to Firebase
@@ -197,6 +197,25 @@ class RideActionsController extends Controller
             'distance_km' => round($distanceKm, 2),
             'duration_minutes' => $durationMinutes,
         ]);
+    }
+
+    //finsh ride
+    public function finishRide(Request $request)
+    {
+        $ride = $this->validateRide($request);
+
+        $ride->update(['status' => 'finshed']);
+
+        try {
+            $this->updateFirebase($ride, [
+                'status' => 'finshed',
+                'started_at' => now()->toIso8601String(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Firebase error.', 'error' => $e->getMessage()], 500);
+        }
+
+        return response()->json(['message' => 'Ride started.', 'ride' => $ride]);
     }
 
     //cancel ride
