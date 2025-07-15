@@ -11,7 +11,8 @@ use App\Http\Controllers\{
     HomePageController,
     RatingController,
     UserController,
-    DriverController
+    DriverController,
+    RideController
 };
 
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -34,6 +35,7 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
             '/drivers' => DriverController::class,
             '/document-types' => DocumentTypeController::class,
             '/car-categories' => CarCategoryController::class,
+            '/rides' => RideController::class,
         ]);
 
         Route::get('/drivers/{driver}/documents', [DriverController::class, 'documents'])->name('drivers.documents');
