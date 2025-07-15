@@ -23,9 +23,6 @@
 					<strong>{{ __("Description") }}:</strong> {{ $carCategory->description }}
 				</li>
 				<li class="list-group-item">
-					<strong>{{ __("Icon") }}:</strong> {{ $carCategory->icon }}
-				</li>
-				<li class="list-group-item">
 					<strong>{{ __("Base Price") }}:</strong> {{ $carCategory->base_price }}
 				</li>
 				<li class="list-group-item">
