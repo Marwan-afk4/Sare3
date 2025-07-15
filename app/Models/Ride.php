@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\RideStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -36,7 +37,8 @@ class Ride extends Model
     public $timestamps = true;
 
     protected $casts = [
-        'route_points' => 'array'
+        'route_points' => 'array',
+        'status' => RideStatus::class,
     ];
 
 
