@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
 use App\Http\Controllers\Api\Driver\DriverActivtyController;
+use App\Http\Controllers\Api\Driver\DriverLocationController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
 use App\Http\Controllers\Api\Driver\PointController as DriverPointController;
 use App\Http\Controllers\Api\Driver\RaitingController as DriverRaitingController;
@@ -94,6 +95,10 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 //Raiting
     Route::post('/ride/rating', [DriverRaitingController::class,'raiting']);
 
+//DriverLocationUpdate
+    Route::post('/ride/update-location', [DriverLocationController::class, 'updateDriverLocation']);
+    // Route::post('/ride/end', [DriverLocationController::class, 'endRide']);
+
 });
 
 
@@ -118,7 +123,6 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 
 //Ride
     Route::post('/ride/create', [RideEstimateController::class,'createRide']);
-    // Route::post('/ride/store', [RideEstimateController::class,'storeRide']);
 
 //Raiting
     Route::post('/ride/rating', [RaitingController::class,'raiting']);

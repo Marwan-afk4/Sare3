@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Api\Driver;
 
+use App\Helpers\RideHelper;
 use App\Http\Controllers\Controller;
+use App\Models\CarCategory;
 use App\Models\Ride;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Kreait\Firebase\Factory;
@@ -53,6 +56,7 @@ class RideActionsController extends Controller
         $this->firebase->getReference("rides/$firebaseRideId")->update($data);
     }
 
+    //accept ride
     public function acceptRide(Request $request)
     {
         $driver = $request->user();
@@ -83,6 +87,7 @@ class RideActionsController extends Controller
         return response()->json(['message' => 'Ride accepted.', 'ride' => $ride]);
     }
 
+    //arrived
     public function arrived(Request $request)
     {
         $ride = $this->validateRide($request);
@@ -101,6 +106,7 @@ class RideActionsController extends Controller
         return response()->json(['message' => 'Marked as arrived.', 'ride' => $ride]);
     }
 
+    //start ride
     public function startRide(Request $request)
     {
         $ride = $this->validateRide($request);
@@ -119,24 +125,81 @@ class RideActionsController extends Controller
         return response()->json(['message' => 'Ride started.', 'ride' => $ride]);
     }
 
+    //complete ride
     public function completeRide(Request $request)
     {
-        $ride = $this->validateRide($request);
+        $validation = Validator::make($request->all(), [
+            'ride_id' => 'required|exists:rides,id',
+        ]);
 
-        $ride->update(['status' => 'completed']);
+        if ($validation->fails()) {
+            return response()->json(['message' => $validation->errors()], 500);
+        }
 
+        $ride = Ride::findOrFail($request->ride_id);
+
+        if ($ride->driver_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $points = is_array($ride->route_points) ? $ride->route_points : json_decode($ride->route_points, true);
+
+        if (!is_array($points) || count($points) < 2) {
+            return response()->json(['message' => 'Not enough points to calculate distance'], 400);
+        }
+
+        // 1️⃣ Distance Calculation
+        $distanceKm = RideHelper::calculateTotalDistance($points);
+
+        // 2️⃣ Car Category
+        $carCategory = CarCategory::find($ride->car_category_id);
+        if (!$carCategory) {
+            return response()->json(['message' => 'Car category not found'], 404);
+        }
+
+        // 3️⃣ Duration Calculation
+        $startTimestamp = $points[0]['timestamp'];
+        $endTimestamp = $points[count($points) - 1]['timestamp'];
+        $startTime = Carbon::createFromTimestamp($startTimestamp);
+        $endTime = Carbon::createFromTimestamp($endTimestamp);
+        $durationMinutes = $startTime->diffInMinutes($endTime);
+
+        // 4️⃣ Fare Calculation
+        $timeFare = $durationMinutes * $carCategory->price_per_time;
+        $fare = $carCategory->base_price + ($distanceKm * $carCategory->price_per_km) + $timeFare;
+
+        // 5️⃣ Update Ride
+        $ride->update([
+            'calculated_final_price' => round($fare, 2),
+            'status' => 'completed',
+            'ended_at' => $endTime,
+            'duration_minutes' => $durationMinutes,
+        ]);
+
+        // 6️⃣ Push to Firebase
         try {
             $this->updateFirebase($ride, [
                 'status' => 'completed',
-                'completed_at' => now()->toIso8601String(),
+                'completed_at' => $endTime->toIso8601String(),
+                'final_price' => [
+                    'fare' => round($fare, 2),
+                    'distance_km' => round($distanceKm, 2),
+                    'duration_minutes' => $durationMinutes,
+                ],
             ]);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Firebase error.', 'error' => $e->getMessage()], 500);
         }
 
-        return response()->json(['message' => 'Ride completed.', 'ride' => $ride]);
+        return response()->json([
+            'message' => 'Ride completed.',
+            'final_price' => round($fare, 2),
+            'distance_km' => round($distanceKm, 2),
+            'duration_minutes' => $durationMinutes,
+        ]);
     }
 
+    //cancel ride
     public function cancelRide(Request $request)
     {
         $ride = $this->validateRide($request);
