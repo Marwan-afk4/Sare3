@@ -16,8 +16,8 @@ class UpdateCarTypeRequest extends FormRequest
     {
         return [
             'car_category_id' => 'exists:car_categories,id',
-            'type_name' => 'required',
-            'description' => 'required'
+            'type_name' => 'nullable|string|max:255|unique:car_types,type_name,' . $this->route('car_type')->id,
+            'description' => 'nullable'
         ];
     }
 
@@ -25,8 +25,7 @@ class UpdateCarTypeRequest extends FormRequest
     {
         return [
             'car_category_id.exists' => __('The selected Car Category is invalid.'),
-            'type_name.required' => __('The Type Name field is required.'),
-            'description.required' => __('The Description field is required.')
+            'type_name.unique' => __('The Type Name has already been taken.'),
         ];
     }
 

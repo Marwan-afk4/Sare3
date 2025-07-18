@@ -38,4 +38,14 @@ class CarCategory extends Model
     {
         return $this->hasMany(RideEstimate::class);
     }
+
+    public function carTypes()
+    {
+        return $this->hasMany(CarType::class, 'car_category_id');
+    }
+
+    public function driverCars()
+    {
+        return $this->hasMany(DriverCar::class, 'car_categories_id');
+    }
 }

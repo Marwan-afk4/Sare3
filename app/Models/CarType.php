@@ -16,13 +16,18 @@ class CarType extends Model
         'type_name',
         'description'
     ];
-    
+
     public $timestamps = true;
 
-    
+
     public function carCategory()
     {
         return $this->belongsTo(CarCategory::class);
+    }
+
+    public function driverCars()
+    {
+        return $this->hasMany(DriverCar::class, 'car_type_id');
     }
 
 }
