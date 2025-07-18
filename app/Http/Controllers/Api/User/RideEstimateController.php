@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Kreait\Firebase\Factory;
 use App\Helpers\RideHelper;
-
+use App\Models\Rating;
 
 class RideEstimateController extends Controller
 {
@@ -20,7 +20,7 @@ class RideEstimateController extends Controller
     {
         $validation = Validator::make($request->all(), [
             'estimated_km' => 'required|numeric|min:0',
-            'estimated_time'=> 'required|numeric|min:0',
+            'estimated_time' => 'required|numeric|min:0',
         ]);
 
         if ($validation->fails()) {
@@ -32,8 +32,7 @@ class RideEstimateController extends Controller
 
         $carCategories = CarCategory::all();
 
-        $result = $carCategories->map(function ($category) use ($estimatedKm , $estimatedTime)
-        {
+        $result = $carCategories->map(function ($category) use ($estimatedKm, $estimatedTime) {
             $base = $category->base_price;
             $perKm = $category->price_per_km;
             $perTime = $category->price_per_time;
@@ -62,32 +61,44 @@ class RideEstimateController extends Controller
         $user = $request->user();
 
         $validation = Validator::make($request->all(), [
-            'driver_id'=> 'required|exists:users,id',
+            'driver_id' => 'required|exists:users,id',
             'car_category_id' => 'required|exists:car_categories,id',
             'estimated_km' => 'required|numeric|min:0',
-            'estimated_time'=> 'required|numeric|min:0',
-            'pickup_lat' =>'required|numeric',
-            'pickup_lng'=> 'required|numeric',
+            'estimated_time' => 'required|numeric|min:0',
+            'pickup_lat' => 'required|numeric',
+            'pickup_lng' => 'required|numeric',
             'dropoff_lat' => 'required|numeric',
-            'dropoff_lng'=> 'required|numeric',
-            'dropoff_address'=> 'nullable|string',
+            'dropoff_lng' => 'required|numeric',
+            'dropoff_address' => 'nullable|string',
             'pickup_address' => 'nullable|string'
         ]);
 
         if ($validation->fails()) {
-            return response()->json(['message'=> $validation->errors()],500);
+            return response()->json(['message' => $validation->errors()], 500);
         }
+
+        $driver = User::with('driverCars')->findOrFail($request->driver_id);
 
         $carCategory = CarCategory::find($request->car_category_id);
 
         $price = ($carCategory->base_price + ($request->estimated_km * $carCategory->price_per_km) + ($request->estimated_time * $carCategory->price_per_time));
 
+        // Calculate average rating for the user
+        $userRating = Rating::where('ratee_id', $user->id)
+            ->where('ratee_type', 'user')
+            ->avg('rate');
 
-        $driver = User::with('driverCars')->findOrFail($request->driver_id);
+        // Calculate average rating for the driver
+        $driverRating = Rating::where('ratee_id', $driver->id)
+            ->where('ratee_type', 'driver')
+            ->avg('rate');
+
+
+
 
         RideEstimate::create([
-            'user_id'=> $user->id,
-            'car_category_id'=> $request->car_category_id,
+            'user_id' => $user->id,
+            'car_category_id' => $request->car_category_id,
             'pickup_lat' => $request->pickup_lat,
             'pickup_lng' => $request->pickup_lng,
             'dropoff_lat' => $request->dropoff_lat,
@@ -97,9 +108,9 @@ class RideEstimateController extends Controller
             'calculated_price' => $price,
         ]);
 
-        $ride =Ride::create([
-            'user_id'=> $user->id,
-            'car_category_id'=> $request->car_category_id,
+        $ride = Ride::create([
+            'user_id' => $user->id,
+            'car_category_id' => $request->car_category_id,
             'pickup_lat' => $request->pickup_lat,
             'pickup_lng' => $request->pickup_lng,
             'dropoff_lat' => $request->dropoff_lat,
@@ -108,40 +119,43 @@ class RideEstimateController extends Controller
             'estimated_km' => $request->estimated_km,
             'estimated_time' => $request->estimated_time,
             'calculated_initial_price' => $price,
-            'pickup_address' =>$request->pickup_address,
+            'pickup_address' => $request->pickup_address,
             'dropoff_address' => $request->dropoff_address,
         ]);
 
         $firebaseRideId = 'ride_' . $ride->id;
 
-        try{
+        try {
             $firebase = (new Factory)
                 ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
                 ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
                 ->createDatabase();
 
-            $firebaseData =[
+            $firebaseData = [
                 'ride_id' => $ride->id,
                 'user' => [
-                    'user_id'=>$user,
+                    'user_id' => $user,
                     'user_name' => $user->name,
-                    'user_phone'=> $user->phone,
+                    'user_phone' => $user->phone,
                     'user_email' => $user->email,
-                    'user_image'=> $user->image,
+                    'user_image' => $user->image,
+                    'user_rating' => round($userRating ?? 0, 1),
                 ],
                 'driver_id' => $request->driver_id,
+                'driver_rating' => round($driverRating ?? 0, 1),
                 'car_category_id' => $ride->car_category_id,
                 'pickup' => [
-                    'lat'=> $ride->pickup_lat,
-                    'lng'=> $ride->pickup_lng,
-                    'address'=>$request->pickup_address,
+                    'lat' => $ride->pickup_lat,
+                    'lng' => $ride->pickup_lng,
+                    'address' => $request->pickup_address,
                 ],
                 'dropoff' => [
-                    'lat'=> $ride->dropoff_lat,
-                    'lng'=> $ride->dropoff_lng,
+                    'lat' => $ride->dropoff_lat,
+                    'lng' => $ride->dropoff_lng,
                     'address' => $request->dropoff_address,
                 ],
-                'estimated_time'=>$request->estimated_time,
+                'estimated_time' => $request->estimated_time,
+                'estimated_km' => $request->estimated_km,
                 'initial_price' => $price,
                 'status' => $ride->status,
                 'created_at' => now()->toIso8601String(),
@@ -152,13 +166,12 @@ class RideEstimateController extends Controller
             $ride->update([
                 'firebase_ride_id' => $firebaseRideId,
             ]);
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json(['message' => 'Ride created, but failed to sync with Firebase', 'error' => $e->getMessage()], 500);
         }
 
         return response()->json([
-            'message'=> 'Ride created successfully',
+            'message' => 'Ride created successfully',
             'data' => $ride,
         ]);
     }
