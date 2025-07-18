@@ -64,6 +64,18 @@
                             </div>
                         </a>
                     </div>
+                    {{-- carModels --}}
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'car-models' ? 'active' : '' }}"
+                            wire:navigate
+                            href="{{ route('car-models.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="camera"></span></span>
+                                <span class="nav-link-text-wrapper"><span
+                                        class="nav-link-text">{{ __('Car Models') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
                     {{-- carTypes --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'car-types' ? 'active' : '' }}"

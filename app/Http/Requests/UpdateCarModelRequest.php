@@ -5,7 +5,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreCarTypeRequest extends FormRequest
+class UpdateCarModelRequest extends FormRequest
 {
     public function authorize()
     {
@@ -15,18 +15,16 @@ class StoreCarTypeRequest extends FormRequest
     public function rules()
     {
         return [
-            'car_model_id' => 'exists:car_models,id',
-            'type_name' => 'required|string|max:255|unique:car_types,type_name',
-            'description' => 'nullable'
+            'car_categories_id' => 'exists:car_categories,id',
+            'name' => 'required'
         ];
     }
 
     public function messages()
     {
         return [
-            'car_model_id.exists' => __('The selected Car Model is invalid.'),
-            'type_name.required' => __('The Type Name field is required.'),
-            'type_name.unique' => __('The Type Name has already been taken.'),
+            'car_categories_id.exists' => __('The selected Car Categories is invalid.'),
+            'name.required' => __('The Name field is required.')
         ];
     }
 

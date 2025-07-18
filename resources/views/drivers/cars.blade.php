@@ -29,6 +29,7 @@
                         <p class="card-text">
                             {{ __('Category:') }} {{ $car->carCategory->name ?? '-' }}<br>
                             {{ __('Type:') }} {{ $car->carType->type_name ?? '-' }}<br>
+                            {{ __('Model:') }} {{ $car->carModel->name ?? '-' }}<br>
                             {{ __('Color:') }} {{ $car->car_color ?? '-' }}
                         </p>
 

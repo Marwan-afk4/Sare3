@@ -18,7 +18,8 @@ class DriverCar extends Model
         'car_type_id',
         'car_number',
         'car_color',
-        'car_license'
+        'car_license',
+        'car_model_id'
     ];
 
     public $timestamps = true;
@@ -52,6 +53,11 @@ class DriverCar extends Model
     public function carType()
     {
         return $this->belongsTo(CarType::class, 'car_type_id');
+    }
+
+    public function carModel()
+    {
+        return $this->belongsTo(CarModel::class, 'car_model_id');
     }
 
 }

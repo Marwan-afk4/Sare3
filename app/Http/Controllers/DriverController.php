@@ -54,7 +54,7 @@ class DriverController extends Controller
 
     public function cars(User $driver)
     {
-        $cars = $driver->driverCars()->with(['carType', 'carCategory'])->get();
+        $cars = $driver->driverCars()->with(['carType', 'carCategory', 'carModel'])->get();
 
         return view('drivers.cars', compact('driver', 'cars'));
     }

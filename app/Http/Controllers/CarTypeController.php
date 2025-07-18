@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreCarTypeRequest;
 use App\Http\Requests\UpdateCarTypeRequest;
 use App\Http\Controllers\Controller;
+use App\Models\CarModel;
 
 class CarTypeController extends Controller
 {
@@ -23,8 +24,8 @@ class CarTypeController extends Controller
 
     public function create()
     {
-        $carCategories = CarCategory::orderBy('name')->pluck('name', 'id')->toArray();
-        return view('car-types.create', compact('carCategories'));
+        $carModels = CarModel::orderBy('name')->pluck('name', 'id')->toArray();
+        return view('car-types.create', compact('carModels'));
     }
 
     public function store(StoreCarTypeRequest $request)
@@ -40,8 +41,8 @@ class CarTypeController extends Controller
 
     public function edit(CarType $carType)
     {
-        $carCategories = CarCategory::orderBy('name')->pluck('name', 'id')->toArray();
-        return view('car-types.edit', compact('carType', 'carCategories'));
+        $carModels = CarModel::orderBy('name')->pluck('name', 'id')->toArray();
+        return view('car-types.edit', compact('carType', 'carModels'));
     }
 
     public function update(UpdateCarTypeRequest $request, CarType $carType)

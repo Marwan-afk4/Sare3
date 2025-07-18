@@ -68,6 +68,9 @@ Route::post('/driver/store-docs', [DriverAuthController::class, 'storeDriverDocs
 //store car
 Route::post('/driver/store-car', [DriverAuthController::class, 'storeDriverCar']);
 
+//get model type ids
+Route::get('/driver/get-model-type-ids', [DriverAuthController::class, 'getModelTypeIds']);
+
 //login
 Route::post('/driver/login', [DriverAuthController::class, 'login']);
 

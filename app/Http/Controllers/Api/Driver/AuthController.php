@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\Driver;
 
 use App\Http\Controllers\Controller;
 use App\Mail\EmailVerificationCode;
+use App\Models\CarModel;
+use App\Models\CarType;
 use App\Models\DocumentType;
 use App\Models\DriverCar;
 use App\Models\DriverDocument;
@@ -20,93 +22,6 @@ class AuthController extends Controller
 
     use twilio ,
     ImageUpload;
-
-    // public function postOtp(Request $request)
-    // {
-    //     $validation = Validator::make($request->all(), [
-    //         'phone' => 'required|string'
-    //     ]);
-
-    //     if ($validation->fails()) {
-    //         return response()->json([
-    //             'message' => $validation->errors()->first()
-    //         ], 200);
-    //     }
-    //     $this->sendOtp($request->phone);
-
-    //     $exists = User::where('phone', $request->phone)->exists();
-
-    //     return response()->json([
-    //         'message' => $exists ? 'Otp sent for login' : 'Otp sent for signup'
-    //     ]);
-    // }
-
-    // public function CheckOtp(Request $request)
-    // {
-    //     $validation = Validator::make($request->all(), [
-    //         'phone' => 'required|string',
-    //         'code' => 'required|string',
-    //         'email' => 'nullable|email|exists:users,email'
-    //     ]);
-
-    //     if ($validation->fails()) {
-    //         return response()->json([
-    //             'message' => $validation->errors()->first()
-    //         ], 422);
-    //     }
-
-    //     // Step 1: Verify OTP
-    //     $verification = $this->verifyOtp($request->phone, $request->code);
-
-    //     if ($verification->status !== 'approved') {
-    //         return response()->json([
-    //             'message' => 'OTP verification failed, try again'
-    //         ], 422);
-    //     }
-
-    //     $user = null;
-
-    //     // Step 2: Handle case when email is provided (user started with email first)
-    //     if ($request->filled('email')) {
-    //         $user = User::where('email', $request->email)->first();
-
-    //         if (!$user) {
-    //             return response()->json([
-    //                 'message' => 'Email not found'
-    //             ], 404);
-    //         }
-
-    //         // If phone is already used by another user (avoid duplicate phone numbers)
-    //         $phoneUsedByAnother = User::where('phone', $request->phone)
-    //                                 ->where('id', '!=', $user->id)
-    //                                 ->exists();
-
-    //         if ($phoneUsedByAnother) {
-    //             return response()->json([
-    //                 'message' => 'Phone number already used by another account'
-    //             ], 409);
-    //         }
-
-    //         // Attach phone to existing email user
-    //         $user->phone = $request->phone;
-    //         $user->role = 'driver';
-    //         $user->activity = 'in_progress';
-    //         $user->save();
-    //     }
-
-    //     // Step 3: If email is not provided, login/register using phone
-    //     if (!$user) {
-    //         $user = User::firstOrCreate(['phone' => $request->phone, 'role' => 'driver', 'activity' => 'in_progress']);
-    //     }
-
-    //     $token = $user->createToken('auth_token')->plainTextToken;
-
-    //     return response()->json([
-    //         'message' => 'OTP verified successfully',
-    //         'token' => $token,
-    //         'user' => $user
-    //     ]);
-    // }
 
     public function phoneVerified(Request $request)
     {
@@ -464,7 +379,8 @@ class AuthController extends Controller
             'car_image' => 'required|string',
             'car_color' => 'required|string',
             'car_license' => 'required|string',
-            'car_number' => 'required|string'
+            'car_number' => 'required|string',
+            'car_model_id' => 'required|exists:car_models,id'
         ]);
 
         if ($validation->fails()) {
@@ -491,11 +407,24 @@ class AuthController extends Controller
             'car_image' => $carImagePath,
             'car_color' => $request->car_color,
             'car_license' => $car_licensePath,
-            'car_number' => $request->car_number
+            'car_number' => $request->car_number,
+            'car_model_id' => $request->car_model_id
         ]);
 
         return response()->json([
             'message' => 'Waiting for admin approval, your car details have been submitted successfully'
+        ]);
+    }
+
+    public function getModelTypeIds()
+    {
+        $carModels = CarModel::all();
+
+        $carTypes = CarType::all();
+
+        return response()->json([
+            'carModels' => $carModels,
+            'carTypes' => $carTypes
         ]);
     }
 

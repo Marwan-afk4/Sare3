@@ -12,7 +12,7 @@ class CarType extends Model
     protected $table = 'car_types';
 
     protected $fillable = [
-        'car_category_id',
+        'car_model_id',
         'type_name',
         'description'
     ];
@@ -28,6 +28,11 @@ class CarType extends Model
     public function driverCars()
     {
         return $this->hasMany(DriverCar::class, 'car_type_id');
+    }
+
+    public function carModel()
+    {
+        return $this->belongsTo(CarModel::class, 'car_model_id');
     }
 
 }

@@ -17,7 +17,7 @@
 					<strong>{{ __("Id") }}:</strong> {{ $carType->id }}
 				</li>
 				<li class="list-group-item">
-					<strong>{{ __("Car Category") }}:</strong> {{ $carType->carCategory?->name }}
+					<strong>{{ __("Car Category") }}:</strong> {{ $carType->carModel?->name }}
 				</li>
 				<li class="list-group-item">
 					<strong>{{ __("Type Name") }}:</strong> {{ $carType->type_name }}

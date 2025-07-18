@@ -37,6 +37,12 @@
         "resources\/views\/car-categories\/create.blade.php",
         "resources\/views\/car-categories\/edit.blade.php",
         "resources\/views\/car-categories\/show.blade.php",
+        "resources\/views\/car-models\/create.blade.php",
+        "resources\/views\/car-models\/edit.blade.php",
+        "resources\/views\/car-models\/show.blade.php",
+        "resources\/views\/car-types\/create.blade.php",
+        "resources\/views\/car-types\/edit.blade.php",
+        "resources\/views\/car-types\/show.blade.php",
         "resources\/views\/document-types\/create.blade.php",
         "resources\/views\/document-types\/edit.blade.php",
         "resources\/views\/document-types\/show.blade.php",
@@ -46,6 +52,9 @@
         "resources\/views\/drivers\/create.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/show.blade.php",
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php",
+        "resources\/views\/rides\/show.blade.php",
         "resources\/views\/users\/create.blade.php",
         "resources\/views\/users\/edit.blade.php",
         "resources\/views\/users\/show.blade.php"
@@ -62,6 +71,10 @@
         "resources\/views\/car-categories\/edit.blade.php",
         "resources\/views\/car-categories\/index.blade.php",
         "resources\/views\/car-categories\/show.blade.php",
+        "resources\/views\/car-models\/create.blade.php",
+        "resources\/views\/car-models\/edit.blade.php",
+        "resources\/views\/car-models\/index.blade.php",
+        "resources\/views\/car-models\/show.blade.php",
         "resources\/views\/document-types\/create.blade.php",
         "resources\/views\/document-types\/edit.blade.php",
         "resources\/views\/document-types\/index.blade.php",
@@ -87,9 +100,12 @@
     ],
     "Add": [
         "resources\/views\/car-categories\/create.blade.php",
+        "resources\/views\/car-models\/create.blade.php",
+        "resources\/views\/car-types\/create.blade.php",
         "resources\/views\/document-types\/create.blade.php",
         "resources\/views\/driver-documents\/create.blade.php",
         "resources\/views\/drivers\/create.blade.php",
+        "resources\/views\/rides\/create.blade.php",
         "resources\/views\/users\/create.blade.php"
     ],
     "Edit User": [
@@ -102,12 +118,18 @@
     "Details": [
         "resources\/views\/car-categories\/edit.blade.php",
         "resources\/views\/car-categories\/index.blade.php",
+        "resources\/views\/car-models\/edit.blade.php",
+        "resources\/views\/car-models\/index.blade.php",
+        "resources\/views\/car-types\/edit.blade.php",
+        "resources\/views\/car-types\/index.blade.php",
         "resources\/views\/document-types\/edit.blade.php",
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/driver-documents\/edit.blade.php",
         "resources\/views\/driver-documents\/index.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/rides\/edit.blade.php",
+        "resources\/views\/rides\/index.blade.php",
         "resources\/views\/users\/edit.blade.php",
         "resources\/views\/users\/index.blade.php"
     ],
@@ -140,9 +162,12 @@
     ],
     "Save": [
         "resources\/views\/car-categories\/edit.blade.php",
+        "resources\/views\/car-models\/edit.blade.php",
+        "resources\/views\/car-types\/edit.blade.php",
         "resources\/views\/document-types\/edit.blade.php",
         "resources\/views\/driver-documents\/edit.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
+        "resources\/views\/rides\/edit.blade.php",
         "resources\/views\/users\/edit.blade.php"
     ],
     "Keyword": [
@@ -151,12 +176,18 @@
     ],
     "Id": [
         "resources\/views\/car-categories\/show.blade.php",
+        "resources\/views\/car-models\/index.blade.php",
+        "resources\/views\/car-models\/show.blade.php",
+        "resources\/views\/car-types\/index.blade.php",
+        "resources\/views\/car-types\/show.blade.php",
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/document-types\/show.blade.php",
         "resources\/views\/driver-documents\/index.blade.php",
         "resources\/views\/driver-documents\/show.blade.php",
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/drivers\/show.blade.php",
+        "resources\/views\/rides\/index.blade.php",
+        "resources\/views\/rides\/show.blade.php",
         "resources\/views\/users\/index.blade.php",
         "resources\/views\/users\/show.blade.php"
     ],
@@ -180,45 +211,62 @@
     "Created At": [
         "resources\/views\/car-categories\/index.blade.php",
         "resources\/views\/car-categories\/show.blade.php",
+        "resources\/views\/car-models\/index.blade.php",
+        "resources\/views\/car-models\/show.blade.php",
+        "resources\/views\/car-types\/index.blade.php",
+        "resources\/views\/car-types\/show.blade.php",
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/document-types\/show.blade.php",
         "resources\/views\/driver-documents\/index.blade.php",
         "resources\/views\/driver-documents\/show.blade.php",
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/drivers\/show.blade.php",
+        "resources\/views\/rides\/show.blade.php",
         "resources\/views\/users\/index.blade.php",
         "resources\/views\/users\/show.blade.php"
     ],
     "Actions": [
         "resources\/views\/car-categories\/index.blade.php",
+        "resources\/views\/car-models\/index.blade.php",
+        "resources\/views\/car-types\/index.blade.php",
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/driver-documents\/index.blade.php",
         "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/rides\/index.blade.php",
         "resources\/views\/users\/index.blade.php"
     ],
     "Edit": {
         "0": "resources\/views\/car-categories\/index.blade.php",
         "1": "resources\/views\/car-categories\/show.blade.php",
-        "2": "resources\/views\/document-types\/index.blade.php",
-        "3": "resources\/views\/driver-documents\/index.blade.php",
-        "4": "resources\/views\/driver-documents\/show.blade.php",
-        "5": "resources\/views\/drivers\/index.blade.php",
-        "6": "resources\/views\/drivers\/show.blade.php",
-        "8": "resources\/views\/users\/index.blade.php",
-        "9": "resources\/views\/users\/show.blade.php"
+        "3": "resources\/views\/car-models\/show.blade.php",
+        "5": "resources\/views\/car-types\/index.blade.php",
+        "6": "resources\/views\/car-types\/show.blade.php",
+        "8": "resources\/views\/document-types\/index.blade.php",
+        "9": "resources\/views\/driver-documents\/index.blade.php",
+        "10": "resources\/views\/driver-documents\/show.blade.php",
+        "11": "resources\/views\/drivers\/index.blade.php",
+        "12": "resources\/views\/drivers\/show.blade.php",
+        "14": "resources\/views\/rides\/index.blade.php",
+        "15": "resources\/views\/rides\/show.blade.php",
+        "16": "resources\/views\/users\/index.blade.php",
+        "17": "resources\/views\/users\/show.blade.php"
     },
     "Delete": [
         "resources\/views\/car-categories\/index.blade.php",
-        "resources\/views\/car-categories\/show.blade.php",
+        "resources\/views\/car-types\/index.blade.php",
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/driver-documents\/index.blade.php",
         "resources\/views\/driver-documents\/show.blade.php",
         "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/rides\/index.blade.php",
+        "resources\/views\/rides\/show.blade.php",
         "resources\/views\/users\/index.blade.php",
         "resources\/views\/users\/show.blade.php"
     ],
     "Updated At": [
         "resources\/views\/car-categories\/show.blade.php",
+        "resources\/views\/car-models\/show.blade.php",
+        "resources\/views\/car-types\/show.blade.php",
         "resources\/views\/document-types\/show.blade.php",
         "resources\/views\/driver-documents\/show.blade.php",
         "resources\/views\/drivers\/show.blade.php",
@@ -294,8 +342,10 @@
     "The selected Driver is invalid.": [
         "app\/Http\/Requests\/StoreDriverCarRequest.php",
         "app\/Http\/Requests\/StoreDriverDocumentRequest.php",
+        "app\/Http\/Requests\/StoreRideRequest.php",
         "app\/Http\/Requests\/UpdateDriverCarRequest.php",
-        "app\/Http\/Requests\/UpdateDriverDocumentRequest.php"
+        "app\/Http\/Requests\/UpdateDriverDocumentRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
     ],
     "The Car Image field is required.": [
         "app\/Http\/Requests\/StoreDriverCarRequest.php"
@@ -332,9 +382,11 @@
     ],
     "The Name field is required.": [
         "app\/Http\/Requests\/StoreCarCategoryRequest.php",
+        "app\/Http\/Requests\/StoreCarModelRequest.php",
         "app\/Http\/Requests\/StoreDocumentTypeRequest.php",
         "app\/Http\/Requests\/StoreDriverRequest.php",
-        "app\/Http\/Requests\/StoreUserRequest.php"
+        "app\/Http\/Requests\/StoreUserRequest.php",
+        "app\/Http\/Requests\/UpdateCarModelRequest.php"
     ],
     "The Name must be a string.": [
         "app\/Http\/Requests\/StoreDocumentTypeRequest.php",
@@ -397,7 +449,8 @@
         "app\/Http\/Requests\/StoreRatingRequest.php"
     ],
     "All": [
-        "resources\/views\/drivers\/index.blade.php"
+        "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/rides\/index.blade.php"
     ],
     "New Users & Drivers": [
         "resources\/views\/home\/welcome.blade.php"
@@ -412,10 +465,12 @@
         "resources\/views\/home\/welcome.blade.php"
     ],
     "In Progress": [
-        "app\/Enums\/ActivtyType.php"
+        "app\/Enums\/ActivtyType.php",
+        "app\/Enums\/RideStatus.php"
     ],
     "Rejected": [
-        "app\/Enums\/ActivtyType.php"
+        "app\/Enums\/ActivtyType.php",
+        "app\/Enums\/RideStatus.php"
     ],
     "Create Driver Document": {
         "0": "resources\/views\/driver-documents\/create.blade.php",
@@ -431,7 +486,11 @@
         "resources\/views\/driver-documents\/create.blade.php",
         "resources\/views\/driver-documents\/edit.blade.php",
         "resources\/views\/driver-documents\/index.blade.php",
-        "resources\/views\/driver-documents\/show.blade.php"
+        "resources\/views\/driver-documents\/show.blade.php",
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php",
+        "resources\/views\/rides\/index.blade.php",
+        "resources\/views\/rides\/show.blade.php"
     ],
     "Document Type": [
         "resources\/views\/driver-documents\/create.blade.php",
@@ -455,14 +514,16 @@
         "resources\/views\/drivers\/documents.blade.php"
     ],
     "Back to Driver": [
+        "resources\/views\/drivers\/cars.blade.php",
         "resources\/views\/drivers\/documents.blade.php"
     ],
     "View Full Image": [
         "resources\/views\/drivers\/documents.blade.php"
     ],
-    "Close": [
-        "resources\/views\/drivers\/documents.blade.php"
-    ],
+    "Close": {
+        "0": "resources\/views\/drivers\/cars.blade.php",
+        "2": "resources\/views\/drivers\/documents.blade.php"
+    },
     "No documents found for this driver.": [
         "resources\/views\/drivers\/documents.blade.php"
     ],
@@ -567,20 +628,27 @@
         "1": "resources\/views\/car-categories\/edit.blade.php",
         "2": "resources\/views\/car-categories\/index.blade.php",
         "4": "resources\/views\/car-categories\/show.blade.php",
-        "5": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+        "5": "resources\/views\/car-models\/create.blade.php",
+        "6": "resources\/views\/car-models\/edit.blade.php",
+        "7": "resources\/views\/car-models\/index.blade.php",
+        "8": "resources\/views\/car-models\/show.blade.php",
+        "9": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     },
     "Description": [
         "resources\/views\/car-categories\/create.blade.php",
         "resources\/views\/car-categories\/edit.blade.php",
         "resources\/views\/car-categories\/index.blade.php",
-        "resources\/views\/car-categories\/show.blade.php"
+        "resources\/views\/car-categories\/show.blade.php",
+        "resources\/views\/car-types\/create.blade.php",
+        "resources\/views\/car-types\/edit.blade.php",
+        "resources\/views\/car-types\/index.blade.php",
+        "resources\/views\/car-types\/show.blade.php"
     ],
-    "Icon": {
-        "0": "resources\/views\/car-categories\/create.blade.php",
-        "1": "resources\/views\/car-categories\/edit.blade.php",
-        "2": "resources\/views\/car-categories\/index.blade.php",
-        "4": "resources\/views\/car-categories\/show.blade.php"
-    },
+    "Icon": [
+        "resources\/views\/car-categories\/create.blade.php",
+        "resources\/views\/car-categories\/edit.blade.php",
+        "resources\/views\/car-categories\/index.blade.php"
+    ],
     "Base Price": [
         "resources\/views\/car-categories\/create.blade.php",
         "resources\/views\/car-categories\/edit.blade.php",
@@ -604,11 +672,14 @@
     ],
     "Created successfully": [
         "app\/Http\/Controllers\/CarCategoryController.php",
+        "app\/Http\/Controllers\/CarModelController.php",
+        "app\/Http\/Controllers\/CarTypeController.php",
         "app\/Http\/Controllers\/DocumentTypeController.php",
         "app\/Http\/Controllers\/DriverCarController.php",
         "app\/Http\/Controllers\/DriverController.php",
         "app\/Http\/Controllers\/DriverDocumentController.php",
         "app\/Http\/Controllers\/RatingController.php",
+        "app\/Http\/Controllers\/RideController.php",
         "app\/Http\/Controllers\/UserController.php"
     ],
     "Updated successfully.": [
@@ -661,5 +732,303 @@
     "The Base Price field must be greater than or equal to 0.": [
         "app\/Http\/Requests\/StoreCarCategoryRequest.php",
         "app\/Http\/Requests\/UpdateCarCategoryRequest.php"
+    ],
+    "Create Car Model": {
+        "0": "resources\/views\/car-models\/create.blade.php",
+        "2": "resources\/views\/car-models\/index.blade.php"
+    },
+    "Car Models": {
+        "0": "resources\/views\/car-models\/create.blade.php",
+        "1": "resources\/views\/car-models\/edit.blade.php",
+        "2": "resources\/views\/car-models\/index.blade.php",
+        "4": "resources\/views\/car-models\/show.blade.php",
+        "5": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    },
+    "Edit Car Model": [
+        "resources\/views\/car-models\/edit.blade.php"
+    ],
+    "Create Car Type": {
+        "0": "resources\/views\/car-types\/create.blade.php",
+        "2": "resources\/views\/car-types\/index.blade.php"
+    },
+    "Car Types": {
+        "0": "resources\/views\/car-types\/create.blade.php",
+        "1": "resources\/views\/car-types\/edit.blade.php",
+        "2": "resources\/views\/car-types\/index.blade.php",
+        "4": "resources\/views\/car-types\/show.blade.php",
+        "5": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    },
+    "Car Model": [
+        "resources\/views\/car-types\/create.blade.php",
+        "resources\/views\/car-types\/edit.blade.php",
+        "resources\/views\/car-types\/index.blade.php"
+    ],
+    "Type Name": [
+        "resources\/views\/car-types\/create.blade.php",
+        "resources\/views\/car-types\/edit.blade.php",
+        "resources\/views\/car-types\/index.blade.php",
+        "resources\/views\/car-types\/show.blade.php"
+    ],
+    "Edit Car Type": [
+        "resources\/views\/car-types\/edit.blade.php"
+    ],
+    "Car Category": [
+        "resources\/views\/car-types\/show.blade.php",
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php",
+        "resources\/views\/rides\/index.blade.php",
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Cars for ": [
+        "resources\/views\/drivers\/cars.blade.php"
+    ],
+    "Cars for": [
+        "resources\/views\/drivers\/cars.blade.php"
+    ],
+    "Car Number:": [
+        "resources\/views\/drivers\/cars.blade.php"
+    ],
+    "Category:": [
+        "resources\/views\/drivers\/cars.blade.php"
+    ],
+    "Type:": [
+        "resources\/views\/drivers\/cars.blade.php"
+    ],
+    "Model:": [
+        "resources\/views\/drivers\/cars.blade.php"
+    ],
+    "Color:": [
+        "resources\/views\/drivers\/cars.blade.php"
+    ],
+    "View Full Car Image": [
+        "resources\/views\/drivers\/cars.blade.php"
+    ],
+    "View Car License": [
+        "resources\/views\/drivers\/cars.blade.php"
+    ],
+    "Car Image for": [
+        "resources\/views\/drivers\/cars.blade.php"
+    ],
+    "Car License for": [
+        "resources\/views\/drivers\/cars.blade.php"
+    ],
+    "No cars found for this driver.": [
+        "resources\/views\/drivers\/cars.blade.php"
+    ],
+    "Cars": [
+        "resources\/views\/drivers\/show.blade.php"
+    ],
+    "Rides": {
+        "0": "resources\/views\/elements\/phoenix\/sidebar.blade.php",
+        "1": "resources\/views\/rides\/create.blade.php",
+        "2": "resources\/views\/rides\/edit.blade.php",
+        "3": "resources\/views\/rides\/index.blade.php",
+        "5": "resources\/views\/rides\/show.blade.php"
+    },
+    "Create Ride": [
+        "resources\/views\/rides\/create.blade.php"
+    ],
+    "User": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php",
+        "resources\/views\/rides\/index.blade.php",
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Pickup Lat": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php"
+    ],
+    "Pickup Lng": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php"
+    ],
+    "Pickup Address": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php",
+        "resources\/views\/rides\/index.blade.php",
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Dropoff Lat": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php"
+    ],
+    "Dropoff Lng": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php"
+    ],
+    "Dropoff Address": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php",
+        "resources\/views\/rides\/index.blade.php",
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Estimated Km": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php",
+        "resources\/views\/rides\/index.blade.php",
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Estimated Time": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php",
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Calculated Initial Price": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php"
+    ],
+    "Route Points": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php"
+    ],
+    "Calculated Final Price": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php"
+    ],
+    "Started At": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php"
+    ],
+    "Ended At": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php"
+    ],
+    "Time Taken": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php",
+        "resources\/views\/rides\/index.blade.php",
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Firebase Ride": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php"
+    ],
+    "Status": [
+        "resources\/views\/rides\/create.blade.php",
+        "resources\/views\/rides\/edit.blade.php",
+        "resources\/views\/rides\/index.blade.php",
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Edit Ride": [
+        "resources\/views\/rides\/edit.blade.php"
+    ],
+    "Initial Price": [
+        "resources\/views\/rides\/index.blade.php",
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Final Price": [
+        "resources\/views\/rides\/index.blade.php",
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Estimated Time In Minutes": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "The selected Car Categories is invalid.": [
+        "app\/Http\/Requests\/StoreCarModelRequest.php",
+        "app\/Http\/Requests\/UpdateCarModelRequest.php"
+    ],
+    "The selected Car Model is invalid.": [
+        "app\/Http\/Requests\/StoreCarTypeRequest.php"
+    ],
+    "The Type Name field is required.": [
+        "app\/Http\/Requests\/StoreCarTypeRequest.php"
+    ],
+    "The Type Name has already been taken.": [
+        "app\/Http\/Requests\/StoreCarTypeRequest.php",
+        "app\/Http\/Requests\/UpdateCarTypeRequest.php"
+    ],
+    "The selected User is invalid.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The selected Car Category is invalid.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateCarTypeRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The Pickup Lat field is required.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The Pickup Lng field is required.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The Pickup Address field is required.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The Dropoff Lat field is required.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The Dropoff Lng field is required.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The Dropoff Address field is required.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The Status field is required.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The Estimated Km field is required.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The Estimated Time field is required.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The Calculated Initial Price field is required.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The Route Points field is required.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The Calculated Final Price field is required.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The Started At field is required.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The Ended At field is required.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The Time Taken field is required.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "The selected Firebase Ride is invalid.": [
+        "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateRideRequest.php"
+    ],
+    "Pending": [
+        "app\/Enums\/RideStatus.php"
+    ],
+    "Completed": [
+        "app\/Enums\/RideStatus.php"
+    ],
+    "Cancelled": [
+        "app\/Enums\/RideStatus.php"
+    ],
+    "Arrived": [
+        "app\/Enums\/RideStatus.php"
+    ],
+    "Waiting User": [
+        "app\/Enums\/RideStatus.php"
+    ],
+    "Accepted": [
+        "app\/Enums\/RideStatus.php"
+    ],
+    "Finished": [
+        "app\/Enums\/RideStatus.php"
     ]
 }
