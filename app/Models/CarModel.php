@@ -15,10 +15,15 @@ class CarModel extends Model
         'car_categories_id',
         'name'
     ];
-    
+
     public $timestamps = true;
 
-    
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
+
     public function carCategories()
     {
         return $this->belongsTo(CarCategory::class);

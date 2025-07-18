@@ -19,6 +19,11 @@ class CarType extends Model
 
     public $timestamps = true;
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
 
     public function carCategory()
     {

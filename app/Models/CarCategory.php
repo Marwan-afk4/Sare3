@@ -24,6 +24,11 @@ class CarCategory extends Model
 
     public $timestamps = true;
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
 
     public $appends = [
         'icon_url'
