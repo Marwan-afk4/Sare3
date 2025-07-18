@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Driver;
 use App\Http\Controllers\Controller;
 use App\Mail\EmailVerificationCode;
 use App\Models\DocumentType;
+use App\Models\DriverCar;
 use App\Models\DriverDocument;
 use App\Models\User;
 use App\trait\ImageUpload;
@@ -451,6 +452,50 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Documents uploaded successfully'
+        ]);
+    }
+
+    public function storeDriverCar(Request $request)
+    {
+        $validation = Validator::make($request->all(), [
+            'phone' => 'required|string|exists:users,phone',
+            'car_type_id' => 'required|exists:car_types,id',
+            'car_categories_id' => 'required|exists:car_categories,id',
+            'car_image' => 'required|string',
+            'car_color' => 'required|string',
+            'car_license' => 'required|string',
+            'car_number' => 'required|string'
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json([
+                'message' => $validation->errors()->first()
+            ], 400);
+        }
+
+        $driver = User::where('phone', $request->phone)->first();
+
+        if (!$driver) {
+            return response()->json([
+                'message' => 'Driver not found'
+            ], 404);
+        }
+
+        $carImagePath = $this->storeBase64Image($request->car_image, 'driver/cars');
+        $car_licensePath = $this->storeBase64Image($request->car_license, 'driver/car_licenses');
+
+        DriverCar::create([
+            'driver_id' => $driver->id,
+            'car_type_id' => $request->car_type_id,
+            'car_categories_id' => $request->car_categories_id,
+            'car_image' => $carImagePath,
+            'car_color' => $request->car_color,
+            'car_license' => $car_licensePath,
+            'car_number' => $request->car_number
+        ]);
+
+        return response()->json([
+            'message' => 'Waiting for admin approval, your car details have been submitted successfully'
         ]);
     }
 

@@ -57,6 +57,9 @@
                 <a wire:navigate href="{{ route('drivers.documents', $driver->id) }}" class="btn btn-subtle-info btn-sm me-1">
                     {{ __("Documents") }} <i class="fa fa-file-alt"></i>
                 </a>
+                <a wire:navigate href="{{ route('drivers.cars', $driver->id) }}" class="btn btn-subtle-info btn-sm me-1">
+                    {{ __("Cars") }} <i class="fa fa-car"></i>
+                </a>
             </div>
         </div>
     </div>

@@ -65,6 +65,9 @@ Route::post('/driver/google-auth', [DriverAuthController::class, 'googleAuth']);
 Route::get('/driver/required-docs', [DriverAuthController::class, 'requiredDocs']);
 Route::post('/driver/store-docs', [DriverAuthController::class, 'storeDriverDocs']);
 
+//store car
+Route::post('/driver/store-car', [DriverAuthController::class, 'storeDriverCar']);
+
 //login
 Route::post('/driver/login', [DriverAuthController::class, 'login']);
 

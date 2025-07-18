@@ -41,4 +41,6 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
         ]);
 
         Route::get('/drivers/{driver}/documents', [DriverController::class, 'documents'])->name('drivers.documents');
+
+        Route::get('/drivers/{driver}/cars', [DriverController::class, 'cars'])->name('drivers.cars');
     });

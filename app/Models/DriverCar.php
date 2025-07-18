@@ -23,6 +23,21 @@ class DriverCar extends Model
 
     public $timestamps = true;
 
+    protected $appends = [
+        'car_image_link',
+        'car_license_link'
+    ];
+
+    public function getCarImageLinkAttribute()
+    {
+        return $this->car_image ? asset('storage/' . $this->car_image) : null;
+    }
+
+    public function getCarLicenseLinkAttribute()
+    {
+        return $this->car_license ? asset('storage/' . $this->car_license) : null;
+    }
+
 
     public function driver()
     {
