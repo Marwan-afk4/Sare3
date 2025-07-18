@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Driver;
 
 use App\Http\Controllers\Controller;
 use App\Mail\EmailVerificationCode;
+use App\Models\CarCategory;
 use App\Models\CarModel;
 use App\Models\CarType;
 use App\Models\DocumentType;
@@ -422,9 +423,12 @@ class AuthController extends Controller
 
         $carTypes = CarType::all();
 
+        $carCategories = CarCategory::all();
+
         return response()->json([
             'carModels' => $carModels,
-            'carTypes' => $carTypes
+            'carTypes' => $carTypes,
+            'carCategories' => $carCategories
         ]);
     }
 
