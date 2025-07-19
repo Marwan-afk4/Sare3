@@ -84,7 +84,7 @@ class RideActionsController extends Controller
             ], 500);
         }
 
-        return response()->json(['message' => 'Ride accepted.', 'ride' => $ride]);
+        return response()->json(['message' => 'Ride accepted.']);
     }
 
     //arrived
@@ -103,7 +103,7 @@ class RideActionsController extends Controller
             return response()->json(['message' => 'Firebase error.', 'error' => $e->getMessage()], 500);
         }
 
-        return response()->json(['message' => 'Marked as arrived.', 'ride' => $ride]);
+        return response()->json(['message' => 'Marked as arrived.']);
     }
 
     //start ride
@@ -122,7 +122,7 @@ class RideActionsController extends Controller
             return response()->json(['message' => 'Firebase error.', 'error' => $e->getMessage()], 500);
         }
 
-        return response()->json(['message' => 'Ride started.', 'ride' => $ride]);
+        return response()->json(['message' => 'Ride started.']);
     }
 
     //complete ride
@@ -215,7 +215,7 @@ class RideActionsController extends Controller
             return response()->json(['message' => 'Firebase error.', 'error' => $e->getMessage()], 500);
         }
 
-        return response()->json(['message' => 'Ride started.', 'ride' => $ride]);
+        return response()->json(['message' => 'Ride started.']);
     }
 
     //cancel ride
@@ -238,6 +238,6 @@ class RideActionsController extends Controller
             ], 500);
         }
 
-        return response()->json(['message' => 'Ride rejected.', 'ride' => $ride]);
+        return response()->json(['message' => 'Ride rejected.']);
     }
 }
