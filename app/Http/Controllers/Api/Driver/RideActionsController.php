@@ -24,7 +24,7 @@ class RideActionsController extends Controller
             ->createDatabase();
     }
 
-    protected function validateRide(Request $request, $status = null): ?Ride
+    protected function validateRide(Request $request, $status = null, $requireDriverMatch = true): ?Ride
     {
         $validator = Validator::make($request->all(), [
             'ride_id' => 'required|exists:rides,id',
@@ -34,8 +34,11 @@ class RideActionsController extends Controller
             abort(response()->json(['message' => $validator->errors()->first()], 422));
         }
 
-        $query = Ride::where('id', $request->ride_id)
-            ->where('driver_id', $request->user()->id);
+        $query = Ride::where('id', $request->ride_id);
+
+        if ($requireDriverMatch) {
+            $query->where('driver_id', $request->user()->id);
+        }
 
         if ($status) {
             $query->where('status', $status);
