@@ -367,28 +367,44 @@ class AuthController extends Controller
         $client = new Google_Client(['client_id' => env('GOOGLE_CLIENT_ID')]);
         $payload = $client->verifyIdToken($request->id_token);
 
-        if($payload){
-            $email = $payload['email'];
-            $name = $payload['name'];
-            $id_token = $payload['sub'];
-
-            $user =User::firstOrCreate([
-                'email' => $email,
-                'name' => $name,
-                'id_token' => $id_token,
-                'email_verified' => 'verified',
-            ]);
-
-            return response()->json([
-                'message' => 'Google account registered successfully',
-                'user' => $user
-            ]);
-        }
-        else{
+        if (!$payload) {
             return response()->json([
                 'message' => 'Invalid Google ID token'
             ], 401);
         }
+
+        $email = $payload['email'];
+        $name = $payload['name'];
+        $googleId = $payload['sub'];
+
+        $user = User::where('email', $email)->first();
+
+        if ($user) {
+            // User exists, log in and return token
+            $token = $user->createToken('google_token')->plainTextToken;
+
+            return response()->json([
+                'message' => 'This account already exists, you can log in now.',
+                'token' => $token,
+                'user' => $user
+            ]);
+        }
+
+        $user = User::create([
+            'email' => $email,
+            'name' => $name,
+            'id_token' => $googleId,
+            'email_verified' => 'verified',
+            'role' => 'user'
+        ]);
+
+        $token = $user->createToken('google_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Google account registered successfully.',
+            'token' => $token,
+            'user' => $user
+        ]);
     }
 
     public function login(Request $request)
