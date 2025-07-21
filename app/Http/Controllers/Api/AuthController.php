@@ -376,6 +376,7 @@ class AuthController extends Controller
                 'email' => $email,
                 'name' => $name,
                 'id_token' => $id_token,
+                'email_verified' => 'verified',
             ]);
 
             return response()->json([
