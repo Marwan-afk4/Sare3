@@ -15,15 +15,59 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        $data = [
+        $user->load([
+            'userRides.driver.driverCars',
+        ]);
+
+        // Filter only completed rides
+        $completedRides = $user->userRides->where('status', 'completed');
+
+        // Map ride data
+        $ridesData = $completedRides->map(function ($ride) {
+            $driver = optional($ride->driver);
+            $car = optional($driver->driverCars->first());
+
+            return [
+                'ride_id' => $ride->id,
+                'driver' => [
+                    'driver_id' => $driver->id,
+                    'driver_name' => $driver->name,
+                    'driver_image_link' => $driver->image_link,
+                    'driver_phone' => $driver->phone,
+                ],
+                'car' => [
+                    'car_number' => $car->car_number,
+                    'car_model' => $car->car_model,
+                    'car_image_link' => $car->car_image_link,
+                ],
+                'pickup_address' => $ride->pickup_address,
+                'dropoff_address' => $ride->dropoff_address,
+                'started_at' => $ride->started_at,
+                'ended_at' => $ride->ended_at,
+                'status' => $ride->status,
+                'calculated_final_price' => $ride->calculated_final_price,
+                'created_at' => $ride->created_at,
+            ];
+        })->values();
+
+        // Response data
+        $response = [
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
-            //last rides lsa
+            'image_link' => $user->image_link,
+            'rides' => [
+                'rides_count' => $completedRides->count(),
+                'total_earning' => $completedRides->sum('calculated_final_price'),
+            ],
+            'rides_data' => $ridesData,
+            'wallet' => $user->wallet,
+            'activity' => $user->activity,
+            'email_verified' => (bool) $user->email_verified,
         ];
 
-        return response()->json($data);
+        return response()->json(['user' => $response]);
     }
 
     public function updateUserProfile(Request $request)
