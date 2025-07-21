@@ -37,13 +37,13 @@
 					disabled
 				/>
 				<x-form-select
-					name="activity"
+					name="status"
 					type="select"
-                    :options="['active' => __('Active'), 'inactive' => __('Inactive')]"
-					label="{{__('Activity')}}"
-					:value="$driver->activity ?? ''"
-					:selected="$driver->activity->value ?? ''"
-                    :options="$diverActivityStatus"
+                    :options="['approved' => __('Approved'), 'rejected' => __('Rejected')]"
+					label="{{__('Status')}}"
+					:value="$driver->status ?? ''"
+					:selected="$driver->status->value ?? ''"
+                    :options="$driverStatus"
 					required
 				/>
 				<button type='submit' class="btn btn-warning btn-sm me-1">{{ __('Save') }}</button>

@@ -45,7 +45,7 @@
             <table class="mb-0 table table-hover">
                 <tr>
                     <th>
-                        <a 
+                        <a
                             href="{{ route('drivers.index', ['sort' => 'id', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
                             {{ __('Id') }}
                             @if ($sortField === 'id')
@@ -95,17 +95,17 @@
                             @endif
                         </a>
                     </th>
-                    {{-- <th>
-						<a href="{{ route('drivers.index', ['sort' => 'role', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
-							{{ __("Role") }}
-							@if ($sortField === 'role')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
+                    <th>
+						<a href="{{ route('drivers.index', ['sort' => 'activity', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+							{{ __("Activity") }}
+							@if ($sortField === 'activity')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
 						</a>
-					</th> --}}
+					</th>
                     <th>
                         <a
-                            href="{{ route('drivers.index', ['sort' => 'activity', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
-                            {{ __('Activity') }}
-                            @if ($sortField === 'activity')
+                            href="{{ route('drivers.index', ['sort' => 'status', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                            {{ __('Status') }}
+                            @if ($sortField === 'status')
                                 <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
                             @endif
                         </a>
@@ -133,6 +133,12 @@
                             <span class="badge badge-phoenix fs-10"
                                 style="background-color: #{{ $driver->activity->color() }}; color: #{{ $driver->activity->textColor() }};">
                                 <span class="badge-label m-1">{{ $driver->activity->label() ?? '-' }}</span>
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge badge-phoenix fs-10"
+                                style="background-color: #{{ $driver->status->color() }}; color: #{{ $driver->status->textColor() }};">
+                                <span class="badge-label m-1">{{ $driver->status->label() ?? '-' }}</span>
                             </span>
                         </td>
                         {{-- <td>{{ $user->role }}</td> --}}

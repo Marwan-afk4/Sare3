@@ -39,6 +39,12 @@
                             <li class="list-group-item"><strong>{{ __('Phone') }}:</strong> {{ $driver->phone }}</li>
                             <li class="list-group-item"><strong>{{ __('Activity') }}:</strong>
                                 <span class="badge badge-phoenix fs-10"
+                                    style="background-color: #{{ $driver->status->color() }}; color: #{{ $driver->status->textColor() }};">
+                                    <span class="badge-label m-1">{{ $driver->status->label() ?? '-' }}</span>
+                                </span>
+                            </li>
+                            <li class="list-group-item"><strong>{{ __('Activity') }}:</strong>
+                                <span class="badge badge-phoenix fs-10"
                                     style="background-color: #{{ $driver->activity->color() }}; color: #{{ $driver->activity->textColor() }};">
                                     <span class="badge-label m-1">{{ $driver->activity->label() ?? '-' }}</span>
                                 </span>

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ActivtyType;
+use App\Enums\DriverStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -42,6 +43,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'activity' => ActivtyType::class,
+        'status' => DriverStatus::class,
     ];
 
     public $timestamps = true;

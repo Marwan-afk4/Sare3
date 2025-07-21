@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ActivtyType;
+use App\Enums\DriverStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreDriverRequest;
 use App\Http\Requests\UpdateDriverRequest;
@@ -82,8 +83,10 @@ class DriverController extends Controller
     public function edit(User $driver)
     {
         $diverActivityStatus = ActivtyType::labels();
-        return view('drivers.edit', compact('driver', 'diverActivityStatus'));
+        $driverStatus = DriverStatus::labels();
+        return view('drivers.edit', compact('driver', 'diverActivityStatus', 'driverStatus'));
     }
+
 
     public function update(UpdateDriverRequest $request, User $driver)
     {

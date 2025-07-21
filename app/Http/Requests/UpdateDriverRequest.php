@@ -21,7 +21,8 @@ class UpdateDriverRequest extends FormRequest
             // 'phone' => 'nullable|unique:users,phone,' . $this->driver->id,
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'password' => 'nullable|string|min:8',
-            'activity' => 'nullable',
+            // 'activity' => 'nullable',
+            'status' => 'nullable|in:approved,rejected',
             'wallet' => 'nullable',
             // 'role' => 'nullable'
         ];
@@ -35,6 +36,7 @@ class UpdateDriverRequest extends FormRequest
             'phone.unique' => __('The Phone has already been taken.'),
             'password.min' => __('The Password must be at least 8 characters.'),
             'password.string' => __('The Password must be a string.'),
+            'status.in' => __('The Status must be one of the following: approved, rejected.'),
         ];
     }
 
