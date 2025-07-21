@@ -29,6 +29,10 @@ class DriverProfileController extends Controller
             'car' => [
                 'car_number' => $firstCar->car_number ?? null,
                 'car_model' => $firstCar?->carModel?->name ?? null,
+                'car_color' => $firstCar->car_color ?? null,
+                'car_category' => $firstCar->carCategory->name ?? null,
+                'car_type' => $firstCar->carType->type_name ?? null,
+                'car_license' => $firstCar->car_license_link ?? null,
                 'car_image_link' => $firstCar->car_image_link ?? null,
             ]
         ];
