@@ -14,12 +14,23 @@ class DriverProfileController extends Controller
     {
         $user = $request->user();
 
+        $user->load([
+        'driverRides.driver.driverCars.carModel',
+        'driverCars.carModel', // <- this line
+    ]);
+
+        $firstCar = $user->driverCars->first(); // get the first car object
+
         $data = [
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
-            //last rides lsa
+            'car' => [
+                'car_number' => $firstCar->car_number ?? null,
+                'car_model' => $firstCar?->carModel?->name ?? null,
+                'car_image_link' => $firstCar->car_image_link ?? null,
+            ]
         ];
 
         return response()->json($data);
