@@ -227,9 +227,21 @@ class RideActionsController extends Controller
     //cancel ride
     public function cancelRide(Request $request)
     {
-        $ride = $this->validateRide($request, ['pending','rejected'], false);
+        $validator = Validator::make($request->all(), [
+            'ride_id' => 'required|exists:rides,id',
+        ]);
 
-        $ride->update(['status' => 'rejected']);
+        if ($validator->fails()) {
+            abort(response()->json(['message' => $validator->errors()->first()], 422));
+        }
+
+        $ride = Ride::findOrFail($request->ride_id);
+
+        if ($ride->driver_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $ride->update(['status' => 'rejected', 'canceled_at' => now()->toIso8601String()]);
 
         try {
             $this->updateFirebase($ride, [
