@@ -63,10 +63,13 @@ class RideActionsController extends Controller
     public function acceptRide(Request $request)
     {
         $driver = $request->user();
-        $ride = Ride::where('id', $request->ride_id)->where('status', 'pending')->first();
+
+        $ride = Ride::where('id', $request->ride_id)
+                    ->whereIn('status', ['pending', 'rejected']) // Allow accepting rejected rides
+                    ->first();
 
         if (!$ride) {
-            return response()->json(['message' => 'Ride not found or not pending.'], 404);
+            return response()->json(['message' => 'Ride not found or not available for acceptance.'], 404);
         }
 
         $ride->update([
