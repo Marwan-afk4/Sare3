@@ -130,7 +130,6 @@
     "The Base Price field is required.": "حقل السعر الأساسي مطلوب.",
     "The Base Price field must be numeric.": "يجب أن يكون حقل السعر الأساسي رقميًا.",
     "The Base Price field must be greater than or equal to 0.": "يجب أن يكون حقل السعر الأساسي أكبر من أو يساوي 0.",
-
     "Create Car Model": "إنشاء طراز سيارة",
     "Car Models": "طرازات السيارات",
     "Edit Car Model": "تعديل طراز السيارة",
@@ -204,5 +203,7 @@
     "Arrived": "تم الوصول",
     "Waiting User": "بانتظار المستخدم",
     "Accepted": "مقبولة",
-    "Finished": "منتهية"
+    "Finished": "منتهية",
+    "Approved": "تمت الموافقة",
+    "The Status must be one of the following: approved, rejected.": "يجب أن تكون الحالة واحدة من القيم التالية: تمت الموافقة، مرفوض."
 }

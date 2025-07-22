@@ -91,6 +91,12 @@ class DriverController extends Controller
     public function update(UpdateDriverRequest $request, User $driver)
     {
         $data = $request->validated();
+
+        // Auto-update activity based on status
+        if (isset($data['status'])) {
+            $data['activity'] = $data['status'] === 'approved' ? 'active' : 'inactive';
+        }
+
         $driver->update($data);
 
         return redirect()->route('drivers.index')->with('success', 'Driver updated successfully.');
