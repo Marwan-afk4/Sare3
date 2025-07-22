@@ -227,7 +227,7 @@ class RideActionsController extends Controller
     //cancel ride
     public function cancelRide(Request $request)
     {
-        $ride = $this->validateRide($request, 'pending', false);
+        $ride = $this->validateRide($request, ['pending','rejected'], false);
 
         $ride->update(['status' => 'rejected']);
 
