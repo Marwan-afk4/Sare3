@@ -24,6 +24,7 @@ class DriverProfileController extends Controller
         $data = [
             'id' => $user->id,
             'name' => $user->name,
+            'gender' => $user->gender,
             'email' => $user->email,
             'email_verified' => $user->email_verified,
             'phone' => $user->phone,

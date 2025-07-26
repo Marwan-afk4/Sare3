@@ -157,7 +157,7 @@ class AuthController extends Controller
             $user = User::create([
                 'phone' => $request->phone,
                 'id_token' => $request->id_token,
-                'role' => 'driver',
+                'role' => 'user',
             ]);
         }
 
@@ -229,7 +229,8 @@ class AuthController extends Controller
     {
         $validation = Validator::make($request->all(), [
             'phone' => 'required|string|exists:users,phone',
-            'name' => 'required|string|max:255'
+            'name' => 'required|string|max:255',
+            'gender' => 'required|string|in:male,female'
         ]);
 
         if ($validation->fails()) {
@@ -244,6 +245,10 @@ class AuthController extends Controller
 
         if ($user) {
             $user->name = $request->name;
+            $user->role = 'user';
+            $user->activity = 'active';
+            $user->gender = $request->gender;
+            $user->wallet = 0; // Initialize wallet to 0
             $user->save();
             return response()->json([
                 'token' => $token,
