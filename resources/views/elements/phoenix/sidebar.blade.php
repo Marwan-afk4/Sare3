@@ -113,6 +113,19 @@
                             </div>
                         </a>
                     </div>
+
+                    {{-- paymenent-methods --}}
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'paymenent-methods' ? 'active' : '' }}"
+                            wire:navigate
+                            href="{{ route('paymenent-methods.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="credit-card"></span></span>
+                                <span class="nav-link-text-wrapper"><span
+                                        class="nav-link-text">{{ __('Payment Methods') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
                     {{-- <div class="nav-item-wrapper">
                         <a wire:navigate class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'employees' ? 'active' : '' }}" href="{{ route('employees.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">

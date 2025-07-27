@@ -14,6 +14,7 @@ use App\Http\Controllers\{
     RatingController,
     UserController,
     DriverController,
+    PaymenentMethodController,
     RideController,
     WalletRequestController
 };
@@ -42,6 +43,7 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
             '/car-types' => CarTypeController::class,
             '/car-models' => CarModelController::class,
             '/wallet-requests' => WalletRequestController::class,
+            '/paymenent-methods' => PaymenentMethodController::class,
         ]);
 
         Route::get('/drivers/{driver}/documents', [DriverController::class, 'documents'])->name('drivers.documents');
