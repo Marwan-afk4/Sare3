@@ -52,12 +52,18 @@
         "resources\/views\/drivers\/create.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/show.blade.php",
+        "resources\/views\/paymenent-methods\/create.blade.php",
+        "resources\/views\/paymenent-methods\/edit.blade.php",
+        "resources\/views\/paymenent-methods\/show.blade.php",
         "resources\/views\/rides\/create.blade.php",
         "resources\/views\/rides\/edit.blade.php",
         "resources\/views\/rides\/show.blade.php",
         "resources\/views\/users\/create.blade.php",
         "resources\/views\/users\/edit.blade.php",
-        "resources\/views\/users\/show.blade.php"
+        "resources\/views\/users\/show.blade.php",
+        "resources\/views\/wallet-requests\/create.blade.php",
+        "resources\/views\/wallet-requests\/edit.blade.php",
+        "resources\/views\/wallet-requests\/show.blade.php"
     ],
     "Drivers": {
         "0": "resources\/views\/drivers\/create.blade.php",
@@ -83,6 +89,10 @@
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/drivers\/show.blade.php",
+        "resources\/views\/paymenent-methods\/create.blade.php",
+        "resources\/views\/paymenent-methods\/edit.blade.php",
+        "resources\/views\/paymenent-methods\/index.blade.php",
+        "resources\/views\/paymenent-methods\/show.blade.php",
         "resources\/views\/users\/create.blade.php",
         "resources\/views\/users\/edit.blade.php",
         "resources\/views\/users\/index.blade.php",
@@ -105,8 +115,10 @@
         "resources\/views\/document-types\/create.blade.php",
         "resources\/views\/driver-documents\/create.blade.php",
         "resources\/views\/drivers\/create.blade.php",
+        "resources\/views\/paymenent-methods\/create.blade.php",
         "resources\/views\/rides\/create.blade.php",
-        "resources\/views\/users\/create.blade.php"
+        "resources\/views\/users\/create.blade.php",
+        "resources\/views\/wallet-requests\/create.blade.php"
     ],
     "Edit User": [
         "resources\/views\/drivers\/edit.blade.php",
@@ -128,10 +140,14 @@
         "resources\/views\/driver-documents\/index.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/paymenent-methods\/edit.blade.php",
+        "resources\/views\/paymenent-methods\/index.blade.php",
         "resources\/views\/rides\/edit.blade.php",
         "resources\/views\/rides\/index.blade.php",
         "resources\/views\/users\/edit.blade.php",
-        "resources\/views\/users\/index.blade.php"
+        "resources\/views\/users\/index.blade.php",
+        "resources\/views\/wallet-requests\/edit.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "Active": [
         "resources\/views\/document-types\/create.blade.php",
@@ -164,8 +180,10 @@
         "resources\/views\/document-types\/edit.blade.php",
         "resources\/views\/driver-documents\/edit.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
+        "resources\/views\/paymenent-methods\/edit.blade.php",
         "resources\/views\/rides\/edit.blade.php",
-        "resources\/views\/users\/edit.blade.php"
+        "resources\/views\/users\/edit.blade.php",
+        "resources\/views\/wallet-requests\/edit.blade.php"
     ],
     "Keyword": [
         "resources\/views\/drivers\/index.blade.php",
@@ -183,10 +201,14 @@
         "resources\/views\/driver-documents\/show.blade.php",
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/drivers\/show.blade.php",
+        "resources\/views\/paymenent-methods\/index.blade.php",
+        "resources\/views\/paymenent-methods\/show.blade.php",
         "resources\/views\/rides\/index.blade.php",
         "resources\/views\/rides\/show.blade.php",
         "resources\/views\/users\/index.blade.php",
-        "resources\/views\/users\/show.blade.php"
+        "resources\/views\/users\/show.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php",
+        "resources\/views\/wallet-requests\/show.blade.php"
     ],
     "Image": [
         "resources\/views\/drivers\/index.blade.php",
@@ -217,9 +239,13 @@
         "resources\/views\/driver-documents\/show.blade.php",
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/drivers\/show.blade.php",
+        "resources\/views\/paymenent-methods\/index.blade.php",
+        "resources\/views\/paymenent-methods\/show.blade.php",
         "resources\/views\/rides\/show.blade.php",
         "resources\/views\/users\/index.blade.php",
-        "resources\/views\/users\/show.blade.php"
+        "resources\/views\/users\/show.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php",
+        "resources\/views\/wallet-requests\/show.blade.php"
     ],
     "Actions": [
         "resources\/views\/car-categories\/index.blade.php",
@@ -228,8 +254,10 @@
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/driver-documents\/index.blade.php",
         "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/paymenent-methods\/index.blade.php",
         "resources\/views\/rides\/index.blade.php",
-        "resources\/views\/users\/index.blade.php"
+        "resources\/views\/users\/index.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "Edit": {
         "0": "resources\/views\/car-categories\/index.blade.php",
@@ -242,10 +270,13 @@
         "10": "resources\/views\/driver-documents\/show.blade.php",
         "11": "resources\/views\/drivers\/index.blade.php",
         "12": "resources\/views\/drivers\/show.blade.php",
-        "14": "resources\/views\/rides\/index.blade.php",
-        "15": "resources\/views\/rides\/show.blade.php",
-        "16": "resources\/views\/users\/index.blade.php",
-        "17": "resources\/views\/users\/show.blade.php"
+        "14": "resources\/views\/paymenent-methods\/index.blade.php",
+        "15": "resources\/views\/paymenent-methods\/show.blade.php",
+        "16": "resources\/views\/rides\/index.blade.php",
+        "17": "resources\/views\/rides\/show.blade.php",
+        "18": "resources\/views\/users\/index.blade.php",
+        "19": "resources\/views\/users\/show.blade.php",
+        "20": "resources\/views\/wallet-requests\/show.blade.php"
     },
     "Delete": [
         "resources\/views\/car-categories\/index.blade.php",
@@ -254,10 +285,13 @@
         "resources\/views\/driver-documents\/index.blade.php",
         "resources\/views\/driver-documents\/show.blade.php",
         "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/paymenent-methods\/index.blade.php",
+        "resources\/views\/paymenent-methods\/show.blade.php",
         "resources\/views\/rides\/index.blade.php",
         "resources\/views\/rides\/show.blade.php",
         "resources\/views\/users\/index.blade.php",
-        "resources\/views\/users\/show.blade.php"
+        "resources\/views\/users\/show.blade.php",
+        "resources\/views\/wallet-requests\/show.blade.php"
     ],
     "Updated At": [
         "resources\/views\/car-categories\/show.blade.php",
@@ -266,7 +300,9 @@
         "resources\/views\/document-types\/show.blade.php",
         "resources\/views\/driver-documents\/show.blade.php",
         "resources\/views\/drivers\/show.blade.php",
-        "resources\/views\/users\/show.blade.php"
+        "resources\/views\/paymenent-methods\/show.blade.php",
+        "resources\/views\/users\/show.blade.php",
+        "resources\/views\/wallet-requests\/show.blade.php"
     ],
     "Home": [
         "resources\/views\/elements\/phoenix\/sidebar.blade.php",
@@ -381,14 +417,17 @@
         "app\/Http\/Requests\/StoreCarModelRequest.php",
         "app\/Http\/Requests\/StoreDocumentTypeRequest.php",
         "app\/Http\/Requests\/StoreDriverRequest.php",
+        "app\/Http\/Requests\/StorePaymenentMethodRequest.php",
         "app\/Http\/Requests\/StoreUserRequest.php",
         "app\/Http\/Requests\/UpdateCarModelRequest.php"
     ],
     "The Name must be a string.": [
         "app\/Http\/Requests\/StoreDocumentTypeRequest.php",
         "app\/Http\/Requests\/StoreDriverRequest.php",
+        "app\/Http\/Requests\/StorePaymenentMethodRequest.php",
         "app\/Http\/Requests\/StoreUserRequest.php",
-        "app\/Http\/Requests\/UpdateDocumentTypeRequest.php"
+        "app\/Http\/Requests\/UpdateDocumentTypeRequest.php",
+        "app\/Http\/Requests\/UpdatePaymenentMethodRequest.php"
     ],
     "The Email must be a valid email address.": [
         "app\/Http\/Requests\/StoreDriverRequest.php",
@@ -488,7 +527,10 @@
         "resources\/views\/rides\/create.blade.php",
         "resources\/views\/rides\/edit.blade.php",
         "resources\/views\/rides\/index.blade.php",
-        "resources\/views\/rides\/show.blade.php"
+        "resources\/views\/rides\/show.blade.php",
+        "resources\/views\/wallet-requests\/create.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php",
+        "resources\/views\/wallet-requests\/show.blade.php"
     ],
     "Document Type": [
         "resources\/views\/driver-documents\/create.blade.php",
@@ -676,12 +718,15 @@
         "app\/Http\/Controllers\/DriverCarController.php",
         "app\/Http\/Controllers\/DriverController.php",
         "app\/Http\/Controllers\/DriverDocumentController.php",
+        "app\/Http\/Controllers\/PaymenentMethodController.php",
         "app\/Http\/Controllers\/RatingController.php",
         "app\/Http\/Controllers\/RideController.php",
-        "app\/Http\/Controllers\/UserController.php"
+        "app\/Http\/Controllers\/UserController.php",
+        "app\/Http\/Controllers\/WalletRequestController.php"
     ],
     "Updated successfully.": [
-        "app\/Http\/Controllers\/CarCategoryController.php"
+        "app\/Http\/Controllers\/CarCategoryController.php",
+        "app\/Http\/Controllers\/WalletRequestController.php"
     ],
     "The Name field must be a string.": [
         "app\/Http\/Requests\/StoreCarCategoryRequest.php",
@@ -904,10 +949,18 @@
     "Status": [
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/paymenent-methods\/create.blade.php",
+        "resources\/views\/paymenent-methods\/edit.blade.php",
+        "resources\/views\/paymenent-methods\/index.blade.php",
+        "resources\/views\/paymenent-methods\/show.blade.php",
         "resources\/views\/rides\/create.blade.php",
         "resources\/views\/rides\/edit.blade.php",
         "resources\/views\/rides\/index.blade.php",
-        "resources\/views\/rides\/show.blade.php"
+        "resources\/views\/rides\/show.blade.php",
+        "resources\/views\/wallet-requests\/create.blade.php",
+        "resources\/views\/wallet-requests\/edit.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php",
+        "resources\/views\/wallet-requests\/show.blade.php"
     ],
     "Edit Ride": [
         "resources\/views\/rides\/edit.blade.php"
@@ -971,6 +1024,7 @@
         "app\/Http\/Requests\/UpdateRideRequest.php"
     ],
     "The Status field is required.": [
+        "app\/Http\/Requests\/StorePaymenentMethodRequest.php",
         "app\/Http\/Requests\/StoreRideRequest.php",
         "app\/Http\/Requests\/UpdateRideRequest.php"
     ],
@@ -1038,5 +1092,109 @@
     ],
     "The Status must be one of the following: approved, rejected.": [
         "app\/Http\/Requests\/UpdateDriverRequest.php"
+    ],
+    "Wallet Requests": {
+        "0": "resources\/views\/elements\/phoenix\/sidebar.blade.php",
+        "1": "resources\/views\/wallet-requests\/create.blade.php",
+        "2": "resources\/views\/wallet-requests\/edit.blade.php",
+        "3": "resources\/views\/wallet-requests\/index.blade.php",
+        "5": "resources\/views\/wallet-requests\/show.blade.php"
+    },
+    "Payment Methods": [
+        "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    ],
+    "Create Paymenent Method": {
+        "0": "resources\/views\/paymenent-methods\/create.blade.php",
+        "2": "resources\/views\/paymenent-methods\/index.blade.php"
+    },
+    "Paymenent Methods": {
+        "0": "resources\/views\/paymenent-methods\/create.blade.php",
+        "1": "resources\/views\/paymenent-methods\/edit.blade.php",
+        "2": "resources\/views\/paymenent-methods\/index.blade.php",
+        "4": "resources\/views\/paymenent-methods\/show.blade.php"
+    },
+    "Edit Paymenent Method": [
+        "resources\/views\/paymenent-methods\/edit.blade.php"
+    ],
+    "Create Wallet Request": {
+        "0": "resources\/views\/wallet-requests\/create.blade.php",
+        "2": "resources\/views\/wallet-requests\/index.blade.php"
+    },
+    "Amount": [
+        "resources\/views\/wallet-requests\/create.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php",
+        "resources\/views\/wallet-requests\/show.blade.php"
+    ],
+    "Type": [
+        "resources\/views\/wallet-requests\/create.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php",
+        "resources\/views\/wallet-requests\/show.blade.php"
+    ],
+    "Note": [
+        "resources\/views\/wallet-requests\/create.blade.php",
+        "resources\/views\/wallet-requests\/edit.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php",
+        "resources\/views\/wallet-requests\/show.blade.php"
+    ],
+    "Edit Wallet Request": [
+        "resources\/views\/wallet-requests\/edit.blade.php"
+    ],
+    "Driver Wallet": [
+        "resources\/views\/wallet-requests\/index.blade.php",
+        "resources\/views\/wallet-requests\/show.blade.php"
+    ],
+    "Accept": [
+        "resources\/views\/wallet-requests\/index.blade.php"
+    ],
+    "The Name may not be greater than 255 characters.": [
+        "app\/Http\/Requests\/StorePaymenentMethodRequest.php",
+        "app\/Http\/Requests\/UpdatePaymenentMethodRequest.php"
+    ],
+    "The Name has already been taken.": [
+        "app\/Http\/Requests\/StorePaymenentMethodRequest.php",
+        "app\/Http\/Requests\/UpdatePaymenentMethodRequest.php"
+    ],
+    "The selected Status is invalid.": [
+        "app\/Http\/Requests\/StorePaymenentMethodRequest.php",
+        "app\/Http\/Requests\/UpdatePaymenentMethodRequest.php"
+    ],
+    "The driver does not exist.": [
+        "app\/Http\/Requests\/StoreWalletRequestRequest.php",
+        "app\/Http\/Requests\/UpdateWalletRequestRequest.php"
+    ],
+    "The amount is required.": [
+        "app\/Http\/Requests\/StoreWalletRequestRequest.php"
+    ],
+    "The amount must be a number.": [
+        "app\/Http\/Requests\/StoreWalletRequestRequest.php",
+        "app\/Http\/Requests\/UpdateWalletRequestRequest.php"
+    ],
+    "The amount must be at least 1.": [
+        "app\/Http\/Requests\/StoreWalletRequestRequest.php",
+        "app\/Http\/Requests\/UpdateWalletRequestRequest.php"
+    ],
+    "The type is required.": [
+        "app\/Http\/Requests\/StoreWalletRequestRequest.php"
+    ],
+    "The type must be either withdraw or deposit.": [
+        "app\/Http\/Requests\/StoreWalletRequestRequest.php",
+        "app\/Http\/Requests\/UpdateWalletRequestRequest.php"
+    ],
+    "The status is required.": [
+        "app\/Http\/Requests\/StoreWalletRequestRequest.php"
+    ],
+    "The status must be either pending, approved, or rejected.": [
+        "app\/Http\/Requests\/StoreWalletRequestRequest.php",
+        "app\/Http\/Requests\/UpdateWalletRequestRequest.php"
+    ],
+    "The note must be a string.": [
+        "app\/Http\/Requests\/StoreWalletRequestRequest.php",
+        "app\/Http\/Requests\/UpdateWalletRequestRequest.php"
+    ],
+    "Withdraw": [
+        "app\/Enums\/WalletRequestType.php"
+    ],
+    "Deposit": [
+        "app\/Enums\/WalletRequestType.php"
     ]
 }
