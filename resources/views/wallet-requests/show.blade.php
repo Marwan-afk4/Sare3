@@ -23,6 +23,9 @@
                         @endif
                     </li>
                     <li class="list-group-item">
+                        <strong>{{ __('Driver Wallet') }}:</strong> {{ $walletRequest->driver->wallet ?? '-' }}
+                    </li>
+                    <li class="list-group-item">
                         <strong>{{ __('Amount') }}:</strong> {{ $walletRequest->amount }}
                     </li>
                     <li class="list-group-item">

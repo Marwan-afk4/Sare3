@@ -4,9 +4,12 @@ namespace App\Models;
 
 use App\Enums\DriverStatus;
 use App\Enums\WalletRequestType;
+use App\Observers\WalletRequestObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+#[ObservedBy(WalletRequestObserver::class)]
 class WalletRequest extends Model
 {
     use HasFactory;

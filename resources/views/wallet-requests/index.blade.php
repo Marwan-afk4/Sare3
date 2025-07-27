@@ -33,6 +33,15 @@
                         </th>
                         <th>
                             <a
+                                href="{{ route('wallet-requests.index', ['sort' => 'driver_wallet', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                {{ __('Driver Wallet') }}
+                                @if ($sortField === 'driver_wallet')
+                                    <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
+                                @endif
+                            </a>
+                        </th>
+                        <th>
+                            <a
                                 href="{{ route('wallet-requests.index', ['sort' => 'amount', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
                                 {{ __('Amount') }}
                                 @if ($sortField === 'amount')
@@ -86,6 +95,9 @@
                                     <a
                                         href="{{ route('drivers.show', $walletRequest->driver) }}">{{ $walletRequest->driver?->name }}</a>
                                 @endif
+                            </td>
+                            <td>
+                                    {{ $walletRequest->driver->wallet }}
                             </td>
                             <td>{{ $walletRequest->amount }}</td>
                             <td>
