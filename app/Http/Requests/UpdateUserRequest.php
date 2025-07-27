@@ -15,11 +15,11 @@ class UpdateUserRequest extends FormRequest
     public function rules()
     {
         return [
-            // 'email' => 'nullable|email|unique:users,email,' . $this->user->id,
-            // 'phone' => 'nullable|unique:users,phone,' . $this->user->id,
+            'email' => 'nullable|email|unique:users,email,' . $this->user->id,
+            'phone' => 'nullable|unique:users,phone,' . $this->user->id,
             // 'image' => 'nullable',
-            'activity' => 'nullable',
-            // 'wallet' => 'nullable',
+            'activity' => 'nullable|in:active,inactive',
+            'wallet' => 'nullable|numeric|min:0',
             // 'role' => 'nullable'
         ];
     }
@@ -27,9 +27,11 @@ class UpdateUserRequest extends FormRequest
     public function messages()
     {
         return [
-            'email.email' => __('The Email must be a valid email address.'),
-            'email.unique' => __('The Email has already been taken.'),
-            'phone.unique' => __('The Phone has already been taken.'),
+            'email.unique' => __('Email already exists'),
+            'phone.unique' => __('Phone number already exists'),
+            'wallet.numeric' => __('Wallet must be a number'),
+            'wallet.min' => __('Wallet must be at least 0'),
+            'activity.in' => __('Activity must be either active or inactive'),
         ];
     }
 

@@ -51,17 +51,11 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="mt-3">
-            {{-- Optional Delete Form --}}
-            {{--
-		<form method='POST' action='{{ route('users.destroy', $user) }}' onsubmit='return confirm("Are you sure?")'>
-			@csrf
-			@method('DELETE')
-			<button type='submit' class="btn btn-danger">{{ __('Delete') }}</button>
-		</form>
-		--}}
+            <div class="card-footer">
+                <a wire:navigate href='{{ route('users.edit', $user) }}' class="btn btn-subtle-warning btn-sm me-1">
+                    {{ __("Edit") }} <i class="fa fa-edit"></i>
+                </a>
+            </div>
         </div>
     </div>
 @endsection

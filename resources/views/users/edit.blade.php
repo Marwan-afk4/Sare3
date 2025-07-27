@@ -20,22 +20,25 @@
 					type="text"
 					label="{{__('Name')}}"
 					:value="$user->name ?? ''"
-					disabled
 				/>
 				<x-form-input
 					name="email"
 					type="text"
 					label="{{__('Email')}}"
 					:value="$user->email ?? ''"
-                    disabled
 				/>
 				<x-form-input
 					name="phone"
 					type="text"
 					label="{{__('Phone')}}"
 					:value="$user->phone ?? ''"
-					disabled
 				/>
+                <x-form-input
+                    name="wallet"
+                    type="number"
+                    label="{{__('Wallet')}}"
+                    :value="$user->wallet ?? ''"
+                />
 				<x-form-select
 					name="activity"
 					type="select"
