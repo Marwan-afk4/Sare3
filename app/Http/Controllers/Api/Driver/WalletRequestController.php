@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Http\Controllers\Api\Driver;
+
+use App\Http\Controllers\Controller;
+use App\Models\WalletRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
+class WalletRequestController extends Controller
+{
+
+
+    public function requestWallet(Request $request)
+    {
+        $driver = $request->user();
+
+        $validation = Validator::make($request->all(), [
+            'amount' => 'required|numeric|min:1',
+            'type' => 'required|in:withdraw,deposit',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validation->errors()->first(),
+            ], 422);
+        }
+
+        $walletRequest = WalletRequest::create([
+            'driver_id' => $driver->id,
+            'amount' => $request->amount,
+            'type' => $request->type,
+            'status' => 'pending',
+        ]);
+
+        return response()->json([
+            'message' => 'Wallet request created successfully.',
+            'data' => $walletRequest,
+        ], 200);
+
+
+
+
+    }
+}

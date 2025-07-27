@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Driver\DriverProfileController;
 use App\Http\Controllers\Api\Driver\PointController as DriverPointController;
 use App\Http\Controllers\Api\Driver\RaitingController as DriverRaitingController;
 use App\Http\Controllers\Api\Driver\RideActionsController;
+use App\Http\Controllers\Api\Driver\WalletRequestController;
 use App\Http\Controllers\Api\Paytabs\PaymentController;
 use App\Http\Controllers\Api\User\LoggedUserController;
 use App\Http\Controllers\Api\User\PointController;
@@ -105,6 +106,9 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 //DriverLocationUpdate
     Route::post('/ride/update-location', [DriverLocationController::class, 'updateDriverLocation']);
     // Route::post('/ride/end', [DriverLocationController::class, 'endRide']);
+
+//Wallet Request
+    Route::post('/wallet/request', [WalletRequestController::class, 'requestWallet']);
 
 });
 

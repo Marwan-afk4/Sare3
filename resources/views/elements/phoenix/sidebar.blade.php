@@ -41,6 +41,19 @@
                             </div>
                         </a>
                     </div>
+                    {{-- wallet-requests --}}
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'wallet-requests' ? 'active' : '' }}"
+                            wire:navigate
+                            href="{{ route('wallet-requests.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="credit-card"></span></span>
+                                <span class="nav-link-text-wrapper"><span
+                                        class="nav-link-text">{{ __('Wallet Requests') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+                    {{-- document-types --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'document-types' ? 'active' : '' }}"
                             wire:navigate

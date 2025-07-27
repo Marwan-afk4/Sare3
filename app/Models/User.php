@@ -91,4 +91,9 @@ class User extends Authenticatable
         return $this->hasMany(Ride::class, 'driver_id');
     }
 
+    public function walletRequests()
+    {
+        return $this->hasMany(WalletRequest::class, 'driver_id');
+    }
+
 }
