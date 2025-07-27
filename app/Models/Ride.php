@@ -31,7 +31,8 @@ class Ride extends Model
         'started_at',
         'ended_at',
         'time_taken',
-        'firebase_ride_id'
+        'firebase_ride_id',
+        'payment_method_id'
     ];
 
     public $timestamps = true;
@@ -55,6 +56,11 @@ class Ride extends Model
     public function carCategory()
     {
         return $this->belongsTo(CarCategory::class);
+    }
+
+    public function paymentMethod()
+    {
+        return $this->belongsTo(paymenentMethod::class);
     }
 
 

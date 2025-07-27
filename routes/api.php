@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Driver\RideSettingCOntroller;
 use App\Http\Controllers\Api\Driver\WalletRequestController;
 use App\Http\Controllers\Api\Paytabs\PaymentController;
 use App\Http\Controllers\Api\User\LoggedUserController;
+use App\Http\Controllers\Api\User\PaymentMethodController;
 use App\Http\Controllers\Api\User\PointController;
 use App\Http\Controllers\Api\User\ProfileController;
 use App\Http\Controllers\Api\User\RaitingController;
@@ -143,5 +144,8 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 
 //Raiting
     Route::post('/ride/rating', [RaitingController::class,'raiting']);
+
+//Payment Methods
+    Route::get('/payment-methods', [PaymentMethodController::class, 'getPaymentMethods']);
 });
 

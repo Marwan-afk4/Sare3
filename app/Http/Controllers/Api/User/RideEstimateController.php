@@ -70,7 +70,8 @@ class RideEstimateController extends Controller
             'dropoff_lat' => 'required|numeric',
             'dropoff_lng' => 'required|numeric',
             'dropoff_address' => 'nullable|string',
-            'pickup_address' => 'nullable|string'
+            'pickup_address' => 'nullable|string',
+            'payment_method_id' => 'nullable|exists:paymenent_methods,id',
         ]);
 
         if ($validation->fails()) {
@@ -121,6 +122,7 @@ class RideEstimateController extends Controller
             'calculated_initial_price' => $price,
             'pickup_address' => $request->pickup_address,
             'dropoff_address' => $request->dropoff_address,
+            'payment_method_id' => $request->payment_method_id,
         ]);
 
         $firebaseRideId = 'ride_' . $ride->id;
