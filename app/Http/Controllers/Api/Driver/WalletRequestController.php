@@ -38,9 +38,18 @@ class WalletRequestController extends Controller
             'message' => 'Wallet request created successfully.',
             'data' => $walletRequest,
         ], 200);
+    }
 
+    public function getWalletRequests(Request $request)
+    {
+        $driver = $request->user();
+        $walletRequests = WalletRequest::where('driver_id', $driver->id)
+            ->with('driver:id,name,email') // Assuming you want to include driver details
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-
-
+        return response()->json([
+            'History_Wallet_Requests' => $walletRequests,
+        ], 200);
     }
 }
