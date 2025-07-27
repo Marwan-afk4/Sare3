@@ -25,7 +25,7 @@ class ProfileController extends Controller
         // Map ride data
         $ridesData = $completedRides->map(function ($ride) {
             $driver = optional($ride->driver);
-            $car = optional(optional($driver)->driverCars->first());
+            $car = $driver && $driver->driverCars ? optional($driver->driverCars->first()) : null;
 
             return [
                 'ride_id' => $ride->id,
@@ -36,9 +36,9 @@ class ProfileController extends Controller
                     'driver_phone' => $driver->phone,
                 ],
                 'car' => [
-                    'car_number' => $car->car_number,
-                    'car_model' => $car->car_model,
-                    'car_image_link' => $car->car_image_link,
+                    'car_number' => optional($car)->car_number,
+                    'car_model' => optional($car)->car_model,
+                    'car_image_link' => optional($car)->car_image_link,
                 ],
                 'pickup_address' => $ride->pickup_address,
                 'dropoff_address' => $ride->dropoff_address,
