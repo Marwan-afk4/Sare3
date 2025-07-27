@@ -20,23 +20,26 @@
 					type="text"
 					label="{{__('Name')}}"
 					:value="$driver->name ?? ''"
-					disabled
 				/>
 				<x-form-input
 					name="email"
 					type="text"
 					label="{{__('Email')}}"
 					:value="$driver->email ?? ''"
-                    disabled
 				/>
 				<x-form-input
 					name="phone"
 					type="text"
 					label="{{__('Phone')}}"
 					:value="$driver->phone ?? ''"
-					disabled
 				/>
-				<x-form-select
+                <x-form-input
+                    name="wallet"
+                    type="number"
+                    label="{{__('Wallet')}}"
+                    :value="$driver->wallet ?? ''"
+                />
+                <x-form-select
 					name="status"
 					type="select"
                     :options="['approved' => __('Approved'), 'rejected' => __('Rejected')]"

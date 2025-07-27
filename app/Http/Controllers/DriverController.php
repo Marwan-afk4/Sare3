@@ -99,7 +99,7 @@ class DriverController extends Controller
 
         $driver->update($data);
 
-        return redirect()->route('drivers.index')->with('success', 'Driver updated successfully.');
+        return redirect()->route('drivers.index')->with('success', __('Driver updated successfully.'));
     }
 
 

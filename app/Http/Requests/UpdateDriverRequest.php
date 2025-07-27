@@ -23,7 +23,7 @@ class UpdateDriverRequest extends FormRequest
             'password' => 'nullable|string|min:8',
             // 'activity' => 'nullable',
             'status' => 'nullable|in:approved,rejected',
-            'wallet' => 'nullable',
+            'wallet' => 'nullable|numeric|min:0',
             // 'role' => 'nullable'
         ];
     }
