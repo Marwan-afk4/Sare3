@@ -41,4 +41,19 @@ class RideSettingCOntroller extends Controller
             'ride_setting' => $rideSetting,
         ], 200);
     }
+
+    public function getRideSetting(Request $request)
+    {
+        $driver = $request->user();
+
+        $rideSetting = $driver->driverRideSetting;
+
+        if (!$rideSetting) {
+            return response()->json(['message' => 'No ride settings found'], 404);
+        }
+
+        return response()->json([
+            'ride_setting' => $rideSetting,
+        ], 200);
+    }
 }

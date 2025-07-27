@@ -114,6 +114,7 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 
 //Ride Setting
     Route::post('/ride-setting', [RideSettingCOntroller::class, 'addRideSetting']);
+    Route::get('/get-ride-setting', [RideSettingCOntroller::class, 'getRideSetting']);
 
 });
 
