@@ -90,7 +90,6 @@
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/drivers\/show.blade.php",
         "resources\/views\/paymenent-methods\/create.blade.php",
-        "resources\/views\/paymenent-methods\/edit.blade.php",
         "resources\/views\/paymenent-methods\/index.blade.php",
         "resources\/views\/paymenent-methods\/show.blade.php",
         "resources\/views\/users\/create.blade.php",
@@ -155,6 +154,7 @@
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/document-types\/show.blade.php",
         "resources\/views\/users\/edit.blade.php",
+        "app\/Enums\/ActiveStatuses.php",
         "app\/Enums\/ActivtyType.php"
     ],
     "Inactive": [
@@ -163,6 +163,7 @@
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/document-types\/show.blade.php",
         "resources\/views\/users\/edit.blade.php",
+        "app\/Enums\/ActiveStatuses.php",
         "app\/Enums\/ActivtyType.php"
     ],
     "Activity": {
@@ -216,6 +217,7 @@
         "resources\/views\/users\/index.blade.php"
     ],
     "Wallet": [
+        "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/drivers\/show.blade.php",
         "resources\/views\/users\/create.blade.php",
@@ -726,6 +728,7 @@
     ],
     "Updated successfully.": [
         "app\/Http\/Controllers\/CarCategoryController.php",
+        "app\/Http\/Controllers\/PaymenentMethodController.php",
         "app\/Http\/Controllers\/WalletRequestController.php"
     ],
     "The Name field must be a string.": [
@@ -1196,5 +1199,8 @@
     ],
     "Deposit": [
         "app\/Enums\/WalletRequestType.php"
+    ],
+    "Driver updated successfully.": [
+        "app\/Http\/Controllers\/DriverController.php"
     ]
 }

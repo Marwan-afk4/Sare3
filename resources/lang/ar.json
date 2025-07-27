@@ -231,5 +231,6 @@
     "The status must be either pending, approved, or rejected.": "يجب أن تكون الحالة إما قيد الانتظار أو تمت الموافقة أو مرفوضة.",
     "The note must be a string.": "يجب أن تكون الملاحظة نصًا.",
     "Withdraw": "سحب",
-    "Deposit": "إيداع"
+    "Deposit": "إيداع",
+    "Driver updated successfully.": "تم تحديث السائق بنجاح."
 }
