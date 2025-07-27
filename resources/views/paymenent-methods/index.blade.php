@@ -52,7 +52,9 @@
 					<td>{{ $paymenentMethod->created_at->diffForHumans() ?? '-' }}</td>
 					<td class="text-center">
 						<a href='{{ route('paymenent-methods.show', $paymenentMethod) }}' class="btn btn-subtle-primary btn-sm me-1">{{ __("Details") }} <i class="fa fa-eye"></i></a>
-						{{-- <a href='{{ route('paymenent-methods.edit', $paymenentMethod) }}' class="btn btn-subtle-warning btn-sm me-1">{{ __("Edit") }} <i class="fa fa-edit"></i></a> --}}
+						<a href='{{ route('paymenent-methods.edit', $paymenentMethod) }}'  class="btn btn-subtle-success btn-sm me-1">
+                                    <i class="fa fa-check"></i> {{ __('Edit') }}
+                                </a>
 						{{-- <form method='POST' action='{{ route('paymenent-methods.destroy', $paymenentMethod) }}' onsubmit='return confirm("Are you sure you want to delete this item?")'>
 							<input type='hidden' name='_method' value='DELETE'>
 							<button type='submit' class="btn btn-square btn-danger">{{ __('Delete') }}</button>

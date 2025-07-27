@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ActiveStatuses;
 use App\Enums\ActivtyType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,7 +26,7 @@ class PaymenentMethod extends Model
     ];
 
     public $casts = [
-        'status' => ActivtyType::class,
+        'status' => ActiveStatuses::class,
     ];
 
     public function rides()

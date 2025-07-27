@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ActiveStatuses;
+use App\Enums\ActivtyType;
 use App\Models\PaymenentMethod;
 
 
@@ -38,12 +40,13 @@ class PaymenentMethodController extends Controller
 
     public function edit(PaymenentMethod $paymenentMethod)
     {
-        return view('paymenent-methods.edit', compact('paymenentMethod'));
+        $statuses = ActiveStatuses::labels();
+        return view('paymenent-methods.edit', compact('paymenentMethod','statuses'));
     }
 
     public function update(UpdatePaymenentMethodRequest $request, PaymenentMethod $paymenentMethod)
     {
         $paymenentMethod->update($request->validated());
-        return redirect()->route('paymenent-methods.index')->with('success', 'Updated successfully.');
+        return redirect()->route('paymenent-methods.index')->with('success', __('Updated successfully.'));
     }
 }

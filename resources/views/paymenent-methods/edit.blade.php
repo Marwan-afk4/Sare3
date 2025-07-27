@@ -15,18 +15,12 @@
 			<form method='POST' action='{{ route('paymenent-methods.update', $paymenentMethod->id) }}' class="needs-validation" novalidate>
 				@csrf
 				@method('PUT')
-				<x-form-input 
-					name="name"
-					type="text"
-					label="{{__('Name')}}"
-					:value="$paymenentMethod->name ?? ''"
-					required
-				/>
-				<x-form-input 
+				<x-form-select
 					name="status"
-					type="text"
+					type="select"
 					label="{{__('Status')}}"
-					:value="$paymenentMethod->status ?? ''"
+					:selected="$paymenentMethod->status->value ??''"
+                    :options="$statuses"
 					required
 				/>
 				<button type='submit' class="btn btn-warning btn-sm me-1">{{ __('Save') }}</button>
