@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Kreait\Firebase\Factory;
 use App\Helpers\RideHelper;
+use App\Models\CancellationPolicy;
 use App\Models\Rating;
 
 class RideEstimateController extends Controller
@@ -76,6 +77,16 @@ class RideEstimateController extends Controller
 
         if ($validation->fails()) {
             return response()->json(['message' => $validation->errors()], 500);
+        }
+
+        //check if there is a cancellation Policy
+        $cancellationPolicy = CancellationPolicy::all();
+        $policyExists = false;
+
+        if ($cancellationPolicy->isEmpty()) {
+            $policyExists = false;
+        } else {
+            $policyExists = true;
         }
 
         $driver = User::with('driverCars')->findOrFail($request->driver_id);
@@ -160,6 +171,7 @@ class RideEstimateController extends Controller
                 'estimated_km' => $request->estimated_km,
                 'initial_price' => $price,
                 'status' => $ride->status,
+                'cancellation_policy' => $policyExists,
                 'created_at' => now()->toIso8601String(),
             ];
 
