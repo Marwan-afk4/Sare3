@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Driver\RideActionsController;
 use App\Http\Controllers\Api\Driver\RideSettingCOntroller;
 use App\Http\Controllers\Api\Driver\WalletRequestController;
 use App\Http\Controllers\Api\Paytabs\PaymentController;
+use App\Http\Controllers\Api\User\CancelationRide;
 use App\Http\Controllers\Api\User\LoggedUserController;
 use App\Http\Controllers\Api\User\PaymentMethodController;
 use App\Http\Controllers\Api\User\PointController;
@@ -117,6 +118,8 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
     Route::post('/ride-setting', [RideSettingCOntroller::class, 'addRideSetting']);
     Route::get('/get-ride-setting', [RideSettingCOntroller::class, 'getRideSetting']);
 
+//Cancel Ride
+    Route::post('/cancel-ride', [CancelationRide::class, 'cancel']);
 });
 
 
@@ -147,5 +150,8 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 
 //Payment Methods
     Route::get('/payment-methods', [PaymentMethodController::class, 'getPaymentMethods']);
+
+//Cancel Ride
+    Route::post('/cancel-ride', [CancelationRide::class, 'cancel']);
 });
 

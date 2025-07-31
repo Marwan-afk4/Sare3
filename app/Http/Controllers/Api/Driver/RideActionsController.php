@@ -237,9 +237,6 @@ class RideActionsController extends Controller
 
         $ride = Ride::findOrFail($request->ride_id);
 
-        if ($ride->driver_id !== auth()->id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
 
         $ride->update(['status' => 'rejected', 'canceled_at' => now()->toIso8601String()]);
 
