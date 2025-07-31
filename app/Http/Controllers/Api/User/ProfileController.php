@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Rating;
 use App\trait\ImageUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -18,6 +19,10 @@ class ProfileController extends Controller
         $user->load([
             'userRides.driver.driverCars',
         ]);
+
+        $userRating = Rating::where('ratee_id', $user->id)
+            ->where('ratee_type', 'user')
+            ->avg('rate');
 
         // Filter only completed rides
         $completedRides = $user->userRides->where('status', 'completed');
@@ -64,6 +69,7 @@ class ProfileController extends Controller
             'rides_data' => $ridesData,
             'wallet' => $user->wallet,
             'activity' => $user->activity,
+            'user_rating' => $userRating,
             'email_verified' => (bool) $user->email_verified,
         ];
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Driver;
 
 use App\Http\Controllers\Controller;
+use App\Models\Rating;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -19,6 +20,10 @@ class DriverProfileController extends Controller
         'driverCars.carModel', // <- this line
     ]);
 
+    $driverRating = Rating::where('ratee_id', $user->id)
+            ->where('ratee_type', 'driver')
+            ->avg('rate');
+
         $firstCar = $user->driverCars->first(); // get the first car object
 
         $data = [
@@ -31,6 +36,7 @@ class DriverProfileController extends Controller
             'image_link' => $user->image_link,
             'activity' => $user->activity->value,
             'status' => $user->status->value,
+            'driver_rating' => $driverRating,
             'rejected_reason' => $user->rejected_reason ?? 'your account is not rejected',
             'wallet' => $user->wallet,
             'car' => [
