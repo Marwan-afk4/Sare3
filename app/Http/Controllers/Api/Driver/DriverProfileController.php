@@ -54,6 +54,49 @@ class DriverProfileController extends Controller
         return response()->json($data);
     }
 
+    public function getDriverCompletedRides(Request $request)
+    {
+        $driver = $request->user(); 
+
+        $driver->load([
+            'driverRides.user',
+            'driverCars',
+        ]);
+
+        $completedRides = $driver->driverRides->where('status', 'completed');
+
+        $ridesData = $completedRides->map(function ($ride) {
+            $user = optional($ride->user);
+
+            return [
+                'ride_id' => $ride->id,
+                'user' => [
+                    'user_id' => $user->id,
+                    'user_name' => $user->name,
+                    'user_image_link' => $user->image_link,
+                    'user_phone' => $user->phone,
+                ],
+                'pickup_address' => $ride->pickup_address,
+                'dropoff_address' => $ride->dropoff_address,
+                'started_at' => $ride->started_at,
+                'ended_at' => $ride->ended_at,
+                'status' => $ride->status,
+                'calculated_final_price' => $ride->calculated_final_price,
+                'created_at' => $ride->created_at,
+            ];
+        })->values();
+
+        $response = [
+            'rides' => [
+                'rides_count' => $completedRides->count(),
+            ],
+            'rides_data' => $ridesData,
+        ];
+
+        return response()->json(['driver' => $response]);
+    }
+
+
 
     public function updateDriverProfile(Request $request)
     {

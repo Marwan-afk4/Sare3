@@ -94,6 +94,7 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 //Profile
     Route::get('/get-profile', [DriverProfileController::class, 'getProfileData']);
     Route::put('/update-profile', [DriverProfileController::class, 'updateDriverProfile']);
+    Route::get('/driver-rides', [DriverProfileController::class, 'getDriverCompletedRides']);
 
 //Ride Acrions
     Route::post('/ride/accept', [RideActionsController::class, 'acceptRide']);
