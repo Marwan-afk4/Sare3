@@ -19,8 +19,8 @@ class RideEstimateController extends Controller
     public function estimateForAllCategories(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            'estimated_km' => 'required|numeric|min:0',
-            'estimated_time' => 'required|numeric|min:0',
+            'estimated_km' => 'nullable|numeric|min:0',
+            'estimated_time' => 'nullable|numeric|min:0',
         ]);
 
         if ($validation->fails()) {
