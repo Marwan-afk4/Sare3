@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ActiveStatuses;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,12 +18,15 @@ class CancellationPolicy extends Model
         'max_minutes',
         'penalty_amount',
         'penalty_percent',
-        'is_refundable',
         'description',
         'status'
     ];
 
     public $timestamps = true;
+
+    protected $casts = [
+        'status' => ActiveStatuses::class
+    ];
 
 
     public function cancelationRides()

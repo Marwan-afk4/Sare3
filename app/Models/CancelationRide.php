@@ -19,8 +19,6 @@ class CancelationRide extends Model
         'canceled_by',
         'penalty_applied',
         'penalty_amount',
-        'is_refundable',
-        'refund_amount',
         'canceled_at',
         'reason'
     ];

@@ -126,6 +126,19 @@
                             </div>
                         </a>
                     </div>
+
+                    {{-- cancelationPolicy --}}
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'cancellation-policies' ? 'active' : '' }}"
+                            wire:navigate
+                            href="{{ route('cancellation-policies.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="alert-circle"></span></span>
+                                <span class="nav-link-text-wrapper"><span
+                                        class="nav-link-text">{{ __('Cancelation Policy') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
                     {{-- <div class="nav-item-wrapper">
                         <a wire:navigate class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'employees' ? 'active' : '' }}" href="{{ route('employees.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
