@@ -121,6 +121,9 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 
 //Cancel Ride
     Route::post('/cancel-ride', [CancelationRide::class, 'cancel']);
+
+//Logout
+    Route::delete('/logout', [DriverAuthController::class, 'logout']);
 });
 
 
@@ -154,5 +157,8 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 
 //Cancel Ride
     Route::post('/cancel-ride', [CancelationRide::class, 'cancel']);
+
+//Logout
+    Route::delete('/logout', [DriverAuthController::class, 'logout']);
 });
 
