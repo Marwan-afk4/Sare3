@@ -56,14 +56,14 @@ class DriverProfileController extends Controller
 
     public function getDriverCompletedRides(Request $request)
     {
-        $driver = $request->user(); 
+        $driver = $request->user();
 
         $driver->load([
             'driverRides.user',
             'driverCars',
         ]);
 
-        $completedRides = $driver->driverRides->where('status', 'completed');
+        $completedRides = $driver->driverRides->where('status', 'finshed');
 
         $ridesData = $completedRides->map(function ($ride) {
             $user = optional($ride->user);
