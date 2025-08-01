@@ -43,6 +43,6 @@ class {{model}}Controller extends Controller
     public function update(Update{{model}}Request $request, {{model}} ${{modelVariable}})
     {
         ${{modelVariable}}->update($request->validated());
-        return redirect()->route('{{kebabName}}.index')->with('success', 'Updated successfully.');
+        return redirect()->route('{{kebabName}}.index')->with('success',  __('Updated successfully.'));
     }
 }

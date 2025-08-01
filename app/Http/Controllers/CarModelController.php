@@ -47,6 +47,6 @@ class CarModelController extends Controller
     public function update(UpdateCarModelRequest $request, CarModel $carModel)
     {
         $carModel->update($request->validated());
-        return redirect()->route('car-models.index')->with('success', 'Updated successfully.');
+        return redirect()->route('car-models.index')->with('success',  __('Updated successfully.'));
     }
 }

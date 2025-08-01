@@ -48,6 +48,6 @@ class DriverCarController extends Controller
     public function update(UpdateDriverCarRequest $request, DriverCar $driverCar)
     {
         $driverCar->update($request->validated());
-        return redirect()->route('driver-cars.index')->with('success', 'Updated successfully.');
+        return redirect()->route('driver-cars.index')->with('success',  __('Updated successfully.'));
     }
 }

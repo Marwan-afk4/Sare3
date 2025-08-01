@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Driver\DriverProfileController;
 use App\Http\Controllers\Api\Driver\PointController as DriverPointController;
 use App\Http\Controllers\Api\Driver\RaitingController as DriverRaitingController;
 use App\Http\Controllers\Api\Driver\RideActionsController;
+use App\Http\Controllers\Api\Driver\RideRequestLimitController;
 use App\Http\Controllers\Api\Driver\RideSettingCOntroller;
 use App\Http\Controllers\Api\Driver\WalletRequestController;
 use App\Http\Controllers\Api\Paytabs\PaymentController;
@@ -121,6 +122,9 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 
 //Cancel Ride
     Route::post('/cancel-ride', [CancelationRide::class, 'cancel']);
+
+//Request Ride Limit
+    Route::get('/ride-request-time-limits', [RideRequestLimitController::class, 'getRideRequestLimit']);
 
 //Logout
     Route::delete('/logout', [DriverAuthController::class, 'logout']);

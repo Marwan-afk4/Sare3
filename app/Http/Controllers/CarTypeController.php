@@ -48,6 +48,6 @@ class CarTypeController extends Controller
     public function update(UpdateCarTypeRequest $request, CarType $carType)
     {
         $carType->update($request->validated());
-        return redirect()->route('car-types.index')->with('success', 'Updated successfully.');
+        return redirect()->route('car-types.index')->with('success',  __('Updated successfully.'));
     }
 }

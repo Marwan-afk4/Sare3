@@ -18,6 +18,7 @@ use App\Http\Controllers\{
     DriverController,
     PaymenentMethodController,
     RideController,
+    RideRequestTimeLimitController,
     WalletRequestController
 };
 
@@ -47,7 +48,8 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
             '/wallet-requests' => WalletRequestController::class,
             '/paymenent-methods' => PaymenentMethodController::class,
             '/cancellation-policies' => CancellationPolicyController::class,
-            '/cancelation-rides' => CancelationRideController::class
+            '/cancelation-rides' => CancelationRideController::class,
+            '/ride-request-time-limits' => RideRequestTimeLimitController::class
         ]);
 
         Route::get('/drivers/{driver}/documents', [DriverController::class, 'documents'])->name('drivers.documents');

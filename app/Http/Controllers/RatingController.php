@@ -51,6 +51,6 @@ class RatingController extends Controller
     public function update(UpdateRatingRequest $request, Rating $rating)
     {
         $rating->update($request->validated());
-        return redirect()->route('ratings.index')->with('success', 'Updated successfully.');
+        return redirect()->route('ratings.index')->with('success',  __('Updated successfully.'));
     }
 }

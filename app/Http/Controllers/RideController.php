@@ -81,6 +81,6 @@ class RideController extends Controller
     public function update(UpdateRideRequest $request, Ride $ride)
     {
         $ride->update($request->validated());
-        return redirect()->route('rides.index')->with('success', 'Updated successfully.');
+        return redirect()->route('rides.index')->with('success',  __('Updated successfully.'));
     }
 }

@@ -48,6 +48,6 @@ class DriverDocumentController extends Controller
     public function update(UpdateDriverDocumentRequest $request, DriverDocument $driverDocument)
     {
         $driverDocument->update($request->validated());
-        return redirect()->route('driver-documents.index')->with('success', 'Updated successfully.');
+        return redirect()->route('driver-documents.index')->with('success',  __('Updated successfully.'));
     }
 }

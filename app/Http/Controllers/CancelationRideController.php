@@ -56,6 +56,6 @@ class CancelationRideController extends Controller
     public function update(UpdateCancelationRideRequest $request, CancelationRide $cancelationRide)
     {
         $cancelationRide->update($request->validated());
-        return redirect()->route('cancelation-rides.index')->with('success', 'Updated successfully.');
+        return redirect()->route('cancelation-rides.index')->with('success',  __('Updated successfully.'));
     }
 }
