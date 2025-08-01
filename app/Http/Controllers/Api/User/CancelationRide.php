@@ -9,6 +9,7 @@ use App\Models\Ride;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Kreait\Firebase\Factory;
 
 class CancelationRide extends Controller
 {
@@ -88,6 +89,30 @@ class CancelationRide extends Controller
             'penalty_amount' => round($penaltyAmount, 2),
             'reason' => $request->input('reason'),
         ]);
+
+        try {
+            $firebase = (new Factory)
+                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                ->createDatabase();
+
+            $firebaseRef = $firebase->getReference("rides/{$ride->firebase_ride_id}");
+
+            if ($user->role === 'driver') {
+                // السائق يحدّث الحالة فقط
+                $firebaseRef->update([
+                    'status' => 'canceled',
+                ]);
+            } elseif ($user->role === 'user') {
+                // المستخدم يحذف الرحلة من Firebase
+                $firebaseRef->remove();
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Ride canceled, but failed to update Firebase',
+                'firebase_error' => $e->getMessage(),
+            ], 500);
+        }
 
         return response()->json([
             'message' => 'Ride canceled successfully',
