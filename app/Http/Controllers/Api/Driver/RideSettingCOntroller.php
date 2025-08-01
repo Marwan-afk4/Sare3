@@ -49,7 +49,7 @@ class RideSettingCOntroller extends Controller
         $rideSetting = $driver->driverRideSetting;
 
         if (!$rideSetting) {
-            return response()->json(['message' => 'No ride settings found'], 404);
+            return response()->json(['message' => 'No ride settings found'], 200);
         }
 
         return response()->json([
