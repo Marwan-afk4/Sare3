@@ -34,6 +34,12 @@
         "resources\/views\/drivers\/create.blade.php"
     ],
     "Back to": [
+        "resources\/views\/cancelation-rides\/create.blade.php",
+        "resources\/views\/cancelation-rides\/edit.blade.php",
+        "resources\/views\/cancelation-rides\/show.blade.php",
+        "resources\/views\/cancellation-policies\/create.blade.php",
+        "resources\/views\/cancellation-policies\/edit.blade.php",
+        "resources\/views\/cancellation-policies\/show.blade.php",
         "resources\/views\/car-categories\/create.blade.php",
         "resources\/views\/car-categories\/edit.blade.php",
         "resources\/views\/car-categories\/show.blade.php",
@@ -73,6 +79,10 @@
         "5": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     },
     "Name": [
+        "resources\/views\/cancellation-policies\/create.blade.php",
+        "resources\/views\/cancellation-policies\/edit.blade.php",
+        "resources\/views\/cancellation-policies\/index.blade.php",
+        "resources\/views\/cancellation-policies\/show.blade.php",
         "resources\/views\/car-categories\/create.blade.php",
         "resources\/views\/car-categories\/edit.blade.php",
         "resources\/views\/car-categories\/index.blade.php",
@@ -108,6 +118,8 @@
         "resources\/views\/users\/show.blade.php"
     ],
     "Add": [
+        "resources\/views\/cancelation-rides\/create.blade.php",
+        "resources\/views\/cancellation-policies\/create.blade.php",
         "resources\/views\/car-categories\/create.blade.php",
         "resources\/views\/car-models\/create.blade.php",
         "resources\/views\/car-types\/create.blade.php",
@@ -127,6 +139,10 @@
         "resources\/views\/drivers\/edit.blade.php"
     ],
     "Details": [
+        "resources\/views\/cancelation-rides\/edit.blade.php",
+        "resources\/views\/cancelation-rides\/index.blade.php",
+        "resources\/views\/cancellation-policies\/edit.blade.php",
+        "resources\/views\/cancellation-policies\/index.blade.php",
         "resources\/views\/car-categories\/edit.blade.php",
         "resources\/views\/car-categories\/index.blade.php",
         "resources\/views\/car-models\/edit.blade.php",
@@ -175,6 +191,8 @@
         "6": "resources\/views\/users\/show.blade.php"
     },
     "Save": [
+        "resources\/views\/cancelation-rides\/edit.blade.php",
+        "resources\/views\/cancellation-policies\/edit.blade.php",
         "resources\/views\/car-categories\/edit.blade.php",
         "resources\/views\/car-models\/edit.blade.php",
         "resources\/views\/car-types\/edit.blade.php",
@@ -191,6 +209,10 @@
         "resources\/views\/users\/index.blade.php"
     ],
     "Id": [
+        "resources\/views\/cancelation-rides\/index.blade.php",
+        "resources\/views\/cancelation-rides\/show.blade.php",
+        "resources\/views\/cancellation-policies\/index.blade.php",
+        "resources\/views\/cancellation-policies\/show.blade.php",
         "resources\/views\/car-categories\/show.blade.php",
         "resources\/views\/car-models\/index.blade.php",
         "resources\/views\/car-models\/show.blade.php",
@@ -221,6 +243,7 @@
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/drivers\/show.blade.php",
         "resources\/views\/users\/create.blade.php",
+        "resources\/views\/users\/edit.blade.php",
         "resources\/views\/users\/index.blade.php",
         "resources\/views\/users\/show.blade.php"
     ],
@@ -229,6 +252,10 @@
         "resources\/views\/users\/index.blade.php"
     ],
     "Created At": [
+        "resources\/views\/cancelation-rides\/index.blade.php",
+        "resources\/views\/cancelation-rides\/show.blade.php",
+        "resources\/views\/cancellation-policies\/index.blade.php",
+        "resources\/views\/cancellation-policies\/show.blade.php",
         "resources\/views\/car-categories\/index.blade.php",
         "resources\/views\/car-categories\/show.blade.php",
         "resources\/views\/car-models\/index.blade.php",
@@ -250,6 +277,8 @@
         "resources\/views\/wallet-requests\/show.blade.php"
     ],
     "Actions": [
+        "resources\/views\/cancelation-rides\/index.blade.php",
+        "resources\/views\/cancellation-policies\/index.blade.php",
         "resources\/views\/car-categories\/index.blade.php",
         "resources\/views\/car-models\/index.blade.php",
         "resources\/views\/car-types\/index.blade.php",
@@ -262,25 +291,32 @@
         "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "Edit": {
-        "0": "resources\/views\/car-categories\/index.blade.php",
-        "1": "resources\/views\/car-categories\/show.blade.php",
-        "3": "resources\/views\/car-models\/show.blade.php",
-        "5": "resources\/views\/car-types\/index.blade.php",
-        "6": "resources\/views\/car-types\/show.blade.php",
-        "8": "resources\/views\/document-types\/index.blade.php",
-        "9": "resources\/views\/driver-documents\/index.blade.php",
-        "10": "resources\/views\/driver-documents\/show.blade.php",
-        "11": "resources\/views\/drivers\/index.blade.php",
-        "12": "resources\/views\/drivers\/show.blade.php",
-        "14": "resources\/views\/paymenent-methods\/index.blade.php",
-        "15": "resources\/views\/paymenent-methods\/show.blade.php",
-        "16": "resources\/views\/rides\/index.blade.php",
-        "17": "resources\/views\/rides\/show.blade.php",
-        "18": "resources\/views\/users\/index.blade.php",
-        "19": "resources\/views\/users\/show.blade.php",
-        "20": "resources\/views\/wallet-requests\/show.blade.php"
+        "0": "resources\/views\/cancelation-rides\/index.blade.php",
+        "1": "resources\/views\/cancelation-rides\/show.blade.php",
+        "2": "resources\/views\/cancellation-policies\/index.blade.php",
+        "3": "resources\/views\/cancellation-policies\/show.blade.php",
+        "5": "resources\/views\/car-categories\/index.blade.php",
+        "6": "resources\/views\/car-categories\/show.blade.php",
+        "8": "resources\/views\/car-models\/show.blade.php",
+        "10": "resources\/views\/car-types\/index.blade.php",
+        "11": "resources\/views\/car-types\/show.blade.php",
+        "13": "resources\/views\/document-types\/index.blade.php",
+        "14": "resources\/views\/driver-documents\/index.blade.php",
+        "15": "resources\/views\/driver-documents\/show.blade.php",
+        "16": "resources\/views\/drivers\/index.blade.php",
+        "17": "resources\/views\/drivers\/show.blade.php",
+        "19": "resources\/views\/paymenent-methods\/index.blade.php",
+        "20": "resources\/views\/paymenent-methods\/show.blade.php",
+        "21": "resources\/views\/rides\/index.blade.php",
+        "22": "resources\/views\/rides\/show.blade.php",
+        "23": "resources\/views\/users\/index.blade.php",
+        "24": "resources\/views\/users\/show.blade.php",
+        "26": "resources\/views\/wallet-requests\/show.blade.php"
     },
     "Delete": [
+        "resources\/views\/cancelation-rides\/index.blade.php",
+        "resources\/views\/cancelation-rides\/show.blade.php",
+        "resources\/views\/cancellation-policies\/index.blade.php",
         "resources\/views\/car-categories\/index.blade.php",
         "resources\/views\/car-types\/index.blade.php",
         "resources\/views\/document-types\/index.blade.php",
@@ -292,10 +328,11 @@
         "resources\/views\/rides\/index.blade.php",
         "resources\/views\/rides\/show.blade.php",
         "resources\/views\/users\/index.blade.php",
-        "resources\/views\/users\/show.blade.php",
         "resources\/views\/wallet-requests\/show.blade.php"
     ],
     "Updated At": [
+        "resources\/views\/cancelation-rides\/show.blade.php",
+        "resources\/views\/cancellation-policies\/show.blade.php",
         "resources\/views\/car-categories\/show.blade.php",
         "resources\/views\/car-models\/show.blade.php",
         "resources\/views\/car-types\/show.blade.php",
@@ -374,9 +411,11 @@
         "2": "resources\/views\/users\/index.blade.php"
     },
     "The selected Driver is invalid.": [
+        "app\/Http\/Requests\/StoreCancelationRideRequest.php",
         "app\/Http\/Requests\/StoreDriverCarRequest.php",
         "app\/Http\/Requests\/StoreDriverDocumentRequest.php",
         "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateCancelationRideRequest.php",
         "app\/Http\/Requests\/UpdateDriverCarRequest.php",
         "app\/Http\/Requests\/UpdateDriverDocumentRequest.php",
         "app\/Http\/Requests\/UpdateRideRequest.php"
@@ -415,6 +454,7 @@
         "app\/Http\/Requests\/StoreDriverDocumentRequest.php"
     ],
     "The Name field is required.": [
+        "app\/Http\/Requests\/StoreCancellationPolicyRequest.php",
         "app\/Http\/Requests\/StoreCarCategoryRequest.php",
         "app\/Http\/Requests\/StoreCarModelRequest.php",
         "app\/Http\/Requests\/StoreDocumentTypeRequest.php",
@@ -424,30 +464,29 @@
         "app\/Http\/Requests\/UpdateCarModelRequest.php"
     ],
     "The Name must be a string.": [
+        "app\/Http\/Requests\/StoreCancellationPolicyRequest.php",
         "app\/Http\/Requests\/StoreDocumentTypeRequest.php",
         "app\/Http\/Requests\/StoreDriverRequest.php",
         "app\/Http\/Requests\/StorePaymenentMethodRequest.php",
         "app\/Http\/Requests\/StoreUserRequest.php",
+        "app\/Http\/Requests\/UpdateCancellationPolicyRequest.php",
         "app\/Http\/Requests\/UpdateDocumentTypeRequest.php",
         "app\/Http\/Requests\/UpdatePaymenentMethodRequest.php"
     ],
     "The Email must be a valid email address.": [
         "app\/Http\/Requests\/StoreDriverRequest.php",
         "app\/Http\/Requests\/StoreUserRequest.php",
-        "app\/Http\/Requests\/UpdateDriverRequest.php",
-        "app\/Http\/Requests\/UpdateUserRequest.php"
+        "app\/Http\/Requests\/UpdateDriverRequest.php"
     ],
     "The Email has already been taken.": [
         "app\/Http\/Requests\/StoreDriverRequest.php",
         "app\/Http\/Requests\/StoreUserRequest.php",
-        "app\/Http\/Requests\/UpdateDriverRequest.php",
-        "app\/Http\/Requests\/UpdateUserRequest.php"
+        "app\/Http\/Requests\/UpdateDriverRequest.php"
     ],
     "The Phone has already been taken.": [
         "app\/Http\/Requests\/StoreDriverRequest.php",
         "app\/Http\/Requests\/StoreUserRequest.php",
-        "app\/Http\/Requests\/UpdateDriverRequest.php",
-        "app\/Http\/Requests\/UpdateUserRequest.php"
+        "app\/Http\/Requests\/UpdateDriverRequest.php"
     ],
     "The Password field is required.": [
         "app\/Http\/Requests\/StoreDriverRequest.php"
@@ -521,19 +560,23 @@
         "2": "resources\/views\/driver-documents\/index.blade.php",
         "4": "resources\/views\/driver-documents\/show.blade.php"
     },
-    "Driver": [
-        "resources\/views\/driver-documents\/create.blade.php",
-        "resources\/views\/driver-documents\/edit.blade.php",
-        "resources\/views\/driver-documents\/index.blade.php",
-        "resources\/views\/driver-documents\/show.blade.php",
-        "resources\/views\/rides\/create.blade.php",
-        "resources\/views\/rides\/edit.blade.php",
-        "resources\/views\/rides\/index.blade.php",
-        "resources\/views\/rides\/show.blade.php",
-        "resources\/views\/wallet-requests\/create.blade.php",
-        "resources\/views\/wallet-requests\/index.blade.php",
-        "resources\/views\/wallet-requests\/show.blade.php"
-    ],
+    "Driver": {
+        "0": "resources\/views\/cancelation-rides\/create.blade.php",
+        "1": "resources\/views\/cancelation-rides\/edit.blade.php",
+        "2": "resources\/views\/cancelation-rides\/index.blade.php",
+        "4": "resources\/views\/cancelation-rides\/show.blade.php",
+        "6": "resources\/views\/driver-documents\/create.blade.php",
+        "7": "resources\/views\/driver-documents\/edit.blade.php",
+        "8": "resources\/views\/driver-documents\/index.blade.php",
+        "9": "resources\/views\/driver-documents\/show.blade.php",
+        "10": "resources\/views\/rides\/create.blade.php",
+        "11": "resources\/views\/rides\/edit.blade.php",
+        "12": "resources\/views\/rides\/index.blade.php",
+        "13": "resources\/views\/rides\/show.blade.php",
+        "14": "resources\/views\/wallet-requests\/create.blade.php",
+        "15": "resources\/views\/wallet-requests\/index.blade.php",
+        "16": "resources\/views\/wallet-requests\/show.blade.php"
+    },
     "Document Type": [
         "resources\/views\/driver-documents\/create.blade.php",
         "resources\/views\/driver-documents\/edit.blade.php",
@@ -677,6 +720,10 @@
         "9": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     },
     "Description": [
+        "resources\/views\/cancellation-policies\/create.blade.php",
+        "resources\/views\/cancellation-policies\/edit.blade.php",
+        "resources\/views\/cancellation-policies\/index.blade.php",
+        "resources\/views\/cancellation-policies\/show.blade.php",
         "resources\/views\/car-categories\/create.blade.php",
         "resources\/views\/car-categories\/edit.blade.php",
         "resources\/views\/car-categories\/index.blade.php",
@@ -713,6 +760,8 @@
         "resources\/views\/car-categories\/edit.blade.php"
     ],
     "Created successfully": [
+        "app\/Http\/Controllers\/CancelationRideController.php",
+        "app\/Http\/Controllers\/CancellationPolicyController.php",
         "app\/Http\/Controllers\/CarCategoryController.php",
         "app\/Http\/Controllers\/CarModelController.php",
         "app\/Http\/Controllers\/CarTypeController.php",
@@ -727,6 +776,7 @@
         "app\/Http\/Controllers\/WalletRequestController.php"
     ],
     "Updated successfully.": [
+        "app\/Http\/Controllers\/CancellationPolicyController.php",
         "app\/Http\/Controllers\/CarCategoryController.php",
         "app\/Http\/Controllers\/PaymenentMethodController.php",
         "app\/Http\/Controllers\/WalletRequestController.php"
@@ -736,6 +786,7 @@
         "app\/Http\/Requests\/UpdateCarCategoryRequest.php"
     ],
     "The Name field must be unique.": [
+        "app\/Http\/Requests\/StoreCancellationPolicyRequest.php",
         "app\/Http\/Requests\/StoreCarCategoryRequest.php",
         "app\/Http\/Requests\/UpdateCarCategoryRequest.php"
     ],
@@ -874,12 +925,16 @@
     "Create Ride": [
         "resources\/views\/rides\/create.blade.php"
     ],
-    "User": [
-        "resources\/views\/rides\/create.blade.php",
-        "resources\/views\/rides\/edit.blade.php",
-        "resources\/views\/rides\/index.blade.php",
-        "resources\/views\/rides\/show.blade.php"
-    ],
+    "User": {
+        "0": "resources\/views\/cancelation-rides\/create.blade.php",
+        "1": "resources\/views\/cancelation-rides\/edit.blade.php",
+        "2": "resources\/views\/cancelation-rides\/index.blade.php",
+        "4": "resources\/views\/cancelation-rides\/show.blade.php",
+        "6": "resources\/views\/rides\/create.blade.php",
+        "7": "resources\/views\/rides\/edit.blade.php",
+        "8": "resources\/views\/rides\/index.blade.php",
+        "9": "resources\/views\/rides\/show.blade.php"
+    },
     "Pickup Lat": [
         "resources\/views\/rides\/create.blade.php",
         "resources\/views\/rides\/edit.blade.php"
@@ -950,6 +1005,10 @@
         "resources\/views\/rides\/edit.blade.php"
     ],
     "Status": [
+        "resources\/views\/cancellation-policies\/create.blade.php",
+        "resources\/views\/cancellation-policies\/edit.blade.php",
+        "resources\/views\/cancellation-policies\/index.blade.php",
+        "resources\/views\/cancellation-policies\/show.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/paymenent-methods\/create.blade.php",
@@ -994,7 +1053,9 @@
         "app\/Http\/Requests\/UpdateCarTypeRequest.php"
     ],
     "The selected User is invalid.": [
+        "app\/Http\/Requests\/StoreCancelationRideRequest.php",
         "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateCancelationRideRequest.php",
         "app\/Http\/Requests\/UpdateRideRequest.php"
     ],
     "The selected Car Category is invalid.": [
@@ -1027,6 +1088,7 @@
         "app\/Http\/Requests\/UpdateRideRequest.php"
     ],
     "The Status field is required.": [
+        "app\/Http\/Requests\/StoreCancellationPolicyRequest.php",
         "app\/Http\/Requests\/StorePaymenentMethodRequest.php",
         "app\/Http\/Requests\/StoreRideRequest.php",
         "app\/Http\/Requests\/UpdateRideRequest.php"
@@ -1158,7 +1220,9 @@
         "app\/Http\/Requests\/UpdatePaymenentMethodRequest.php"
     ],
     "The selected Status is invalid.": [
+        "app\/Http\/Requests\/StoreCancellationPolicyRequest.php",
         "app\/Http\/Requests\/StorePaymenentMethodRequest.php",
+        "app\/Http\/Requests\/UpdateCancellationPolicyRequest.php",
         "app\/Http\/Requests\/UpdatePaymenentMethodRequest.php"
     ],
     "The driver does not exist.": [
@@ -1202,5 +1266,178 @@
     ],
     "Driver updated successfully.": [
         "app\/Http\/Controllers\/DriverController.php"
+    ],
+    "Create Cancelation Ride": {
+        "0": "resources\/views\/cancelation-rides\/create.blade.php",
+        "2": "resources\/views\/cancelation-rides\/index.blade.php"
+    },
+    "Cancelation Rides": {
+        "0": "resources\/views\/cancelation-rides\/create.blade.php",
+        "1": "resources\/views\/cancelation-rides\/edit.blade.php",
+        "2": "resources\/views\/cancelation-rides\/index.blade.php",
+        "4": "resources\/views\/cancelation-rides\/show.blade.php",
+        "5": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    },
+    "Ride": [
+        "resources\/views\/cancelation-rides\/create.blade.php",
+        "resources\/views\/cancelation-rides\/edit.blade.php",
+        "resources\/views\/cancelation-rides\/index.blade.php",
+        "resources\/views\/cancelation-rides\/show.blade.php"
+    ],
+    "Cancelation Policy": [
+        "resources\/views\/cancelation-rides\/create.blade.php",
+        "resources\/views\/cancelation-rides\/edit.blade.php",
+        "resources\/views\/cancelation-rides\/index.blade.php",
+        "resources\/views\/cancelation-rides\/show.blade.php",
+        "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    ],
+    "Canceled By": [
+        "resources\/views\/cancelation-rides\/create.blade.php",
+        "resources\/views\/cancelation-rides\/edit.blade.php",
+        "resources\/views\/cancelation-rides\/index.blade.php",
+        "resources\/views\/cancelation-rides\/show.blade.php"
+    ],
+    "Penalty Applied": [
+        "resources\/views\/cancelation-rides\/create.blade.php",
+        "resources\/views\/cancelation-rides\/edit.blade.php",
+        "resources\/views\/cancelation-rides\/index.blade.php",
+        "resources\/views\/cancelation-rides\/show.blade.php"
+    ],
+    "Penalty Amount": [
+        "resources\/views\/cancelation-rides\/create.blade.php",
+        "resources\/views\/cancelation-rides\/edit.blade.php",
+        "resources\/views\/cancelation-rides\/index.blade.php",
+        "resources\/views\/cancelation-rides\/show.blade.php",
+        "resources\/views\/cancellation-policies\/create.blade.php",
+        "resources\/views\/cancellation-policies\/edit.blade.php",
+        "resources\/views\/cancellation-policies\/index.blade.php",
+        "resources\/views\/cancellation-policies\/show.blade.php"
+    ],
+    "Canceled At": [
+        "resources\/views\/cancelation-rides\/create.blade.php",
+        "resources\/views\/cancelation-rides\/edit.blade.php",
+        "resources\/views\/cancelation-rides\/index.blade.php",
+        "resources\/views\/cancelation-rides\/show.blade.php"
+    ],
+    "Reason": [
+        "resources\/views\/cancelation-rides\/create.blade.php",
+        "resources\/views\/cancelation-rides\/edit.blade.php",
+        "resources\/views\/cancelation-rides\/index.blade.php",
+        "resources\/views\/cancelation-rides\/show.blade.php"
+    ],
+    "Edit Cancelation Ride": [
+        "resources\/views\/cancelation-rides\/edit.blade.php"
+    ],
+    "Yes": [
+        "resources\/views\/cancelation-rides\/index.blade.php",
+        "resources\/views\/cancelation-rides\/show.blade.php"
+    ],
+    "No": [
+        "resources\/views\/cancelation-rides\/index.blade.php",
+        "resources\/views\/cancelation-rides\/show.blade.php"
+    ],
+    "Create Cancellation Policy": {
+        "0": "resources\/views\/cancellation-policies\/create.blade.php",
+        "2": "resources\/views\/cancellation-policies\/index.blade.php"
+    },
+    "Cancellation Policies": {
+        "0": "resources\/views\/cancellation-policies\/create.blade.php",
+        "1": "resources\/views\/cancellation-policies\/edit.blade.php",
+        "2": "resources\/views\/cancellation-policies\/index.blade.php",
+        "4": "resources\/views\/cancellation-policies\/show.blade.php"
+    },
+    "Penalty Percent": [
+        "resources\/views\/cancellation-policies\/create.blade.php",
+        "resources\/views\/cancellation-policies\/edit.blade.php",
+        "resources\/views\/cancellation-policies\/index.blade.php",
+        "resources\/views\/cancellation-policies\/show.blade.php"
+    ],
+    "Min Minutes": [
+        "resources\/views\/cancellation-policies\/create.blade.php",
+        "resources\/views\/cancellation-policies\/edit.blade.php",
+        "resources\/views\/cancellation-policies\/index.blade.php",
+        "resources\/views\/cancellation-policies\/show.blade.php"
+    ],
+    "Max Minutes": [
+        "resources\/views\/cancellation-policies\/create.blade.php",
+        "resources\/views\/cancellation-policies\/edit.blade.php",
+        "resources\/views\/cancellation-policies\/index.blade.php",
+        "resources\/views\/cancellation-policies\/show.blade.php"
+    ],
+    "Edit Cancellation Policy": [
+        "resources\/views\/cancellation-policies\/edit.blade.php"
+    ],
+    "The selected Ride is invalid.": [
+        "app\/Http\/Requests\/StoreCancelationRideRequest.php",
+        "app\/Http\/Requests\/UpdateCancelationRideRequest.php"
+    ],
+    "The selected Cancelation Policy is invalid.": [
+        "app\/Http\/Requests\/StoreCancelationRideRequest.php",
+        "app\/Http\/Requests\/UpdateCancelationRideRequest.php"
+    ],
+    "The Canceled By field is required.": [
+        "app\/Http\/Requests\/StoreCancelationRideRequest.php",
+        "app\/Http\/Requests\/UpdateCancelationRideRequest.php"
+    ],
+    "The Penalty Applied field is required.": [
+        "app\/Http\/Requests\/StoreCancelationRideRequest.php",
+        "app\/Http\/Requests\/UpdateCancelationRideRequest.php"
+    ],
+    "The Penalty Amount field is required.": [
+        "app\/Http\/Requests\/StoreCancelationRideRequest.php",
+        "app\/Http\/Requests\/UpdateCancelationRideRequest.php"
+    ],
+    "The Canceled At field is required.": [
+        "app\/Http\/Requests\/StoreCancelationRideRequest.php",
+        "app\/Http\/Requests\/UpdateCancelationRideRequest.php"
+    ],
+    "The Reason field is required.": [
+        "app\/Http\/Requests\/StoreCancelationRideRequest.php",
+        "app\/Http\/Requests\/UpdateCancelationRideRequest.php"
+    ],
+    "The Reason must be a string.": [
+        "app\/Http\/Requests\/StoreCancelationRideRequest.php",
+        "app\/Http\/Requests\/UpdateCancelationRideRequest.php"
+    ],
+    "The Min Minutes field is required.": [
+        "app\/Http\/Requests\/StoreCancellationPolicyRequest.php"
+    ],
+    "The Min Minutes must be an integer.": [
+        "app\/Http\/Requests\/StoreCancellationPolicyRequest.php",
+        "app\/Http\/Requests\/UpdateCancellationPolicyRequest.php"
+    ],
+    "The Max Minutes field is required.": [
+        "app\/Http\/Requests\/StoreCancellationPolicyRequest.php"
+    ],
+    "The Max Minutes must be an integer.": [
+        "app\/Http\/Requests\/StoreCancellationPolicyRequest.php",
+        "app\/Http\/Requests\/UpdateCancellationPolicyRequest.php"
+    ],
+    "The Penalty Amount must be a number.": [
+        "app\/Http\/Requests\/StoreCancellationPolicyRequest.php",
+        "app\/Http\/Requests\/UpdateCancellationPolicyRequest.php"
+    ],
+    "The Penalty Percent must be a number.": [
+        "app\/Http\/Requests\/StoreCancellationPolicyRequest.php",
+        "app\/Http\/Requests\/UpdateCancellationPolicyRequest.php"
+    ],
+    "The Description must be a string.": [
+        "app\/Http\/Requests\/StoreCancellationPolicyRequest.php",
+        "app\/Http\/Requests\/UpdateCancellationPolicyRequest.php"
+    ],
+    "Email already exists": [
+        "app\/Http\/Requests\/UpdateUserRequest.php"
+    ],
+    "Phone number already exists": [
+        "app\/Http\/Requests\/UpdateUserRequest.php"
+    ],
+    "Wallet must be a number": [
+        "app\/Http\/Requests\/UpdateUserRequest.php"
+    ],
+    "Wallet must be at least 0": [
+        "app\/Http\/Requests\/UpdateUserRequest.php"
+    ],
+    "Activity must be either active or inactive": [
+        "app\/Http\/Requests\/UpdateUserRequest.php"
     ]
 }

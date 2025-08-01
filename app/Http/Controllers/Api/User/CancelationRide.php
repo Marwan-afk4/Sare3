@@ -82,7 +82,7 @@ class CancelationRide extends Controller
             'ride_id' => $ride->id,
             'user_id' => $user->role === 'user' ? $user->id : null,
             'driver_id' => $user->role === 'driver' ? $user->id : null,
-            'cancellation_policy_id' => $selectedPolicy->id,
+            'cancelation_policy_id' => $selectedPolicy->id,
             'canceled_by' => $user->role ?? 'unknown',
             'canceled_at' => $now,
             'penalty_applied' => $penaltyAmount > 0,

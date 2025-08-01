@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\{
     AuthController,
+    CancelationRideController,
     CancellationPolicyController,
     CarCategoryController,
     CarModelController,
@@ -45,7 +46,8 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
             '/car-models' => CarModelController::class,
             '/wallet-requests' => WalletRequestController::class,
             '/paymenent-methods' => PaymenentMethodController::class,
-            '/cancellation-policies' => CancellationPolicyController::class
+            '/cancellation-policies' => CancellationPolicyController::class,
+            '/cancelation-rides' => CancelationRideController::class
         ]);
 
         Route::get('/drivers/{driver}/documents', [DriverController::class, 'documents'])->name('drivers.documents');

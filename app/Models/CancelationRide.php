@@ -25,6 +25,11 @@ class CancelationRide extends Model
 
     public $timestamps = true;
 
+    protected $casts = [
+        'canceled_at' => 'datetime',
+    ];
+
+
 
     public function ride()
     {
