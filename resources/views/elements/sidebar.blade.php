@@ -18,7 +18,7 @@
                 </a>
             </li>
             <li>
-                <a wire:navigate href="{{ route('suppliers.index') }}" class="{{ isset($currentPage) && $currentPage == 'suppliers' ? 'mm-active' : '' }}">
+                <a wire:navigate href="{{ route('suppliers.index') }}" class="{{ isset(z$currentPage) && $currentPage == 'suppliers' ? 'mm-active' : '' }}">
                     <i class="metismenu-icon fa fa-briefcase"></i> {{ __('Suppliers') }}
                 </a>
             </li>

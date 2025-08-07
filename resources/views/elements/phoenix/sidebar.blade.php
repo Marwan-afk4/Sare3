@@ -6,7 +6,7 @@
                     <p class="navbar-vertical-label">{{ config('app.name')  }}</p>
                     <hr class="navbar-vertical-line" />
                     <div class="nav-item-wrapper">
-                        <a wire:navigate class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'home' ? 'active' : '' }}" href="{{ route('home') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'home' ? 'active' : '' }}" href="{{ route('home') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span data-feather="home"></span>
@@ -18,7 +18,7 @@
                         </a>
                     </div>
                     <div class="nav-item-wrapper">
-                        <a wire:navigate class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'users' ? 'active' : '' }}" href="{{ route('users.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'users' ? 'active' : '' }}" href="{{ route('users.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span data-feather="users"></span>
@@ -30,7 +30,7 @@
                         </a>
                     </div>
                     <div class="nav-item-wrapper">
-                        <a wire:navigate class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'drivers' ? 'active' : '' }}" href="{{ route('drivers.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'drivers' ? 'active' : '' }}" href="{{ route('drivers.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span data-feather="truck"></span>
@@ -44,7 +44,7 @@
                     {{-- wallet-requests --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'wallet-requests' ? 'active' : '' }}"
-                            wire:navigate
+
                             href="{{ route('wallet-requests.index') }}">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="credit-card"></span></span>
@@ -56,7 +56,7 @@
                     {{-- document-types --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'document-types' ? 'active' : '' }}"
-                            wire:navigate
+
                             href="{{ route('document-types.index') }}">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="list"></span></span>
@@ -68,7 +68,7 @@
                     {{-- carCategories --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'car-categories' ? 'active' : '' }}"
-                            wire:navigate
+
                             href="{{ route('car-categories.index') }}">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="layers"></span></span>
@@ -80,7 +80,7 @@
                     {{-- carModels --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'car-models' ? 'active' : '' }}"
-                            wire:navigate
+
                             href="{{ route('car-models.index') }}">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="camera"></span></span>
@@ -92,7 +92,7 @@
                     {{-- carTypes --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'car-types' ? 'active' : '' }}"
-                            wire:navigate
+
                             href="{{ route('car-types.index') }}">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="truck"></span></span>
@@ -104,7 +104,7 @@
                     {{-- rides --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'rides' ? 'active' : '' }}"
-                            wire:navigate
+
                             href="{{ route('rides.index') }}">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="navigation"></span></span>
@@ -117,7 +117,7 @@
                     {{-- paymenent-methods --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'paymenent-methods' ? 'active' : '' }}"
-                            wire:navigate
+
                             href="{{ route('paymenent-methods.index') }}">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="credit-card"></span></span>
@@ -130,7 +130,7 @@
                     {{-- cancelationPolicy --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'cancellation-policies' ? 'active' : '' }}"
-                            wire:navigate
+
                             href="{{ route('cancellation-policies.index') }}">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="alert-circle"></span></span>
@@ -143,7 +143,7 @@
                     {{-- cancelation-rides --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'cancelation-rides' ? 'active' : '' }}"
-                            wire:navigate
+
                             href="{{ route('cancelation-rides.index') }}">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="slash"></span></span>
@@ -156,7 +156,7 @@
                     {{-- ride-request-time-limits --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'ride-request-time-limits' ? 'active' : '' }}"
-                            wire:navigate
+                            
                             href="{{ route('ride-request-time-limits.index') }}">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="clock"></span></span>
@@ -166,7 +166,7 @@
                         </a>
                     </div>
                     {{-- <div class="nav-item-wrapper">
-                        <a wire:navigate class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'employees' ? 'active' : '' }}" href="{{ route('employees.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'employees' ? 'active' : '' }}" href="{{ route('employees.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span data-feather="users"></span>
@@ -178,7 +178,7 @@
                         </a>
                     </div>
                     <div class="nav-item-wrapper">
-                        <a wire:navigate class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'suppliers' ? 'active' : '' }}" href="{{ route('suppliers.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'suppliers' ? 'active' : '' }}" href="{{ route('suppliers.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span data-feather="box"></span>
@@ -190,7 +190,7 @@
                         </a>
                     </div>
                     <div class="nav-item-wrapper">
-                        <a wire:navigate class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'clients' ? 'active' : '' }}" href="{{ route('clients.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'clients' ? 'active' : '' }}" href="{{ route('clients.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span data-feather="briefcase"></span>
@@ -202,7 +202,7 @@
                         </a>
                     </div>
                     <div class="nav-item-wrapper">
-                        <a wire:navigate class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'order-channels' ? 'active' : '' }}" href="{{ route('order-channels.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'order-channels' ? 'active' : '' }}" href="{{ route('order-channels.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span data-feather="radio"></span>
@@ -217,7 +217,7 @@
                     {{-- delivery-vehicles --}}
 
                     {{-- <div class="nav-item-wrapper">
-                        <a wire:navigate class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'delivery-vehicles' ? 'active' : '' }}" href="{{ route('delivery-vehicles.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'delivery-vehicles' ? 'active' : '' }}" href="{{ route('delivery-vehicles.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span data-feather="truck"></span>
@@ -232,7 +232,7 @@
                     {{-- delivery-agents --}}
 
                     {{-- <div class="nav-item-wrapper">
-                        <a wire:navigate class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'delivery-agents' ? 'active' : '' }}" href="{{ route('delivery-agents.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'delivery-agents' ? 'active' : '' }}" href="{{ route('delivery-agents.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span data-feather="user"></span>
@@ -247,7 +247,7 @@
                     {{-- delivery-orders --}}
 
                     {{-- <div class="nav-item-wrapper">
-                        <a wire:navigate class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'delivery-orders' ? 'active' : '' }}" href="{{ route('delivery-orders.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'delivery-orders' ? 'active' : '' }}" href="{{ route('delivery-orders.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span data-feather="package"></span>
@@ -264,7 +264,7 @@
 
 
                     {{-- <div class="nav-item-wrapper">
-                        <a wire:navigate class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'supplier-product-lists' ? 'active' : '' }}" href="{{ route('supplier-product-lists.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'supplier-product-lists' ? 'active' : '' }}" href="{{ route('supplier-product-lists.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span data-feather="dollar-sign"></span>
@@ -280,7 +280,7 @@
                     {{-- complains --}}
 
                     {{-- <div class="nav-item-wrapper">
-                        <a wire:navigate class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'complains' ? 'active' : '' }}" href="{{ route('complains.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'complains' ? 'active' : '' }}" href="{{ route('complains.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span data-feather="alert-triangle"></span>
@@ -296,7 +296,7 @@
 
 
                     {{-- <div class="nav-item-wrapper">
-                        <a wire:navigate class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'money-transactions' ? 'active' : '' }}" href="{{ route('money-transactions.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'money-transactions' ? 'active' : '' }}" href="{{ route('money-transactions.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon">
                                     <span data-feather="refresh-cw"></span>

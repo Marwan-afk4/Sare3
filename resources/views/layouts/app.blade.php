@@ -1263,7 +1263,7 @@
         </script>
         <div class="content">
             @if (session('success'))
-                <div class="alert alert-outline-success d-flex align-items-center" role="alert">
+                <div class="alert alert-outline-success d-flex align-items-center" id="success-alert" role="alert">
                     <span class="fas fa-check-circle text-success fs-5 me-3"></span>
                     <p class="mb-0 flex-1">{{ session('success') }}</p>
                     <button class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -1591,8 +1591,25 @@
     <script src="/phoenix/vendors/echarts/echarts.min.js"></script>
     <script src="/phoenix/assets/js/dashboards/ecommerce-dashboard.js"></script>
 
-    @livewireScripts
-    @stack('scripts')
-</body>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (!navigator.onLine) {
+            window.dispatchEvent(new Event('offline'));
+        }
+    });
+</script>
 
+<script>
+  setTimeout(function () {
+      const alert = document.getElementById('success-alert');
+      if (alert) {
+          // Bootstrap 5 fade-out and removal
+          alert.classList.add('fade');
+          alert.classList.remove('show');
+          setTimeout(() => alert.remove(), 500); // Wait for fade animation
+      }
+  }, 2000);
+</script>
+
+</body>
 </html>
