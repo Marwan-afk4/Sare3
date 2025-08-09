@@ -14,7 +14,7 @@ class AuthController extends Controller
     public function showLoginForm() {
         //echo Hash::make('admin');
         if (Auth::check()) {
-            return redirect()->route('users.index')->with('success', 'You are already logged in');
+            return redirect()->route('users.index')->with('success', __('You are already logged in'));
         }
         return view('auth.login');
     }
@@ -33,17 +33,17 @@ class AuthController extends Controller
         // echo bcrypt($request->password);
         // die;
         if (!$user || !Hash::check($request->password, $user->password)) {
-            return back()->withErrors(['error' => 'Mobile number or password is incorrect'])->withInput();
+            return back()->withErrors(['error' => __('Mobile number or password is incorrect')])->withInput();
         }
 
         if($user->role !== 'admin') {
-            return back()->withErrors(['error' => 'You are not authorized to access this area'])->withInput();
+            return back()->withErrors(['error' => __('You are not authorized to access this area')])->withInput();
         }
 
         Auth::login($user,true);
         $request->session()->regenerate();
 
-        return redirect()->intended(route('home'))->with('success', 'Logged in successfully');
+        return redirect()->intended(route('home'))->with('success', __('Logged in successfully'));
     }
 
     public function logout(Request $request)
@@ -58,6 +58,6 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerate();
 
-        return redirect()->route('login')->with('message', 'Logged out successfully');
+        return redirect()->route('login')->with('message', __('Logged out successfully'));
     }
 }

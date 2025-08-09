@@ -1591,6 +1591,8 @@
     <script src="/phoenix/vendors/echarts/echarts.min.js"></script>
     <script src="/phoenix/assets/js/dashboards/ecommerce-dashboard.js"></script>
 
+    @livewireScripts
+    @stack('scripts')
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         if (!navigator.onLine) {

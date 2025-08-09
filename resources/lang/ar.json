@@ -273,10 +273,14 @@
     "Activity must be either active or inactive": "يجب أن تكون الحالة إما نشطة أو غير نشطة",
     "Ride Request Time Limits": "حدود وقت طلب الرحلة",
     "Create Ride Request Time Limit": "إنشاء حد وقت لطلب الرحلة",
-    "Time Limit Seconds": "حد الوقت (بالثواني)", 
+    "Time Limit Seconds": "حد الوقت (بالثواني)",
     "Edit Ride Request Time Limit": "تعديل حد وقت طلب الرحلة",
     "The Time Limit Seconds field is required.": "حقل حد الوقت (بالثواني) مطلوب.",
     "The Time Limit Seconds field must be an integer.": "يجب أن يكون حقل حد الوقت (بالثواني) عددًا صحيحًا.",
-    "The Time Limit Seconds field must be at least 1 second.": "يجب أن يكون حد الوقت (بالثواني) ثانية واحدة على الأقل."
-
+    "The Time Limit Seconds field must be at least 1 second.": "يجب أن يكون حد الوقت (بالثواني) ثانية واحدة على الأقل.",
+    "You are already logged in": "أنت مسجّل الدخول بالفعل",
+    "Mobile number or password is incorrect": "رقم الجوال أو كلمة المرور غير صحيحة",
+    "You are not authorized to access this area": "غير مصرح لك بالدخول إلى هذه المنطقة",
+    "Logged in successfully": "تم تسجيل الدخول بنجاح",
+    "Logged out successfully": "تم تسجيل الخروج بنجاح"
 }

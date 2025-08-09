@@ -1497,5 +1497,20 @@
     "The Time Limit Seconds field must be at least 1 second.": [
         "app\/Http\/Requests\/StoreRideRequestTimeLimitRequest.php",
         "app\/Http\/Requests\/UpdateRideRequestTimeLimitRequest.php"
+    ],
+    "You are already logged in": [
+        "app\/Http\/Controllers\/AuthController.php"
+    ],
+    "Mobile number or password is incorrect": [
+        "app\/Http\/Controllers\/AuthController.php"
+    ],
+    "You are not authorized to access this area": [
+        "app\/Http\/Controllers\/AuthController.php"
+    ],
+    "Logged in successfully": [
+        "app\/Http\/Controllers\/AuthController.php"
+    ],
+    "Logged out successfully": [
+        "app\/Http\/Controllers\/AuthController.php"
     ]
 }
