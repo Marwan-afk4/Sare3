@@ -129,6 +129,9 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 
 //Logout
     Route::delete('/logout', [DriverAuthController::class, 'logout']);
+
+//push notification
+    Route::post('/push-notification', [NotificationController::class, 'broadcastNotification']);
 });
 
 
