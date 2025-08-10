@@ -147,7 +147,8 @@ class AuthController extends Controller
         $validation = Validator::make($request->all(), [
             'phone' => 'required|string|exists:users,phone',
             'name' => 'required|string|max:255',
-            'gender' => 'required|string|in:male,female'
+            'gender' => 'required|string|in:male,female',
+            'fcm_token' => 'required|string'
         ]);
         if ($validation->fails()) {
             return response()->json([
@@ -160,6 +161,7 @@ class AuthController extends Controller
             $user->role = 'driver';
             $user->activity = 'in_progress';
             $user->gender = $request->gender;
+            $user->fcm_token = $request->fcm_token;
             $user->wallet = 0; // Initialize wallet to 0
             $user->save();
             return response()->json([
