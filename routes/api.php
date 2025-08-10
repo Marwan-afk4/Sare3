@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Driver\RideActionsController;
 use App\Http\Controllers\Api\Driver\RideRequestLimitController;
 use App\Http\Controllers\Api\Driver\RideSettingCOntroller;
 use App\Http\Controllers\Api\Driver\WalletRequestController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Paytabs\PaymentController;
 use App\Http\Controllers\Api\User\CancelationRide;
 use App\Http\Controllers\Api\User\LoggedUserController;
@@ -164,5 +165,8 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 
 //Logout
     Route::delete('/logout', [DriverAuthController::class, 'logout']);
+
+//Push Notification
+    Route::post('/push-notification', [NotificationController::class, 'broadcastNotification']);
 });
 

@@ -39,7 +39,8 @@ class User extends Authenticatable
         'id_token',
         'status',
         'rejected_reason',
-        'gender'
+        'gender',
+        'fcm_token'
     ];
 
     protected $casts = [
