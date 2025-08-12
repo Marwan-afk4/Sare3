@@ -24,6 +24,7 @@ class UpdateDriverRequest extends FormRequest
             // 'activity' => 'nullable',
             'status' => 'nullable|in:approved,rejected',
             'wallet' => 'nullable|numeric|min:0',
+            'activity' => 'nullable|in:active,inactive',
             // 'role' => 'nullable'
         ];
     }

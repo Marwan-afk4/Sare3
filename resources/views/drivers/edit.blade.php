@@ -42,13 +42,19 @@
                 <x-form-select
 					name="status"
 					type="select"
-                    :options="['approved' => __('Approved'), 'rejected' => __('Rejected')]"
 					label="{{__('Status')}}"
-					:value="$driver->status ?? ''"
 					:selected="$driver->status->value ?? ''"
                     :options="$driverStatus"
 					required
 				/>
+                <x-form-select
+                    name="activity"
+                    type="select"
+                    label="{{__('Activity')}}"
+                    :selected="$driver->activity->value ?? ''"
+                    :options="['active' => __('Active'), 'inactive' => __('Inactive')]"
+                    required
+                />
 				<button type='submit' class="btn btn-warning btn-sm me-1">{{ __('Save') }}</button>
 			</form>
 		</div>

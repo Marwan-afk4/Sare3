@@ -93,9 +93,11 @@ class DriverController extends Controller
         $data = $request->validated();
 
         // Auto-update activity based on status
-        if (isset($data['status'])) {
-            $data['activity'] = $data['status'] === 'approved' ? 'active' : 'inactive';
-        }
+        // if (isset($data['status'])) {
+        //     $data['activity'] = $data['status'] === 'approved' ? 'active' : 'inactive';
+        // }
+
+
 
         $driver->update($data);
 
