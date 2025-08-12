@@ -106,11 +106,12 @@ class ProfileController extends Controller
         $user = $request->user();
 
         $userRide = Ride::where('status','!=','finshed')
-            ->pluck('id')
+            ->where('user_id', $user->id)
+            ->select('id', 'status')
             ->first();
 
         return response()->json([
-            'is_in_ride' => $userRide 
+            'is_in_ride' => $userRide
         ]);
     }
 }
