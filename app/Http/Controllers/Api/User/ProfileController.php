@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Rating;
+use App\Models\Ride;
 use App\trait\ImageUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -97,6 +98,19 @@ class ProfileController extends Controller
 
         return response()->json([
             'message' => 'Profile updated successfully'
+        ]);
+    }
+
+    public function isInRide(Request $request)
+    {
+        $user = $request->user();
+
+        $userRide = Ride::where('status','!=','finshed')
+            ->pluck('id')
+            ->first();
+
+        return response()->json([
+            'is_in_ride' => $userRide 
         ]);
     }
 }

@@ -171,5 +171,8 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 
 //Push Notification
     Route::post('/push-notification', [NotificationController::class, 'broadcastNotification']);
+
+//user in Ride
+    Route::get('/user-in-ride', [ProfileController::class, 'isInRide']);
 });
 
