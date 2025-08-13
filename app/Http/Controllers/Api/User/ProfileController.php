@@ -105,7 +105,7 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        $userRide = Ride::where('status','!=','finshed')
+        $userRide = Ride::whereNotIn('status',['finshed', 'cancelled'])
             ->where('user_id', $user->id)
             ->select('id', 'status')
             ->first();
