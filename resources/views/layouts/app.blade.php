@@ -170,7 +170,7 @@
                         aria-controls="navbarVerticalCollapse" aria-expanded="false"
                         aria-label="Toggle Navigation"><span class="navbar-toggle-icon"><span
                                 class="toggle-line"></span></span></button>
-                    <a wire:navigate class="navbar-brand me-1 me-sm-3" href="{{ route('home') }}">
+                    <a class="navbar-brand me-1 me-sm-3" href="{{ route('home') }}">
                         <div class="d-flex align-items-center">
                             <div class="d-flex align-items-center">
                                 {{-- <img src="/phoenix/assets/img/icons/logo.png" alt="phoenix" width="27" /> --}}

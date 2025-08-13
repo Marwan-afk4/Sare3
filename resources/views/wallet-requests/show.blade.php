@@ -18,8 +18,10 @@
                         <strong>{{ __('Id') }}:</strong> {{ $walletRequest->id }}
                     </li>
                     <li class="list-group-item">
-                        <strong>{{ __('Driver') }}:</strong> @if($walletRequest->driver)
-                            <a href="{{ route('drivers.show', $walletRequest->driver) }}">{{ $walletRequest->driver?->name }}</a>
+                        <strong>{{ __('Driver') }}:</strong>
+                        @if ($walletRequest->driver)
+                            <a
+                                href="{{ route('drivers.show', $walletRequest->driver) }}">{{ $walletRequest->driver?->name }}</a>
                         @endif
                     </li>
                     <li class="list-group-item">
@@ -29,16 +31,13 @@
                         <strong>{{ __('Amount') }}:</strong> {{ $walletRequest->amount }}
                     </li>
                     <li class="list-group-item">
-                        <strong>{{ __('Type') }}:</strong> <span class="badge badge-phoenix fs-10"
-                            style="background-color: #{{ $walletRequest->type->color() }}; color: #{{ $walletRequest->type->textColor() }};">
-                            <span class="badge-label m-1">{{ $walletRequest->type->label() ?? '-' }}</span>
-                        </span>
+                        <strong>{{ __('Type') }}:</strong>
+                        <td>{!! $walletRequest->type->badge() !!}</td>
+
                     </li>
                     <li class="list-group-item">
-                        <strong>{{ __('Status') }}:</strong> <span class="badge badge-phoenix fs-10"
-                            style="background-color: #{{ $walletRequest->status->color() }}; color: #{{ $walletRequest->status->textColor() }};">
-                            <span class="badge-label m-1">{{ $walletRequest->status->label() ?? '-' }}</span>
-                        </span>
+                        <strong>{{ __('Status') }}:</strong>
+                        <td>{!! $walletRequest->status->badge() !!}</td>
                     </li>
                     <li class="list-group-item">
                         <strong>{{ __('Note') }}:</strong> {{ $walletRequest->note ?? '-' }}

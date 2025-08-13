@@ -7,7 +7,7 @@
 <div class="container-fluid">
     <h1>{{ __('Documents for') }} {{ $driver->name }}</h1>
 
-    <a wire:navigate href="{{ route('drivers.show', $driver->id) }}" class="btn btn-secondary btn-sm mb-3">
+    <a href="{{ route('drivers.show', $driver->id) }}" class="btn btn-secondary btn-sm mb-3">
         <i class="fa fa-arrow-right"></i> {{ __('Back to Driver') }}
     </a>
 

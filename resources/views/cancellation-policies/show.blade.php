@@ -31,10 +31,8 @@
                         <strong>{{ __('Description') }}:</strong> {{ $cancellationPolicy->description }}
                     </li>
                     <li class="list-group-item">
-                        <strong>{{ __('Status') }}:</strong> <span class="badge badge-phoenix fs-10"
-                            style="background-color: #{{ $cancellationPolicy->status->color() }}; color: #{{ $cancellationPolicy->status->textColor() }};">
-                            <span class="badge-label m-1">{{ $cancellationPolicy->status->label() ?? '-' }}</span>
-                        </span>
+                        <strong>{{ __('Status') }}:</strong>
+                        {!! $cancellationPolicy->status->badge() !!}
                     </li>
                     <li class="list-group-item">
                         <strong>{{ __('Min Minutes') }}:</strong> {{ $cancellationPolicy->min_minutes }}
@@ -53,7 +51,7 @@
                 </ul>
             </div>
             <div class="card-footer">
-                <a wire:navigate href='{{ route('cancellation-policies.edit', $cancellationPolicy) }}'
+                <a href='{{ route('cancellation-policies.edit', $cancellationPolicy) }}'
                     class="btn btn-warning btn-sm me-1">{{ __('Edit') }} <i class="fa fa-edit"></i></a>
             </div>
         </div>

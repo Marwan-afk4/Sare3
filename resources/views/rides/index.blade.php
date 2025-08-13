@@ -7,9 +7,9 @@
     <div class="container-fluid">
         <h1 class="mb-3">{{ __('Rides') }}</h1>
         <div class="mb-3">
-        <a wire:navigate href="{{ route('rides.index') }}" class="btn btn-primary btn-sm me-1">{{__('All')}}</a>
+        <a href="{{ route('rides.index') }}" class="btn btn-primary btn-sm me-1">{{__('All')}}</a>
             @foreach ($rideStatuses as $status)
-                <a wire:navigate href="{{ route('rides.index', ['status' => $status->value]) }}" class="btn" style="background-color: #{{ $status->color() }}; color: #{{ $status->textColor() }}">
+                <a href="{{ route('rides.index', ['status' => $status->value]) }}" class="btn" style="background-color: #{{ $status->color() }}; color: #{{ $status->textColor() }}">
                     {{ $status->label() }}
                     ({{ $ridesStatusCounts[$status->value]?? '0' }})
                 </a>
@@ -156,11 +156,7 @@
                             <td>{{ $ride->calculated_initial_price }}</td>
                             <td>{{ $ride->calculated_final_price }}</td>
                             <td>{{ $ride->time_taken }}</td>
-                            <td>
-                                <span class="badge badge-phoenix fs-10" style="background-color: #{{ $ride->status->color() }}; color: #{{ $ride->status->textColor() }};">
-                                    <span class="badge-label m-1">{{ $ride->status->label() }}</span>
-                                </span>
-                            </td>
+                            <td>{!! $ride->status->badge() !!}</td>
                             <td class="text-center">
                                 <a href='{{ route('rides.show', $ride) }}'
                                     class="btn btn-subtle-primary btn-sm me-1">{{ __('Details') }} <i

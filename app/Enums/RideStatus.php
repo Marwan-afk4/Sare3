@@ -68,4 +68,14 @@ enum RideStatus: string
             self::Finshed => 'FFFFFF', // white
         };
     }
+
+    public function badge(): string
+    {
+        return sprintf(
+            '<span class="badge rounded-pill px-3 py-2" style="background-color: #%s; color: #%s;">%s</span>',
+            $this->color(),
+            $this->textColor(),
+            $this->label()
+        );
+    }
 }

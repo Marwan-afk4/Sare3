@@ -76,12 +76,7 @@
 					<td>{{ $cancellationPolicy->penalty_amount ?? '-' }}</td>
 					<td>{{ $cancellationPolicy->penalty_percent ?? '-' }}</td>
 					{{-- <td>{{ $cancellationPolicy->description }}</td> --}}
-					<td>
-                        <span class="badge badge-phoenix fs-10"
-                            style="background-color: #{{ $cancellationPolicy->status->color() }}; color: #{{ $cancellationPolicy->status->textColor() }};">
-                            <span class="badge-label m-1">{{ $cancellationPolicy->status->label() ?? '-' }}</span>
-                        </span>
-                    </td>
+					<td>{!! $cancellationPolicy->status->badge() !!}</td>
 					<td>{{ $cancellationPolicy->min_minutes }}</td>
 					<td>{{ $cancellationPolicy->max_minutes }}</td>
 					<td>{{ $cancellationPolicy->created_at->diffForHumans() ?? '-' }}</td>

@@ -28,7 +28,7 @@
 			</ul>
 		</div>
         <div class="card-footer">
-            <a wire:navigate href='{{ route('ride-request-time-limits.edit', $rideRequestTimeLimit) }}' class="btn btn-warning btn-sm me-1">{{ __('Edit') }} <i class="fa fa-edit"></i></a>
+            <a href='{{ route('ride-request-time-limits.edit', $rideRequestTimeLimit) }}' class="btn btn-warning btn-sm me-1">{{ __('Edit') }} <i class="fa fa-edit"></i></a>
         </div>
 	</div>
 </div>

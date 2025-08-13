@@ -7,7 +7,7 @@
 <div class="container">
 	<h1>{{ __('Create Driver') }}</h1>
 	<div class="mb-3">
-		<a wire:navigate href="{{ route('drivers.index') }}" class="btn btn-secondary btn-sm me-1"> <i class="fa fa-arrow-right"></i> {{__('Back to')}} {{__('Drivers')}}</a>
+		<a href="{{ route('drivers.index') }}" class="btn btn-secondary btn-sm me-1"> <i class="fa fa-arrow-right"></i> {{__('Back to')}} {{__('Drivers')}}</a>
 	</div>
 	<div class="main-card mb-3 card">
 		<div class="card-body">

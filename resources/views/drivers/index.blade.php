@@ -11,11 +11,11 @@
             class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-3">
             {{-- Filter Buttons --}}
             <div class="d-flex flex-wrap gap-2">
-                <a wire:navigate href="{{ route('drivers.index') }}" class="btn btn-outline-primary btn-sm">
+                <a href="{{ route('drivers.index') }}" class="btn btn-outline-primary btn-sm">
                     {{ __('All') }}
                 </a>
                 @foreach ($driverActivtyStatus as $activity)
-                    <a wire:navigate href="{{ route('drivers.index', ['activity' => $activity->value]) }}" class="btn btn-sm"
+                    <a href="{{ route('drivers.index', ['activity' => $activity->value]) }}" class="btn btn-sm"
                         style="background-color: #{{ $activity->color() }}; color: #{{ $activity->textColor() }}">
                         {{ $activity->label() }} ({{ $driverActivityCounts[$activity->value] ?? '0' }})
                     </a>
@@ -26,7 +26,7 @@
             <form action="{{ route(Route::currentRouteName(), [], false) }}" method="GET" class="d-flex"
                 style="max-width: 300px;">
                 @if (request('keyword'))
-                    <a wire:navigate class="btn btn-outline-secondary me-1"
+                    <a class="btn btn-outline-secondary me-1"
                         href="{{ route(Route::currentRouteName(), [], false) }}">
                         <i class="fa fa-times"></i>
                     </a>
@@ -129,18 +129,8 @@
                         <td>{{ $driver->phone ?? '-' }}</td>
                         {{-- <td>{{ $driver->image }}</td> --}}
                         <td>{{ $driver->wallet ?? '-' }}</td>
-                        <td>
-                            <span class="badge badge-phoenix fs-10"
-                                style="background-color: #{{ $driver->activity->color() }}; color: #{{ $driver->activity->textColor() }};">
-                                <span class="badge-label m-1">{{ $driver->activity->label() ?? '-' }}</span>
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge badge-phoenix fs-10"
-                                style="background-color: #{{ $driver->status->color() }}; color: #{{ $driver->status->textColor() }};">
-                                <span class="badge-label m-1">{{ $driver->status->label() ?? '-' }}</span>
-                            </span>
-                        </td>
+                        <td>{!! $driver->activity->badge() !!} </td>
+                        <td>{!! $driver->status->badge() !!} </td>
                         {{-- <td>{{ $user->role }}</td> --}}
                         <td>{{ $driver->created_at ? $driver->created_at->diffForHumans() : '-' }}</td>
                         <td class="text-center">

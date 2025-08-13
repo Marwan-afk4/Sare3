@@ -35,7 +35,7 @@
 		</div>
         <div>
             <div class="card-footer">
-                <a wire:navigate href='{{ route('car-types.edit', $carType) }}' class="btn btn-warning btn-sm me-1">{{ __('Edit') }} <i class="fa fa-edit"></i></a>
+                <a href='{{ route('car-types.edit', $carType) }}' class="btn btn-warning btn-sm me-1">{{ __('Edit') }} <i class="fa fa-edit"></i></a>
             </div>
         </div>
 	</div>

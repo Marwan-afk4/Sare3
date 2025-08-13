@@ -100,18 +100,8 @@
                                     {{ $walletRequest->driver->wallet }}
                             </td>
                             <td>{{ $walletRequest->amount }}</td>
-                            <td>
-                                <span class="badge badge-phoenix fs-10"
-                                    style="background-color: #{{ $walletRequest->type->color() }}; color: #{{ $walletRequest->type->textColor() }};">
-                                    <span class="badge-label m-1">{{ $walletRequest->type->label() ?? '-' }}</span>
-                                </span>
-                            </td>
-                            <td>
-                                <span class="badge badge-phoenix fs-10"
-                                    style="background-color: #{{ $walletRequest->status->color() }}; color: #{{ $walletRequest->status->textColor() }};">
-                                    <span class="badge-label m-1">{{ $walletRequest->status->label() ?? '-' }}</span>
-                                </span>
-                            </td>
+                            <td>{!! $walletRequest->type->badge() !!}</td>
+                            <td>{!! $walletRequest->status->badge() !!}</td>
                             <td>{{ $walletRequest->note ?? '-' }}</td>
                             <td>{{ $walletRequest->created_at->diffForHumans() ?? '-' }}</td>
                             <td class="text-center">

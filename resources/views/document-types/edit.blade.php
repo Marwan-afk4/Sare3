@@ -29,7 +29,7 @@
                         1 => __('Active'),
                         0 => __('Inactive')
                     ]"
-                    :selected="$documentType->is_required ?? 0"
+                    :selected="$documentType->is_required->value ?? 0"
 					required
 				/>
 				<button type='submit' class="btn btn-warning btn-sm me-1">{{ __('Save') }}</button>

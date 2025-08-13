@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ActiveStatuses;
 use App\Models\DocumentType;
 
 
@@ -22,7 +23,8 @@ class DocumentTypeController extends Controller
 
     public function create()
     {
-        return view('document-types.create');
+        $activeStatuses = ActiveStatuses::labels();
+        return view('document-types.create', compact('activeStatuses'));
     }
 
     public function store(StoreDocumentTypeRequest $request)
@@ -38,7 +40,8 @@ class DocumentTypeController extends Controller
 
     public function edit(DocumentType $documentType)
     {
-        return view('document-types.edit', compact('documentType'));
+        $activeStatuses = ActiveStatuses::labels();
+        return view('document-types.edit', compact('documentType','activeStatuses'));
     }
 
     public function update(UpdateDocumentTypeRequest $request, DocumentType $documentType)

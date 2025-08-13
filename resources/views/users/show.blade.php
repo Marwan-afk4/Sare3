@@ -7,10 +7,10 @@
     <div class="container-fluid">
         <h1>{{ $user->name }}</h1>
         <div class="mb-3">
-            <a wire:navigate href="{{ route('users.index') }}" class="btn btn-secondary btn-sm me-1">
+            <a href="{{ route('users.index') }}" class="btn btn-secondary btn-sm me-1">
                 <i class="fa fa-arrow-right"></i> {{ __('Back to') }} {{ __('Users') }}
             </a>
-            {{-- <a wire:navigate href='{{ route('users.edit', $user) }}' class="btn btn-warning btn-sm me-1">
+            {{-- <a href='{{ route('users.edit', $user) }}' class="btn btn-warning btn-sm me-1">
                 {{ __('Edit') }} <i class="fa fa-edit"></i>
             </a> --}}
         </div>
@@ -37,10 +37,7 @@
                             <li class="list-group-item"><strong>{{ __('Email') }}:</strong> {{ $user->email }}</li>
                             <li class="list-group-item"><strong>{{ __('Phone') }}:</strong> {{ $user->phone }}</li>
                             <li class="list-group-item"><strong>{{ __('Activity') }}:</strong>
-                                <span class="badge badge-phoenix fs-10"
-                                    style="background-color: #{{ $user->activity->color() }}; color: #{{ $user->activity->textColor() }};">
-                                    <span class="badge-label m-1">{{ $user->activity->label() ?? '-' }}</span>
-                                </span>
+                                <td>{!! $user->activity->badge() !!}</td>
                             </li>
                             <li class="list-group-item"><strong>{{ __('Wallet') }}:</strong> {{ $user->wallet }}</li>
                             <li class="list-group-item"><strong>{{ __('Created At') }}:</strong>
@@ -52,7 +49,7 @@
                 </div>
             </div>
             <div class="card-footer">
-                <a wire:navigate href='{{ route('users.edit', $user) }}' class="btn btn-subtle-warning btn-sm me-1">
+                <a href='{{ route('users.edit', $user) }}' class="btn btn-subtle-warning btn-sm me-1">
                     {{ __("Edit") }} <i class="fa fa-edit"></i>
                 </a>
             </div>

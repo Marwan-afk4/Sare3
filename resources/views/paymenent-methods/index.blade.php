@@ -43,12 +43,7 @@
 				<tr>
 					<td>{{ $paymenentMethod->id }}</td>
 					<td>{{ $paymenentMethod->name }}</td>
-					<td>
-                        <span class="badge badge-phoenix fs-10"
-                            style="background-color: #{{ $paymenentMethod->status->color() }}; color: #{{ $paymenentMethod->status->textColor() }};">
-                            <span class="badge-label m-1">{{ $paymenentMethod->status->label() ?? '-' }}</span>
-                        </span>
-                    </td>
+					<td>{!! $paymenentMethod->status->badge() !!}</td>
 					<td>{{ $paymenentMethod->created_at->diffForHumans() ?? '-' }}</td>
 					<td class="text-center">
 						<a href='{{ route('paymenent-methods.show', $paymenentMethod) }}' class="btn btn-subtle-primary btn-sm me-1">{{ __("Details") }} <i class="fa fa-eye"></i></a>

@@ -8,7 +8,7 @@
         <h1 class="mb-3">{{ __('Users') }}</h1>
 
         <div class="mb-3 d-flex justify-content-between align-items-center">
-        <a wire:navigate href="{{ route('users.create') }}" class="btn btn-primary btn-sm me-1">
+        <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm me-1">
             {{ __('Create User') }} <i class="fa fa-plus"></i>
         </a>
 
@@ -17,7 +17,7 @@
                 <div class="input-group">
 					@if (request('keyword'))
 						<div class="input-group-append">
-							<a wire:navigate class="btn btn-secondary" href="{{ route(Route::currentRouteName(),[],false) }}">
+							<a class="btn btn-secondary" href="{{ route(Route::currentRouteName(),[],false) }}">
 								<i class="fa fa-times"></i>
 							</a>
 						</div>
@@ -122,12 +122,7 @@
                             <td>{{ $user->phone??'-' }}</td>
                             {{-- <td>{{ $user->image }}</td> --}}
                             <td>{{ $user->wallet??'-' }}</td>
-                            <td>
-                                <span class="badge badge-phoenix fs-10"
-                                    style="background-color: #{{ $user->activity->color() }}; color: #{{ $user->activity->textColor() }};">
-                                    <span class="badge-label m-1">{{ $user->activity->label() ?? '-' }}</span>
-                                </span>
-                            </td>
+                            <td>{!! $user->activity->badge() !!}</td>
                             {{-- <td>{{ $user->role }}</td> --}}
                             <td>{{ $user->created_at ? $user->created_at->diffForHumans() : '-' }}</td>
                             <td class="text-center">

@@ -21,15 +21,15 @@
                         <strong>{{ __('Name') }}:</strong> {{ $paymenentMethod->name }}
                     </li>
                     <li class="list-group-item">
-                        <strong>{{ __('Status') }}:</strong> <span class="badge badge-phoenix fs-10"
-                            style="background-color: #{{ $paymenentMethod->status->color() }}; color: #{{ $paymenentMethod->status->textColor() }};">
-                            <span class="badge-label m-1">{{ $paymenentMethod->status->label() ?? '-' }}</span>
+                        <strong>{{ __('Status') }}:</strong>
+                        {!! $paymenentMethod->status->badge() !!}
                     </li>
                     <li class="list-group-item">
                         <strong>{{ __('Created At') }}:</strong> {{ $paymenentMethod->created_at->diffForHumans() ?? '-' }}
                     </li>
                     <li class="list-group-item">
-                        <strong>{{ __('Updated At') }}:</strong> {{ $paymenentMethod->updated_at->diffForHumans() ?? '-' }}
+                        <strong>{{ __('Updated At') }}:</strong>
+                        {{ $paymenentMethod->updated_at->diffForHumans() ?? '-' }}
                     </li>
                 </ul>
             </div>
