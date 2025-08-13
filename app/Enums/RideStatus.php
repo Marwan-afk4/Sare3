@@ -57,12 +57,12 @@ enum RideStatus: string
     public function textColor(): string
     {
         return match ($this) {
-            self::Pending => 'FFFFFF', // white
+            self::Pending => '000000', // black
             self::InProgress => 'FFFFFF', // white
             self::Completed => 'FFFFFF', // white
             self::Cancelled => 'FFFFFF', // white
-            self::Arrived => 'FFFFFF', // white
-            self::WaitingUser => 'FFFFFF', // white
+            self::Arrived => '000000', // black
+            self::WaitingUser => '000000', // black
             self::Rejected => 'FFFFFF', // white
             self::Accepted => 'FFFFFF', // white
             self::Finshed => 'FFFFFF', // white

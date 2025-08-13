@@ -180,6 +180,7 @@ class RideActionsController extends Controller
             'status' => 'completed',
             'ended_at' => $endTime,
             'time_taken' => $durationMinutes,
+            'total_distance_in_km' => round($distanceKm, 2),
         ]);
 
         // 6️⃣ Push to Firebase

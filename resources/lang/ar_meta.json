@@ -175,6 +175,7 @@
         "resources\/views\/document-types\/edit.blade.php",
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/document-types\/show.blade.php",
+        "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/users\/edit.blade.php",
         "app\/Enums\/ActiveStatuses.php",
         "app\/Enums\/ActivtyType.php"
@@ -184,17 +185,19 @@
         "resources\/views\/document-types\/edit.blade.php",
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/document-types\/show.blade.php",
+        "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/users\/edit.blade.php",
         "app\/Enums\/ActiveStatuses.php",
         "app\/Enums\/ActivtyType.php"
     ],
     "Activity": {
-        "0": "resources\/views\/drivers\/index.blade.php",
-        "1": "resources\/views\/drivers\/show.blade.php",
-        "3": "resources\/views\/users\/create.blade.php",
-        "4": "resources\/views\/users\/edit.blade.php",
-        "5": "resources\/views\/users\/index.blade.php",
-        "6": "resources\/views\/users\/show.blade.php"
+        "0": "resources\/views\/drivers\/edit.blade.php",
+        "1": "resources\/views\/drivers\/index.blade.php",
+        "2": "resources\/views\/drivers\/show.blade.php",
+        "4": "resources\/views\/users\/create.blade.php",
+        "5": "resources\/views\/users\/edit.blade.php",
+        "6": "resources\/views\/users\/index.blade.php",
+        "7": "resources\/views\/users\/show.blade.php"
     },
     "Save": [
         "resources\/views\/cancelation-rides\/edit.blade.php",
@@ -561,7 +564,6 @@
         "app\/Enums\/RideStatus.php"
     ],
     "Rejected": [
-        "resources\/views\/drivers\/edit.blade.php",
         "app\/Enums\/ActivtyType.php",
         "app\/Enums\/DriverStatus.php",
         "app\/Enums\/RideStatus.php"
@@ -1179,7 +1181,6 @@
         "app\/Enums\/RideStatus.php"
     ],
     "Approved": [
-        "resources\/views\/drivers\/edit.blade.php",
         "app\/Enums\/DriverStatus.php"
     ],
     "The Status must be one of the following: approved, rejected.": [
@@ -1512,5 +1513,8 @@
     ],
     "Logged out successfully": [
         "app\/Http\/Controllers\/AuthController.php"
+    ],
+    "Final Distance": [
+        "resources\/views\/rides\/show.blade.php"
     ]
 }

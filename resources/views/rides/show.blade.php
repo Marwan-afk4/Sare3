@@ -43,6 +43,9 @@
 				<li class="list-group-item">
 					<strong>{{ __("Final Price") }}:</strong> {{ $ride->calculated_final_price }}
 				</li>
+                <li class="list-group-item">
+					<strong>{{ __("Final Distance") }}:</strong> {{ $ride->total_distance_in_km }}
+				</li>
 				<li class="list-group-item">
 					<strong>{{ __("Time Taken") }}:</strong> {{ $ride->time_taken }}
 				</li>

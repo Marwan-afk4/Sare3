@@ -28,6 +28,7 @@ class Ride extends Model
         'calculated_initial_price',
         'route_points',
         'calculated_final_price',
+        'total_distance_in_km',
         'started_at',
         'ended_at',
         'time_taken',

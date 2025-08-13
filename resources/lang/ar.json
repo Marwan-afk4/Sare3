@@ -282,5 +282,6 @@
     "Mobile number or password is incorrect": "رقم الجوال أو كلمة المرور غير صحيحة",
     "You are not authorized to access this area": "غير مصرح لك بالدخول إلى هذه المنطقة",
     "Logged in successfully": "تم تسجيل الدخول بنجاح",
-    "Logged out successfully": "تم تسجيل الخروج بنجاح"
+    "Logged out successfully": "تم تسجيل الخروج بنجاح",
+    "Final Distance": "المسافة النهاية"
 }
