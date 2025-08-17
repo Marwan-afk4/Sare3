@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Driver;
 
 use App\Http\Controllers\Controller;
 use App\Models\Rating;
+use App\Models\Ride;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -119,6 +120,20 @@ class DriverProfileController extends Controller
 
         return response()->json([
             'message' => 'Profile updated successfully'
+        ]);
+    }
+
+    public function isInRide(Request $request)
+    {
+        $driver = $request->user();
+
+        $driverRide = Ride::whereNotIn('status',['finshed', 'cancelled','rejected'])
+            ->where('driver_id', $driver->id)
+            ->select('id', 'status')
+            ->first();
+
+        return response()->json([
+            'is_in_ride' => $driverRide
         ]);
     }
 }

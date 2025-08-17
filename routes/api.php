@@ -132,6 +132,9 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 
 //push notification
     Route::post('/push-notification', [NotificationController::class, 'broadcastNotification']);
+
+//is in ride
+    Route::get('/driver-in-ride', [DriverProfileController::class, 'isInRide']);
 });
 
 
