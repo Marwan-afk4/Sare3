@@ -55,4 +55,21 @@ class NotificationController extends Controller
         ]);
     }
 
+    public function fcmTOken(Request $request)
+    {
+        $validation = Validator::make($request->all(), [
+            'fcm_token' => 'required|string',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json($validation->errors(), 400);
+        }
+
+        $user = $request->user();
+        $user->fcm_token = $request->fcm_token;
+        $user->save();
+
+        return response()->json(['message' => 'FCM token updated successfully']);
+    }
+
 }

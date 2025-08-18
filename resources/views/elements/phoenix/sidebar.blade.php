@@ -156,7 +156,7 @@
                     {{-- ride-request-time-limits --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'ride-request-time-limits' ? 'active' : '' }}"
-                            
+
                             href="{{ route('ride-request-time-limits.index') }}">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="clock"></span></span>
@@ -165,6 +165,19 @@
                             </div>
                         </a>
                     </div>
+
+                    {{-- otp-limits --}}
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'otp-limits' ? 'active' : '' }}"
+                            href="{{ route('otp-limits.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="key"></span></span>
+                                <span class="nav-link-text-wrapper"><span
+                                        class="nav-link-text">{{ __('OTP Limits') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+
                     {{-- <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'employees' ? 'active' : '' }}" href="{{ route('employees.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">

@@ -28,6 +28,8 @@ class User extends Authenticatable
         'name',
         'email',
         'phone',
+        'otp_limit',
+        'otp_used',
         'password',
         'remember_token',
         'image',

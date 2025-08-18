@@ -135,6 +135,9 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 
 //is in ride
     Route::get('/driver-in-ride', [DriverProfileController::class, 'isInRide']);
+
+//FCM Token
+    Route::post('/fcm-token', [NotificationController::class, 'fcmTOken']);
 });
 
 
@@ -177,5 +180,8 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 
 //user in Ride
     Route::get('/user-in-ride', [ProfileController::class, 'isInRide']);
+
+//FCM Token
+    Route::post('/fcm-token', [NotificationController::class, 'fcmTOken']);
 });
 

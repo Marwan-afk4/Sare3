@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\OtpTypes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,23 +13,14 @@ class OtpLimit extends Model
     protected $table = 'otp_limits';
 
     protected $fillable = [
-        'user_id',
-        'driver_id',
-        'otp_limit',
-        'otp_used'
+        'type',
+        'otp_limit'
+    ];
+
+    protected $casts = [
+        'type' => OtpTypes::class,
     ];
 
     public $timestamps = true;
-
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    public function driver()
-    {
-        return $this->belongsTo(User::class, 'driver_id');
-    }
 
 }

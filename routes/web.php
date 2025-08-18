@@ -16,6 +16,7 @@ use App\Http\Controllers\{
     RatingController,
     UserController,
     DriverController,
+    OtpLimitController,
     PaymenentMethodController,
     RideController,
     RideRequestTimeLimitController,
@@ -49,8 +50,13 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
             '/paymenent-methods' => PaymenentMethodController::class,
             '/cancellation-policies' => CancellationPolicyController::class,
             '/cancelation-rides' => CancelationRideController::class,
-            '/ride-request-time-limits' => RideRequestTimeLimitController::class
+            '/ride-request-time-limits' => RideRequestTimeLimitController::class,
+            '/otp-limits' => OtpLimitController::class,
         ]);
+
+        Route::post('/otp-limits/{otpLimit}/reset-drivers', [OtpLimitController::class, 'resetDrivers'])->name('otp-limits.reset-drivers');
+        Route::post('/otp-limits/{otpLimit}/reset-users', [OtpLimitController::class, 'resetUsers'])->name('otp-limits.reset-users');
+
 
         Route::get('/drivers/{driver}/documents', [DriverController::class, 'documents'])->name('drivers.documents');
 

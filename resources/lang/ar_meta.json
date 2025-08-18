@@ -58,6 +58,9 @@
         "resources\/views\/drivers\/create.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/show.blade.php",
+        "resources\/views\/otp-limits\/create.blade.php",
+        "resources\/views\/otp-limits\/edit.blade.php",
+        "resources\/views\/otp-limits\/show.blade.php",
         "resources\/views\/paymenent-methods\/create.blade.php",
         "resources\/views\/paymenent-methods\/edit.blade.php",
         "resources\/views\/paymenent-methods\/show.blade.php",
@@ -129,6 +132,7 @@
         "resources\/views\/document-types\/create.blade.php",
         "resources\/views\/driver-documents\/create.blade.php",
         "resources\/views\/drivers\/create.blade.php",
+        "resources\/views\/otp-limits\/create.blade.php",
         "resources\/views\/paymenent-methods\/create.blade.php",
         "resources\/views\/ride-request-time-limits\/create.blade.php",
         "resources\/views\/rides\/create.blade.php",
@@ -159,6 +163,8 @@
         "resources\/views\/driver-documents\/index.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/otp-limits\/edit.blade.php",
+        "resources\/views\/otp-limits\/index.blade.php",
         "resources\/views\/paymenent-methods\/edit.blade.php",
         "resources\/views\/paymenent-methods\/index.blade.php",
         "resources\/views\/ride-request-time-limits\/edit.blade.php",
@@ -173,8 +179,6 @@
     "Active": [
         "resources\/views\/document-types\/create.blade.php",
         "resources\/views\/document-types\/edit.blade.php",
-        "resources\/views\/document-types\/index.blade.php",
-        "resources\/views\/document-types\/show.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/users\/edit.blade.php",
         "app\/Enums\/ActiveStatuses.php",
@@ -183,22 +187,20 @@
     "Inactive": [
         "resources\/views\/document-types\/create.blade.php",
         "resources\/views\/document-types\/edit.blade.php",
-        "resources\/views\/document-types\/index.blade.php",
-        "resources\/views\/document-types\/show.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/users\/edit.blade.php",
         "app\/Enums\/ActiveStatuses.php",
         "app\/Enums\/ActivtyType.php"
     ],
-    "Activity": {
-        "0": "resources\/views\/drivers\/edit.blade.php",
-        "1": "resources\/views\/drivers\/index.blade.php",
-        "2": "resources\/views\/drivers\/show.blade.php",
-        "4": "resources\/views\/users\/create.blade.php",
-        "5": "resources\/views\/users\/edit.blade.php",
-        "6": "resources\/views\/users\/index.blade.php",
-        "7": "resources\/views\/users\/show.blade.php"
-    },
+    "Activity": [
+        "resources\/views\/drivers\/edit.blade.php",
+        "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/drivers\/show.blade.php",
+        "resources\/views\/users\/create.blade.php",
+        "resources\/views\/users\/edit.blade.php",
+        "resources\/views\/users\/index.blade.php",
+        "resources\/views\/users\/show.blade.php"
+    ],
     "Save": [
         "resources\/views\/cancelation-rides\/edit.blade.php",
         "resources\/views\/cancellation-policies\/edit.blade.php",
@@ -208,6 +210,7 @@
         "resources\/views\/document-types\/edit.blade.php",
         "resources\/views\/driver-documents\/edit.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
+        "resources\/views\/otp-limits\/edit.blade.php",
         "resources\/views\/paymenent-methods\/edit.blade.php",
         "resources\/views\/ride-request-time-limits\/edit.blade.php",
         "resources\/views\/rides\/edit.blade.php",
@@ -234,6 +237,8 @@
         "resources\/views\/driver-documents\/show.blade.php",
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/drivers\/show.blade.php",
+        "resources\/views\/otp-limits\/index.blade.php",
+        "resources\/views\/otp-limits\/show.blade.php",
         "resources\/views\/paymenent-methods\/index.blade.php",
         "resources\/views\/paymenent-methods\/show.blade.php",
         "resources\/views\/ride-request-time-limits\/index.blade.php",
@@ -280,6 +285,8 @@
         "resources\/views\/driver-documents\/show.blade.php",
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/drivers\/show.blade.php",
+        "resources\/views\/otp-limits\/index.blade.php",
+        "resources\/views\/otp-limits\/show.blade.php",
         "resources\/views\/paymenent-methods\/index.blade.php",
         "resources\/views\/paymenent-methods\/show.blade.php",
         "resources\/views\/ride-request-time-limits\/index.blade.php",
@@ -299,6 +306,7 @@
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/driver-documents\/index.blade.php",
         "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/otp-limits\/index.blade.php",
         "resources\/views\/paymenent-methods\/index.blade.php",
         "resources\/views\/ride-request-time-limits\/index.blade.php",
         "resources\/views\/rides\/index.blade.php",
@@ -320,15 +328,17 @@
         "15": "resources\/views\/driver-documents\/show.blade.php",
         "16": "resources\/views\/drivers\/index.blade.php",
         "17": "resources\/views\/drivers\/show.blade.php",
-        "19": "resources\/views\/paymenent-methods\/index.blade.php",
-        "20": "resources\/views\/paymenent-methods\/show.blade.php",
-        "21": "resources\/views\/ride-request-time-limits\/index.blade.php",
-        "22": "resources\/views\/ride-request-time-limits\/show.blade.php",
-        "24": "resources\/views\/rides\/index.blade.php",
-        "25": "resources\/views\/rides\/show.blade.php",
-        "26": "resources\/views\/users\/index.blade.php",
-        "27": "resources\/views\/users\/show.blade.php",
-        "29": "resources\/views\/wallet-requests\/show.blade.php"
+        "19": "resources\/views\/otp-limits\/index.blade.php",
+        "20": "resources\/views\/otp-limits\/show.blade.php",
+        "22": "resources\/views\/paymenent-methods\/index.blade.php",
+        "23": "resources\/views\/paymenent-methods\/show.blade.php",
+        "24": "resources\/views\/ride-request-time-limits\/index.blade.php",
+        "25": "resources\/views\/ride-request-time-limits\/show.blade.php",
+        "27": "resources\/views\/rides\/index.blade.php",
+        "28": "resources\/views\/rides\/show.blade.php",
+        "29": "resources\/views\/users\/index.blade.php",
+        "30": "resources\/views\/users\/show.blade.php",
+        "32": "resources\/views\/wallet-requests\/show.blade.php"
     },
     "Delete": [
         "resources\/views\/cancelation-rides\/index.blade.php",
@@ -340,6 +350,7 @@
         "resources\/views\/driver-documents\/index.blade.php",
         "resources\/views\/driver-documents\/show.blade.php",
         "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/otp-limits\/index.blade.php",
         "resources\/views\/paymenent-methods\/index.blade.php",
         "resources\/views\/paymenent-methods\/show.blade.php",
         "resources\/views\/ride-request-time-limits\/index.blade.php",
@@ -357,6 +368,7 @@
         "resources\/views\/document-types\/show.blade.php",
         "resources\/views\/driver-documents\/show.blade.php",
         "resources\/views\/drivers\/show.blade.php",
+        "resources\/views\/otp-limits\/show.blade.php",
         "resources\/views\/paymenent-methods\/show.blade.php",
         "resources\/views\/ride-request-time-limits\/show.blade.php",
         "resources\/views\/users\/show.blade.php",
@@ -593,7 +605,8 @@
         "13": "resources\/views\/rides\/show.blade.php",
         "14": "resources\/views\/wallet-requests\/create.blade.php",
         "15": "resources\/views\/wallet-requests\/index.blade.php",
-        "16": "resources\/views\/wallet-requests\/show.blade.php"
+        "16": "resources\/views\/wallet-requests\/show.blade.php",
+        "17": "app\/Enums\/OtpTypes.php"
     },
     "Document Type": [
         "resources\/views\/driver-documents\/create.blade.php",
@@ -787,6 +800,7 @@
         "app\/Http\/Controllers\/DriverCarController.php",
         "app\/Http\/Controllers\/DriverController.php",
         "app\/Http\/Controllers\/DriverDocumentController.php",
+        "app\/Http\/Controllers\/OtpLimitController.php",
         "app\/Http\/Controllers\/PaymenentMethodController.php",
         "app\/Http\/Controllers\/RatingController.php",
         "app\/Http\/Controllers\/RideController.php",
@@ -803,6 +817,7 @@
         "app\/Http\/Controllers\/DocumentTypeController.php",
         "app\/Http\/Controllers\/DriverCarController.php",
         "app\/Http\/Controllers\/DriverDocumentController.php",
+        "app\/Http\/Controllers\/OtpLimitController.php",
         "app\/Http\/Controllers\/PaymenentMethodController.php",
         "app\/Http\/Controllers\/RatingController.php",
         "app\/Http\/Controllers\/RideController.php",
@@ -962,7 +977,8 @@
         "6": "resources\/views\/rides\/create.blade.php",
         "7": "resources\/views\/rides\/edit.blade.php",
         "8": "resources\/views\/rides\/index.blade.php",
-        "9": "resources\/views\/rides\/show.blade.php"
+        "9": "resources\/views\/rides\/show.blade.php",
+        "10": "app\/Enums\/OtpTypes.php"
     },
     "Pickup Lat": [
         "resources\/views\/rides\/create.blade.php",
@@ -1040,6 +1056,7 @@
         "resources\/views\/cancellation-policies\/show.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/drivers\/show.blade.php",
         "resources\/views\/paymenent-methods\/create.blade.php",
         "resources\/views\/paymenent-methods\/edit.blade.php",
         "resources\/views\/paymenent-methods\/index.blade.php",
@@ -1219,6 +1236,10 @@
         "resources\/views\/wallet-requests\/show.blade.php"
     ],
     "Type": [
+        "resources\/views\/otp-limits\/create.blade.php",
+        "resources\/views\/otp-limits\/edit.blade.php",
+        "resources\/views\/otp-limits\/index.blade.php",
+        "resources\/views\/otp-limits\/show.blade.php",
         "resources\/views\/wallet-requests\/create.blade.php",
         "resources\/views\/wallet-requests\/index.blade.php",
         "resources\/views\/wallet-requests\/show.blade.php"
@@ -1516,5 +1537,71 @@
     ],
     "Final Distance": [
         "resources\/views\/rides\/show.blade.php"
+    ],
+    "OTP Limits": [
+        "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    ],
+    "Create Otp Limit": {
+        "0": "resources\/views\/otp-limits\/create.blade.php",
+        "2": "resources\/views\/otp-limits\/index.blade.php"
+    },
+    "Otp Limits": {
+        "0": "resources\/views\/otp-limits\/create.blade.php",
+        "1": "resources\/views\/otp-limits\/edit.blade.php",
+        "2": "resources\/views\/otp-limits\/index.blade.php",
+        "4": "resources\/views\/otp-limits\/show.blade.php"
+    },
+    "Otp Limit": [
+        "resources\/views\/otp-limits\/create.blade.php",
+        "resources\/views\/otp-limits\/edit.blade.php",
+        "resources\/views\/otp-limits\/index.blade.php",
+        "resources\/views\/otp-limits\/show.blade.php"
+    ],
+    "Edit Otp Limit": [
+        "resources\/views\/otp-limits\/edit.blade.php"
+    ],
+    "Apply to all Drivers": [
+        "resources\/views\/otp-limits\/show.blade.php"
+    ],
+    "Apply to all Users": [
+        "resources\/views\/otp-limits\/show.blade.php"
+    ],
+    "Drivers OTP limits have been reset.": [
+        "app\/Http\/Controllers\/OtpLimitController.php"
+    ],
+    "Users OTP limits have been reset.": [
+        "app\/Http\/Controllers\/OtpLimitController.php"
+    ],
+    "The type field is required.": [
+        "app\/Http\/Requests\/StoreOtpLimitRequest.php"
+    ],
+    "The selected type is invalid.": [
+        "app\/Http\/Requests\/StoreOtpLimitRequest.php",
+        "app\/Http\/Requests\/UpdateOtpLimitRequest.php"
+    ],
+    "The type has already been taken.": [
+        "app\/Http\/Requests\/StoreOtpLimitRequest.php",
+        "app\/Http\/Requests\/UpdateOtpLimitRequest.php"
+    ],
+    "The OTP limit field is required.": [
+        "app\/Http\/Requests\/StoreOtpLimitRequest.php"
+    ],
+    "The OTP limit must be an integer.": [
+        "app\/Http\/Requests\/StoreOtpLimitRequest.php",
+        "app\/Http\/Requests\/UpdateOtpLimitRequest.php"
+    ],
+    "The OTP limit must be at least :min.": [
+        "app\/Http\/Requests\/StoreOtpLimitRequest.php",
+        "app\/Http\/Requests\/UpdateOtpLimitRequest.php"
+    ],
+    "The OTP limit may not be greater than :max.": [
+        "app\/Http\/Requests\/StoreOtpLimitRequest.php",
+        "app\/Http\/Requests\/UpdateOtpLimitRequest.php"
+    ],
+    "Are you sure you want to apply this OTP limit number to all drivers?": [
+        "resources\/views\/otp-limits\/show.blade.php"
+    ],
+    "Are you sure you want to apply this OTP limit number to all users?": [
+        "resources\/views\/otp-limits\/show.blade.php"
     ]
 }

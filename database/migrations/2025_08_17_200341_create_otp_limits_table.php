@@ -13,10 +13,8 @@ return new class extends Migration
     {
         Schema::create('otp_limits', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
-            $table->foreignId('driver_id')->nullable()->constrained('users')->onDelete('cascade');
-            $table->integer('otp_limit')->default(2);
-            $table->integer('otp_used')->default(0);
+            $table->enum('type', ['user', 'driver']);
+            $table->unsignedBigInteger('otp_limit')->default(0)->nullable();
             $table->timestamps();
         });
     }
