@@ -33,7 +33,7 @@ class FcmHelper
                 'data' => array_merge([
                     'click_action' => 'FLUTTER_NOTIFICATION_CLICK'
                 ], $data ?? [])
-            ]
+            ] 
         ];
 
         $response = Http::withToken($accessToken)
