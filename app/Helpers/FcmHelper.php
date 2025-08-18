@@ -38,7 +38,7 @@ class FcmHelper
 
         $response = Http::withToken($accessToken)
         ->withoutVerifying() // Disable SSL verification (not secure for production)
-        ->post("https://fcm.googleapis.com/v1/projects/quran-chat-ae0c1/messages:send", $payload);
+        ->post("https://fcm.googleapis.com/v1/projects/sarea-adce3/messages:send", $payload);
 
         return $response->json();
     }
