@@ -74,7 +74,7 @@ class NotificationController extends Controller
             return back()->with('error', __('No FCM tokens found for the selected audience.'));
         }
 
-        // $extraData = $validated['data'] ?? [];
+        $extraData = $validated['data'] ?? [];
 
         $responses = [];
         foreach ($tokens as $token) {
@@ -84,7 +84,7 @@ class NotificationController extends Controller
                     $token,
                     $validated['title'],
                     $validated['message'],
-                    $validated['data'] // هتبقى [] لو null
+                    $extraData // هتبقى [] لو null
                 ),
             ];
         }
