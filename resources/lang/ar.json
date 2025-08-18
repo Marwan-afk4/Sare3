@@ -301,5 +301,13 @@
     "The OTP limit must be at least :min.": "يجب أن يكون حد رمز التحقق على الأقل :min.",
     "The OTP limit may not be greater than :max.": "لا يجوز أن يكون حد رمز التحقق أكبر من :max.",
     "Are you sure you want to apply this OTP limit number to all users?": "هل أنت متأكد أنك تريد تطبيق حد رمز التحقق هذا على جميع المستخدمين؟",
-    "Are you sure you want to apply this OTP limit number to all drivers?": "هل أنت متأكد أنك تريد تطبيق حد رمز التحقق هذا على جميع السائقين؟"
+    "Are you sure you want to apply this OTP limit number to all drivers?": "هل أنت متأكد أنك تريد تطبيق حد رمز التحقق هذا على جميع السائقين؟",
+    "Notifications": "الإشعارات",
+    "Create Notification": "إنشاء إشعار",
+    "Title": "العنوان",
+    "Message": "الرسالة",
+    "Edit Notification": "تعديل الإشعار",
+    "Send Notification": "إرسال إشعار",
+    "Sender": "الراسل",
+    "No FCM tokens found for the selected audience.": "لم يتم العثور على أي رموز FCM للجمهور المحدد"
 }
