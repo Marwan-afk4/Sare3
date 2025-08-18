@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Mail\EmailVerificationCode;
+use App\Models\OtpLimit;
 use App\Models\User;
 use App\trait\twilio;
 use Google_Client;
@@ -150,14 +151,19 @@ class AuthController extends Controller
                 $token = $existingUser->createToken('auth_token')->plainTextToken;
                 return response()->json([
                     'message' => 'Phone number already used',
-                    'token'=> $token
+                    'token'=> $token,
+                    'user_otp_limit' => $existingUser->otp_limit,
                 ], 409);
             }
+
+            // 👇 هنا نجيب القيمة الافتراضية للـ otp limit من الجدول
+            $defaultOtpLimit = OtpLimit::where('role', 'user')->value('otp_limit');
 
             $user = User::create([
                 'phone' => $request->phone,
                 'id_token' => $request->id_token,
                 'role' => 'user',
+                'otp_limit' => $defaultOtpLimit ?? 5, // لو الجدول فاضي خليه 5 مثلاً
             ]);
         }
 
@@ -168,6 +174,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Phone number verified successfully',
             'token'=> $token,
+            'user_otp_limit' => $user->otp_limit,
         ]);
     }
 
