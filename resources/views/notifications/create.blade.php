@@ -21,17 +21,18 @@
                     required
 				/>
 				<x-form-input
-					name="title"
-					type="text"
-					label="{{__('Title')}}"
-					required
-				/>
-				<x-form-textarea
-					name="message"
-					type="text"
-					label="{{__('Message')}}"
-					required
-				/>
+                    name="data[title]"
+                    type="text"
+                    label="{{ __('Title') }}"
+                    required
+                />
+
+                <x-form-textarea
+                    name="data[body]"
+                    type="text"
+                    label="{{ __('Message') }}"
+                    required
+                />
 				<x-form-select
 					name="driver_id"
 					type="select"
