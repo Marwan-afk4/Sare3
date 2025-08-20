@@ -54,7 +54,7 @@
 				@foreach($notifications as $notification)
 				<tr>
 					<td>{{ $notification->id }}</td>
-					<td>{{ $notification->type->label() }}</td>
+					<td>{!! $notification->type->badge() !!}</td>
 					<td>{{ $notification->title }}</td>
 					<td>{{ $notification->message }}</td>
 					<td>{{ $notification->driver?->name ??'-' }}</td>
