@@ -183,5 +183,8 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 
 //FCM Token
     Route::post('/fcm-token', [NotificationController::class, 'fcmTOken']);
+
+//check user otp limit
+    Route::post('/check-user-otp-limit', [ProfileController::class, 'checkUserOtpLimit']);
 });
 

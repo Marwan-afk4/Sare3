@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\User;
 use App\Http\Controllers\Controller;
 use App\Models\Rating;
 use App\Models\Ride;
+use App\Models\User;
 use App\trait\ImageUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -113,5 +114,33 @@ class ProfileController extends Controller
         return response()->json([
             'is_in_ride' => $userRide
         ]);
+    }
+
+    //check user otp limit
+    public function checkUserOtpLimit(Request $request)
+    {
+        $validation = Validator::make($request->all(), [
+            'phone' => 'required|string',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json($validation->errors(), 422);
+        }
+
+
+        $user = User::where('phone', $request->phone)->first();
+
+        if (!$user) {
+            User::create([
+                'phone' => $request->phone,
+                'otp_limit' => 2,
+            ]);
+            return response()->json(['message' => 'User created successfully.']);
+        }
+
+        return response()->json([
+            'message' => 'User already exists.',
+            'remaining_otp' => $user->otp_limit - $user->otp_used
+        ])->setStatusCode(200, 'User already exists. Remaining OTP: ' . ($user->otp_limit - $user->otp_used));
     }
 }
