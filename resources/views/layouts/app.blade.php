@@ -1602,6 +1602,31 @@
 </script>
 
 <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const themeToggle = document.getElementById("themeControlToggle");
+
+        if (!themeToggle) return;
+
+        // استعادة القيمة من localStorage عند تحميل الصفحة
+        const savedTheme = localStorage.getItem("phoenixTheme") || "light";
+        document.body.classList.toggle("dark-mode", savedTheme === "dark");
+        themeToggle.checked = savedTheme === "dark";
+
+        // عند التغيير
+        themeToggle.addEventListener("change", function () {
+            const newTheme = themeToggle.checked ? "dark" : "light";
+            localStorage.setItem("phoenixTheme", newTheme);
+
+            document.body.classList.toggle("dark-mode", newTheme === "dark");
+
+            // أي سكريبت (زي الشارت) بيسمع للتغيير
+            window.dispatchEvent(new Event("themeChanged"));
+        });
+    });
+</script>
+
+
+<script>
   setTimeout(function () {
       const alert = document.getElementById('success-alert');
       if (alert) {
