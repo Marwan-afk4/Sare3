@@ -35,19 +35,20 @@ class NotificationController extends Controller
     public function store(Request $request)
     {
         $user = $request->user();
+
         $validated = $request->validate([
             'type'      => 'required|in:user,driver', // المرسل إليه: user أو driver
-            'title'     => 'required|string|max:255',
-            'message'   => 'required|string|max:5000',
             'driver_id' => 'nullable|exists:users,id',
-            'data'      => 'nullable|array', // بيانات إضافية للـ payload
+            'data'      => 'required|array', // البيانات كلها جوا data
+            'data.title'   => 'required|string|max:255',
+            'data.body'    => 'required|string|max:5000',
         ]);
 
         // خزّن الإشعار في جدولك
         $notification = Notification::create([
             'type'      => $validated['type'],
-            'title'     => $validated['title'],
-            'message'   => $validated['message'],
+            'title'     => $validated['data']['title'],   // ✅ من data
+            'message'   => $validated['data']['body'],    // ✅ من data
             'driver_id' => $validated['driver_id'] ?? null,
             'user_id'   => $user->id, // المستخدم الذي أرسل الإشعار
         ]);
@@ -74,7 +75,7 @@ class NotificationController extends Controller
             return back()->with('error', __('No FCM tokens found for the selected audience.'));
         }
 
-        $extraData = $validated['data'] ?? [];
+        $extraData = $validated['data'];
 
         $responses = [];
         foreach ($tokens as $token) {
@@ -82,9 +83,9 @@ class NotificationController extends Controller
                 'token'    => $token,
                 'response' => FcmHelper::sendPushNotification(
                     $token,
-                    $validated['title'],
-                    $validated['message'],
-                    $extraData // هتبقى [] لو null
+                    $validated['data']['title'],  // ✅ من data
+                    $validated['data']['body'],   // ✅ من data
+                    $extraData                    // ✅ باقي الـ data
                 ),
             ];
         }

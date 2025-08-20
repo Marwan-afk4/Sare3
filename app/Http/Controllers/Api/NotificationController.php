@@ -15,10 +15,10 @@ class NotificationController extends Controller
     public function broadcastNotification(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            'title' => 'required|string',
-            'body' => 'required|string',
             'user_id' => 'required|exists:users,id',
-            'data' => 'nullable|array'
+            'data' => 'required|array',
+            'data.title' => 'required|string',
+            'data.body' => 'required|string',
         ]);
 
         if ($validation->fails()) {
@@ -41,10 +41,10 @@ class NotificationController extends Controller
             $responses[] = [
                 'token' => $token,
                 'response' => FcmHelper::sendPushNotification(
-                    $token, // ✅ Single token
-                    $request->title,
-                    $request->body,
-                    $request->data
+                    $token,
+                    $request->data['title'], // ✅ العنوان من جوه data
+                    $request->data['body'],  // ✅ الرسالة من جوه data
+                    $request->data           // ✅ باقي البيانات
                 )
             ];
         }
