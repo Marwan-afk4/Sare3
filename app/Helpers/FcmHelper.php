@@ -26,10 +26,10 @@ class FcmHelper
         $payload = [
             'message' => [
                 'token' => $fcmToken,
-                'notification' => [
-                    'title' => $title,
-                    'body' => $body,
-                ],
+                // 'notification' => [
+                //     'title' => $title,
+                //     'body' => $body,
+                // ],
                 'data' => array_merge([
                     'click_action' => 'FLUTTER_NOTIFICATION_CLICK'
                 ], $data ?? [])
