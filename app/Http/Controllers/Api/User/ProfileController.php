@@ -116,7 +116,7 @@ class ProfileController extends Controller
         ]);
     }
 
-    //check user otp limit
+    //check user or driver otp limit
     public function checkUserOtpLimit(Request $request)
     {
         $validation = Validator::make($request->all(), [

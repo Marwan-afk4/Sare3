@@ -138,6 +138,10 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 
 //FCM Token
     Route::post('/fcm-token', [NotificationController::class, 'fcmTOken']);
+
+//check driver otp limit
+    Route::post('/check-driver-otp-limit', [ProfileController::class, 'checkUserOtpLimit']);
+
 });
 
 
