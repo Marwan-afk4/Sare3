@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Requests;
+
+use App\Models\RideRequestTimeLimit;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Foundation\Http\FormRequest;
@@ -15,7 +17,17 @@ class StoreRideRequestTimeLimitRequest extends FormRequest
     public function rules()
     {
         return [
-            'time_limit_seconds' => 'required|integer|min:1'
+            'time_limit_seconds' => [
+                'required',
+                'integer',
+                'min:1',
+                function ($attribute, $value, $fail) {
+                    // Check if any record already exists
+                    if (RideRequestTimeLimit::exists()) {
+                        $fail(__('Only one request time limit can exist.'));
+                    }
+                },
+            ],
         ];
     }
 

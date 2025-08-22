@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Driver;
 use App\Http\Controllers\Controller;
 use App\Models\Rating;
 use App\Models\Ride;
+use App\Models\RideRequestTimeLimit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -20,6 +21,8 @@ class DriverProfileController extends Controller
         'driverRides.driver.driverCars.carModel',
         'driverCars.carModel', // <- this line
     ]);
+
+        $requestLimit = RideRequestTimeLimit::first();
 
     $driverRating = Rating::where('ratee_id', $user->id)
             ->where('ratee_type', 'driver')
@@ -40,6 +43,7 @@ class DriverProfileController extends Controller
             'driver_rating' => $driverRating,
             'rejected_reason' => $user->rejected_reason ?? 'your account is not rejected',
             'wallet' => $user->wallet,
+            'ride_request_time_limit' => $requestLimit->time_limit_seconds ?? null,
             'car' => [
                 'car_number' => $firstCar->car_number ?? null,
                 'car_model' => $firstCar?->carModel?->name ?? null,

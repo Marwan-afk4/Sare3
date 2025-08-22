@@ -444,10 +444,9 @@
     "Dashboard": [
         "resources\/views\/elements\/sidebar.blade.php"
     ],
-    "Logout": {
-        "0": "resources\/views\/layouts\/app.blade.php",
-        "2": "resources\/views\/layouts\/app.blade.php_"
-    },
+    "Logout": [
+        "resources\/views\/layouts\/app.blade.php"
+    ],
     "This device is currently offline.": [
         "resources\/views\/livewire\/offline.blade.php"
     ],
@@ -1662,5 +1661,8 @@
     ],
     "No FCM tokens found for the selected audience.": [
         "app\/Http\/Controllers\/NotificationController.php"
+    ],
+    "Only one request time limit can exist.": [
+        "app\/Http\/Requests\/StoreRideRequestTimeLimitRequest.php"
     ]
 }

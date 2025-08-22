@@ -309,5 +309,6 @@
     "Edit Notification": "تعديل الإشعار",
     "Send Notification": "إرسال إشعار",
     "Sender": "الراسل",
-    "No FCM tokens found for the selected audience.": "لم يتم العثور على أي رموز FCM للجمهور المحدد"
+    "No FCM tokens found for the selected audience.": "لم يتم العثور على أي رموز FCM للجمهور المحدد",
+    "Only one request time limit can exist.": "يمكن أن يوجد حد واحد فقط لوقت الطلب."
 }
