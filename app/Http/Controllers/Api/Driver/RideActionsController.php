@@ -155,7 +155,7 @@ class RideActionsController extends Controller
         }
 
         // 1️⃣ Distance Calculation
-        $distanceKm = RideHelper::calculateTotalDistance($points);
+        $distanceKm = RideHelper::calculateTotalDistanceAccurate($points);
 
         // 2️⃣ Car Category
         $carCategory = CarCategory::find($ride->car_category_id);
