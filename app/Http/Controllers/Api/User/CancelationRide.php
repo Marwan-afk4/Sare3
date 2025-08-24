@@ -57,7 +57,7 @@ class CancelationRide extends Controller
             'canceled_at' => $now,
             'reason' => $request->input('reason'),
         ]);
-            return response()->json(['message' => 'No applicable cancellation policy found.'], 200);
+            return response()->json(['message' => 'Ride canceled successfully , No applicable cancellation policy found.'], 200);
         }
 
         // حساب الغرامة
