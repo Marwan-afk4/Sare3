@@ -279,7 +279,7 @@ class RideEstimateController extends Controller
             return null;
         }
 
-        $googleApiKey = env('GOOGLE_MAPS_API_KEY');
+        $googleApiKey = 'AIzaSyBsHFBbK2V7OrWccNYfEO5NDj9cP9nVDfc';
         if (!$googleApiKey) {
             Log::error('Google Maps API key not configured');
             return null;
