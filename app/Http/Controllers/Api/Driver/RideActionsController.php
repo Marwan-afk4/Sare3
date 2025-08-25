@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Driver;
 
 use App\Helpers\RideHelper;
+use App\Http\Controllers\Api\User\RideEstimateController;
 use App\Http\Controllers\Controller;
 use App\Models\CarCategory;
 use App\Models\Ride;

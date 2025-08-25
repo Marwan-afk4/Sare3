@@ -197,20 +197,20 @@ class RideEstimateController extends Controller
         return $deg * (pi() / 180);
     }
 
-    private function haversineDistance($lat1, $lon1, $lat2, $lon2)
-    {
-        $R = 6371;
-        $dLat = $this->deg2rad($lat2 - $lat1);
-        $dLon = $this->deg2rad($lon2 - $lon1);
-        
-        $a = sin($dLat / 2) * sin($dLat / 2) +
-             cos($this->deg2rad($lat1)) * cos($this->deg2rad($lat2)) *
-             sin($dLon / 2) * sin($dLon / 2);
-        
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-        
-        return $R * $c;
-    }
+    // private function haversineDistance($lat1, $lon1, $lat2, $lon2)
+    // {
+    //     $R = 6371;
+    //     $dLat = $this->deg2rad($lat2 - $lat1);
+    //     $dLon = $this->deg2rad($lon2 - $lon1);
+
+    //     $a = sin($dLat / 2) * sin($dLat / 2) +
+    //         cos($this->deg2rad($lat1)) * cos($this->deg2rad($lat2)) *
+    //         sin($dLon / 2) * sin($dLon / 2);
+
+    //     $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+    //     return $R * $c;
+    // }
 
 
     private function getEligibleDrivers($userPickupLat, $userPickupLng, $excludedDriverIds = [])
@@ -222,7 +222,7 @@ class RideEstimateController extends Controller
                 ->createDatabase();
 
             $driversSnapshot = $firebase->getReference('drivers')->getSnapshot();
-            
+
             if (!$driversSnapshot->exists()) {
                 return [];
             }
@@ -239,7 +239,7 @@ class RideEstimateController extends Controller
 
                     // Parse driver data similar to Flutter model
                     $settings = $driverData['settings'] ?? [];
-                    
+
                     $driver = [
                         'id' => $driverData['id'],
                         'name' => $driverData['name'] ?? '',
@@ -258,14 +258,12 @@ class RideEstimateController extends Controller
                     ];
 
                     $eligibleDrivers[] = $driver;
-                    
                 } catch (\Exception $e) {
                     Log::warning("Invalid driver entry ($driverId): " . $e->getMessage());
                 }
             }
 
             return $eligibleDrivers;
-            
         } catch (\Exception $e) {
             Log::error('Error fetching drivers: ' . $e->getMessage());
             return [];
@@ -281,7 +279,14 @@ class RideEstimateController extends Controller
             return null;
         }
 
-        $googleApiKey = 'AIzaSyBsHFBbK2V7OrWccNYfEO5NDj9cP9nVDfc';
+        $googleApiKey = config('services.google.maps_api_key');
+        Log::info('Google API Key loaded', ['key' => $googleApiKey]);
+
+        if (!$googleApiKey) {
+            Log::error('Google Maps API key not configured');
+            return null;
+        }
+
         if (!$googleApiKey) {
             Log::error('Google Maps API key not configured');
             return null;
@@ -392,7 +397,7 @@ class RideEstimateController extends Controller
                 ->createDatabase();
 
             $firebaseRideId = 'ride_' . $ride->id;
-            
+
             // Get driver rating
             $driverRating = Rating::where('ratee_id', $nearestDriver['id'])
                 ->where('ratee_type', 'driver')
@@ -412,7 +417,6 @@ class RideEstimateController extends Controller
             \Log::info("Successfully reassigned ride {$ride->id} to driver {$nearestDriver['id']}");
 
             return $nearestDriver;
-
         } catch (\Exception $e) {
             \Log::error("Error searching alternative driver for ride {$ride->id}: " . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
