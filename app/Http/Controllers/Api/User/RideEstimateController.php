@@ -427,7 +427,7 @@ class RideEstimateController extends Controller
                 ->avg('rate');
 
             $firebase->getReference("rides/$firebaseRideId")->update([
-                'driver_id' => $nearestDriver['id'],
+                'offered_driver_id' => $nearestDriver['id'],
                 'driver_rating' => round($driverRating ?? 0, 1),
                 'status' => 'pending',
                 'reassigned_at' => now()->toIso8601String(),
