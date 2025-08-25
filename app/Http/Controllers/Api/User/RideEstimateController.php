@@ -409,7 +409,7 @@ class RideEstimateController extends Controller
 
             // Update ride with new driver
             $ride->update([
-                'driver_id' => null, // اول ما يرفض السواق القديم بنفضيه
+                'driver_id' => $nearestDriver['id'],
                 'status' => 'pending',
                 'reassigned_at' => now(),
             ]);
@@ -427,8 +427,7 @@ class RideEstimateController extends Controller
                 ->avg('rate');
 
             $firebase->getReference("rides/$firebaseRideId")->update([
-                'driver_id' => null, // فضينا القديم
-                'offered_driver_id' => $nearestDriver['id'], // الجديد يتعرض هنا
+                'driver_id' => $nearestDriver['id'],
                 'driver_rating' => round($driverRating ?? 0, 1),
                 'status' => 'pending',
                 'reassigned_at' => now()->toIso8601String(),
