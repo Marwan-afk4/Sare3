@@ -409,7 +409,7 @@ class RideEstimateController extends Controller
 
             // Update ride with new driver
             $ride->update([
-                'driver_id' => $nearestDriver['id'],
+                // 'driver_id' => $nearestDriver['id'],
                 'status' => 'pending',
                 'reassigned_at' => now(),
             ]);
