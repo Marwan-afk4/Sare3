@@ -351,7 +351,7 @@ class RideEstimateController extends Controller
         try {
             // Get excluded driver IDs (drivers who already rejected this ride)
             $excludedDriverIds = $ride->rejected_drivers ?? [];
-            
+
             // Make sure current driver is in excluded list
             if ($ride->driver_id && !in_array($ride->driver_id, $excludedDriverIds)) {
                 $excludedDriverIds[] = $ride->driver_id;
@@ -365,7 +365,7 @@ class RideEstimateController extends Controller
             );
 
             if (empty($eligibleDrivers)) {
-                \Log::info("No eligible drivers found for ride {$ride->id}");
+                Log::info("No eligible drivers found for ride {$ride->id}");
                 return null;
             }
 
@@ -377,11 +377,11 @@ class RideEstimateController extends Controller
             );
 
             if (!$nearestDriver) {
-                \Log::info("No driver found with valid ETA for ride {$ride->id}");
+                Log::info("No driver found with valid ETA for ride {$ride->id}");
                 return null;
             }
 
-            \Log::info("Found nearest driver {$nearestDriver['id']} for ride {$ride->id}");
+            Log::info("Found nearest driver {$nearestDriver['id']} for ride {$ride->id}");
 
             // Update ride with new driver - this should be atomic
             $ride->update([
@@ -413,12 +413,12 @@ class RideEstimateController extends Controller
             ];
 
             $firebase->getReference("rides/$firebaseRideId")->update($firebaseData);
-            
-            \Log::info("Successfully reassigned ride {$ride->id} to driver {$nearestDriver['id']}");
+
+            Log::info("Successfully reassigned ride {$ride->id} to driver {$nearestDriver['id']}");
 
             return $nearestDriver;
         } catch (\Exception $e) {
-            \Log::error("Error searching alternative driver for ride {$ride->id}: " . $e->getMessage(), [
+            Log::error("Error searching alternative driver for ride {$ride->id}: " . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
             return null;

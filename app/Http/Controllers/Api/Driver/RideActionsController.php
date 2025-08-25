@@ -249,12 +249,12 @@ class RideActionsController extends Controller
         }
 
         // Use database transaction for atomicity
-        \DB::beginTransaction();
-        
+        DB::beginTransaction();
+
         try {
             // First update: mark as rejected and add to rejected drivers
             $ride->update([
-                'status' => 'rejected', 
+                'status' => 'rejected',
                 'canceled_at' => now()->toIso8601String(),
                 'rejected_drivers' => $rejectedDrivers
             ]);
@@ -273,9 +273,9 @@ class RideActionsController extends Controller
             if ($alternativeDriver) {
                 // Refresh ride data after searchAlternativeDriver updates it
                 $ride->refresh();
-                
-                \DB::commit();
-                
+
+                DB::commit();
+
                 return response()->json([
                     'message' => 'Ride rejected. Alternative driver found and assigned.',
                     'alternative_driver' => [
@@ -288,13 +288,13 @@ class RideActionsController extends Controller
             } else {
                 // No alternative driver found - keep as rejected
                 $ride->update(['status' => 'no_drivers_available']);
-                
+
                 $this->updateFirebase($ride, [
                     'status' => 'no_drivers_available',
                 ]);
-                
-                \DB::commit();
-                
+
+                DB::commit();
+
                 return response()->json([
                     'message' => 'Ride rejected. No alternative drivers available.',
                     'status' => 'no_drivers_available'
@@ -302,14 +302,14 @@ class RideActionsController extends Controller
             }
 
         } catch (\Exception $e) {
-            \DB::rollback();
-            
-            \Log::error('Error in cancelRide: ' . $e->getMessage(), [
+            DB::rollback();
+
+            Log::error('Error in cancelRide: ' . $e->getMessage(), [
                 'ride_id' => $ride->id,
                 'driver_id' => $currentDriverId,
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'message' => 'Failed to process ride rejection.',
                 'error' => $e->getMessage()
