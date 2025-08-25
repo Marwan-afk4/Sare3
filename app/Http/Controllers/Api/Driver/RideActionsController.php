@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Driver;
 
 use App\Helpers\RideHelper;
+use App\Http\Controllers\Api\User\RideEstimateController;
 use App\Http\Controllers\Controller;
 use App\Models\CarCategory;
 use App\Models\Ride;
@@ -246,7 +247,7 @@ class RideActionsController extends Controller
         }
 
         $ride->update([
-            'status' => 'rejected', 
+            'status' => 'rejected',
             'canceled_at' => now()->toIso8601String(),
             'rejected_drivers' => $rejectedDrivers
         ]);
@@ -259,7 +260,7 @@ class RideActionsController extends Controller
             ]);
 
             // Search for alternative driver automatically
-            $rideEstimateController = new \App\Http\Controllers\Api\User\RideEstimateController();
+            $rideEstimateController = new RideEstimateController();
             $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
 
             if ($alternativeDriver) {
