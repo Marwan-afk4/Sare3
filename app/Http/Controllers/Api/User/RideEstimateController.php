@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\User;
 
+use App\Helpers\FcmHelper;
 use App\Http\Controllers\Controller;
 use App\Models\CarCategory;
 use App\Models\Ride;
@@ -352,7 +353,7 @@ class RideEstimateController extends Controller
             // Get excluded driver IDs (drivers who already rejected this ride)
             $excludedDriverIds = $ride->rejected_drivers ?? [];
 
-            // Make sure current driver is in excluded list
+            // ✅ Add current driver to rejected list if not already
             if ($ride->driver_id && !in_array($ride->driver_id, $excludedDriverIds)) {
                 $excludedDriverIds[] = $ride->driver_id;
                 $ride->update([
@@ -367,13 +368,13 @@ class RideEstimateController extends Controller
                 $excludedDriverIds
             );
 
-            // لو مفيش سواقين متاحين (يعني كلهم rejected)
+            // لو مفيش سواقين متاحين
             if (empty($eligibleDrivers)) {
                 Log::info("All drivers rejected ride {$ride->id}, setting driver_id to null");
 
                 $ride->update([
                     'driver_id' => null,
-                    'status' => 'pending', // ممكن تعمل status مخصص أو تخليها pending زي ما تحب
+                    'status' => 'pending',
                 ]);
 
                 // Firebase update
@@ -409,7 +410,7 @@ class RideEstimateController extends Controller
             // Update ride with new driver
             $ride->update([
                 'driver_id' => $nearestDriver['id'],
-                'status' => 'pending', // Reset to pending for new driver
+                'status' => 'pending',
                 'reassigned_at' => now(),
             ]);
 
@@ -432,6 +433,28 @@ class RideEstimateController extends Controller
                 'reassigned_at' => now()->toIso8601String(),
                 'previous_rejections' => count($excludedDriverIds),
             ]);
+
+            // ✅ Send push notification to new driver
+            $driver = User::find($nearestDriver['id']);
+            if ($driver && $driver->fcm_token) {
+                $data = [
+                    'title'    => 'Ride Started',
+                    'body'     => 'The Ride just Started, Enjoy your trip!',
+                    'msg_type' => 'ride_request',
+                    'ride_id'  => (string) $ride->id, // عشان الاب يعرف الرحلة
+                ];
+
+                $response = FcmHelper::sendPushNotification(
+                    $driver->fcm_token,
+                    $data['title'],
+                    $data['body'],
+                    $data
+                );
+
+                Log::info("Notification sent to driver {$driver->id}", ['response' => $response]);
+            } else {
+                Log::warning("No FCM token found for driver {$nearestDriver['id']}");
+            }
 
             return $nearestDriver;
         } catch (\Exception $e) {
