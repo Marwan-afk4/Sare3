@@ -197,22 +197,6 @@ class RideEstimateController extends Controller
         return $deg * (pi() / 180);
     }
 
-    // private function haversineDistance($lat1, $lon1, $lat2, $lon2)
-    // {
-    //     $R = 6371;
-    //     $dLat = $this->deg2rad($lat2 - $lat1);
-    //     $dLon = $this->deg2rad($lon2 - $lon1);
-
-    //     $a = sin($dLat / 2) * sin($dLat / 2) +
-    //         cos($this->deg2rad($lat1)) * cos($this->deg2rad($lat2)) *
-    //         sin($dLon / 2) * sin($dLon / 2);
-
-    //     $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-    //     return $R * $c;
-    // }
-
-
     private function getEligibleDrivers($userPickupLat, $userPickupLng, $excludedDriverIds = [])
     {
         try {
@@ -237,7 +221,6 @@ class RideEstimateController extends Controller
                         continue;
                     }
 
-                    // Parse driver data similar to Flutter model
                     $settings = $driverData['settings'] ?? [];
 
                     $driver = [
@@ -248,7 +231,7 @@ class RideEstimateController extends Controller
                         'car_color' => $driverData['car_color'] ?? '',
                         'car_model' => $driverData['car_model'] ?? '',
                         'car_photo' => $driverData['car_photo'] ?? '',
-                        'plate_number' => $driverData['palete_number'] ?? '', // Note: keeping original typo from Flutter
+                        'plate_number' => $driverData['palete_number'] ?? '', // typo as in Flutter
                         'latitude' => (float)$driverData['latitude'],
                         'longitude' => (float)$driverData['longitude'],
                         'gender' => $settings['gender'] ?? null,
@@ -287,11 +270,6 @@ class RideEstimateController extends Controller
             return null;
         }
 
-        if (!$googleApiKey) {
-            Log::error('Google Maps API key not configured');
-            return null;
-        }
-
         // Build origins from drivers
         $origins = collect($eligibleDrivers)->map(function ($driver) {
             return $driver['latitude'] . ',' . $driver['longitude'];
@@ -310,7 +288,6 @@ class RideEstimateController extends Controller
                 $data = $response->json();
                 $rows = $data['rows'] ?? [];
 
-                // Update drivers with ETA times
                 for ($i = 0; $i < count($rows) && $i < count($eligibleDrivers); $i++) {
                     $elements = $rows[$i]['elements'] ?? [];
                     if (!empty($elements) && $elements[0]['status'] === 'OK') {
@@ -321,16 +298,13 @@ class RideEstimateController extends Controller
                     }
                 }
 
-                // Filter out drivers without valid ETA
                 $eligibleDrivers = array_filter($eligibleDrivers, function ($driver) {
                     return $driver['eta_time'] !== null;
                 });
 
-                // Sort by ETA
                 usort($eligibleDrivers, function ($a, $b) {
                     return $a['eta_time'] <=> $b['eta_time'];
                 });
-
 
                 return !empty($eligibleDrivers) ? $eligibleDrivers[0] : null;
             } else {
@@ -349,15 +323,28 @@ class RideEstimateController extends Controller
     public function searchAlternativeDriver(Ride $ride)
     {
         try {
-            // Get excluded driver IDs (drivers who already rejected this ride)
-            $excludedDriverIds = $ride->rejected_drivers ?? [];
+            $firebase = (new Factory)
+                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                ->createDatabase();
 
-            // Make sure current driver is in excluded list
+            $firebaseRideId = 'ride_' . $ride->id;
+
+            // Get ride data from Firebase (previous rejections)
+            $rideSnapshot = $firebase->getReference("rides/$firebaseRideId")->getSnapshot();
+            $firebaseData = $rideSnapshot->exists() ? $rideSnapshot->getValue() : [];
+
+            $excludedDriverIds = $ride->rejected_drivers ?? [];
+            $firebaseRejections = $firebaseData['previous_rejections'] ?? [];
+
+            // Merge both sources (DB + Firebase)
+            $excludedDriverIds = array_unique(array_merge($excludedDriverIds, $firebaseRejections));
+
             if ($ride->driver_id && !in_array($ride->driver_id, $excludedDriverIds)) {
                 $excludedDriverIds[] = $ride->driver_id;
             }
 
-            // Get eligible drivers
+            // Get eligible drivers excluding rejected ones
             $eligibleDrivers = $this->getEligibleDrivers(
                 $ride->pickup_lat,
                 $ride->pickup_lng,
@@ -369,7 +356,6 @@ class RideEstimateController extends Controller
                 return null;
             }
 
-            // Find nearest driver by ETA
             $nearestDriver = $this->findNearestDriverByETA(
                 $ride->pickup_lat,
                 $ride->pickup_lng,
@@ -383,36 +369,25 @@ class RideEstimateController extends Controller
 
             Log::info("Found nearest driver {$nearestDriver['id']} for ride {$ride->id}");
 
-            // Update ride with new driver - this should be atomic
             $ride->update([
                 'driver_id' => $nearestDriver['id'],
-                'status' => 'pending', // Reset to pending for new driver
+                'status' => 'pending',
                 'reassigned_at' => now(),
             ]);
 
-            // Update Firebase with new driver info
-            $firebase = (new Factory)
-                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                ->createDatabase();
-
-            $firebaseRideId = 'ride_' . $ride->id;
-
-            // Get driver rating
             $driverRating = Rating::where('ratee_id', $nearestDriver['id'])
                 ->where('ratee_type', 'driver')
                 ->avg('rate');
 
-            // Update Firebase synchronously and wait for completion
-            $firebaseData = [
+            $firebaseUpdate = [
                 'driver_id' => $nearestDriver['id'],
                 'driver_rating' => round($driverRating ?? 0, 1),
                 'status' => 'pending',
                 'reassigned_at' => now()->toIso8601String(),
-                'previous_rejections' => count($excludedDriverIds),
+                'previous_rejections' => $excludedDriverIds, // 👈 store list not just count
             ];
 
-            $firebase->getReference("rides/$firebaseRideId")->update($firebaseData);
+            $firebase->getReference("rides/$firebaseRideId")->update($firebaseUpdate);
 
             Log::info("Successfully reassigned ride {$ride->id} to driver {$nearestDriver['id']}");
 
