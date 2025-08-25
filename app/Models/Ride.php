@@ -33,13 +33,15 @@ class Ride extends Model
         'ended_at',
         'time_taken',
         'firebase_ride_id',
-        'payment_method_id'
+        'payment_method_id',
+        'rejected_drivers'
     ];
 
     public $timestamps = true;
 
     protected $casts = [
         'route_points' => 'array',
+        'rejected_drivers' => 'array',
         'status' => RideStatus::class,
     ];
 

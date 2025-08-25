@@ -9,6 +9,7 @@ use App\Models\Ride;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Database;
 
@@ -238,8 +239,17 @@ class RideActionsController extends Controller
 
         $ride = Ride::findOrFail($request->ride_id);
 
+        // Add current driver to rejected drivers list
+        $rejectedDrivers = $ride->rejected_drivers ?? [];
+        if ($ride->driver_id && !in_array($ride->driver_id, $rejectedDrivers)) {
+            $rejectedDrivers[] = $ride->driver_id;
+        }
 
-        $ride->update(['status' => 'rejected', 'canceled_at' => now()->toIso8601String()]);
+        $ride->update([
+            'status' => 'rejected', 
+            'canceled_at' => now()->toIso8601String(),
+            'rejected_drivers' => $rejectedDrivers
+        ]);
 
         try {
             $this->updateFirebase($ride, [
@@ -247,13 +257,31 @@ class RideActionsController extends Controller
                 'canceled_at' => now()->toIso8601String(),
                 // keep driver_id untouched
             ]);
+
+            // Search for alternative driver automatically
+            $rideEstimateController = new \App\Http\Controllers\Api\User\RideEstimateController();
+            $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
+
+            if ($alternativeDriver) {
+                return response()->json([
+                    'message' => 'Ride rejected. Alternative driver found and assigned.',
+                    'alternative_driver' => [
+                        'id' => $alternativeDriver['id'],
+                        'name' => $alternativeDriver['name'],
+                        'eta_seconds' => $alternativeDriver['eta_time']
+                    ]
+                ]);
+            } else {
+                return response()->json([
+                    'message' => 'Ride rejected. No alternative drivers available.',
+                ]);
+            }
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Ride canceled in DB, but failed to update Firebase.',
                 'error' => $e->getMessage()
             ], 500);
         }
-
-        return response()->json(['message' => 'Ride rejected.']);
     }
 }

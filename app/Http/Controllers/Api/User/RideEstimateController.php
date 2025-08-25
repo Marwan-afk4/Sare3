@@ -13,6 +13,8 @@ use Kreait\Firebase\Factory;
 use App\Helpers\RideHelper;
 use App\Models\CancellationPolicy;
 use App\Models\Rating;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class RideEstimateController extends Controller
 {
@@ -188,5 +190,221 @@ class RideEstimateController extends Controller
             'message' => 'Ride created successfully',
             'data' => $ride,
         ]);
+    }
+
+    private function deg2rad($deg)
+    {
+        return $deg * (pi() / 180);
+    }
+
+    private function haversineDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $R = 6371;
+        $dLat = $this->deg2rad($lat2 - $lat1);
+        $dLon = $this->deg2rad($lon2 - $lon1);
+        
+        $a = sin($dLat / 2) * sin($dLat / 2) +
+             cos($this->deg2rad($lat1)) * cos($this->deg2rad($lat2)) *
+             sin($dLon / 2) * sin($dLon / 2);
+        
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        
+        return $R * $c;
+    }
+
+
+    private function getEligibleDrivers($userPickupLat, $userPickupLng, $excludedDriverIds = [])
+    {
+        try {
+            $firebase = (new Factory)
+                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                ->createDatabase();
+
+            $driversSnapshot = $firebase->getReference('drivers')->getSnapshot();
+            
+            if (!$driversSnapshot->exists()) {
+                return [];
+            }
+
+            $driversData = $driversSnapshot->getValue();
+            $eligibleDrivers = [];
+
+            foreach ($driversData as $driverId => $driverData) {
+                try {
+                    // Skip excluded drivers
+                    if (in_array($driverData['id'] ?? null, $excludedDriverIds)) {
+                        continue;
+                    }
+
+                    // Parse driver data similar to Flutter model
+                    $settings = $driverData['settings'] ?? [];
+                    
+                    $driver = [
+                        'id' => $driverData['id'],
+                        'name' => $driverData['name'] ?? '',
+                        'phone_number' => $driverData['phone_number'] ?? '',
+                        'photo' => $driverData['photo'] ?? '',
+                        'car_color' => $driverData['car_color'] ?? '',
+                        'car_model' => $driverData['car_model'] ?? '',
+                        'car_photo' => $driverData['car_photo'] ?? '',
+                        'plate_number' => $driverData['palete_number'] ?? '', // Note: keeping original typo from Flutter
+                        'latitude' => (float)$driverData['latitude'],
+                        'longitude' => (float)$driverData['longitude'],
+                        'gender' => $settings['gender'] ?? null,
+                        'pickup_radius' => (float)($settings['pickup_radius'] ?? 0.0),
+                        'preferred_destination' => $settings['preferred_destination'] ?? '',
+                        'eta_time' => null,
+                    ];
+
+                    $eligibleDrivers[] = $driver;
+                    
+                } catch (\Exception $e) {
+                    Log::warning("Invalid driver entry ($driverId): " . $e->getMessage());
+                }
+            }
+
+            return $eligibleDrivers;
+            
+        } catch (\Exception $e) {
+            Log::error('Error fetching drivers: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Find nearest driver by ETA using Google Distance Matrix API
+     */
+    private function findNearestDriverByETA($userPickupLat, $userPickupLng, $eligibleDrivers)
+    {
+        if (empty($eligibleDrivers)) {
+            return null;
+        }
+
+        $googleApiKey = 'AIzaSyBsHFBbK2V7OrWccNYfEO5NDj9cP9nVDfc';
+        if (!$googleApiKey) {
+            Log::error('Google Maps API key not configured');
+            return null;
+        }
+
+        // Build origins from drivers
+        $origins = collect($eligibleDrivers)->map(function ($driver) {
+            return $driver['latitude'] . ',' . $driver['longitude'];
+        })->join('|');
+
+        $destination = $userPickupLat . ',' . $userPickupLng;
+
+        try {
+            $response = Http::get('https://maps.googleapis.com/maps/api/distancematrix/json', [
+                'origins' => $origins,
+                'destinations' => $destination,
+                'key' => $googleApiKey,
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $rows = $data['rows'] ?? [];
+
+                // Update drivers with ETA times
+                for ($i = 0; $i < count($rows) && $i < count($eligibleDrivers); $i++) {
+                    $elements = $rows[$i]['elements'] ?? [];
+                    if (!empty($elements) && $elements[0]['status'] === 'OK') {
+                        $durationInSec = $elements[0]['duration']['value'];
+                        $eligibleDrivers[$i]['eta_time'] = $durationInSec;
+                    } else {
+                        $eligibleDrivers[$i]['eta_time'] = null;
+                    }
+                }
+
+                // Filter out drivers without valid ETA
+                $eligibleDrivers = array_filter($eligibleDrivers, function ($driver) {
+                    return $driver['eta_time'] !== null;
+                });
+
+                // Sort by ETA
+                usort($eligibleDrivers, function ($a, $b) {
+                    return $a['eta_time'] <=> $b['eta_time'];
+                });
+
+
+                return !empty($eligibleDrivers) ? $eligibleDrivers[0] : null;
+            } else {
+                Log::error('Error from Google API: ' . $response->body());
+                return null;
+            }
+        } catch (\Exception $e) {
+            Log::error('Error calling Google Distance Matrix API: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Search for alternative driver when current driver rejects
+     */
+    public function searchAlternativeDriver(Ride $ride)
+    {
+        try {
+            // Get excluded driver IDs (drivers who already rejected this ride)
+            $excludedDriverIds = $ride->rejected_drivers ?? [];
+            if ($ride->driver_id) {
+                $excludedDriverIds[] = $ride->driver_id;
+            }
+
+            // Get eligible drivers
+            $eligibleDrivers = $this->getEligibleDrivers(
+                $ride->pickup_lat,
+                $ride->pickup_lng,
+                $excludedDriverIds
+            );
+
+            if (empty($eligibleDrivers)) {
+                Log::info("No eligible drivers found for ride {$ride->id}");
+                return null;
+            }
+
+            // Find nearest driver by ETA
+            $nearestDriver = $this->findNearestDriverByETA(
+                $ride->pickup_lat,
+                $ride->pickup_lng,
+                $eligibleDrivers
+            );
+
+            if (!$nearestDriver) {
+                Log::info("No driver found with valid ETA for ride {$ride->id}");
+                return null;
+            }
+
+            // Update ride with new driver
+            $ride->update([
+                'driver_id' => $nearestDriver['id'],
+                'status' => 'pending', // Reset to pending for new driver
+            ]);
+
+            // Update Firebase with new driver info
+            $firebase = (new Factory)
+                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                ->createDatabase();
+
+            $firebaseRideId = 'ride_' . $ride->id;
+            
+            // Get driver rating
+            $driverRating = Rating::where('ratee_id', $nearestDriver['id'])
+                ->where('ratee_type', 'driver')
+                ->avg('rate');
+
+            $firebase->getReference("rides/$firebaseRideId")->update([
+                'driver_id' => $nearestDriver['id'],
+                'driver_rating' => round($driverRating ?? 0, 1),
+                'status' => 'pending',
+                'reassigned_at' => now()->toIso8601String(),
+            ]);
+
+            return $nearestDriver;
+
+        } catch (\Exception $e) {
+            Log::error("Error searching alternative driver for ride {$ride->id}: " . $e->getMessage());
+            return null;
+        }
     }
 }
