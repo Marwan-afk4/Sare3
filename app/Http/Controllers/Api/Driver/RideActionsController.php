@@ -287,17 +287,17 @@ class RideActionsController extends Controller
                 ]);
             } else {
                 // No alternative driver found - keep as rejected
-                $ride->update(['status' => 'no_drivers_available']);
+                $ride->update(['status' => 'pending']);
 
                 $this->updateFirebase($ride, [
-                    'status' => 'no_drivers_available',
+                    'status' => 'pending',
                 ]);
 
                 DB::commit();
 
                 return response()->json([
                     'message' => 'Ride rejected. No alternative drivers available.',
-                    'status' => 'no_drivers_available'
+                    'status' => 'pending'
                 ]);
             }
 
