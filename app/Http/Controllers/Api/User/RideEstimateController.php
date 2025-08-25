@@ -12,8 +12,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Kreait\Firebase\Factory;
 use App\Helpers\RideHelper;
+use App\Jobs\HandleDriverTimeout;
 use App\Models\CancellationPolicy;
 use App\Models\Rating;
+use App\Models\RideRequestTimeLimit;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -455,6 +457,13 @@ class RideEstimateController extends Controller
             } else {
                 Log::warning("No FCM token found for driver {$nearestDriver['id']}");
             }
+
+            // بعد ما تحدث ride بالـ nearest driver
+            $timeLimit = RideRequestTimeLimit::first()->time_limit_seconds ?? 30;
+
+            dispatch(new HandleDriverTimeout($ride->id, $nearestDriver['id']))
+                ->delay(now()->addSeconds($timeLimit));
+
 
             return $nearestDriver;
         } catch (\Exception $e) {
