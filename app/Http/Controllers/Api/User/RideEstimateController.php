@@ -197,20 +197,21 @@ class RideEstimateController extends Controller
         return $deg * (pi() / 180);
     }
 
-    private function haversineDistance($lat1, $lon1, $lat2, $lon2)
-    {
-        $R = 6371;
-        $dLat = $this->deg2rad($lat2 - $lat1);
-        $dLon = $this->deg2rad($lon2 - $lon1);
+    // private function haversineDistance($lat1, $lon1, $lat2, $lon2)
+    // {
+    //     $R = 6371;
+    //     $dLat = $this->deg2rad($lat2 - $lat1);
+    //     $dLon = $this->deg2rad($lon2 - $lon1);
 
-        $a = sin($dLat / 2) * sin($dLat / 2) +
-            cos($this->deg2rad($lat1)) * cos($this->deg2rad($lat2)) *
-            sin($dLon / 2) * sin($dLon / 2);
+    //     $a = sin($dLat / 2) * sin($dLat / 2) +
+    //         cos($this->deg2rad($lat1)) * cos($this->deg2rad($lat2)) *
+    //         sin($dLon / 2) * sin($dLon / 2);
 
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+    //     $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
-        return $R * $c;
-    }
+    //     return $R * $c;
+    // }
+
 
     private function getEligibleDrivers($userPickupLat, $userPickupLng, $excludedDriverIds = [])
     {
@@ -286,6 +287,12 @@ class RideEstimateController extends Controller
             return null;
         }
 
+        if (!$googleApiKey) {
+            Log::error('Google Maps API key not configured');
+            return null;
+        }
+
+        // Build origins from drivers
         $origins = collect($eligibleDrivers)->map(function ($driver) {
             return $driver['latitude'] . ',' . $driver['longitude'];
         })->join('|');
@@ -337,22 +344,6 @@ class RideEstimateController extends Controller
     }
 
     /**
-     * When driver rejects a ride
-     */
-    public function rejectRide(Ride $ride, $driverId)
-    {
-        $rejected = $ride->rejected_drivers ?? [];
-        $rejected[] = $driverId;
-
-        $ride->update([
-            'rejected_drivers' => array_unique($rejected),
-            'driver_id' => null,
-        ]);
-
-        return $this->searchAlternativeDriver($ride);
-    }
-
-    /**
      * Search for alternative driver when current driver rejects
      */
     public function searchAlternativeDriver(Ride $ride)
@@ -368,7 +359,7 @@ class RideEstimateController extends Controller
             $eligibleDrivers = $this->getEligibleDrivers(
                 $ride->pickup_lat,
                 $ride->pickup_lng,
-                array_unique($excludedDriverIds)
+                $excludedDriverIds
             );
 
             if (empty($eligibleDrivers)) {
