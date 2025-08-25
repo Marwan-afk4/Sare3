@@ -355,6 +355,9 @@ class RideEstimateController extends Controller
             // Make sure current driver is in excluded list
             if ($ride->driver_id && !in_array($ride->driver_id, $excludedDriverIds)) {
                 $excludedDriverIds[] = $ride->driver_id;
+                $ride->update([
+                    'rejected_drivers' => $excludedDriverIds
+                ]);
             }
 
             // Get eligible drivers
