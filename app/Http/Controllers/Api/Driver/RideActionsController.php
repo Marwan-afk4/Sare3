@@ -240,6 +240,8 @@ class RideActionsController extends Controller
         }
 
         $ride = Ride::findOrFail($request->ride_id);
+
+        // 👇 خد نسخة من driver_id قبل ما نفضيه
         $currentDriverId = $ride->driver_id;
 
         // Add current driver to rejected drivers list
@@ -251,12 +253,12 @@ class RideActionsController extends Controller
         DB::beginTransaction();
 
         try {
-            // Update ride: reset driver_id, add to rejected drivers, keep status pending
+            // Update ride: reset driver_id, add to rejected drivers
             $ride->update([
-                'driver_id' => null, // 💡 مهم جداً: نفرغ السواق
+                'driver_id' => null,
                 'rejected_drivers' => $rejectedDrivers,
                 'canceled_at' => now()->toIso8601String(),
-                'status' => 'pending', // نسيبها pending عشان يبقى في فرصة لحد تاني
+                'status' => 'pending',
             ]);
 
             // Sync Firebase
@@ -267,13 +269,12 @@ class RideActionsController extends Controller
                 'canceled_at' => now()->toIso8601String(),
             ]);
 
-            // بعدين دور على بديل
+            // دور على بديل
             $rideEstimateController = new \App\Http\Controllers\Api\User\RideEstimateController();
             $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
 
             DB::commit();
 
-            // لو لقيت سواق بديل اعمله Save في DB + Firebase
             if ($alternativeDriver) {
                 $ride->update([
                     'driver_id' => $alternativeDriver['id'],
