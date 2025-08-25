@@ -57,6 +57,7 @@ class CancelationRide extends Controller
             'canceled_at' => $now,
             'reason' => $request->input('reason'),
         ]);
+            Ride::where('id', $ride->id)->update(['status' => 'cancelled']);
             return response()->json(['message' => 'Ride canceled successfully , No applicable cancellation policy found.'], 200);
         }
 
