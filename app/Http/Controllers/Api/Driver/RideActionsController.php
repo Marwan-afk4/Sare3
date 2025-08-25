@@ -229,37 +229,33 @@ class RideActionsController extends Controller
     }
 
     //cancel ride
-    public function cancelRide(Request $request)
+    public function cancelRide(Request $request, $rideId)
     {
-        $validator = Validator::make($request->all(), [
-            'ride_id' => 'required|exists:rides,id',
-        ]);
-
-        if ($validator->fails()) {
-            abort(response()->json(['message' => $validator->errors()->first()], 422));
-        }
-
-        $ride = Ride::findOrFail($request->ride_id);
-        $currentDriverId = $ride->driver_id;
-
-        // Add current driver to rejected drivers list
-        $rejectedDrivers = $ride->rejected_drivers ?? [];
-        if ($currentDriverId && !in_array($currentDriverId, $rejectedDrivers)) {
-            $rejectedDrivers[] = $currentDriverId;
-        }
-
         DB::beginTransaction();
 
         try {
-            // Update ride: reset driver_id, add to rejected drivers, keep status pending
+            $ride = Ride::findOrFail($rideId);
+
+            $driver = $request->user();
+
+            // لو هو مش نفس السواق اللي واخد الرحلة
+            if ($ride->driver_id !== $driver->id) {
+                return response()->json(['message' => 'Not authorized.'], 403);
+            }
+
+            // ضيف السواق في rejected_drivers
+            $rejectedDrivers = $ride->rejected_drivers ?? [];
+            $rejectedDrivers[] = $driver->id;
+
+            // حدث بيانات الرحلة (شيل السواق الحالي)
             $ride->update([
-                'driver_id' => null, // 💡 مهم جداً: نفرغ السواق
+                'driver_id' => null,
                 'rejected_drivers' => $rejectedDrivers,
-                'canceled_at' => now()->toIso8601String(),
-                'status' => 'pending', // نسيبها pending عشان يبقى في فرصة لحد تاني
+                'status' => 'pending',
+                'canceled_at' => now(),
             ]);
 
-            // Sync Firebase
+            // حدث Firebase (بدون driver_id)
             $this->updateFirebase($ride, [
                 'driver_id' => null,
                 'rejected_drivers' => $rejectedDrivers,
@@ -267,13 +263,13 @@ class RideActionsController extends Controller
                 'canceled_at' => now()->toIso8601String(),
             ]);
 
-            // بعدين دور على بديل
+            // دور على درايفر بديل
             $rideEstimateController = new \App\Http\Controllers\Api\User\RideEstimateController();
             $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
 
             DB::commit();
 
-            // لو لقيت سواق بديل اعمله Save في DB + Firebase
+            // لو لقيت درايفر جديد
             if ($alternativeDriver) {
                 $ride->update([
                     'driver_id' => $alternativeDriver['id'],
@@ -287,25 +283,17 @@ class RideActionsController extends Controller
                     'reassigned_at' => now()->toIso8601String(),
                     'previous_rejections' => count($rejectedDrivers),
                 ]);
-            } else {
-                return response()->json([
-                    'message' => 'Ride rejected. No alternative drivers available.',
-                    'status' => 'pending'
-                ]);
             }
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            Log::error('Error in cancelRide: ' . $e->getMessage(), [
-                'ride_id' => $ride->id,
-                'driver_id' => $currentDriverId,
-                'trace' => $e->getTraceAsString()
-            ]);
 
             return response()->json([
-                'message' => 'Failed to process ride rejection.',
-                'error' => $e->getMessage()
-            ], 500);
+                'message' => $alternativeDriver
+                    ? 'Driver reassigned successfully.'
+                    : 'No available drivers at the moment.',
+                'ride' => $ride,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }
