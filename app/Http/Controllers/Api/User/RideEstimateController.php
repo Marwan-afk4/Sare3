@@ -459,7 +459,7 @@ class RideEstimateController extends Controller
             }
 
             // بعد ما تحدث ride بالـ nearest driver
-            $timeLimit = RideRequestTimeLimit::first()->time_limit_seconds ?? 5;
+            $timeLimit = RideRequestTimeLimit::first()->time_limit_seconds ?? 60;
 
             dispatch(new HandleDriverTimeout($ride->id, $nearestDriver['id']))
                 ->delay(now()->addSeconds($timeLimit));
