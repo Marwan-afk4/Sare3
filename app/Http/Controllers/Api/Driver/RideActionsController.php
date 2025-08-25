@@ -242,7 +242,7 @@ class RideActionsController extends Controller
         $ride = Ride::findOrFail($request->ride_id);
 
         // 👇 خد نسخة من driver_id قبل ما نفضيه
-        $currentDriverId = $ride->driver_id;
+        $currentDriverId = $request->user()->id;
 
         // Add current driver to rejected drivers list
         $rejectedDrivers = $ride->rejected_drivers ?? [];
