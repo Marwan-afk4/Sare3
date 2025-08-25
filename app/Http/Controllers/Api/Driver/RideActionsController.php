@@ -264,23 +264,28 @@ class RideActionsController extends Controller
                 'driver_id' => null,
                 'rejected_drivers' => $rejectedDrivers,
                 'status' => 'pending',
+                'canceled_at' => now()->toIso8601String(),
             ]);
 
-            // Search for alternative driver
+            // بعدين دور على بديل
             $rideEstimateController = new \App\Http\Controllers\Api\User\RideEstimateController();
             $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
 
             DB::commit();
 
+            // لو لقيت سواق بديل اعمله Save في DB + Firebase
             if ($alternativeDriver) {
-                return response()->json([
-                    'message' => 'Ride rejected. Alternative driver found and assigned.',
-                    'alternative_driver' => [
-                        'id' => $alternativeDriver['id'],
-                        'name' => $alternativeDriver['name'],
-                        'eta_seconds' => $alternativeDriver['eta_time'] ?? null
-                    ],
-                    'new_status' => $ride->status
+                $ride->update([
+                    'driver_id' => $alternativeDriver['id'],
+                    'status' => 'pending',
+                    'reassigned_at' => now(),
+                ]);
+
+                $this->updateFirebase($ride, [
+                    'driver_id' => $alternativeDriver['id'],
+                    'status' => 'pending',
+                    'reassigned_at' => now()->toIso8601String(),
+                    'previous_rejections' => count($rejectedDrivers),
                 ]);
             } else {
                 return response()->json([
