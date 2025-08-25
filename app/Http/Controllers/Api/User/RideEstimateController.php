@@ -364,8 +364,28 @@ class RideEstimateController extends Controller
                 $excludedDriverIds
             );
 
+            // لو مفيش سواقين متاحين (يعني كلهم rejected)
             if (empty($eligibleDrivers)) {
-                Log::info("No eligible drivers found for ride {$ride->id}");
+                Log::info("All drivers rejected ride {$ride->id}, setting driver_id to null");
+
+                $ride->update([
+                    'driver_id' => null,
+                    'status' => 'pending', // ممكن تعمل status مخصص أو تخليها pending زي ما تحب
+                ]);
+
+                // Firebase update
+                $firebase = (new Factory)
+                    ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                    ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                    ->createDatabase();
+
+                $firebaseRideId = 'ride_' . $ride->id;
+
+                $firebase->getReference("rides/$firebaseRideId")->update([
+                    'driver_id' => null,
+                    'status' => 'pending',
+                ]);
+
                 return null;
             }
 
@@ -383,7 +403,7 @@ class RideEstimateController extends Controller
 
             Log::info("Found nearest driver {$nearestDriver['id']} for ride {$ride->id}");
 
-            // Update ride with new driver - this should be atomic
+            // Update ride with new driver
             $ride->update([
                 'driver_id' => $nearestDriver['id'],
                 'status' => 'pending', // Reset to pending for new driver
@@ -398,23 +418,17 @@ class RideEstimateController extends Controller
 
             $firebaseRideId = 'ride_' . $ride->id;
 
-            // Get driver rating
             $driverRating = Rating::where('ratee_id', $nearestDriver['id'])
                 ->where('ratee_type', 'driver')
                 ->avg('rate');
 
-            // Update Firebase synchronously and wait for completion
-            $firebaseData = [
+            $firebase->getReference("rides/$firebaseRideId")->update([
                 'driver_id' => $nearestDriver['id'],
                 'driver_rating' => round($driverRating ?? 0, 1),
                 'status' => 'pending',
                 'reassigned_at' => now()->toIso8601String(),
                 'previous_rejections' => count($excludedDriverIds),
-            ];
-
-            $firebase->getReference("rides/$firebaseRideId")->update($firebaseData);
-
-            Log::info("Successfully reassigned ride {$ride->id} to driver {$nearestDriver['id']}");
+            ]);
 
             return $nearestDriver;
         } catch (\Exception $e) {
