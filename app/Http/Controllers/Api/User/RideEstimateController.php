@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\User;
 
+use App\Helpers\FcmHelper;
 use App\Http\Controllers\Controller;
 use App\Models\CarCategory;
 use App\Models\Ride;
@@ -11,8 +12,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Kreait\Firebase\Factory;
 use App\Helpers\RideHelper;
+use App\Jobs\HandleDriverTimeout;
 use App\Models\CancellationPolicy;
 use App\Models\Rating;
+use App\Models\RideRequestTimeLimit;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -351,10 +354,13 @@ class RideEstimateController extends Controller
         try {
             // Get excluded driver IDs (drivers who already rejected this ride)
             $excludedDriverIds = $ride->rejected_drivers ?? [];
-            
-            // Make sure current driver is in excluded list
+
+            // ✅ Add current driver to rejected list if not already
             if ($ride->driver_id && !in_array($ride->driver_id, $excludedDriverIds)) {
                 $excludedDriverIds[] = $ride->driver_id;
+                $ride->update([
+                    'rejected_drivers' => $excludedDriverIds
+                ]);
             }
 
             // Get eligible drivers
@@ -364,8 +370,28 @@ class RideEstimateController extends Controller
                 $excludedDriverIds
             );
 
+            // لو مفيش سواقين متاحين
             if (empty($eligibleDrivers)) {
-                \Log::info("No eligible drivers found for ride {$ride->id}");
+                Log::info("All drivers rejected ride {$ride->id}, setting driver_id to null");
+
+                $ride->update([
+                    'driver_id' => null,
+                    'status' => 'pending',
+                ]);
+
+                // Firebase update
+                $firebase = (new Factory)
+                    ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                    ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                    ->createDatabase();
+
+                $firebaseRideId = 'ride_' . $ride->id;
+
+                $firebase->getReference("rides/$firebaseRideId")->update([
+                    'driver_id' => null,
+                    'status' => 'pending',
+                ]);
+
                 return null;
             }
 
@@ -377,16 +403,16 @@ class RideEstimateController extends Controller
             );
 
             if (!$nearestDriver) {
-                \Log::info("No driver found with valid ETA for ride {$ride->id}");
+                Log::info("No driver found with valid ETA for ride {$ride->id}");
                 return null;
             }
 
-            \Log::info("Found nearest driver {$nearestDriver['id']} for ride {$ride->id}");
+            Log::info("Found nearest driver {$nearestDriver['id']} for ride {$ride->id}");
 
-            // Update ride with new driver - this should be atomic
+            // Update ride with new driver
             $ride->update([
                 'driver_id' => $nearestDriver['id'],
-                'status' => 'pending', // Reset to pending for new driver
+                'status' => 'pending',
                 'reassigned_at' => now(),
             ]);
 
@@ -398,27 +424,50 @@ class RideEstimateController extends Controller
 
             $firebaseRideId = 'ride_' . $ride->id;
 
-            // Get driver rating
             $driverRating = Rating::where('ratee_id', $nearestDriver['id'])
                 ->where('ratee_type', 'driver')
                 ->avg('rate');
 
-            // Update Firebase synchronously and wait for completion
-            $firebaseData = [
+            $firebase->getReference("rides/$firebaseRideId")->update([
                 'driver_id' => $nearestDriver['id'],
                 'driver_rating' => round($driverRating ?? 0, 1),
                 'status' => 'pending',
                 'reassigned_at' => now()->toIso8601String(),
                 'previous_rejections' => count($excludedDriverIds),
-            ];
+            ]);
 
-            $firebase->getReference("rides/$firebaseRideId")->update($firebaseData);
-            
-            \Log::info("Successfully reassigned ride {$ride->id} to driver {$nearestDriver['id']}");
+            // ✅ Send push notification to new driver
+            $driver = User::find($nearestDriver['id']);
+            if ($driver && $driver->fcm_token) {
+                $data = [
+                    'title'    => 'Ride Started',
+                    'body'     => 'The Ride just Started, Enjoy your trip!',
+                    'msg_type' => 'ride_request',
+                    'ride_id'  => (string) $ride->id, // عشان الاب يعرف الرحلة
+                ];
+
+                $response = FcmHelper::sendPushNotification(
+                    $driver->fcm_token,
+                    $data['title'],
+                    $data['body'],
+                    $data
+                );
+
+                Log::info("Notification sent to driver {$driver->id}", ['response' => $response]);
+            } else {
+                Log::warning("No FCM token found for driver {$nearestDriver['id']}");
+            }
+
+            // بعد ما تحدث ride بالـ nearest driver
+            $timeLimit = RideRequestTimeLimit::first()->time_limit_seconds ?? 30;
+
+            dispatch(new HandleDriverTimeout($ride->id, $nearestDriver['id']))
+                ->delay(now()->addSeconds($timeLimit));
+
 
             return $nearestDriver;
         } catch (\Exception $e) {
-            \Log::error("Error searching alternative driver for ride {$ride->id}: " . $e->getMessage(), [
+            Log::error("Error searching alternative driver for ride {$ride->id}: " . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
             return null;

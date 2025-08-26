@@ -68,8 +68,8 @@ class RideActionsController extends Controller
         $driver = $request->user();
 
         $ride = Ride::where('id', $request->ride_id)
-                    ->whereIn('status', ['pending', 'rejected']) // Allow accepting rejected rides
-                    ->first();
+            ->whereIn('status', ['pending', 'rejected']) // Allow accepting rejected rides
+            ->first();
 
         if (!$ride) {
             return response()->json(['message' => 'Ride not found or not available for acceptance.'], 404);
@@ -240,7 +240,9 @@ class RideActionsController extends Controller
         }
 
         $ride = Ride::findOrFail($request->ride_id);
-        $currentDriverId = $ride->driver_id;
+
+        // 👇 خد نسخة من driver_id قبل ما نفضيه
+        $currentDriverId = $request->user()->id;
 
         // Add current driver to rejected drivers list
         $rejectedDrivers = $ride->rejected_drivers ?? [];
@@ -248,68 +250,59 @@ class RideActionsController extends Controller
             $rejectedDrivers[] = $currentDriverId;
         }
 
-        // Use database transaction for atomicity
-        \DB::beginTransaction();
-        
+        DB::beginTransaction();
+
         try {
-            // First update: mark as rejected and add to rejected drivers
+            // Update ride: reset driver_id, add to rejected drivers
             $ride->update([
-                'status' => 'rejected', 
+                'driver_id' => null,
+                'rejected_drivers' => $rejectedDrivers,
                 'canceled_at' => now()->toIso8601String(),
-                'rejected_drivers' => $rejectedDrivers
+                'status' => 'pending',
             ]);
 
-            // Update Firebase with rejected status first
+            // Sync Firebase
             $this->updateFirebase($ride, [
-                'status' => 'rejected',
+                'driver_id' => null,
+                'rejected_drivers' => $rejectedDrivers,
+                'status' => 'pending',
                 'canceled_at' => now()->toIso8601String(),
-                'rejected_by_driver_id' => $currentDriverId,
             ]);
 
-            // Search for alternative driver
+            // دور على بديل
             $rideEstimateController = new \App\Http\Controllers\Api\User\RideEstimateController();
             $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
 
+            DB::commit();
+
             if ($alternativeDriver) {
-                // Refresh ride data after searchAlternativeDriver updates it
-                $ride->refresh();
-                
-                \DB::commit();
-                
-                return response()->json([
-                    'message' => 'Ride rejected. Alternative driver found and assigned.',
-                    'alternative_driver' => [
-                        'id' => $alternativeDriver['id'],
-                        'name' => $alternativeDriver['name'],
-                        'eta_seconds' => $alternativeDriver['eta_time'] ?? null
-                    ],
-                    'new_status' => $ride->status
+                $ride->update([
+                    'driver_id' => $alternativeDriver['id'],
+                    'status' => 'pending',
+                    'reassigned_at' => now(),
+                ]);
+
+                $this->updateFirebase($ride, [
+                    'driver_id' => $alternativeDriver['id'],
+                    'status' => 'pending',
+                    'reassigned_at' => now()->toIso8601String(),
+                    'previous_rejections' => count($rejectedDrivers),
                 ]);
             } else {
-                // No alternative driver found - keep as rejected
-                $ride->update(['status' => 'no_drivers_available']);
-                
-                $this->updateFirebase($ride, [
-                    'status' => 'no_drivers_available',
-                ]);
-                
-                \DB::commit();
-                
                 return response()->json([
                     'message' => 'Ride rejected. No alternative drivers available.',
-                    'status' => 'no_drivers_available'
+                    'status' => 'pending'
                 ]);
             }
-
         } catch (\Exception $e) {
-            \DB::rollback();
-            
-            \Log::error('Error in cancelRide: ' . $e->getMessage(), [
+            DB::rollback();
+
+            Log::error('Error in cancelRide: ' . $e->getMessage(), [
                 'ride_id' => $ride->id,
                 'driver_id' => $currentDriverId,
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'message' => 'Failed to process ride rejection.',
                 'error' => $e->getMessage()
