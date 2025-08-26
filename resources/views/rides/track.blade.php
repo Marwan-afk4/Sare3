@@ -230,122 +230,129 @@
             <!-- Progress Timeline -->
             <div class="info-card">
                 <h5><i class="fa fa-list text-warning"></i> Trip Progress</h5>
-                <div class="progress-timeline">
-                    <div class="timeline-item {{ in_array($ride->status->value, ['accepted', 'waiting_user', 'in_progress', 'completed', 'finshed']) ? 'completed' : '' }}">
-                        <strong>Ride Accepted</strong>
-                        <div class="text-muted small">Driver accepted your ride request</div>
-                    </div>
-                    <div class="timeline-item {{ in_array($ride->status->value, ['waiting_user', 'in_progress', 'completed', 'finshed']) ? 'completed' : ($ride->status->value === 'accepted' ? 'active' : '') }}">
-                        <strong>Driver En Route</strong>
-                        <div class="text-muted small">Driver is heading to pickup location</div>
-                    </div>
-                    <div class="timeline-item {{ in_array($ride->status->value, ['in_progress', 'completed', 'finshed']) ? 'completed' : ($ride->status->value === 'waiting_user' ? 'active' : '') }}">
-                        <strong>Driver Arrived</strong>
-                        <div class="text-muted small">Driver has arrived at pickup location</div>
-                    </div>
-                    <div class="timeline-item {{ in_array($ride->status->value, ['completed', 'finshed']) ? 'completed' : ($ride->status->value === 'in_progress' ? 'active' : '') }}">
-                        <strong>Trip Started</strong>
-                        <div class="text-muted small">Trip is in progress</div>
-                    </div>
-                    <div class="timeline-item {{ in_array($ride->status->value, ['completed', 'finshed']) ? 'completed' : '' }}">
-                        <strong>Trip Completed</strong>
-                        <div class="text-muted small">You have reached your destination</div>
-                    </div>
-                </div>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fa fa-check-circle {{ in_array($ride->status->value, ['accepted','waiting_user','in_progress','completed','finshed']) ? 'text-success' : 'text-muted' }}"></i>
+                        <strong> Ride Accepted</strong>
+                        <div class="small text-muted">Driver accepted your ride request</div>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fa fa-check-circle {{ in_array($ride->status->value, ['waiting_user','in_progress','completed','finshed']) ? 'text-success' : ($ride->status->value === 'accepted' ? 'text-warning' : 'text-muted') }}"></i>
+                        <strong> Driver En Route</strong>
+                        <div class="small text-muted">Driver is heading to pickup location</div>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fa fa-check-circle {{ in_array($ride->status->value, ['in_progress','completed','finshed']) ? 'text-success' : ($ride->status->value === 'waiting_user' ? 'text-warning' : 'text-muted') }}"></i>
+                        <strong> Driver Arrived</strong>
+                        <div class="small text-muted">Driver has arrived at pickup location</div>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fa fa-check-circle {{ in_array($ride->status->value, ['completed','finshed']) ? 'text-success' : ($ride->status->value === 'in_progress' ? 'text-warning' : 'text-muted') }}"></i>
+                        <strong> Trip Started</strong>
+                        <div class="small text-muted">Trip is in progress</div>
+                    </li>
+                    <li>
+                        <i class="fa fa-check-circle {{ in_array($ride->status->value, ['completed','finshed']) ? 'text-success' : 'text-muted' }}"></i>
+                        <strong> Trip Completed</strong>
+                        <div class="small text-muted">You have reached your destination</div>
+                    </li>
+                </ul>
             </div>
-            
-            <!-- Actions -->
-            <div class="info-card">
-                <div class="d-grid gap-2">
-                    <a href="{{ route('rides.show', $ride) }}" class="btn btn-outline-primary">
-                        <i class="fa fa-info-circle"></i> View Details
-                    </a>
-                    <a href="{{ route('rides.index') }}" class="btn btn-outline-secondary">
-                        <i class="fa fa-arrow-left"></i> Back to Rides
-                    </a>
+
+
+                <!-- Actions -->
+                <div class="info-card">
+                    <div class="d-grid gap-2">
+                        <a href="{{ route('rides.show', $ride) }}" class="btn btn-outline-primary">
+                            <i class="fa fa-info-circle"></i> View Details
+                        </a>
+                        <a href="{{ route('rides.index') }}" class="btn btn-outline-secondary">
+                            <i class="fa fa-arrow-left"></i> Back to Rides
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Refresh Button -->
-@if(in_array($ride->status->value, ['in_progress', 'accepted', 'waiting_user']))
-<button class="btn btn-primary refresh-btn" onclick="refreshTracking()" title="Refresh Tracking">
-    <i class="fa fa-sync-alt"></i>
-</button>
-@endif
+    <!-- Refresh Button -->
+    @if (in_array($ride->status->value, ['in_progress', 'accepted', 'waiting_user']))
+        <button class="btn btn-primary refresh-btn" onclick="refreshTracking()" title="Refresh Tracking">
+            <i class="fa fa-sync-alt"></i>
+        </button>
+    @endif
 
 @push('scripts')
 @include('rides.tracking-scripts')
 
-<script>
-// Ride data from Laravel
-const rideData = {
-    id: {{ $ride->id }},
-    status: '{{ $ride->status->value }}',
-    pickup: {
-        lat: {{ $ride->pickup_lat ?? 'null' }},
-        lng: {{ $ride->pickup_lng ?? 'null' }},
-        address: '{{ addslashes($ride->pickup_address ?? '') }}'
-    },
-    dropoff: {
-        lat: {{ $ride->dropoff_lat ?? 'null' }},
-        lng: {{ $ride->dropoff_lng ?? 'null' }},
-        address: '{{ addslashes($ride->dropoff_address ?? '') }}'
-    },
-    routePoints: @json($ride->route_points ?? []),
-    driverId: {{ $ride->driver_id ?? 'null' }},
-    firebaseRideId: '{{ $ride->firebase_ride_id ?? '' }}'
-};
+        <script>
+            // Ride data from Laravel
+            const rideData = {
+                id: {{ $ride->id }},
+                status: '{{ $ride->status->value }}',
+                pickup: {
+                    lat: {{ $ride->pickup_lat ?? 'null' }},
+                    lng: {{ $ride->pickup_lng ?? 'null' }},
+                    address: '{{ addslashes($ride->pickup_address ?? '') }}'
+                },
+                dropoff: {
+                    lat: {{ $ride->dropoff_lat ?? 'null' }},
+                    lng: {{ $ride->dropoff_lng ?? 'null' }},
+                    address: '{{ addslashes($ride->dropoff_address ?? '') }}'
+                },
+                routePoints: @json($ride->route_points ?? []),
+                driverId: {{ $ride->driver_id ?? 'null' }},
+                firebaseRideId: '{{ $ride->firebase_ride_id ?? '' }}'
+            };
 
-let rideTracker;
+            let rideTracker;
 
-function initMap() {
-    if (!rideData.pickup.lat || !rideData.pickup.lng) {
-        console.log('No pickup coordinates available');
-        document.getElementById('trackingMap').innerHTML = '<div class="alert alert-warning m-3">No location data available for this ride.</div>';
-        return;
-    }
+            function initMap() {
+                if (!rideData.pickup.lat || !rideData.pickup.lng) {
+                    console.log('No pickup coordinates available');
+                    document.getElementById('trackingMap').innerHTML =
+                        '<div class="alert alert-warning m-3">No location data available for this ride.</div>';
+                    return;
+                }
 
     // Initialize the ride tracker
     rideTracker = new SimpleRideTracker(rideData, 'trackingMap');
     rideTracker.init();
 }
 
-function refreshTracking() {
-    if (rideTracker) {
-        rideTracker.refreshRideData();
-    }
-    
-    // Add visual feedback
-    const btn = document.querySelector('.refresh-btn i');
-    btn.classList.add('fa-spin');
-    setTimeout(() => {
-        btn.classList.remove('fa-spin');
-    }, 1000);
-}
+            function refreshTracking() {
+                if (rideTracker) {
+                    rideTracker.refreshRideData();
+                }
 
-// Cleanup function
-function cleanup() {
-    if (rideTracker) {
-        rideTracker.cleanup();
-    }
-}
+                // Add visual feedback
+                const btn = document.querySelector('.refresh-btn i');
+                btn.classList.add('fa-spin');
+                setTimeout(() => {
+                    btn.classList.remove('fa-spin');
+                }, 1000);
+            }
 
-// Auto-refresh for active rides
-if (['in_progress', 'accepted', 'waiting_user'].includes(rideData.status)) {
-    setInterval(() => {
-        if (rideTracker) {
-            rideTracker.refreshRideData();
-        }
-    }, 15000); // Refresh every 15 seconds for tracking page
-}
+            // Cleanup function
+            function cleanup() {
+                if (rideTracker) {
+                    rideTracker.cleanup();
+                }
+            }
 
-// Initialize map when page loads
-window.addEventListener('load', initMap);
-window.addEventListener('beforeunload', cleanup);
-</script>
+            // Auto-refresh for active rides
+            if (['in_progress', 'accepted', 'waiting_user'].includes(rideData.status)) {
+                setInterval(() => {
+                    if (rideTracker) {
+                        rideTracker.refreshRideData();
+                    }
+                }, 15000); // Refresh every 15 seconds for tracking page
+            }
+
+            // Initialize map when page loads
+            window.addEventListener('load', initMap);
+            window.addEventListener('beforeunload', cleanup);
+        </script>
 
 <!-- Google Maps API -->
 @if(config('services.google_maps.api_key') && config('services.google_maps.api_key') !== 'your_actual_api_key_here')
@@ -361,18 +368,18 @@ window.addEventListener('beforeunload', cleanup);
 </script>
 @endif
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-<script>
-const firebaseConfig = {
-    databaseURL: 'https://sarea-adce3-default-rtdb.firebaseio.com'
-};
+        <!-- Firebase SDK -->
+        <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+        <script>
+            const firebaseConfig = {
+                databaseURL: 'https://sarea-adce3-default-rtdb.firebaseio.com'
+            };
 
-if (typeof firebase !== 'undefined') {
-    firebase.initializeApp(firebaseConfig);
-}
-</script>
-@endpush
+            if (typeof firebase !== 'undefined') {
+                firebase.initializeApp(firebaseConfig);
+            }
+        </script>
+    @endpush
 
 @endsection

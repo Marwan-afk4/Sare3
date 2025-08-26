@@ -190,6 +190,20 @@
                         </a>
                     </div>
 
+                    {{-- support-chat --}}
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'support-chat' ? 'active' : '' }}"
+                            href="{{ route('admin.support-chat.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="message-circle"></span></span>
+                                <span class="nav-link-text-wrapper">
+                                    <span class="nav-link-text">{{ __('Support Chat') }}</span>
+                                    <span class="badge bg-danger ms-2 d-none" id="support-chat-badge">0</span>
+                                </span>
+                            </div>
+                        </a>
+                    </div>
+
                     {{-- <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'employees' ? 'active' : '' }}" href="{{ route('employees.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">

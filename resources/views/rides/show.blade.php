@@ -8,8 +8,11 @@
 <style>
     #rideMap {
         height: 400px;
+        min-height: 400px;
         width: 100%;
         border-radius: 8px;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
     }
     .map-container {
         margin-bottom: 20px;
@@ -159,8 +162,7 @@
     </div>
 
 @push('scripts')
-<!-- Include the ride tracking JavaScript -->
-@vite('resources/js/ride-tracking.js')
+@include('rides.tracking-scripts')
 
 <script>
 // Ride data from Laravel
@@ -192,7 +194,7 @@ function initMap() {
     }
 
     // Initialize the ride tracker
-    rideTracker = new RideTracker(rideData, 'rideMap');
+    rideTracker = new SimpleRideTracker(rideData, 'rideMap');
     rideTracker.init();
 }
 
@@ -220,9 +222,18 @@ window.addEventListener('beforeunload', cleanup);
 </script>
 
 <!-- Google Maps API -->
+@if(config('services.google_maps.api_key') && config('services.google_maps.api_key') !== 'your_actual_api_key_here')
 <script async defer 
-    src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.api_key', 'YOUR_GOOGLE_MAPS_API_KEY') }}&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.api_key') }}&callback=initMap&libraries=marker">
 </script>
+@else
+<script>
+    function initMap() {
+        document.getElementById('rideMap').innerHTML = '<div class="alert alert-warning m-3"><strong>Configuration Required:</strong> Please set your Google Maps API key in the .env file.<br><small>Add: GOOGLE_MAPS_API_KEY=your_actual_api_key</small></div>';
+    }
+    window.addEventListener('load', initMap);
+</script>
+@endif
 
 <!-- Firebase SDK (if you want real-time updates) -->
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
