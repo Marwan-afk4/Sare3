@@ -8,8 +8,11 @@
 <style>
     #trackingMap {
         height: 70vh;
+        min-height: 400px;
         width: 100%;
         border-radius: 8px;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
     }
     
     .tracking-header {
@@ -144,7 +147,16 @@
                     </div>
                 </div>
                 <div class="card-body p-0">
-                    <div id="trackingMap"></div>
+                    <div id="trackingMap">
+                        <div class="d-flex justify-content-center align-items-center h-100">
+                            <div class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading map...</span>
+                                </div>
+                                <p class="mt-2 text-muted">Loading map...</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -265,7 +277,7 @@
 @endif
 
 @push('scripts')
-@vite('resources/js/ride-tracking.js')
+@include('rides.tracking-scripts')
 
 <script>
 // Ride data from Laravel
@@ -297,7 +309,7 @@ function initMap() {
     }
 
     // Initialize the ride tracker
-    rideTracker = new RideTracker(rideData, 'trackingMap');
+    rideTracker = new SimpleRideTracker(rideData, 'trackingMap');
     rideTracker.init();
 }
 
@@ -336,9 +348,18 @@ window.addEventListener('beforeunload', cleanup);
 </script>
 
 <!-- Google Maps API -->
+@if(config('services.google_maps.api_key') && config('services.google_maps.api_key') !== 'your_actual_api_key_here')
 <script async defer 
-    src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.api_key', 'YOUR_GOOGLE_MAPS_API_KEY') }}&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.api_key') }}&callback=initMap&libraries=marker">
 </script>
+@else
+<script>
+    function initMap() {
+        document.getElementById('trackingMap').innerHTML = '<div class="alert alert-warning m-3"><strong>Configuration Required:</strong> Please set your Google Maps API key in the .env file.<br><small>Add: GOOGLE_MAPS_API_KEY=your_actual_api_key</small></div>';
+    }
+    window.addEventListener('load', initMap);
+</script>
+@endif
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
