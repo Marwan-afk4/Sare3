@@ -10,6 +10,7 @@ use App\Models\Ride;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Factory;
 
 class DriverLocationController extends Controller
@@ -18,19 +19,66 @@ class DriverLocationController extends Controller
 
     public function updateDriverLocation(Request $request)
     {
+        $validation = Validator::make($request->all(), [
+            'ride_id' => 'required|exists:rides,id',
+            'lat' => 'required|numeric|between:-90,90',
+            'lng' => 'required|numeric|between:-180,180',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json(['message' => $validation->errors()], 422);
+        }
+
         $ride = Ride::findOrFail($request->ride_id);
 
+        // Verify driver owns this ride
+        if ($ride->driver_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Only update location for active rides
+        if (!in_array($ride->status->value, ['accepted', 'waiting_user', 'in_progress'])) {
+            return response()->json(['message' => 'Ride is not in trackable status'], 400);
+        }
+
         $points = $ride->route_points ?? [];
-        $points[] = [
-            'lat' => $request->lat,
-            'lng' => $request->lng,
+        $newPoint = [
+            'lat' => (float) $request->lat,
+            'lng' => (float) $request->lng,
             'timestamp' => now()->timestamp,
+            'speed' => $request->speed ?? null,
+            'heading' => $request->heading ?? null,
         ];
+
+        $points[] = $newPoint;
 
         $ride->route_points = $points;
         $ride->save();
 
-        return response()->json(['message' => 'Driver location updated']);
+        // Update Firebase for real-time tracking
+        try {
+            $firebase = (new Factory)
+                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                ->createDatabase();
+
+            $firebaseRideId = $ride->firebase_ride_id ?: 'ride_' . $ride->id;
+            
+            $firebase->getReference("rides/{$firebaseRideId}/driver_location")->set([
+                'lat' => (float) $request->lat,
+                'lng' => (float) $request->lng,
+                'timestamp' => now()->timestamp,
+                'updated_at' => now()->toIso8601String(),
+            ]);
+        } catch (\Exception $e) {
+            // Log error but don't fail the request
+            \Log::error('Firebase location update failed: ' . $e->getMessage());
+        }
+
+        return response()->json([
+            'message' => 'Driver location updated successfully',
+            'total_points' => count($points)
+        ]);
     }
 
 

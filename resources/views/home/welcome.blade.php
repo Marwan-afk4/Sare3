@@ -43,6 +43,11 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Active Rides Widget -->
+                <div class="col-xxl-6">
+                    <x-active-rides-widget :activeRides="$activeRides" />
+                </div>
 
             </div>
         </div>

@@ -158,9 +158,22 @@
                             <td>{{ $ride->time_taken }}</td>
                             <td>{!! $ride->status->badge() !!}</td>
                             <td class="text-center">
-                                <a href='{{ route('rides.show', $ride) }}'
-                                    class="btn btn-subtle-primary btn-sm me-1">{{ __('Details') }} <i
-                                        class="fa fa-eye"></i></a>
+                                <div class="btn-group" role="group">
+                                    <a href='{{ route('rides.show', $ride) }}'
+                                        class="btn btn-subtle-primary btn-sm" title="{{ __('View Details') }}">
+                                        <i class="fa fa-eye"></i>
+                                    </a>
+                                    @if($ride->pickup_lat && $ride->pickup_lng)
+                                        <a href='{{ route('rides.track', $ride) }}'
+                                            class="btn btn-subtle-success btn-sm" title="{{ __('Track Ride') }}">
+                                            @if(in_array($ride->status->value, ['in_progress', 'accepted', 'waiting_user']))
+                                                <i class="fa fa-location-arrow"></i>
+                                            @else
+                                                <i class="fa fa-route"></i>
+                                            @endif
+                                        </a>
+                                    @endif
+                                </div>
                                 {{-- <a href='{{ route('rides.edit', $ride) }}' class="btn btn-subtle-warning btn-sm me-1">{{ __("Edit") }} <i class="fa fa-edit"></i></a> --}}
                                 {{-- <form method='POST' action='{{ route('rides.destroy', $ride) }}' onsubmit='return confirm("Are you sure you want to delete this item?")'>
 							<input type='hidden' name='_method' value='DELETE'>

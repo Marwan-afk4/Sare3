@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Ride;
 use Illuminate\Http\Request;
 
 class HomePageController extends Controller
@@ -15,11 +16,19 @@ class HomePageController extends Controller
         $userMonthlyCounts = $this->getMonthlyCounts(User::where('role', 'user'));
         $driverMonthlyCounts = $this->getMonthlyCounts(User::where('role', 'driver'));
 
+        // Get active rides for tracking widget
+        $activeRides = Ride::with(['user', 'driver', 'carCategory'])
+            ->whereIn('status', ['accepted', 'waiting_user', 'in_progress'])
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
         return view('home.welcome', compact(
             'userCount',
             'driverCount',
             'userMonthlyCounts',
-            'driverMonthlyCounts'
+            'driverMonthlyCounts',
+            'activeRides'
         ));
     }
 

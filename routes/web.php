@@ -21,6 +21,7 @@ use App\Http\Controllers\{
     PaymenentMethodController,
     RideController,
     RideRequestTimeLimitController,
+    SupportChatController,
     WalletRequestController
 };
 
@@ -56,6 +57,9 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
             '/notifications' => NotificationController::class,
         ]);
 
+        // Additional ride routes
+        Route::get('/rides/{ride}/track', [RideController::class, 'track'])->name('rides.track');
+
         Route::post('/otp-limits/{otpLimit}/reset-drivers', [OtpLimitController::class, 'resetDrivers'])->name('otp-limits.reset-drivers');
         Route::post('/otp-limits/{otpLimit}/reset-users', [OtpLimitController::class, 'resetUsers'])->name('otp-limits.reset-users');
 
@@ -63,4 +67,15 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
         Route::get('/drivers/{driver}/documents', [DriverController::class, 'documents'])->name('drivers.documents');
 
         Route::get('/drivers/{driver}/cars', [DriverController::class, 'cars'])->name('drivers.cars');
+
+        // Support Chat Routes
+        Route::prefix('support-chat')->name('admin.support-chat.')->group(function () {
+            Route::get('/', [SupportChatController::class, 'index'])->name('index');
+            Route::get('/conversations/users', [SupportChatController::class, 'getUserConversations'])->name('conversations.users');
+            Route::get('/conversations/drivers', [SupportChatController::class, 'getDriverConversations'])->name('conversations.drivers');
+            Route::get('/conversation/{conversationId}', [SupportChatController::class, 'getConversation'])->name('conversation.show');
+            Route::post('/message', [SupportChatController::class, 'sendMessage'])->name('message.send');
+            Route::patch('/conversation/{conversationId}/read', [SupportChatController::class, 'markAsRead'])->name('conversation.read');
+            Route::get('/stats', [SupportChatController::class, 'getStats'])->name('stats');
+        });
     });

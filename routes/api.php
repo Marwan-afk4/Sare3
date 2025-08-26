@@ -192,3 +192,12 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
     Route::post('/check-user-otp-limit', [ProfileController::class, 'checkUserOtpLimit']);
 });
 
+//======= RIDE TRACKING (Public/Admin) ========
+use App\Http\Controllers\Api\RideTrackingController;
+
+Route::prefix('rides')->group(function () {
+    Route::get('/{rideId}/driver-location', [RideTrackingController::class, 'getDriverLocation']);
+    Route::get('/{rideId}/route-points', [RideTrackingController::class, 'getRoutePoints']);
+    Route::get('/{rideId}/tracking-data', [RideTrackingController::class, 'getRideTrackingData']);
+});
+
