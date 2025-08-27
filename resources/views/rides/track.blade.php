@@ -5,259 +5,268 @@
 @section('title', 'Track Ride #' . $ride->id)
 
 @push('styles')
-<style>
-    #trackingMap {
-        height: 70vh;
-        min-height: 400px;
-        width: 100%;
-        border-radius: 8px;
-        background-color: #f8f9fa;
-        border: 1px solid #dee2e6;
-    }
-    
-    .tracking-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 10px 10px 0 0;
-    }
-    
-    .status-indicator {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        margin-right: 8px;
-        animation: pulse 2s infinite;
-    }
-    
-    .status-live { background-color: #4CAF50; }
-    .status-completed { background-color: #2196F3; }
-    .status-pending { background-color: #FF9800; }
-    
-    @keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.5; }
-        100% { opacity: 1; }
-    }
-    
-    .info-card {
-        background: white;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .progress-timeline {
-        position: relative;
-        padding-left: 30px;
-    }
-    
-    .progress-timeline::before {
-        content: '';
-        position: absolute;
-        left: 10px;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: #e0e0e0;
-    }
-    
-    .timeline-item {
-        position: relative;
-        margin-bottom: 20px;
-    }
-    
-    .timeline-item::before {
-        content: '';
-        position: absolute;
-        left: -25px;
-        top: 5px;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: #e0e0e0;
-    }
-    
-    .timeline-item.completed::before {
-        background: #4CAF50;
-    }
-    
-    .timeline-item.active::before {
-        background: #2196F3;
-        animation: pulse 2s infinite;
-    }
-    
-    .refresh-btn {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 1000;
-    }
-    
-    .driver-info {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .driver-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: #2196F3;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-    }
-</style>
+    <style>
+        #trackingMap {
+            height: 70vh;
+            min-height: 400px;
+            width: 100%;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+
+        .tracking-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-live {
+            background-color: #4CAF50;
+        }
+
+        .status-completed {
+            background-color: #2196F3;
+        }
+
+        .status-pending {
+            background-color: #FF9800;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .progress-timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e0e0e0;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e0e0e0;
+        }
+
+        .timeline-item.completed::before {
+            background: #4CAF50;
+        }
+
+        .timeline-item.active::before {
+            background: #2196F3;
+            animation: pulse 2s infinite;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .driver-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .driver-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #2196F3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
 @endpush
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <!-- Map Column -->
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="tracking-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h4 class="mb-1">
-                                <span class="status-indicator status-{{ $ride->status->value === 'completed' || $ride->status->value === 'finshed' ? 'completed' : ($ride->status->value === 'in_progress' || $ride->status->value === 'accepted' || $ride->status->value === 'waiting_user' ? 'live' : 'pending') }}"></span>
-                                Ride #{{ $ride->id }}
-                            </h4>
-                            <p class="mb-0">
-                                @if(in_array($ride->status->value, ['in_progress', 'accepted', 'waiting_user']))
-                                    <i class="fa fa-location-arrow"></i> Live Tracking Active
-                                @elseif(in_array($ride->status->value, ['completed', 'finshed']))
-                                    <i class="fa fa-check-circle"></i> Trip Completed
-                                @else
-                                    <i class="fa fa-clock"></i> {{ $ride->status->label() }}
-                                @endif
-                            </p>
-                        </div>
-                        <div class="text-end">
-                            <div class="badge bg-light text-dark fs-6">
-                                {!! $ride->status->badge() !!}
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Map Column -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="tracking-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 class="mb-1">
+                                    <span
+                                        class="status-indicator status-{{ $ride->status->value === 'completed' || $ride->status->value === 'finshed' ? 'completed' : ($ride->status->value === 'in_progress' || $ride->status->value === 'accepted' || $ride->status->value === 'waiting_user' ? 'live' : 'pending') }}"></span>
+                                    Ride #{{ $ride->id }}
+                                </h4>
+                                <p class="mb-0">
+                                    @if (in_array($ride->status->value, ['in_progress', 'accepted', 'waiting_user']))
+                                        <i class="fa fa-location-arrow"></i> Live Tracking Active
+                                    @elseif(in_array($ride->status->value, ['completed', 'finshed']))
+                                        <i class="fa fa-check-circle"></i> Trip Completed
+                                    @else
+                                        <i class="fa fa-clock"></i> {{ $ride->status->label() }}
+                                    @endif
+                                </p>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <div id="trackingMap">
-                        <div class="d-flex justify-content-center align-items-center h-100">
-                            <div class="text-center">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading map...</span>
+                            <div class="text-end">
+                                <div class="badge bg-light text-dark fs-6">
+                                    {!! $ride->status->badge() !!}
                                 </div>
-                                <p class="mt-2 text-muted">Loading map...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="trackingMap">
+                            <div class="d-flex justify-content-center align-items-center h-100">
+                                <div class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading map...</span>
+                                    </div>
+                                    <p class="mt-2 text-muted">Loading map...</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Info Column -->
-        <div class="col-lg-4">
-            <!-- Trip Details -->
-            <div class="info-card">
-                <h5><i class="fa fa-route text-primary"></i> Trip Details</h5>
-                <div class="row">
-                    <div class="col-12 mb-2">
-                        <small class="text-muted">From</small>
-                        <div class="fw-bold">{{ $ride->pickup_address ?? 'Pickup Location' }}</div>
+
+            <!-- Info Column -->
+            <div class="col-lg-4">
+                <!-- Trip Details -->
+                <div class="info-card">
+                    <h5><i class="fa fa-route text-primary"></i> Trip Details</h5>
+                    <div class="row">
+                        <div class="col-12 mb-2">
+                            <p class="text-muted">From</p>
+                            <div class="fw-bold">{{ $ride->pickup_address ?? 'Pickup Location' }}</div>
+                        </div>
+                        <div class="col-12 mb-2">
+                            <p class="text-muted">To</p>
+                            <div class="fw-bold">{{ $ride->dropoff_address ?? 'Dropoff Location' }}</div>
+                        </div>
                     </div>
-                    <div class="col-12 mb-2">
-                        <small class="text-muted">To</small>
-                        <div class="fw-bold">{{ $ride->dropoff_address ?? 'Dropoff Location' }}</div>
-                    </div>
-                </div>
-                
-                <hr>
-                
-                <div class="row text-center">
-                    <div class="col-4">
-                        <div class="text-muted small">Distance</div>
-                        <div class="fw-bold">{{ $ride->total_distance_in_km ?? $ride->estimated_km ?? '-' }} km</div>
-                    </div>
-                    <div class="col-4">
-                        <div class="text-muted small">Duration</div>
-                        <div class="fw-bold">{{ $ride->time_taken ?? $ride->estimated_time ?? '-' }} min</div>
-                    </div>
-                    <div class="col-4">
-                        <div class="text-muted small">Price</div>
-                        <div class="fw-bold">${{ $ride->calculated_final_price ?? $ride->calculated_initial_price ?? '-' }}</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Driver Info -->
-            @if($ride->driver)
-            <div class="info-card">
-                <h5><i class="fa fa-user text-success"></i> Driver</h5>
-                <div class="driver-info">
-                    <div class="driver-avatar">
-                        {{ strtoupper(substr($ride->driver->name, 0, 1)) }}
-                    </div>
-                    <div>
-                        <div class="fw-bold">{{ $ride->driver->name }}</div>
-                        <small class="text-muted">{{ $ride->carCategory?->name ?? 'Vehicle' }}</small>
+
+                    <hr>
+
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="text-muted small">Distance</div>
+                            <div class="fw-bold">{{ $ride->total_distance_in_km ?? ($ride->estimated_km ?? '-') }} km</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted small">Duration</div>
+                            <div class="fw-bold">{{ $ride->time_taken ?? ($ride->estimated_time ?? '-') }} min</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted small">Price</div>
+                            <div class="fw-bold">
+                                ${{ $ride->calculated_final_price ?? ($ride->calculated_initial_price ?? '-') }}</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            @endif
-            
-            <!-- User Info -->
-            @if($ride->user)
-            <div class="info-card">
-                <h5><i class="fa fa-user text-info"></i> Passenger</h5>
-                <div class="driver-info">
-                    <div class="driver-avatar" style="background: #17a2b8;">
-                        {{ strtoupper(substr($ride->user->name, 0, 1)) }}
+
+                <!-- Driver Info -->
+                @if ($ride->driver)
+                    <div class="info-card p-3 mb-2" style="border-left: 5px solid #28a745; background: #eafaf0;">
+                        <h5><i class="fa fa-user text-success"></i> Driver</h5>
+                        <div class="fw-bold"> <a href="{{ route('drivers.show', $ride->driver->id) }}"
+                                class="text-success text-decoration-none"> {{ $ride->driver->name }} </a> </div>
                     </div>
-                    <div>
-                        <div class="fw-bold">{{ $ride->user->name }}</div>
-                        <small class="text-muted">Passenger</small>
+                @endif
+
+                <!-- User Info -->
+                @if ($ride->user)
+                    <div class="info-card p-3 mb-2" style="border-left: 5px solid #17a2b8; background: #eaf4fa;">
+                        <h5><i class="fa fa-user text-info"></i> Passenger</h5>
+                        <div class="fw-bold"> <a href="{{ route('users.show', $ride->user->id) }}"
+                                class="text-info text-decoration-none"> {{ $ride->user->name }} </a> </div>
                     </div>
+                @endif
+
+                <!-- Progress Timeline -->
+                <div class="info-card p-3 mb-2" style="border-left: 5px solid #ffc107; background: #fff8e1;">
+                    <h5><i class="fa fa-list text-warning"></i> Trip Progress</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i
+                                class="fa fa-check-circle {{ in_array($ride->status->value, ['accepted', 'waiting_user', 'in_progress', 'completed', 'finshed']) ? 'text-success' : 'text-muted' }}"></i>
+                            <strong> Ride Accepted</strong>
+                            <div class="small text-muted">Driver accepted your ride request</div>
+                        </li>
+                        <li class="mb-2">
+                            <i
+                                class="fa fa-check-circle {{ in_array($ride->status->value, ['waiting_user', 'in_progress', 'completed', 'finshed']) ? 'text-success' : ($ride->status->value === 'accepted' ? 'text-warning' : 'text-muted') }}"></i>
+                            <strong> Driver En Route</strong>
+                            <div class="small text-muted">Driver is heading to pickup location</div>
+                        </li>
+                        <li class="mb-2">
+                            <i
+                                class="fa fa-check-circle {{ in_array($ride->status->value, ['in_progress', 'completed', 'finshed']) ? 'text-success' : ($ride->status->value === 'waiting_user' ? 'text-warning' : 'text-muted') }}"></i>
+                            <strong> Driver Arrived</strong>
+                            <div class="small text-muted">Driver has arrived at pickup location</div>
+                        </li>
+                        <li class="mb-2">
+                            <i
+                                class="fa fa-check-circle {{ in_array($ride->status->value, ['completed', 'finshed']) ? 'text-success' : ($ride->status->value === 'in_progress' ? 'text-warning' : 'text-muted') }}"></i>
+                            <strong> Trip Started</strong>
+                            <div class="small text-muted">Trip is in progress</div>
+                        </li>
+                        <li>
+                            <i
+                                class="fa fa-check-circle {{ in_array($ride->status->value, ['completed', 'finshed']) ? 'text-success' : 'text-muted' }}"></i>
+                            <strong> Trip Completed</strong>
+                            <div class="small text-muted">You have reached your destination</div>
+                        </li>
+                    </ul>
                 </div>
-            </div>
-            @endif
-            
-            <!-- Progress Timeline -->
-            <div class="info-card">
-                <h5><i class="fa fa-list text-warning"></i> Trip Progress</h5>
-                <ul class="list-unstyled mb-0">
-                    <li class="mb-2">
-                        <i class="fa fa-check-circle {{ in_array($ride->status->value, ['accepted','waiting_user','in_progress','completed','finshed']) ? 'text-success' : 'text-muted' }}"></i>
-                        <strong> Ride Accepted</strong>
-                        <div class="small text-muted">Driver accepted your ride request</div>
-                    </li>
-                    <li class="mb-2">
-                        <i class="fa fa-check-circle {{ in_array($ride->status->value, ['waiting_user','in_progress','completed','finshed']) ? 'text-success' : ($ride->status->value === 'accepted' ? 'text-warning' : 'text-muted') }}"></i>
-                        <strong> Driver En Route</strong>
-                        <div class="small text-muted">Driver is heading to pickup location</div>
-                    </li>
-                    <li class="mb-2">
-                        <i class="fa fa-check-circle {{ in_array($ride->status->value, ['in_progress','completed','finshed']) ? 'text-success' : ($ride->status->value === 'waiting_user' ? 'text-warning' : 'text-muted') }}"></i>
-                        <strong> Driver Arrived</strong>
-                        <div class="small text-muted">Driver has arrived at pickup location</div>
-                    </li>
-                    <li class="mb-2">
-                        <i class="fa fa-check-circle {{ in_array($ride->status->value, ['completed','finshed']) ? 'text-success' : ($ride->status->value === 'in_progress' ? 'text-warning' : 'text-muted') }}"></i>
-                        <strong> Trip Started</strong>
-                        <div class="small text-muted">Trip is in progress</div>
-                    </li>
-                    <li>
-                        <i class="fa fa-check-circle {{ in_array($ride->status->value, ['completed','finshed']) ? 'text-success' : 'text-muted' }}"></i>
-                        <strong> Trip Completed</strong>
-                        <div class="small text-muted">You have reached your destination</div>
-                    </li>
-                </ul>
-            </div>
 
 
                 <!-- Actions -->
@@ -282,8 +291,8 @@
         </button>
     @endif
 
-@push('scripts')
-@include('rides.tracking-scripts')
+    @push('scripts')
+        @include('rides.tracking-scripts')
 
         <script>
             // Ride data from Laravel
@@ -315,10 +324,10 @@
                     return;
                 }
 
-    // Initialize the ride tracker
-    rideTracker = new SimpleRideTracker(rideData, 'trackingMap');
-    rideTracker.init();
-}
+                // Initialize the ride tracker
+                rideTracker = new SimpleRideTracker(rideData, 'trackingMap');
+                rideTracker.init();
+            }
 
             function refreshTracking() {
                 if (rideTracker) {
@@ -354,19 +363,20 @@
             window.addEventListener('beforeunload', cleanup);
         </script>
 
-<!-- Google Maps API -->
-@if(config('services.google_maps.api_key') && config('services.google_maps.api_key') !== 'your_actual_api_key_here')
-<script async defer 
-    src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.api_key') }}&callback=initMap&libraries=marker">
-</script>
-@else
-<script>
-    function initMap() {
-        document.getElementById('trackingMap').innerHTML = '<div class="alert alert-warning m-3"><strong>Configuration Required:</strong> Please set your Google Maps API key in the .env file.<br><small>Add: GOOGLE_MAPS_API_KEY=your_actual_api_key</small></div>';
-    }
-    window.addEventListener('load', initMap);
-</script>
-@endif
+        <!-- Google Maps API -->
+        @if (config('services.google_maps.api_key') && config('services.google_maps.api_key') !== 'your_actual_api_key_here')
+            <script async defer
+                src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.api_key') }}&callback=initMap&libraries=marker">
+            </script>
+        @else
+            <script>
+                function initMap() {
+                    document.getElementById('trackingMap').innerHTML =
+                        '<div class="alert alert-warning m-3"><strong>Configuration Required:</strong> Please set your Google Maps API key in the .env file.<br><small>Add: GOOGLE_MAPS_API_KEY=your_actual_api_key</small></div>';
+                }
+                window.addEventListener('load', initMap);
+            </script>
+        @endif
 
         <!-- Firebase SDK -->
         <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
