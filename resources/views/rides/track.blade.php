@@ -144,13 +144,13 @@
                                 <h4 class="mb-1">
                                     <span
                                         class="status-indicator status-{{ $ride->status->value === 'completed' || $ride->status->value === 'finshed' ? 'completed' : ($ride->status->value === 'in_progress' || $ride->status->value === 'accepted' || $ride->status->value === 'waiting_user' ? 'live' : 'pending') }}"></span>
-                                    Ride #{{ $ride->id }}
+                                    {{ __('Ride #') }}{{ $ride->id }}
                                 </h4>
                                 <p class="mb-0">
                                     @if (in_array($ride->status->value, ['in_progress', 'accepted', 'waiting_user']))
-                                        <i class="fa fa-location-arrow"></i> Live Tracking Active
+                                        <i class="fa fa-location-arrow"></i> {{ __('Live Tracking Active') }}
                                     @elseif(in_array($ride->status->value, ['completed', 'finshed']))
-                                        <i class="fa fa-check-circle"></i> Trip Completed
+                                        <i class="fa fa-check-circle"></i> {{ __('Trip Completed') }}
                                     @else
                                         <i class="fa fa-clock"></i> {{ $ride->status->label() }}
                                     @endif
@@ -168,9 +168,9 @@
                             <div class="d-flex justify-content-center align-items-center h-100">
                                 <div class="text-center">
                                     <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Loading map...</span>
+                                        <span class="visually-hidden">{{ __('Loading map...') }}</span>
                                     </div>
-                                    <p class="mt-2 text-muted">Loading map...</p>
+                                    <p class="mt-2 text-muted">{{ __('Loading map...') }}</p>
                                 </div>
                             </div>
                         </div>
@@ -182,15 +182,15 @@
             <div class="col-lg-4">
                 <!-- Trip Details -->
                 <div class="info-card">
-                    <h5><i class="fa fa-route text-primary"></i> Trip Details</h5>
+                    <h5><i class="fa fa-route text-primary"></i> {{ __('Trip Details') }}</h5>
                     <div class="row">
                         <div class="col-12 mb-2">
-                            <p class="text-muted">From</p>
-                            <div class="fw-bold">{{ $ride->pickup_address ?? 'Pickup Location' }}</div>
+                            <p class="text-muted">{{ __('From') }}</p>
+                            <div class="fw-bold">{{ $ride->pickup_address ?? __('Pickup Location') }}</div>
                         </div>
                         <div class="col-12 mb-2">
-                            <p class="text-muted">To</p>
-                            <div class="fw-bold">{{ $ride->dropoff_address ?? 'Dropoff Location' }}</div>
+                            <p class="text-muted">{{ __('To') }}</p>
+                            <div class="fw-bold">{{ $ride->dropoff_address ?? __('Dropoff Location') }}</div>
                         </div>
                     </div>
 
@@ -198,15 +198,15 @@
 
                     <div class="row text-center">
                         <div class="col-4">
-                            <div class="text-muted small">Distance</div>
-                            <div class="fw-bold">{{ $ride->total_distance_in_km ?? ($ride->estimated_km ?? '-') }} km</div>
+                            <div class="text-muted small">{{ __('Distance') }}</div>
+                            <div class="fw-bold">{{ $ride->total_distance_in_km ?? ($ride->estimated_km ?? '-') }} {{ __('km') }}</div>
                         </div>
                         <div class="col-4">
-                            <div class="text-muted small">Duration</div>
-                            <div class="fw-bold">{{ $ride->time_taken ?? ($ride->estimated_time ?? '-') }} min</div>
+                            <div class="text-muted small">{{ __('Duration') }}</div>
+                            <div class="fw-bold">{{ $ride->time_taken ?? ($ride->estimated_time ?? '-') }} {{ __('min') }}</div>
                         </div>
                         <div class="col-4">
-                            <div class="text-muted small">Price</div>
+                            <div class="text-muted small">{{ __('Price') }}</div>
                             <div class="fw-bold">
                                 ${{ $ride->calculated_final_price ?? ($ride->calculated_initial_price ?? '-') }}</div>
                         </div>
@@ -216,7 +216,7 @@
                 <!-- Driver Info -->
                 @if ($ride->driver)
                     <div class="info-card p-3 mb-2" style="border-left: 5px solid #28a745; background: #eafaf0;">
-                        <h5><i class="fa fa-user text-success"></i> Driver</h5>
+                        <h5><i class="fa fa-user text-success"></i> {{ __('Driver') }}</h5>
                         <div class="fw-bold"> <a href="{{ route('drivers.show', $ride->driver->id) }}"
                                 class="text-success text-decoration-none"> {{ $ride->driver->name }} </a> </div>
                     </div>
@@ -225,7 +225,7 @@
                 <!-- User Info -->
                 @if ($ride->user)
                     <div class="info-card p-3 mb-2" style="border-left: 5px solid #17a2b8; background: #eaf4fa;">
-                        <h5><i class="fa fa-user text-info"></i> Passenger</h5>
+                        <h5><i class="fa fa-user text-info"></i> {{ __('Passenger') }}</h5>
                         <div class="fw-bold"> <a href="{{ route('users.show', $ride->user->id) }}"
                                 class="text-info text-decoration-none"> {{ $ride->user->name }} </a> </div>
                     </div>
@@ -233,37 +233,37 @@
 
                 <!-- Progress Timeline -->
                 <div class="info-card p-3 mb-2" style="border-left: 5px solid #ffc107; background: #fff8e1;">
-                    <h5><i class="fa fa-list text-warning"></i> Trip Progress</h5>
+                    <h5><i class="fa fa-list text-warning"></i> {{ __('Trip Progress') }}</h5>
                     <ul class="list-unstyled mb-0">
                         <li class="mb-2">
                             <i
                                 class="fa fa-check-circle {{ in_array($ride->status->value, ['accepted', 'waiting_user', 'in_progress', 'completed', 'finshed']) ? 'text-success' : 'text-muted' }}"></i>
-                            <strong> Ride Accepted</strong>
-                            <div class="small text-muted">Driver accepted your ride request</div>
+                            <strong> {{ __('Ride Accepted') }}</strong>
+                            <div class="small text-muted">{{ __('Driver accepted your ride request') }}</div>
                         </li>
                         <li class="mb-2">
                             <i
                                 class="fa fa-check-circle {{ in_array($ride->status->value, ['waiting_user', 'in_progress', 'completed', 'finshed']) ? 'text-success' : ($ride->status->value === 'accepted' ? 'text-warning' : 'text-muted') }}"></i>
-                            <strong> Driver En Route</strong>
-                            <div class="small text-muted">Driver is heading to pickup location</div>
+                            <strong> {{ __('Driver En Route') }}</strong>
+                            <div class="small text-muted">{{ __('Driver is heading to pickup location') }}</div>
                         </li>
                         <li class="mb-2">
                             <i
                                 class="fa fa-check-circle {{ in_array($ride->status->value, ['in_progress', 'completed', 'finshed']) ? 'text-success' : ($ride->status->value === 'waiting_user' ? 'text-warning' : 'text-muted') }}"></i>
-                            <strong> Driver Arrived</strong>
-                            <div class="small text-muted">Driver has arrived at pickup location</div>
+                            <strong> {{ __('Driver Arrived') }}</strong>
+                            <div class="small text-muted">{{ __('Driver has arrived at pickup location') }}</div>
                         </li>
                         <li class="mb-2">
                             <i
                                 class="fa fa-check-circle {{ in_array($ride->status->value, ['completed', 'finshed']) ? 'text-success' : ($ride->status->value === 'in_progress' ? 'text-warning' : 'text-muted') }}"></i>
-                            <strong> Trip Started</strong>
-                            <div class="small text-muted">Trip is in progress</div>
+                            <strong> {{ __('Trip Started') }}</strong>
+                            <div class="small text-muted">{{ __('Trip is in progress') }}</div>
                         </li>
                         <li>
                             <i
                                 class="fa fa-check-circle {{ in_array($ride->status->value, ['completed', 'finshed']) ? 'text-success' : 'text-muted' }}"></i>
-                            <strong> Trip Completed</strong>
-                            <div class="small text-muted">You have reached your destination</div>
+                            <strong> {{ __('Trip Completed') }}</strong>
+                            <div class="small text-muted">{{ __('You have reached your destination') }}</div>
                         </li>
                     </ul>
                 </div>
@@ -273,10 +273,10 @@
                 <div class="info-card">
                     <div class="d-grid gap-2">
                         <a href="{{ route('rides.show', $ride) }}" class="btn btn-outline-primary">
-                            <i class="fa fa-info-circle"></i> View Details
+                            <i class="fa fa-info-circle"></i> {{ __('View Details') }}
                         </a>
                         <a href="{{ route('rides.index') }}" class="btn btn-outline-secondary">
-                            <i class="fa fa-arrow-left"></i> Back to Rides
+                            <i class="fa fa-arrow-left"></i> {{ __('Back to Rides') }}
                         </a>
                     </div>
                 </div>

@@ -81,11 +81,12 @@
         "resources\/views\/wallet-requests\/show.blade.php"
     ],
     "Drivers": {
-        "0": "resources\/views\/drivers\/create.blade.php",
-        "1": "resources\/views\/drivers\/edit.blade.php",
-        "2": "resources\/views\/drivers\/index.blade.php",
-        "4": "resources\/views\/drivers\/show.blade.php",
-        "5": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+        "0": "resources\/views\/admin\/support-chat\/index.blade.php",
+        "1": "resources\/views\/drivers\/create.blade.php",
+        "2": "resources\/views\/drivers\/edit.blade.php",
+        "3": "resources\/views\/drivers\/index.blade.php",
+        "5": "resources\/views\/drivers\/show.blade.php",
+        "6": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     },
     "Name": [
         "resources\/views\/cancellation-policies\/create.blade.php",
@@ -161,6 +162,7 @@
         "resources\/views\/car-models\/index.blade.php",
         "resources\/views\/car-types\/edit.blade.php",
         "resources\/views\/car-types\/index.blade.php",
+        "resources\/views\/components\/active-rides-widget.blade.php",
         "resources\/views\/document-types\/edit.blade.php",
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/driver-documents\/edit.blade.php",
@@ -176,7 +178,6 @@
         "resources\/views\/ride-request-time-limits\/edit.blade.php",
         "resources\/views\/ride-request-time-limits\/index.blade.php",
         "resources\/views\/rides\/edit.blade.php",
-        "resources\/views\/rides\/index.blade.php",
         "resources\/views\/users\/edit.blade.php",
         "resources\/views\/users\/index.blade.php",
         "resources\/views\/wallet-requests\/edit.blade.php",
@@ -253,7 +254,6 @@
         "resources\/views\/ride-request-time-limits\/index.blade.php",
         "resources\/views\/ride-request-time-limits\/show.blade.php",
         "resources\/views\/rides\/index.blade.php",
-        "resources\/views\/rides\/show.blade.php",
         "resources\/views\/users\/index.blade.php",
         "resources\/views\/users\/show.blade.php",
         "resources\/views\/wallet-requests\/index.blade.php",
@@ -371,7 +371,6 @@
         "resources\/views\/paymenent-methods\/show.blade.php",
         "resources\/views\/ride-request-time-limits\/index.blade.php",
         "resources\/views\/rides\/index.blade.php",
-        "resources\/views\/rides\/show.blade.php",
         "resources\/views\/users\/index.blade.php",
         "resources\/views\/wallet-requests\/show.blade.php"
     ],
@@ -396,12 +395,13 @@
         "resources\/views\/elements\/sidebar.blade.php"
     ],
     "Users": {
-        "0": "resources\/views\/elements\/phoenix\/sidebar.blade.php",
-        "1": "resources\/views\/elements\/sidebar.blade.php",
-        "2": "resources\/views\/users\/create.blade.php",
-        "3": "resources\/views\/users\/edit.blade.php",
-        "4": "resources\/views\/users\/index.blade.php",
-        "6": "resources\/views\/users\/show.blade.php"
+        "0": "resources\/views\/admin\/support-chat\/index.blade.php",
+        "1": "resources\/views\/elements\/phoenix\/sidebar.blade.php",
+        "2": "resources\/views\/elements\/sidebar.blade.php",
+        "3": "resources\/views\/users\/create.blade.php",
+        "4": "resources\/views\/users\/edit.blade.php",
+        "5": "resources\/views\/users\/index.blade.php",
+        "7": "resources\/views\/users\/show.blade.php"
     },
     "Employees": [
         "resources\/views\/elements\/phoenix\/sidebar.blade.php",
@@ -442,6 +442,7 @@
         "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     ],
     "Dashboard": [
+        "resources\/views\/admin\/support-chat\/index.blade.php",
         "resources\/views\/elements\/sidebar.blade.php"
     ],
     "Logout": [
@@ -623,10 +624,11 @@
         "15": "resources\/views\/rides\/edit.blade.php",
         "16": "resources\/views\/rides\/index.blade.php",
         "17": "resources\/views\/rides\/show.blade.php",
-        "18": "resources\/views\/wallet-requests\/create.blade.php",
-        "19": "resources\/views\/wallet-requests\/index.blade.php",
-        "20": "resources\/views\/wallet-requests\/show.blade.php",
-        "21": "app\/Enums\/OtpTypes.php"
+        "18": "resources\/views\/rides\/track.blade.php",
+        "19": "resources\/views\/wallet-requests\/create.blade.php",
+        "20": "resources\/views\/wallet-requests\/index.blade.php",
+        "21": "resources\/views\/wallet-requests\/show.blade.php",
+        "22": "app\/Enums\/OtpTypes.php"
     },
     "Document Type": [
         "resources\/views\/driver-documents\/create.blade.php",
@@ -1031,13 +1033,13 @@
     "Estimated Km": [
         "resources\/views\/rides\/create.blade.php",
         "resources\/views\/rides\/edit.blade.php",
-        "resources\/views\/rides\/index.blade.php",
-        "resources\/views\/rides\/show.blade.php"
+        "resources\/views\/rides\/index.blade.php"
     ],
     "Estimated Time": [
         "resources\/views\/rides\/create.blade.php",
         "resources\/views\/rides\/edit.blade.php",
-        "resources\/views\/rides\/index.blade.php"
+        "resources\/views\/rides\/index.blade.php",
+        "resources\/views\/rides\/show.blade.php"
     ],
     "Calculated Initial Price": [
         "resources\/views\/rides\/create.blade.php",
@@ -1062,8 +1064,7 @@
     "Time Taken": [
         "resources\/views\/rides\/create.blade.php",
         "resources\/views\/rides\/edit.blade.php",
-        "resources\/views\/rides\/index.blade.php",
-        "resources\/views\/rides\/show.blade.php"
+        "resources\/views\/rides\/index.blade.php"
     ],
     "Firebase Ride": [
         "resources\/views\/rides\/create.blade.php",
@@ -1099,9 +1100,6 @@
     ],
     "Final Price": [
         "resources\/views\/rides\/index.blade.php",
-        "resources\/views\/rides\/show.blade.php"
-    ],
-    "Estimated Time In Minutes": [
         "resources\/views\/rides\/show.blade.php"
     ],
     "The selected Car Categories is invalid.": [
@@ -1355,7 +1353,8 @@
         "resources\/views\/cancelation-rides\/create.blade.php",
         "resources\/views\/cancelation-rides\/edit.blade.php",
         "resources\/views\/cancelation-rides\/index.blade.php",
-        "resources\/views\/cancelation-rides\/show.blade.php"
+        "resources\/views\/cancelation-rides\/show.blade.php",
+        "resources\/views\/rides\/show.blade.php"
     ],
     "Cancelation Policy": [
         "resources\/views\/cancelation-rides\/create.blade.php",
@@ -1559,9 +1558,6 @@
     "Logged out successfully": [
         "app\/Http\/Controllers\/AuthController.php"
     ],
-    "Final Distance": [
-        "resources\/views\/rides\/show.blade.php"
-    ],
     "OTP Limits": [
         "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     ],
@@ -1664,5 +1660,209 @@
     ],
     "Only one request time limit can exist.": [
         "app\/Http\/Requests\/StoreRideRequestTimeLimitRequest.php"
+    ],
+    "Support Chat": {
+        "0": "resources\/views\/admin\/support-chat\/index.blade.php",
+        "3": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    },
+    "Unread Messages": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Total Conversations": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "User Chats": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Driver Chats": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Search users...": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Search drivers...": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Select a conversation": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Mark as Read": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Welcome to Support Chat": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Select a conversation from the left panel to start chatting": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Type your message...": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Send": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Press Enter to send": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Loading...": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Loading chats...": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Failed to load conversations": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Retry": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "No chats now": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Conversations will appear here when users start chatting": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "No messages yet": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "No messages in this conversation": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Failed to send message": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Active Rides": [
+        "resources\/views\/components\/active-rides-widget.blade.php"
+    ],
+    "Track": [
+        "resources\/views\/components\/active-rides-widget.blade.php"
+    ],
+    "View All Active Rides": [
+        "resources\/views\/components\/active-rides-widget.blade.php"
+    ],
+    "No active rides at the moment": [
+        "resources\/views\/components\/active-rides-widget.blade.php"
+    ],
+    "View Details": [
+        "resources\/views\/rides\/index.blade.php",
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Track Ride": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Live Tracking": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "View Route": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Live Tracking Active": [
+        "resources\/views\/rides\/show.blade.php",
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Driver location is being tracked in real-time": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Trip Route": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Showing the completed trip route": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Live Ride Tracking": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Ride Details": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Ride ID": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Estimated Distance": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Actual Distance": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Actual Time": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Pricing Details": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Ride #": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Trip Completed": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Loading map...": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Trip Details": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "From": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "To": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Distance": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "km": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Duration": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "min": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Price": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Passenger": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Trip Progress": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Ride Accepted": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Driver accepted your ride request": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Driver En Route": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Driver is heading to pickup location": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Driver Arrived": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Driver has arrived at pickup location": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Trip Started": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Trip is in progress": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "You have reached your destination": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Back to Rides": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Pickup Location": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Dropoff Location": [
+        "resources\/views\/rides\/track.blade.php"
     ]
 }
