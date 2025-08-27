@@ -58,10 +58,11 @@
         }
 
         .info-card {
-            background: white;
             border-radius: 8px;
             padding: 15px;
-            margin-bottom: 15px;
+            background: var(--bs-body-bg);
+            /* يورث لون الخلفية من الثيم */
+            color: var(--bs-body-color);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
@@ -82,18 +83,26 @@
 
         .timeline-item {
             position: relative;
-            margin-bottom: 20px;
+            padding-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        body.dark .info-card {
+            background: #1e1e2d;
+            /* خلفية غامقة */
+            border: 1px solid #333;
+            color: #f1f1f1;
         }
 
         .timeline-item::before {
-            content: '';
+            content: "";
             position: absolute;
-            left: -25px;
             top: 5px;
-            width: 12px;
-            height: 12px;
+            left: 0;
+            width: 10px;
+            height: 10px;
+            background: currentColor;
             border-radius: 50%;
-            background: #e0e0e0;
         }
 
         .timeline-item.completed::before {
@@ -199,11 +208,13 @@
                     <div class="row text-center">
                         <div class="col-4">
                             <div class="text-muted small">{{ __('Distance') }}</div>
-                            <div class="fw-bold">{{ $ride->total_distance_in_km ?? ($ride->estimated_km ?? '-') }} {{ __('km') }}</div>
+                            <div class="fw-bold">{{ $ride->total_distance_in_km ?? ($ride->estimated_km ?? '-') }}
+                                {{ __('km') }}</div>
                         </div>
                         <div class="col-4">
                             <div class="text-muted small">{{ __('Duration') }}</div>
-                            <div class="fw-bold">{{ $ride->time_taken ?? ($ride->estimated_time ?? '-') }} {{ __('min') }}</div>
+                            <div class="fw-bold">{{ $ride->time_taken ?? ($ride->estimated_time ?? '-') }}
+                                {{ __('min') }}</div>
                         </div>
                         <div class="col-4">
                             <div class="text-muted small">{{ __('Price') }}</div>
@@ -213,60 +224,105 @@
                     </div>
                 </div>
 
-                <!-- Driver Info -->
+                {{-- Driver Info --}}
                 @if ($ride->driver)
-                    <div class="info-card p-3 mb-2" style="border-left: 5px solid #28a745; background: #eafaf0;">
-                        <h5><i class="fa fa-user text-success"></i> {{ __('Driver') }}</h5>
-                        <div class="fw-bold"> <a href="{{ route('drivers.show', $ride->driver->id) }}"
-                                class="text-success text-decoration-none"> {{ $ride->driver->name }} </a> </div>
+                    <div class="info-card p-3 mb-3 border-start border-success">
+                        <h5 class="d-flex align-items-center mb-2">
+                            <i class="fa fa-user text-success me-2"></i> {{ __('Driver') }}
+                        </h5>
+                        <div class="fw-bold">
+                            <a href="{{ route('drivers.show', $ride->driver->id) }}"
+                                class="text-decoration-none text-success">
+                                {{ $ride->driver->name }}
+                            </a>
+                        </div>
                     </div>
                 @endif
 
-                <!-- User Info -->
+                {{-- User Info --}}
                 @if ($ride->user)
-                    <div class="info-card p-3 mb-2" style="border-left: 5px solid #17a2b8; background: #eaf4fa;">
-                        <h5><i class="fa fa-user text-info"></i> {{ __('Passenger') }}</h5>
-                        <div class="fw-bold"> <a href="{{ route('users.show', $ride->user->id) }}"
-                                class="text-info text-decoration-none"> {{ $ride->user->name }} </a> </div>
+                    <div class="info-card p-3 mb-3 border-start border-info">
+                        <h5 class="d-flex align-items-center mb-2">
+                            <i class="fa fa-user text-info me-2"></i> {{ __('Passenger') }}
+                        </h5>
+                        <div class="fw-bold">
+                            <a href="{{ route('users.show', $ride->user->id) }}" class="text-decoration-none text-info">
+                                {{ $ride->user->name }}
+                            </a>
+                        </div>
                     </div>
                 @endif
 
-                <!-- Progress Timeline -->
-                <div class="info-card p-3 mb-2" style="border-left: 5px solid #ffc107; background: #fff8e1;">
-                    <h5><i class="fa fa-list text-warning"></i> {{ __('Trip Progress') }}</h5>
-                    <ul class="list-unstyled mb-0">
-                        <li class="mb-2">
+                {{-- Progress Timeline --}}
+                <div class="info-card p-3 mb-3 border-start border-warning">
+                    <h5 class="d-flex align-items-center mb-3">
+                        <i class="fa fa-list text-warning me-2"></i> {{ __('Trip Progress') }}
+                    </h5>
+                    <ul class="timeline list-unstyled ps-3 mb-0">
+
+                        {{-- Ride Accepted --}}
+                        <li class="timeline-item">
                             <i
-                                class="fa fa-check-circle {{ in_array($ride->status->value, ['accepted', 'waiting_user', 'in_progress', 'completed', 'finshed']) ? 'text-success' : 'text-muted' }}"></i>
-                            <strong> {{ __('Ride Accepted') }}</strong>
-                            <div class="small text-muted">{{ __('Driver accepted your ride request') }}</div>
+                                class="fa fa-check-circle
+                {{ in_array($ride->status->value, ['accepted', 'waiting_user', 'in_progress', 'completed', 'finshed'])
+                    ? 'text-success'
+                    : 'text-muted' }}"></i>
+                            <strong>{{ __('Ride Accepted') }}</strong>
+                            <div class="small text-muted">{{ __('Driver accepted ride request') }}</div>
                         </li>
-                        <li class="mb-2">
+
+                        {{-- Driver En Route --}}
+                        <li class="timeline-item">
                             <i
-                                class="fa fa-check-circle {{ in_array($ride->status->value, ['waiting_user', 'in_progress', 'completed', 'finshed']) ? 'text-success' : ($ride->status->value === 'accepted' ? 'text-warning' : 'text-muted') }}"></i>
-                            <strong> {{ __('Driver En Route') }}</strong>
+                                class="fa fa-check-circle
+                {{ in_array($ride->status->value, ['waiting_user', 'in_progress', 'completed', 'finshed'])
+                    ? 'text-success'
+                    : ($ride->status->value === 'accepted'
+                        ? 'text-warning'
+                        : 'text-muted') }}"></i>
+                            <strong>{{ __('Driver En Route') }}</strong>
                             <div class="small text-muted">{{ __('Driver is heading to pickup location') }}</div>
                         </li>
-                        <li class="mb-2">
+
+                        {{-- Driver Arrived --}}
+                        <li class="timeline-item">
                             <i
-                                class="fa fa-check-circle {{ in_array($ride->status->value, ['in_progress', 'completed', 'finshed']) ? 'text-success' : ($ride->status->value === 'waiting_user' ? 'text-warning' : 'text-muted') }}"></i>
-                            <strong> {{ __('Driver Arrived') }}</strong>
+                                class="fa fa-check-circle
+                {{ in_array($ride->status->value, ['in_progress', 'completed', 'finshed'])
+                    ? 'text-success'
+                    : ($ride->status->value === 'waiting_user'
+                        ? 'text-warning'
+                        : 'text-muted') }}"></i>
+                            <strong>{{ __('Driver Arrived') }}</strong>
                             <div class="small text-muted">{{ __('Driver has arrived at pickup location') }}</div>
                         </li>
-                        <li class="mb-2">
+
+                        {{-- Trip Started --}}
+                        <li class="timeline-item">
                             <i
-                                class="fa fa-check-circle {{ in_array($ride->status->value, ['completed', 'finshed']) ? 'text-success' : ($ride->status->value === 'in_progress' ? 'text-warning' : 'text-muted') }}"></i>
-                            <strong> {{ __('Trip Started') }}</strong>
+                                class="fa fa-check-circle
+                {{ in_array($ride->status->value, ['completed', 'finshed'])
+                    ? 'text-success'
+                    : ($ride->status->value === 'in_progress'
+                        ? 'text-warning'
+                        : 'text-muted') }}"></i>
+                            <strong>{{ __('Trip Started') }}</strong>
                             <div class="small text-muted">{{ __('Trip is in progress') }}</div>
                         </li>
-                        <li>
+
+                        {{-- Trip Completed --}}
+                        <li class="timeline-item">
                             <i
-                                class="fa fa-check-circle {{ in_array($ride->status->value, ['completed', 'finshed']) ? 'text-success' : 'text-muted' }}"></i>
-                            <strong> {{ __('Trip Completed') }}</strong>
+                                class="fa fa-check-circle
+                {{ in_array($ride->status->value, ['completed', 'finshed']) ? 'text-success' : 'text-muted' }}"></i>
+                            <strong>{{ __('Trip Completed') }}</strong>
                             <div class="small text-muted">{{ __('You have reached your destination') }}</div>
                         </li>
+
                     </ul>
                 </div>
+
+
 
 
                 <!-- Actions -->
