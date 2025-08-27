@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\User\PointController;
 use App\Http\Controllers\Api\User\ProfileController;
 use App\Http\Controllers\Api\User\RaitingController;
 use App\Http\Controllers\Api\User\RideEstimateController;
+use App\Http\Controllers\Api\RideTrackingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 //======= USER AUTH ========
@@ -193,7 +194,6 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 });
 
 //======= RIDE TRACKING (Public/Admin) ========
-use App\Http\Controllers\Api\RideTrackingController;
 
 Route::prefix('rides')->group(function () {
     Route::get('/{rideId}/driver-location', [RideTrackingController::class, 'getDriverLocation']);
