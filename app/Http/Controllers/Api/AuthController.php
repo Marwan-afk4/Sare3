@@ -157,7 +157,7 @@ class AuthController extends Controller
             }
 
             // 👇 هنا نجيب القيمة الافتراضية للـ otp limit من الجدول
-            $defaultOtpLimit = OtpLimit::where('role', 'user')->value('otp_limit');
+            $defaultOtpLimit = OtpLimit::where('type', 'user')->value('otp_limit');
 
             $user = User::create([
                 'phone' => $request->phone,
