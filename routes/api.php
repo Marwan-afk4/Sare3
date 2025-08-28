@@ -28,6 +28,8 @@ use Illuminate\Support\Facades\Route;
 // Route::post('/send-otp', [AuthController::class, 'postOtp']);
 // Route::post('/check-otp', [AuthController::class, 'checkOtp']);
 Route::post('/phone-otp', [AuthController::class, 'phoneVerified']);
+Route::post('/check-user-otp-limit', [ProfileController::class, 'checkUserOtpLimit']);
+
 
 //email otp
 Route::post('/send-email-otp', [AuthController::class, 'sendEmailVerificationCode']);
