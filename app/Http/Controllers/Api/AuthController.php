@@ -145,7 +145,7 @@ class AuthController extends Controller
 
         // Step 3: If email is not provided, login/register using phone
         if (!$user) {
-            $existingUser = User::where('phone', $request->phone)->first();
+            $existingUser = User::where('phone', $request->phone)->get();
 
             if ($existingUser) {
                 $token = $existingUser->createToken('auth_token')->plainTextToken;
