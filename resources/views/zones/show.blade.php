@@ -40,11 +40,11 @@
                 </li>
             </ul>
         </div>
-        <div class="card-footer">
+        {{-- <div class="card-footer">
             <a href='{{ route('zones.edit', $zone) }}' class="btn btn-warning btn-sm me-1">
                 {{ __('Edit') }} <i class="fa fa-edit"></i>
             </a>
-        </div>
+        </div> --}}
     </div>
     <br>
     {{-- Car Categories --}}
