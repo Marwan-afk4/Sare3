@@ -63,7 +63,7 @@ class DriverLocationController extends Controller
                 ->createDatabase();
 
             $firebaseRideId = $ride->firebase_ride_id ?: 'ride_' . $ride->id;
-            
+
             $firebase->getReference("rides/{$firebaseRideId}/driver_location")->set([
                 'lat' => (float) $request->lat,
                 'lng' => (float) $request->lng,
@@ -72,7 +72,7 @@ class DriverLocationController extends Controller
             ]);
         } catch (\Exception $e) {
             // Log error but don't fail the request
-            \Log::error('Firebase location update failed: ' . $e->getMessage());
+            Log::error('Firebase location update failed: ' . $e->getMessage());
         }
 
         return response()->json([
