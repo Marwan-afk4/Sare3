@@ -127,7 +127,6 @@ class AuthController extends Controller
                 ], 404);
             }
 
-            // ✅ لو فيه رقم تليفون مستخدم من يوزر تاني
             $phoneUsedByAnother = User::where('phone', $request->phone)
                                     ->where('id', '!=', $user->id)
                                     ->exists();
@@ -138,18 +137,16 @@ class AuthController extends Controller
                 ], 409);
             }
 
-            // ✅ ربط الرقم باليوزر اللي عنده نفس الإيميل
             $user->phone = $request->phone;
             $user->id_token = $request->id_token;
             $user->save();
         }
 
-        // ✅ Step 2: لو مفيش إيميل (Login/Register by phone)
+        // ✅ Step 2: لو مفيش إيميل
         if (!$user) {
             $existingUser = User::where('phone', $request->phone)->first();
 
             if ($existingUser) {
-                // ✅ هنا بنرجع Conflict فقط بدون إنشاء يوزر جديد
                 $token = $existingUser->createToken('auth_token')->plainTextToken;
                 return response()->json([
                     'message' => 'Phone number already used',
@@ -158,19 +155,19 @@ class AuthController extends Controller
                 ], 409);
             }
 
-        }
-
-        // ✅ Generate token
-        $token = $user->createToken('auth_token')->plainTextToken;
-        // ✅ لو الرقم مش موجود ننشئ يوزر جديد
+            // ❌ الرقم مش موجود → نعمل يوزر جديد
             $defaultOtpLimit = OtpLimit::where('type', 'user')->value('otp_limit');
 
             $user = User::create([
                 'phone' => $request->phone,
                 'id_token' => $request->id_token,
                 'role' => 'user',
-                'otp_limit' => $defaultOtpLimit ?? 5, // Default لو الجدول فاضي
+                'otp_limit' => $defaultOtpLimit ?? 5,
             ]);
+        }
+
+        // ✅ Generate token بعد ما يبقى عندنا يوزر فعلي
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Phone number verified successfully',
@@ -178,6 +175,7 @@ class AuthController extends Controller
             'user_otp_limit' => $user->otp_limit,
         ]);
     }
+
 
 
     public function sendEmailVerificationCode(Request $request)
