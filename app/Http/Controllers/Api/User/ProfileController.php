@@ -130,13 +130,13 @@ class ProfileController extends Controller
 
         $user = User::where('phone', $request->phone)->first();
 
-        if (!$user) {
-            User::create([
-                'phone' => $request->phone,
-                'otp_limit' => 2,
-            ]);
-            return response()->json(['message' => 'User created successfully.']);
-        }
+        // if (!$user) {
+        //     User::create([
+        //         'phone' => $request->phone,
+        //         'otp_limit' => 2,
+        //     ]);
+        //     return response()->json(['message' => 'User created successfully.']);
+        // }
 
         return response()->json([
             'message' => 'User already exists.',
