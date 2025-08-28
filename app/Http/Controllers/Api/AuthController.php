@@ -164,6 +164,12 @@ class AuthController extends Controller
                 'role' => 'user',
                 'otp_limit' => $defaultOtpLimit ?? 5,
             ]);
+            return response()->json([
+                'message' => 'Phone number created successfully',
+                'token'=> $user->createToken('auth_token')->plainTextToken,
+                'user' => $user,
+                'user_otp_limit' => $user->otp_limit,
+            ]);
         }
 
         // ✅ Generate token بعد ما يبقى عندنا يوزر فعلي
