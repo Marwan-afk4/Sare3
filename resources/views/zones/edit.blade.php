@@ -22,17 +22,17 @@
 					:value="$zone->name ?? ''"
 					required
 				/>
-				
-				<div class="mb-3">
+
+				{{-- <div class="mb-3">
 					<label class="form-label">{{ __('Zone Area Selection') }}</label>
 					<div class="btn-group mb-3" role="group">
 						<input type="radio" class="btn-check" name="selection_method" id="polygon_method" value="polygon" {{ $zone->polygon_coordinates ? 'checked' : '' }}>
 						<label class="btn btn-outline-primary" for="polygon_method">{{ __('Edit Polygon') }}</label>
-						
+
 						<input type="radio" class="btn-check" name="selection_method" id="coordinates_method" value="coordinates" {{ !$zone->polygon_coordinates ? 'checked' : '' }}>
 						<label class="btn btn-outline-primary" for="coordinates_method">{{ __('Manual Coordinates') }}</label>
 					</div>
-				</div>
+				</div> --}}
 
 				<!-- Google Maps Container -->
 				<div id="polygon_section" class="mb-3" style="{{ !$zone->polygon_coordinates ? 'display: none;' : '' }}">
@@ -92,7 +92,7 @@
 
 				<!-- Hidden field for polygon coordinates -->
 				<input type="hidden" name="polygon_coordinates" id="polygon_coordinates" value="{{ $zone->polygon_coordinates ? json_encode($zone->polygon_coordinates) : '' }}">
-				
+
 				<button type='submit' class="btn btn-warning btn-sm me-1">{{ __('Save') }}</button>
 			</form>
 		</div>
@@ -112,7 +112,7 @@ const existingPolygonData = @json($zone->polygon_coordinates ?? []);
 function initMap() {
     // Default center or use existing polygon center
     let defaultCenter = { lat: 24.7136, lng: 46.6753 }; // Riyadh, Saudi Arabia
-    
+
     // If we have existing polygon data, center on it
     if (existingPolygonData.length > 0) {
         const bounds = new google.maps.LatLngBounds();
@@ -126,12 +126,12 @@ function initMap() {
         const lng1 = {{ $zone->from_lng ?? 0 }};
         const lat2 = {{ $zone->to_lat ?? 0 }};
         const lng2 = {{ $zone->to_lng ?? 0 }};
-        defaultCenter = { 
-            lat: (lat1 + lat2) / 2, 
-            lng: (lng1 + lng2) / 2 
+        defaultCenter = {
+            lat: (lat1 + lat2) / 2,
+            lng: (lng1 + lng2) / 2
         };
     }
-    
+
     map = new google.maps.Map(document.getElementById('map'), {
         zoom: 12,
         center: defaultCenter,
@@ -168,15 +168,15 @@ function initMap() {
         if (currentPolygon) {
             currentPolygon.setMap(null);
         }
-        
+
         currentPolygon = polygon;
         updatePolygonCoordinates();
-        
+
         // Add listener for polygon changes
         google.maps.event.addListener(polygon.getPath(), 'set_at', updatePolygonCoordinates);
         google.maps.event.addListener(polygon.getPath(), 'insert_at', updatePolygonCoordinates);
         google.maps.event.addListener(polygon.getPath(), 'remove_at', updatePolygonCoordinates);
-        
+
         // Switch to hand mode after drawing
         drawingManager.setDrawingMode(null);
     });
@@ -184,10 +184,10 @@ function initMap() {
 
 function loadExistingPolygon() {
     if (existingPolygonData.length > 0) {
-        const polygonPath = existingPolygonData.map(coord => 
+        const polygonPath = existingPolygonData.map(coord =>
             new google.maps.LatLng(coord.lat, coord.lng)
         );
-        
+
         currentPolygon = new google.maps.Polygon({
             paths: polygonPath,
             fillColor: '#ff0000',
@@ -197,15 +197,15 @@ function loadExistingPolygon() {
             editable: true,
             draggable: false
         });
-        
+
         currentPolygon.setMap(map);
         polygonCoordinates = [...existingPolygonData];
-        
+
         // Add listeners for polygon changes
         google.maps.event.addListener(currentPolygon.getPath(), 'set_at', updatePolygonCoordinates);
         google.maps.event.addListener(currentPolygon.getPath(), 'insert_at', updatePolygonCoordinates);
         google.maps.event.addListener(currentPolygon.getPath(), 'remove_at', updatePolygonCoordinates);
-        
+
         // Fit map to polygon bounds
         const bounds = new google.maps.LatLngBounds();
         polygonPath.forEach(point => bounds.extend(point));
@@ -217,7 +217,7 @@ function updatePolygonCoordinates() {
     if (currentPolygon) {
         const path = currentPolygon.getPath();
         polygonCoordinates = [];
-        
+
         for (let i = 0; i < path.getLength(); i++) {
             const point = path.getAt(i);
             polygonCoordinates.push({
@@ -225,19 +225,19 @@ function updatePolygonCoordinates() {
                 lng: point.lng()
             });
         }
-        
+
         document.getElementById('polygon_coordinates').value = JSON.stringify(polygonCoordinates);
-        
+
         // Update bounding box coordinates for backward compatibility
         if (polygonCoordinates.length > 0) {
             const bounds = new google.maps.LatLngBounds();
             polygonCoordinates.forEach(coord => {
                 bounds.extend(new google.maps.LatLng(coord.lat, coord.lng));
             });
-            
+
             const ne = bounds.getNorthEast();
             const sw = bounds.getSouthWest();
-            
+
             document.querySelector('input[name="from_lat"]').value = sw.lat();
             document.querySelector('input[name="from_lng"]').value = sw.lng();
             document.querySelector('input[name="to_lat"]').value = ne.lat();
@@ -253,7 +253,7 @@ document.getElementById('clearPolygon').addEventListener('click', function() {
         currentPolygon = null;
         polygonCoordinates = [];
         document.getElementById('polygon_coordinates').value = '';
-        
+
         // Clear coordinate fields
         document.querySelector('input[name="from_lat"]').value = '';
         document.querySelector('input[name="from_lng"]').value = '';
@@ -285,14 +285,14 @@ document.querySelectorAll('input[name="selection_method"]').forEach(radio => {
     radio.addEventListener('change', function() {
         const polygonSection = document.getElementById('polygon_section');
         const coordinatesSection = document.getElementById('coordinates_section');
-        
+
         if (this.value === 'polygon') {
             polygonSection.style.display = 'block';
             coordinatesSection.style.display = 'none';
         } else {
             polygonSection.style.display = 'none';
             coordinatesSection.style.display = 'block';
-            
+
             // Clear polygon data when switching to manual
             if (currentPolygon) {
                 currentPolygon.setMap(null);
@@ -306,7 +306,7 @@ document.querySelectorAll('input[name="selection_method"]').forEach(radio => {
 // Form validation
 document.getElementById('zoneEditForm').addEventListener('submit', function(e) {
     const selectionMethod = document.querySelector('input[name="selection_method"]:checked').value;
-    
+
     if (selectionMethod === 'polygon') {
         const polygonData = document.getElementById('polygon_coordinates').value;
         if (!polygonData || polygonData === '[]') {
@@ -320,13 +320,13 @@ document.getElementById('zoneEditForm').addEventListener('submit', function(e) {
         const fromLng = document.querySelector('input[name="from_lng"]').value;
         const toLat = document.querySelector('input[name="to_lat"]').value;
         const toLng = document.querySelector('input[name="to_lng"]').value;
-        
+
         if (!fromLat || !fromLng || !toLat || !toLng) {
             e.preventDefault();
             alert('{{ __("Please fill in all coordinate fields or switch to polygon drawing.") }}');
             return false;
         }
-        
+
         // Clear polygon data when using manual coordinates
         document.getElementById('polygon_coordinates').value = '';
     }
