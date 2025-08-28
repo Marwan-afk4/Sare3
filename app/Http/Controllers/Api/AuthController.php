@@ -143,7 +143,7 @@ class AuthController extends Controller
         }
 
         // ✅ Step 2: لو مفيش إيميل
-        if (!$user) {
+        if ($user) {
             $existingUser = User::where('phone', $request->phone)->first();
 
             if ($existingUser) {
@@ -158,12 +158,12 @@ class AuthController extends Controller
             // ❌ الرقم مش موجود → نعمل يوزر جديد
             $defaultOtpLimit = OtpLimit::where('type', 'user')->value('otp_limit');
 
-            // $user = User::create([
-            //     'phone' => $request->phone,
-            //     'id_token' => $request->id_token,
-            //     'role' => 'user',
-            //     'otp_limit' => $defaultOtpLimit ?? 5,
-            // ]);
+            $user = User::create([
+                'phone' => $request->phone,
+                'id_token' => $request->id_token,
+                'role' => 'user',
+                'otp_limit' => $defaultOtpLimit ?? 5,
+            ]);
         }
 
         // ✅ Generate token بعد ما يبقى عندنا يوزر فعلي
