@@ -33,7 +33,7 @@
 					label="{{__('Icon')}}"
                     :attributes="['accept' => 'image/*']"
 				/>
-				<x-form-input
+				{{-- <x-form-input
 					name="base_price"
 					type="number"
 					label="{{__('Base Price')}}"
@@ -53,7 +53,7 @@
 					label="{{__('Price Per Time')}}"
                     :value="$carCategory->price_per_time ?? ''"
                     :attributes="['step' => '0.01']"
-				/>
+				/> --}}
 				<button type='submit' class="btn btn-warning btn-sm me-1">{{ __('Save') }}</button>
 			</form>
 		</div>

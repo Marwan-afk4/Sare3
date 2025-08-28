@@ -78,7 +78,10 @@
         "resources\/views\/users\/show.blade.php",
         "resources\/views\/wallet-requests\/create.blade.php",
         "resources\/views\/wallet-requests\/edit.blade.php",
-        "resources\/views\/wallet-requests\/show.blade.php"
+        "resources\/views\/wallet-requests\/show.blade.php",
+        "resources\/views\/zones\/create.blade.php",
+        "resources\/views\/zones\/edit.blade.php",
+        "resources\/views\/zones\/show.blade.php"
     ],
     "Drivers": {
         "0": "resources\/views\/admin\/support-chat\/index.blade.php",
@@ -115,7 +118,11 @@
         "resources\/views\/users\/create.blade.php",
         "resources\/views\/users\/edit.blade.php",
         "resources\/views\/users\/index.blade.php",
-        "resources\/views\/users\/show.blade.php"
+        "resources\/views\/users\/show.blade.php",
+        "resources\/views\/zones\/create.blade.php",
+        "resources\/views\/zones\/edit.blade.php",
+        "resources\/views\/zones\/index.blade.php",
+        "resources\/views\/zones\/show.blade.php"
     ],
     "Email": [
         "resources\/views\/drivers\/create.blade.php",
@@ -142,7 +149,8 @@
         "resources\/views\/ride-request-time-limits\/create.blade.php",
         "resources\/views\/rides\/create.blade.php",
         "resources\/views\/users\/create.blade.php",
-        "resources\/views\/wallet-requests\/create.blade.php"
+        "resources\/views\/wallet-requests\/create.blade.php",
+        "resources\/views\/zones\/create.blade.php"
     ],
     "Edit User": [
         "resources\/views\/drivers\/edit.blade.php",
@@ -181,7 +189,9 @@
         "resources\/views\/users\/edit.blade.php",
         "resources\/views\/users\/index.blade.php",
         "resources\/views\/wallet-requests\/edit.blade.php",
-        "resources\/views\/wallet-requests\/index.blade.php"
+        "resources\/views\/wallet-requests\/index.blade.php",
+        "resources\/views\/zones\/edit.blade.php",
+        "resources\/views\/zones\/index.blade.php"
     ],
     "Active": [
         "resources\/views\/document-types\/create.blade.php",
@@ -223,7 +233,8 @@
         "resources\/views\/ride-request-time-limits\/edit.blade.php",
         "resources\/views\/rides\/edit.blade.php",
         "resources\/views\/users\/edit.blade.php",
-        "resources\/views\/wallet-requests\/edit.blade.php"
+        "resources\/views\/wallet-requests\/edit.blade.php",
+        "resources\/views\/zones\/edit.blade.php"
     ],
     "Keyword": [
         "resources\/views\/drivers\/index.blade.php",
@@ -257,7 +268,9 @@
         "resources\/views\/users\/index.blade.php",
         "resources\/views\/users\/show.blade.php",
         "resources\/views\/wallet-requests\/index.blade.php",
-        "resources\/views\/wallet-requests\/show.blade.php"
+        "resources\/views\/wallet-requests\/show.blade.php",
+        "resources\/views\/zones\/index.blade.php",
+        "resources\/views\/zones\/show.blade.php"
     ],
     "Image": [
         "resources\/views\/drivers\/index.blade.php",
@@ -306,7 +319,9 @@
         "resources\/views\/users\/index.blade.php",
         "resources\/views\/users\/show.blade.php",
         "resources\/views\/wallet-requests\/index.blade.php",
-        "resources\/views\/wallet-requests\/show.blade.php"
+        "resources\/views\/wallet-requests\/show.blade.php",
+        "resources\/views\/zones\/index.blade.php",
+        "resources\/views\/zones\/show.blade.php"
     ],
     "Actions": [
         "resources\/views\/cancelation-rides\/index.blade.php",
@@ -317,13 +332,15 @@
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/driver-documents\/index.blade.php",
         "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/livewire\/zone-car-categories.blade.php",
         "resources\/views\/notifications\/index.blade.php",
         "resources\/views\/otp-limits\/index.blade.php",
         "resources\/views\/paymenent-methods\/index.blade.php",
         "resources\/views\/ride-request-time-limits\/index.blade.php",
         "resources\/views\/rides\/index.blade.php",
         "resources\/views\/users\/index.blade.php",
-        "resources\/views\/wallet-requests\/index.blade.php"
+        "resources\/views\/wallet-requests\/index.blade.php",
+        "resources\/views\/zones\/index.blade.php"
     ],
     "Edit": {
         "0": "resources\/views\/cancelation-rides\/index.blade.php",
@@ -352,7 +369,9 @@
         "30": "resources\/views\/rides\/show.blade.php",
         "31": "resources\/views\/users\/index.blade.php",
         "32": "resources\/views\/users\/show.blade.php",
-        "34": "resources\/views\/wallet-requests\/show.blade.php"
+        "34": "resources\/views\/wallet-requests\/show.blade.php",
+        "35": "resources\/views\/zones\/index.blade.php",
+        "36": "resources\/views\/zones\/show.blade.php"
     },
     "Delete": [
         "resources\/views\/cancelation-rides\/index.blade.php",
@@ -372,7 +391,8 @@
         "resources\/views\/ride-request-time-limits\/index.blade.php",
         "resources\/views\/rides\/index.blade.php",
         "resources\/views\/users\/index.blade.php",
-        "resources\/views\/wallet-requests\/show.blade.php"
+        "resources\/views\/wallet-requests\/show.blade.php",
+        "resources\/views\/zones\/index.blade.php"
     ],
     "Updated At": [
         "resources\/views\/cancelation-rides\/show.blade.php",
@@ -388,7 +408,8 @@
         "resources\/views\/paymenent-methods\/show.blade.php",
         "resources\/views\/ride-request-time-limits\/show.blade.php",
         "resources\/views\/users\/show.blade.php",
-        "resources\/views\/wallet-requests\/show.blade.php"
+        "resources\/views\/wallet-requests\/show.blade.php",
+        "resources\/views\/zones\/show.blade.php"
     ],
     "Home": [
         "resources\/views\/elements\/phoenix\/sidebar.blade.php",
@@ -509,6 +530,7 @@
         "app\/Http\/Requests\/StoreDriverRequest.php",
         "app\/Http\/Requests\/StorePaymenentMethodRequest.php",
         "app\/Http\/Requests\/StoreUserRequest.php",
+        "app\/Http\/Requests\/StoreZoneRequest.php",
         "app\/Http\/Requests\/UpdateCarModelRequest.php"
     ],
     "The Name must be a string.": [
@@ -795,7 +817,8 @@
         "resources\/views\/car-categories\/create.blade.php",
         "resources\/views\/car-categories\/edit.blade.php",
         "resources\/views\/car-categories\/index.blade.php",
-        "resources\/views\/car-categories\/show.blade.php"
+        "resources\/views\/car-categories\/show.blade.php",
+        "resources\/views\/livewire\/zone-car-categories.blade.php"
     ],
     "Price Per Km": [
         "resources\/views\/car-categories\/create.blade.php",
@@ -828,7 +851,8 @@
         "app\/Http\/Controllers\/RideController.php",
         "app\/Http\/Controllers\/RideRequestTimeLimitController.php",
         "app\/Http\/Controllers\/UserController.php",
-        "app\/Http\/Controllers\/WalletRequestController.php"
+        "app\/Http\/Controllers\/WalletRequestController.php",
+        "app\/Http\/Controllers\/ZoneController.php"
     ],
     "Updated successfully.": [
         "app\/Http\/Controllers\/CancelationRideController.php",
@@ -845,7 +869,8 @@
         "app\/Http\/Controllers\/RideController.php",
         "app\/Http\/Controllers\/RideRequestTimeLimitController.php",
         "app\/Http\/Controllers\/UserController.php",
-        "app\/Http\/Controllers\/WalletRequestController.php"
+        "app\/Http\/Controllers\/WalletRequestController.php",
+        "app\/Http\/Controllers\/ZoneController.php"
     ],
     "The Name field must be a string.": [
         "app\/Http\/Requests\/StoreCarCategoryRequest.php",
@@ -1288,7 +1313,8 @@
     ],
     "The Name has already been taken.": [
         "app\/Http\/Requests\/StorePaymenentMethodRequest.php",
-        "app\/Http\/Requests\/UpdatePaymenentMethodRequest.php"
+        "app\/Http\/Requests\/UpdatePaymenentMethodRequest.php",
+        "app\/Http\/Requests\/UpdateZoneRequest.php"
     ],
     "The selected Status is invalid.": [
         "app\/Http\/Requests\/StoreCancellationPolicyRequest.php",
@@ -1864,5 +1890,82 @@
     ],
     "Dropoff Location": [
         "resources\/views\/rides\/track.blade.php"
+    ],
+    "Zones": {
+        "0": "resources\/views\/elements\/phoenix\/sidebar.blade.php",
+        "1": "resources\/views\/zones\/create.blade.php",
+        "2": "resources\/views\/zones\/edit.blade.php",
+        "3": "resources\/views\/zones\/index.blade.php",
+        "5": "resources\/views\/zones\/show.blade.php"
+    },
+    "Add Car Categories": [
+        "resources\/views\/livewire\/zone-car-categories.blade.php"
+    ],
+    "Category": [
+        "resources\/views\/livewire\/zone-car-categories.blade.php"
+    ],
+    "Base": [
+        "resources\/views\/livewire\/zone-car-categories.blade.php"
+    ],
+    "Per Km": [
+        "resources\/views\/livewire\/zone-car-categories.blade.php"
+    ],
+    "Per Min": [
+        "resources\/views\/livewire\/zone-car-categories.blade.php"
+    ],
+    "No categories assigned.": [
+        "resources\/views\/livewire\/zone-car-categories.blade.php"
+    ],
+    "Are you sure to remove this category from the zone?": [
+        "resources\/views\/livewire\/zone-car-categories.blade.php"
+    ],
+    "is already assigned to this zone.": [
+        "resources\/views\/livewire\/zone-car-categories.blade.php"
+    ],
+    "Driver accepted ride request": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Create Zone": {
+        "0": "resources\/views\/zones\/create.blade.php",
+        "2": "resources\/views\/zones\/index.blade.php"
+    },
+    "From Lat": [
+        "resources\/views\/zones\/create.blade.php",
+        "resources\/views\/zones\/edit.blade.php",
+        "resources\/views\/zones\/index.blade.php",
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "From Lng": [
+        "resources\/views\/zones\/create.blade.php",
+        "resources\/views\/zones\/edit.blade.php",
+        "resources\/views\/zones\/index.blade.php",
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "To Lat": [
+        "resources\/views\/zones\/create.blade.php",
+        "resources\/views\/zones\/edit.blade.php",
+        "resources\/views\/zones\/index.blade.php",
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "To Lng": [
+        "resources\/views\/zones\/create.blade.php",
+        "resources\/views\/zones\/edit.blade.php",
+        "resources\/views\/zones\/index.blade.php",
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "Edit Zone": [
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "The From Lat field is required.": [
+        "app\/Http\/Requests\/StoreZoneRequest.php"
+    ],
+    "The From Lng field is required.": [
+        "app\/Http\/Requests\/StoreZoneRequest.php"
+    ],
+    "The To Lat field is required.": [
+        "app\/Http\/Requests\/StoreZoneRequest.php"
+    ],
+    "The To Lng field is required.": [
+        "app\/Http\/Requests\/StoreZoneRequest.php"
     ]
 }

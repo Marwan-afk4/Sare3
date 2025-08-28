@@ -53,4 +53,12 @@ class CarCategory extends Model
     {
         return $this->hasMany(DriverCar::class, 'car_categories_id');
     }
+
+    public function zones()
+    {
+        return $this->belongsToMany(Zone::class, 'car_category_zone')
+                    ->withPivot(['price_per_km', 'price_per_min', 'base_price'])
+                    ->withTimestamps();
+    }
+
 }

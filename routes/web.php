@@ -22,7 +22,8 @@ use App\Http\Controllers\{
     RideController,
     RideRequestTimeLimitController,
     SupportChatController,
-    WalletRequestController
+    WalletRequestController,
+    ZoneController
 };
 
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -55,6 +56,7 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
             '/ride-request-time-limits' => RideRequestTimeLimitController::class,
             '/otp-limits' => OtpLimitController::class,
             '/notifications' => NotificationController::class,
+            '/zones' => ZoneController::class,
         ]);
 
         // Additional ride routes

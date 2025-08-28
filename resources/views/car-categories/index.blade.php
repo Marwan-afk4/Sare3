@@ -37,7 +37,7 @@
 							@if($sortField === 'icon')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
 						</a>
 					</th> --}}
-					<th>
+					{{-- <th>
 						<a href="{{ route('car-categories.index', ['sort' => 'base_price', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
 							{{ __("Base Price") }}
 							@if($sortField === 'base_price')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
@@ -54,7 +54,7 @@
 							{{ __("Price Per Time") }}
 							@if($sortField === 'price_per_time')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
 						</a>
-					</th>
+					</th> --}}
 					<th>
 						<a href="{{ route('car-categories.index', ['sort' => 'created_at', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
 							{{ __("Created At") }}
@@ -72,9 +72,9 @@
                     </td>
 					<td>{{ $carCategory->name }}</td>
 					<td>{{ $carCategory->description }}</td>
-					<td>{{ $carCategory->base_price }}</td>
+					{{-- <td>{{ $carCategory->base_price }}</td>
 					<td>{{ $carCategory->price_per_km }}</td>
-					<td>{{ $carCategory->price_per_time }}</td>
+					<td>{{ $carCategory->price_per_time }}</td> --}}
 					<td>{{ $carCategory->created_at ? $carCategory->created_at->diffForHumans() : '-' }}</td>
 					<td class="text-center">
 						<a href='{{ route('car-categories.show', $carCategory) }}' class="btn btn-subtle-primary btn-sm me-1">{{ __("Details") }} <i class="fa fa-eye"></i></a>

@@ -22,7 +22,7 @@
 				<li class="list-group-item">
 					<strong>{{ __("Description") }}:</strong> {{ $carCategory->description }}
 				</li>
-				<li class="list-group-item">
+				{{-- <li class="list-group-item">
 					<strong>{{ __("Base Price") }}:</strong> {{ $carCategory->base_price }}
 				</li>
 				<li class="list-group-item">
@@ -30,7 +30,7 @@
 				</li>
 				<li class="list-group-item">
 					<strong>{{ __("Price Per Time") }}:</strong> {{ $carCategory->price_per_time }}
-				</li>
+				</li> --}}
 				<li class="list-group-item">
 					<strong>{{ __("Created At") }}:</strong> {{ $carCategory->created_at ? $carCategory->created_at->diffForHumans() : '-' }}
 				</li>

@@ -190,6 +190,18 @@
                         </a>
                     </div>
 
+                    {{-- zones --}}
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'zones' ? 'active' : '' }}"
+                            href="{{ route('zones.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="map-pin"></span></span>
+                                <span class="nav-link-text-wrapper"><span
+                                        class="nav-link-text">{{ __('Zones') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+
                     {{-- support-chat --}}
                     {{-- <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'support-chat' ? 'active' : '' }}"
