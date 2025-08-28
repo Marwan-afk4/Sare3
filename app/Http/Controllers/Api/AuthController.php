@@ -158,18 +158,12 @@ class AuthController extends Controller
             // ❌ الرقم مش موجود → نعمل يوزر جديد
             $defaultOtpLimit = OtpLimit::where('type', 'user')->value('otp_limit');
 
-            $user = User::create([
-                'phone' => $request->phone,
-                'id_token' => $request->id_token,
-                'role' => 'user',
-                'otp_limit' => $defaultOtpLimit ?? 5,
-            ]);
-            return response()->json([
-                'message' => 'Phone number created successfully',
-                'token'=> $user->createToken('auth_token')->plainTextToken,
-                'user' => $user,
-                'user_otp_limit' => $user->otp_limit,
-            ]);
+            // $user = User::create([
+            //     'phone' => $request->phone,
+            //     'id_token' => $request->id_token,
+            //     'role' => 'user',
+            //     'otp_limit' => $defaultOtpLimit ?? 5,
+            // ]);
         }
 
         // ✅ Generate token بعد ما يبقى عندنا يوزر فعلي
