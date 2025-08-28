@@ -23,6 +23,16 @@ use Illuminate\Support\Facades\Log;
 class RideEstimateController extends Controller
 {
 
+    public function zones()
+    {
+        $zones = Zone::all();
+
+        return response()->json([
+            'message' => 'Success',
+            'data' => $zones
+        ]);
+    }
+
     public function estimateForAllCategories(Request $request)
     {
         $validation = Validator::make($request->all(), [

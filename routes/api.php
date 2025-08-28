@@ -87,6 +87,9 @@ Route::post('/driver/login', [DriverAuthController::class, 'login']);
 //======= DRIVER ========
 Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(function () {
 
+//Zones
+    Route::get('/zones', [RideEstimateController::class, 'zones']);
+
 //driver status
     Route::get('/driver-activity',[DriverActivtyController::class,'getDriverActivity']);
 
@@ -155,6 +158,7 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 
 //Ride Estimate
     Route::post('/ride-estimate', [RideEstimateController::class, 'estimateForAllCategories']);
+    Route::get('/zones', [RideEstimateController::class, 'zones']);
 
 //LoggedUser
     Route::get('/logged-user', [LoggedUserController::class, 'getLoggedUser']);
