@@ -16,7 +16,12 @@ class Zone extends Model
         'from_lat',
         'from_lng',
         'to_lat',
-        'to_lng'
+        'to_lng',
+        'polygon_coordinates'
+    ];
+
+    protected $casts = [
+        'polygon_coordinates' => 'array'
     ];
 
     public $timestamps = true;

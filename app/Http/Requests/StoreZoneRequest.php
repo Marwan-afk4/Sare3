@@ -16,21 +16,35 @@ class StoreZoneRequest extends FormRequest
     {
         return [
             'name' => 'required|unique:zones,name',
-            'from_lat' => 'required',
-            'from_lng' => 'required',
-            'to_lat' => 'required',
-            'to_lng' => 'required'
+            'from_lat' => 'nullable|numeric|between:-90,90',
+            'from_lng' => 'nullable|numeric|between:-180,180',
+            'to_lat' => 'nullable|numeric|between:-90,90',
+            'to_lng' => 'nullable|numeric|between:-180,180',
+            'polygon_coordinates' => 'nullable|json'
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $hasCoordinates = $this->filled(['from_lat', 'from_lng', 'to_lat', 'to_lng']);
+            $hasPolygon = $this->filled('polygon_coordinates') && $this->polygon_coordinates !== '[]';
+            
+            if (!$hasCoordinates && !$hasPolygon) {
+                $validator->errors()->add('coordinates', __('Either provide manual coordinates or draw a polygon on the map.'));
+            }
+        });
     }
 
     public function messages()
     {
         return [
             'name.required' => __('The Name field is required.'),
-            'from_lat.required' => __('The From Lat field is required.'),
-            'from_lng.required' => __('The From Lng field is required.'),
-            'to_lat.required' => __('The To Lat field is required.'),
-            'to_lng.required' => __('The To Lng field is required.')
+            'from_lat.numeric' => __('The From Lat must be a valid number.'),
+            'from_lng.numeric' => __('The From Lng must be a valid number.'),
+            'to_lat.numeric' => __('The To Lat must be a valid number.'),
+            'to_lng.numeric' => __('The To Lng must be a valid number.'),
+            'polygon_coordinates.json' => __('The polygon coordinates must be valid JSON.')
         ];
     }
 
