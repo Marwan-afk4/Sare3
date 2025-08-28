@@ -49,6 +49,7 @@
 							@if($sortField === 'to_lng')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
 						</a>
 					</th>
+					<th>{{ __("Zone Type") }}</th>
 					<th>
 						<a href="{{ route('zones.index', ['sort' => 'created_at', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
 							{{ __("Created At") }}
@@ -65,10 +66,18 @@
 					<td>{{ $zone->from_lng }}</td>
 					<td>{{ $zone->to_lat }}</td>
 					<td>{{ $zone->to_lng }}</td>
+					<td>
+						@if($zone->polygon_coordinates)
+							<span class="badge bg-success">{{ __('Polygon') }}</span>
+							<small class="text-muted d-block">{{ count($zone->polygon_coordinates) }} {{ __('points') }}</small>
+						@else
+							<span class="badge bg-secondary">{{ __('Rectangle') }}</span>
+						@endif
+					</td>
 					<td>{{ $zone->created_at?->diffForHumans()??'-' }}</td>
 					<td class="text-center">
 						<a href='{{ route('zones.show', $zone) }}' class="btn btn-subtle-primary btn-sm me-1">{{ __("Details") }} <i class="fa fa-eye"></i></a>
-						{{-- <a href='{{ route('zones.edit', $zone) }}' class="btn btn-subtle-warning btn-sm me-1">{{ __("Edit") }} <i class="fa fa-edit"></i></a> --}}
+						<a href='{{ route('zones.edit', $zone) }}' class="btn btn-subtle-warning btn-sm me-1">{{ __("Edit") }} <i class="fa fa-edit"></i></a>
 						{{-- <form method='POST' action='{{ route('zones.destroy', $zone) }}' onsubmit='return confirm("Are you sure you want to delete this item?")'>
 							<input type='hidden' name='_method' value='DELETE'>
 							<button type='submit' class="btn btn-square btn-danger">{{ __('Delete') }}</button>
