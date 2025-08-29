@@ -20,6 +20,9 @@ class ProfileController extends Controller
         $user = $request->user();
 
         $user->load([
+            'userRides' => function ($query) {
+                $query->whereIn('status', ['completed','finshed','cancelled']);
+            },
             'userRides.driver.driverCars',
         ]);
 
@@ -27,7 +30,7 @@ class ProfileController extends Controller
             ->where('ratee_type', 'user')
             ->avg('rate');
 
-        $completedRides = $user->userRides->whereIn('status', ['completed','finshed','cancelled']);
+        $completedRides = $user->userRides;
 
         // Map ride data
         $ridesData = $completedRides->map(function ($ride) {
