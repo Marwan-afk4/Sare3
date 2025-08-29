@@ -57,6 +57,16 @@ class User extends Authenticatable
 
     protected $appends =['image_link'];
 
+    public function referrer()
+    {
+        return $this->belongsTo(User::class, 'referrer_id');
+    }
+
+    public function referrals()
+    {
+        return $this->hasMany(User::class, 'referrer_id');
+    }
+
     public function getImageLinkAttribute()
     {
         return $this->image ? asset('storage/' . $this->image) : null;
@@ -107,14 +117,71 @@ class User extends Authenticatable
         return $this->hasOne(DriverRideSetting::class, 'driver_id');
     }
 
-    public function referrer()
+     /**
+     * Get the chat conversation ID for this user with admin
+     * Format: admin_{user_id}
+     */
+    public function getChatConversationId(): string
     {
-        return $this->belongsTo(User::class, 'referrer_id');
+        return 'admin_' . $this->id;
     }
 
-    public function referrals()
+    /**
+     * Get display name for chat interface
+     * Returns the user's name if available, otherwise a formatted fallback
+     */
+    public function getDisplayName(): string
     {
-        return $this->hasMany(User::class, 'referrer_id');
+        if (!empty($this->name)) {
+            return $this->name;
+        }
+
+        // Fallback to formatted name based on role
+        $roleLabel = $this->isDriver() ? 'Driver' : 'User';
+        return $roleLabel . ' #' . $this->id;
+    }
+
+    /**
+     * Check if this user is a driver
+     */
+    public function isDriver(): bool
+    {
+        return $this->role === 'driver';
+    }
+
+    /**
+     * Check if this user is a regular user (not driver or admin)
+     */
+    public function isUser(): bool
+    {
+        return $this->role === 'user' || $this->role === null;
+    }
+
+    /**
+     * Check if this user is an admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Get the user type for chat purposes
+     */
+    public function getChatUserType(): string
+    {
+        return $this->isDriver() ? 'driver' : 'user';
+    }
+
+    /**
+     * Get formatted display name with role indicator
+     */
+    public function getDisplayNameWithRole(): string
+    {
+        $name = $this->getDisplayName();
+        $role = $this->isDriver() ? ' (Driver)' : ' (User)';
+        
+        return $name . $role;
     }
 
     public function zone()
