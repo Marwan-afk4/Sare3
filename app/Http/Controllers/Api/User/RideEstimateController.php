@@ -16,15 +16,27 @@ use App\Jobs\HandleDriverTimeout;
 use App\Models\CancellationPolicy;
 use App\Models\Rating;
 use App\Models\RideRequestTimeLimit;
+use App\Models\Zone;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class RideEstimateController extends Controller
 {
 
+    public function zones()
+    {
+        $zones = Zone::all();
+
+        return response()->json([
+            'message' => 'Success',
+            'data' => $zones
+        ]);
+    }
+
     public function estimateForAllCategories(Request $request)
     {
         $validation = Validator::make($request->all(), [
+            'zone_id' => 'required|exists:zones,id',
             'estimated_km' => 'nullable|numeric|min:0',
             'estimated_time' => 'nullable|numeric|min:0',
         ]);
@@ -33,15 +45,21 @@ class RideEstimateController extends Controller
             return response()->json(['message' => $validation->errors()->first()], 422);
         }
 
-        $estimatedKm = $request->estimated_km;
-        $estimatedTime = $request->estimated_time;
+        $zoneId = $request->zone_id;
+        $estimatedKm = $request->estimated_km ?? 0;
+        $estimatedTime = $request->estimated_time ?? 0;
 
-        $carCategories = CarCategory::all();
+        // هات الـ Zone مع الكاتيجوريز المربوطة بيه
+        $zone = Zone::with('carCategories')->find($zoneId);
 
-        $result = $carCategories->map(function ($category) use ($estimatedKm, $estimatedTime) {
-            $base = $category->base_price;
-            $perKm = $category->price_per_km;
-            $perTime = $category->price_per_time;
+        if (!$zone) {
+            return response()->json(['message' => 'Zone not found'], 404);
+        }
+
+        $result = $zone->carCategories->map(function ($category) use ($estimatedKm, $estimatedTime) {
+            $base = $category->pivot->base_price;
+            $perKm = $category->pivot->price_per_km;
+            $perTime = $category->pivot->price_per_min;
 
             $price = $base + ($estimatedKm * $perKm) + ($estimatedTime * $perTime);
 

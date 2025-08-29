@@ -269,8 +269,7 @@
         "resources\/views\/users\/show.blade.php",
         "resources\/views\/wallet-requests\/index.blade.php",
         "resources\/views\/wallet-requests\/show.blade.php",
-        "resources\/views\/zones\/index.blade.php",
-        "resources\/views\/zones\/show.blade.php"
+        "resources\/views\/zones\/index.blade.php"
     ],
     "Image": [
         "resources\/views\/drivers\/index.blade.php",
@@ -320,8 +319,7 @@
         "resources\/views\/users\/show.blade.php",
         "resources\/views\/wallet-requests\/index.blade.php",
         "resources\/views\/wallet-requests\/show.blade.php",
-        "resources\/views\/zones\/index.blade.php",
-        "resources\/views\/zones\/show.blade.php"
+        "resources\/views\/zones\/index.blade.php"
     ],
     "Actions": [
         "resources\/views\/cancelation-rides\/index.blade.php",
@@ -408,8 +406,7 @@
         "resources\/views\/paymenent-methods\/show.blade.php",
         "resources\/views\/ride-request-time-limits\/show.blade.php",
         "resources\/views\/users\/show.blade.php",
-        "resources\/views\/wallet-requests\/show.blade.php",
-        "resources\/views\/zones\/show.blade.php"
+        "resources\/views\/wallet-requests\/show.blade.php"
     ],
     "Home": [
         "resources\/views\/elements\/phoenix\/sidebar.blade.php",
@@ -1731,7 +1728,8 @@
         "resources\/views\/admin\/support-chat\/index.blade.php"
     ],
     "Loading...": [
-        "resources\/views\/admin\/support-chat\/index.blade.php"
+        "resources\/views\/admin\/support-chat\/index.blade.php",
+        "resources\/views\/zones\/show.blade.php"
     ],
     "Loading chats...": [
         "resources\/views\/admin\/support-chat\/index.blade.php"
@@ -1829,10 +1827,12 @@
         "resources\/views\/rides\/track.blade.php"
     ],
     "From": [
-        "resources\/views\/rides\/track.blade.php"
+        "resources\/views\/rides\/track.blade.php",
+        "resources\/views\/zones\/show.blade.php"
     ],
     "To": [
-        "resources\/views\/rides\/track.blade.php"
+        "resources\/views\/rides\/track.blade.php",
+        "resources\/views\/zones\/show.blade.php"
     ],
     "Distance": [
         "resources\/views\/rides\/track.blade.php"
@@ -1932,40 +1932,151 @@
     "From Lat": [
         "resources\/views\/zones\/create.blade.php",
         "resources\/views\/zones\/edit.blade.php",
-        "resources\/views\/zones\/index.blade.php",
-        "resources\/views\/zones\/show.blade.php"
+        "resources\/views\/zones\/index.blade.php"
     ],
     "From Lng": [
         "resources\/views\/zones\/create.blade.php",
         "resources\/views\/zones\/edit.blade.php",
-        "resources\/views\/zones\/index.blade.php",
-        "resources\/views\/zones\/show.blade.php"
+        "resources\/views\/zones\/index.blade.php"
     ],
     "To Lat": [
         "resources\/views\/zones\/create.blade.php",
         "resources\/views\/zones\/edit.blade.php",
-        "resources\/views\/zones\/index.blade.php",
-        "resources\/views\/zones\/show.blade.php"
+        "resources\/views\/zones\/index.blade.php"
     ],
     "To Lng": [
         "resources\/views\/zones\/create.blade.php",
         "resources\/views\/zones\/edit.blade.php",
-        "resources\/views\/zones\/index.blade.php",
-        "resources\/views\/zones\/show.blade.php"
+        "resources\/views\/zones\/index.blade.php"
     ],
     "Edit Zone": [
         "resources\/views\/zones\/edit.blade.php"
     ],
-    "The From Lat field is required.": [
-        "app\/Http\/Requests\/StoreZoneRequest.php"
+    "Zone Area Selection": [
+        "resources\/views\/zones\/create.blade.php",
+        "resources\/views\/zones\/edit.blade.php"
     ],
-    "The From Lng field is required.": [
-        "app\/Http\/Requests\/StoreZoneRequest.php"
+    "Draw Polygon": [
+        "resources\/views\/zones\/create.blade.php"
     ],
-    "The To Lat field is required.": [
-        "app\/Http\/Requests\/StoreZoneRequest.php"
+    "Manual Coordinates": [
+        "resources\/views\/zones\/create.blade.php",
+        "resources\/views\/zones\/edit.blade.php"
     ],
-    "The To Lng field is required.": [
-        "app\/Http\/Requests\/StoreZoneRequest.php"
+    "Draw Zone Polygon on Map": [
+        "resources\/views\/zones\/create.blade.php"
+    ],
+    "Click on the map to draw a polygon. Click the first point again to complete the polygon.": [
+        "resources\/views\/zones\/create.blade.php"
+    ],
+    "Clear Polygon": [
+        "resources\/views\/zones\/create.blade.php",
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "Center Map": [
+        "resources\/views\/zones\/create.blade.php",
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "Please draw a polygon on the map or switch to manual coordinates.": [
+        "resources\/views\/zones\/create.blade.php",
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "Please fill in all coordinate fields or switch to polygon drawing.": [
+        "resources\/views\/zones\/create.blade.php",
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "Google Maps API Key Required": [
+        "resources\/views\/zones\/create.blade.php",
+        "resources\/views\/zones\/edit.blade.php",
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "Please configure GOOGLE_MAPS_API_KEY in your .env file to use the map features.": [
+        "resources\/views\/zones\/create.blade.php",
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "Edit Polygon": [
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "Edit Zone Polygon on Map": [
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "Click and drag the polygon points to edit the zone area.": [
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "Draw New Polygon": [
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "Zone Type": [
+        "resources\/views\/zones\/index.blade.php",
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "Polygon": [
+        "resources\/views\/zones\/index.blade.php",
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "points": [
+        "resources\/views\/zones\/index.blade.php",
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "Rectangle": [
+        "resources\/views\/zones\/index.blade.php",
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "Zone Details": [
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "ID": [
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "Coordinates": [
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "Created": [
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "Updated": [
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "Zone Map": [
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "Fit to Zone": [
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "Satellite": [
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "Loading Map...": [
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "Please configure GOOGLE_MAPS_API_KEY in your .env file to view the zone map.": [
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "Road": [
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "Either provide manual coordinates or draw a polygon on the map.": [
+        "app\/Http\/Requests\/StoreZoneRequest.php",
+        "app\/Http\/Requests\/UpdateZoneRequest.php"
+    ],
+    "The From Lat must be a valid number.": [
+        "app\/Http\/Requests\/StoreZoneRequest.php",
+        "app\/Http\/Requests\/UpdateZoneRequest.php"
+    ],
+    "The From Lng must be a valid number.": [
+        "app\/Http\/Requests\/StoreZoneRequest.php",
+        "app\/Http\/Requests\/UpdateZoneRequest.php"
+    ],
+    "The To Lat must be a valid number.": [
+        "app\/Http\/Requests\/StoreZoneRequest.php",
+        "app\/Http\/Requests\/UpdateZoneRequest.php"
+    ],
+    "The To Lng must be a valid number.": [
+        "app\/Http\/Requests\/StoreZoneRequest.php",
+        "app\/Http\/Requests\/UpdateZoneRequest.php"
+    ],
+    "The polygon coordinates must be valid JSON.": [
+        "app\/Http\/Requests\/StoreZoneRequest.php",
+        "app\/Http\/Requests\/UpdateZoneRequest.php"
     ]
 }

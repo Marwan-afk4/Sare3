@@ -105,7 +105,7 @@ class AuthController extends Controller
     {
         $validation = Validator::make($request->all(), [
             'phone' => 'required|string',
-            'id_token'=>'required|string',
+            'id_token' => 'required|string',
             'email' => 'nullable|email'
         ]);
 
@@ -117,6 +117,7 @@ class AuthController extends Controller
 
         $user = null;
 
+        // ✅ لو جاي Email
         if ($request->filled('email')) {
             $user = User::where('email', $request->email)->first();
 
@@ -126,7 +127,7 @@ class AuthController extends Controller
                 ], 404);
             }
 
-            // If phone is already used by another user (avoid duplicate phone numbers)
+            // تأكد إن الرقم مش مستخدم في حساب تاني
             $phoneUsedByAnother = User::where('phone', $request->phone)
                                     ->where('id', '!=', $user->id)
                                     ->exists();
@@ -137,38 +138,43 @@ class AuthController extends Controller
                 ], 409);
             }
 
-            // Attach phone to existing email user
+            // تحديث بيانات اليوزر الحالي
             $user->phone = $request->phone;
             $user->id_token = $request->id_token;
             $user->save();
-        }
 
-        // Step 3: If email is not provided, login/register using phone
-        if (!$user) {
-            $existingUser = User::where('phone', $request->phone)->first();
+            // ✅ Generate token
+            $token = $user->createToken('auth_token')->plainTextToken;
 
-            if ($existingUser) {
-                $token = $existingUser->createToken('auth_token')->plainTextToken;
-                return response()->json([
-                    'message' => 'Phone number already used',
-                    'token'=> $token,
-                    'user_otp_limit' => $existingUser->otp_limit,
-                ], 409);
-            }
-
-            // 👇 هنا نجيب القيمة الافتراضية للـ otp limit من الجدول
-            $defaultOtpLimit = OtpLimit::where('role', 'user')->value('otp_limit');
-
-            $user = User::create([
-                'phone' => $request->phone,
-                'id_token' => $request->id_token,
-                'role' => 'user',
-                'otp_limit' => $defaultOtpLimit ?? 5, // لو الجدول فاضي خليه 5 مثلاً
+            return response()->json([
+                'message' => 'Phone number linked to your account successfully',
+                'token'=> $token,
+                'user_otp_limit' => $user->otp_limit,
             ]);
         }
 
+        // ✅ لو مفيش إيميل → شوف التليفون
+        $existingUser = User::where('phone', $request->phone)->first();
+        if ($existingUser) {
+            $token = $existingUser->createToken('auth_token')->plainTextToken;
+            return response()->json([
+                'message' => 'Phone number already used',
+                'token'=> $token,
+                'user_otp_limit' => $existingUser->otp_limit,
+            ], 409);
+        }
 
+        // ❌ الرقم مش موجود → نعمل يوزر جديد
+        $defaultOtpLimit = OtpLimit::where('type', 'user')->value('otp_limit');
 
+        $user = User::create([
+            'phone' => $request->phone,
+            'id_token' => $request->id_token,
+            'role' => 'user',
+            'otp_limit' => $defaultOtpLimit ?? 5,
+        ]);
+
+        // ✅ Generate token بعد ما يبقى عندنا يوزر فعلي
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -177,6 +183,7 @@ class AuthController extends Controller
             'user_otp_limit' => $user->otp_limit,
         ]);
     }
+
 
 
     public function sendEmailVerificationCode(Request $request)
