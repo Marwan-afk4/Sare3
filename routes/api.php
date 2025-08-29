@@ -229,3 +229,5 @@ Route::get('/settings/ride-verification-enabled', [\App\Http\Controllers\Api\App
 //======= FIREBASE TESTING ========
 Route::get('/test-firebase', [\App\Http\Controllers\Api\FirebaseTestController::class, 'testFirebase']);
 
+
+

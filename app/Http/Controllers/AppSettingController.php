@@ -9,14 +9,18 @@ class AppSettingController extends Controller
 {
     public function index()
     {
-        $settings = AppSetting::orderBy('key')->get();
+        $settings = AppSetting::orderBy('key')->get()->map(function ($setting) {
+            // Cast the value properly for display
+            $setting->cast_value = AppSetting::get($setting->key);
+            return $setting;
+        });
         return view('settings.index', compact('settings'));
     }
 
     public function update(Request $request)
     {
         $request->validate([
-            'settings' => 'required|array',
+            'settings' => 'array',
         ]);
 
         foreach ($request->settings as $key => $value) {

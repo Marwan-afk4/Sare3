@@ -32,16 +32,18 @@
 
                             @if($setting->type === 'boolean')
                                 <div class="form-check form-switch">
+                                    <!-- Hidden input to ensure unchecked checkboxes send a value -->
+                                    <input type="hidden" name="settings[{{ $setting->key }}]" value="0">
                                     <input 
                                         class="form-check-input" 
                                         type="checkbox" 
                                         id="setting_{{ $setting->key }}"
                                         name="settings[{{ $setting->key }}]"
                                         value="1"
-                                        {{ $setting->value ? 'checked' : '' }}
+                                        {{ $setting->cast_value ? 'checked' : '' }}
                                     >
                                     <label class="form-check-label" for="setting_{{ $setting->key }}">
-                                        {{ $setting->value ? 'Enabled' : 'Disabled' }}
+                                        {{ $setting->cast_value ? 'Enabled' : 'Disabled' }}
                                     </label>
                                 </div>
                             @elseif($setting->type === 'integer')

@@ -52,7 +52,7 @@ class AppSetting extends Model
     {
         switch ($type) {
             case 'boolean':
-                return (bool) $value;
+                return $value === '1' || $value === 1 || $value === true || $value === 'true';
             case 'integer':
                 return (int) $value;
             case 'json':
