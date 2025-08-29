@@ -27,8 +27,7 @@ class ProfileController extends Controller
             ->where('ratee_type', 'user')
             ->avg('rate');
 
-        // Filter only completed rides
-        $completedRides = $user->userRides->where('status', 'completed');
+        $completedRides = $user->userRides->where('status', ['completed','finshed','cancelled']);
 
         // Map ride data
         $ridesData = $completedRides->map(function ($ride) {
