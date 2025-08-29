@@ -150,6 +150,9 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 //check driver otp limit
     Route::post('/check-driver-otp-limit', [ProfileController::class, 'checkUserOtpLimit']);
 
+//Referrals
+    Route::post('/referrals/generate', [ReferralController::class, 'generateLink']);
+
 });
 
 
@@ -200,7 +203,8 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 //check user otp limit
     Route::post('/check-user-otp-limit', [ProfileController::class, 'checkUserOtpLimit']);
 
-Route::post('/referrals/generate', [ReferralController::class, 'generateLink']);
+//Referrals
+    Route::post('/referrals/generate', [ReferralController::class, 'generateLink']);
 
 });
 
