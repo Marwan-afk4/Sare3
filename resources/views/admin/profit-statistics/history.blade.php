@@ -7,7 +7,7 @@
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>{{ __('Profit History') }}</h1>
-            <a href="{{ route('admin.profit-statistics.index') }}" class="btn btn-secondary">
+            <a href="{{ route('profit-statistics.index') }}" class="btn btn-secondary">
                 <i class="fas fa-chart-bar"></i> Back to Statistics
             </a>
         </div>

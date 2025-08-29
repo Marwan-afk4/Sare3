@@ -217,7 +217,7 @@
                     {{-- profit-statistics --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && in_array($currentPage, ['profit-statistics', 'profit-history']) ? 'active' : '' }}"
-                            href="{{ route('admin.profit-statistics.index') }}">
+                            href="{{ route('profit-statistics.index') }}">
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="trending-up"></span></span>
                                 <span class="nav-link-text-wrapper"><span

@@ -8,13 +8,13 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>{{ __('Profit Statistics') }}</h1>
             <div class="btn-group" role="group">
-                <a href="{{ route('admin.profit-statistics.index', ['period' => 'day']) }}" 
+                <a href="{{ route('profit-statistics.index', ['period' => 'day']) }}" 
                    class="btn btn-outline-primary {{ $period === 'day' ? 'active' : '' }}">Today</a>
-                <a href="{{ route('admin.profit-statistics.index', ['period' => 'week']) }}" 
+                <a href="{{ route('profit-statistics.index', ['period' => 'week']) }}" 
                    class="btn btn-outline-primary {{ $period === 'week' ? 'active' : '' }}">This Week</a>
-                <a href="{{ route('admin.profit-statistics.index', ['period' => 'month']) }}" 
+                <a href="{{ route('profit-statistics.index', ['period' => 'month']) }}" 
                    class="btn btn-outline-primary {{ $period === 'month' ? 'active' : '' }}">This Month</a>
-                <a href="{{ route('admin.profit-statistics.index', ['period' => 'year']) }}" 
+                <a href="{{ route('profit-statistics.index', ['period' => 'year']) }}" 
                    class="btn btn-outline-primary {{ $period === 'year' ? 'active' : '' }}">This Year</a>
             </div>
         </div>
@@ -132,7 +132,7 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body text-center">
-                        <a href="{{ route('admin.profit-statistics.history') }}" class="btn btn-primary me-2">
+                        <a href="{{ route('profit-statistics.history') }}" class="btn btn-primary me-2">
                             <i class="fas fa-history"></i> View Profit History
                         </a>
                         <a href="{{ route('settings.index') }}" class="btn btn-secondary">
