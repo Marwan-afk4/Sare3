@@ -227,6 +227,20 @@ Route::prefix('rides')->group(function () {
 Route::get('/settings', [AppSettingsController::class, 'getSettings']);
 Route::get('/settings/ride-verification-enabled', [AppSettingsController::class, 'isRideVerificationEnabled']);
 
+//======= ADMIN SETTINGS ========
+Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
+    // Profit Settings
+    Route::get('/profit-percentage', [\App\Http\Controllers\Api\Admin\AdminSettingsController::class, 'getProfitPercentage']);
+    Route::post('/profit-percentage', [\App\Http\Controllers\Api\Admin\AdminSettingsController::class, 'setProfitPercentage']);
+    Route::get('/settings', [\App\Http\Controllers\Api\Admin\AdminSettingsController::class, 'getAllSettings']);
+    
+    // Profit Statistics
+    Route::get('/profit-statistics', [\App\Http\Controllers\Api\Admin\ProfitStatisticsController::class, 'getProfitStatistics']);
+    Route::get('/profit-statistics/daily', [\App\Http\Controllers\Api\Admin\ProfitStatisticsController::class, 'getDailyProfitBreakdown']);
+    Route::get('/profit-statistics/top-drivers', [\App\Http\Controllers\Api\Admin\ProfitStatisticsController::class, 'getTopEarningDrivers']);
+    Route::get('/profit-history', [\App\Http\Controllers\Api\Admin\ProfitStatisticsController::class, 'getProfitHistory']);
+});
+
 //======= FIREBASE TESTING ========
 // Route::get('/test-firebase', [\App\Http\Controllers\Api\FirebaseTestController::class, 'testFirebase']);
 

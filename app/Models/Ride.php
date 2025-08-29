@@ -71,6 +71,11 @@ class Ride extends Model
         return $this->belongsTo(paymenentMethod::class);
     }
 
+    public function profit()
+    {
+        return $this->hasOne(RideProfit::class);
+    }
+
     /**
      * Generate a 6-digit verification code
      */
