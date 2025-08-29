@@ -241,6 +241,24 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/profit-history', [\App\Http\Controllers\Api\Admin\ProfitStatisticsController::class, 'getProfitHistory']);
 });
 
+//======= DEBUG ENDPOINT (Temporary) ========
+Route::get('/debug/ride/{rideId}', function($rideId) {
+    $ride = \App\Models\Ride::find($rideId);
+    
+    if (!$ride) {
+        return response()->json(['error' => 'Ride not found'], 404);
+    }
+    
+    return response()->json([
+        'ride_id' => $ride->id,
+        'status' => $ride->status,
+        'driver_id' => $ride->driver_id,
+        'verification_code' => $ride->verification_code,
+        'verification_code_verified' => $ride->verification_code_verified,
+        'verification_enabled' => \App\Models\AppSetting::isRideVerificationEnabled()
+    ]);
+});
+
 //======= FIREBASE TESTING ========
 // Route::get('/test-firebase', [\App\Http\Controllers\Api\FirebaseTestController::class, 'testFirebase']);
 

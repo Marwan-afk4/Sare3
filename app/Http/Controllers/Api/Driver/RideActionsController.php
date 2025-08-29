@@ -174,7 +174,15 @@ class RideActionsController extends Controller
             return response()->json(['message' => $validator->errors()->first()], 422);
         }
 
-        $ride = $this->validateRide($request, 'accepted');
+        // Allow verification for rides in 'accepted' or 'waiting_user' status
+        $ride = $this->validateRide($request);
+        
+        if (!in_array($ride->status->value, ['accepted', 'waiting_user'])) {
+            return response()->json([
+                'message' => 'Ride must be in accepted or waiting status for verification.',
+                'current_status' => $ride->status->value
+            ], 422);
+        }
 
         if (!AppSetting::isRideVerificationEnabled()) {
             return response()->json(['message' => 'Verification feature is disabled.'], 400);
