@@ -56,35 +56,32 @@ class DriverLocationController extends Controller
         $ride->save();
 
         // Update Firebase for real-time tracking
-        $firebaseService = app(\App\Services\FirebaseService::class);
-        $firebaseService->updateDriverLocation(
-            $ride->id,
-            $request->lat,
-            $request->lng,
-            $ride->firebase_ride_id
-        );
+        // $firebaseService = app(\App\Services\FirebaseService::class);
+        // $firebaseService->updateDriverLocation(
+        //     $ride->id,
+        //     $request->lat,
+        //     $request->lng,
+        //     $ride->firebase_ride_id
+        // );
 
-        // na 3aml llbta3 da comment 3shan msh 3arf eh da w kan fe merge conflict fa hatet da 3ala da w 3amlt comment llcode bta3k shof nta eldonia
+        try {
+            $firebase = (new Factory)
+                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                ->createDatabase();
 
+            $firebaseRideId = $ride->firebase_ride_id ?: 'ride_' . $ride->id;
 
-        // try {
-        //     $firebase = (new Factory)
-        //         ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-        //         ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-        //         ->createDatabase();
-
-        //     $firebaseRideId = $ride->firebase_ride_id ?: 'ride_' . $ride->id;
-
-        //     $firebase->getReference("rides/{$firebaseRideId}/driver_location")->set([
-        //         'lat' => (float) $request->lat,
-        //         'lng' => (float) $request->lng,
-        //         'timestamp' => now()->timestamp,
-        //         'updated_at' => now()->toIso8601String(),
-        //     ]);
-        // } catch (\Exception $e) {
-        //     // Log error but don't fail the request
-        //     Log::error('Firebase location update failed: ' . $e->getMessage());
-        // }
+            $firebase->getReference("rides/{$firebaseRideId}/driver_location")->set([
+                'lat' => (float) $request->lat,
+                'lng' => (float) $request->lng,
+                'timestamp' => now()->timestamp,
+                'updated_at' => now()->toIso8601String(),
+            ]);
+        } catch (\Exception $e) {
+            // Log error but don't fail the request
+            Log::error('Firebase location update failed: ' . $e->getMessage());
+        }
 
         return response()->json([
             'message' => 'Driver location updated successfully',
