@@ -273,7 +273,22 @@ class RideActionsController extends Controller
         $timeFare = $durationMinutes * $carCategory->price_per_time;
         $fare = $carCategory->base_price + ($distanceKm * $carCategory->price_per_km) + $timeFare;
 
-        // 5️⃣ Update Ride
+        // 5️⃣ Admin Profit Calculation
+        $adminProfitPercentage = \App\Models\AppSetting::getAdminProfitPercentage();
+        $profitAmounts = \App\Models\RideProfit::calculateProfit($fare, $adminProfitPercentage);
+        
+        // 6️⃣ Update Driver Wallet (deduct admin profit)
+        $driver = $ride->driver;
+        if ($driver && $profitAmounts['admin_profit_amount'] > 0) {
+            $driver->decrement('wallet', $profitAmounts['admin_profit_amount']);
+        }
+
+        // 7️⃣ Create Profit Record
+        if ($adminProfitPercentage > 0) {
+            \App\Models\RideProfit::createForRide($ride, $fare, $adminProfitPercentage);
+        }
+
+        // 8️⃣ Update Ride
         $ride->update([
             'calculated_final_price' => round($fare, 2),
             'status' => 'completed',
@@ -282,7 +297,7 @@ class RideActionsController extends Controller
             'total_distance_in_km' => round($distanceKm, 2),
         ]);
 
-        // 6️⃣ Push to Firebase
+        // 9️⃣ Push to Firebase
         try {
             $this->updateFirebase($ride, [
                 'status' => 'completed',
@@ -302,6 +317,11 @@ class RideActionsController extends Controller
             'final_price' => round($fare, 2),
             'distance_km' => round($distanceKm, 2),
             'duration_minutes' => $durationMinutes,
+            'admin_profit' => [
+                'percentage' => $adminProfitPercentage,
+                'amount' => $profitAmounts['admin_profit_amount'],
+                'driver_amount' => $profitAmounts['driver_amount']
+            ]
         ]);
     }
 

@@ -84,4 +84,20 @@ class AppSetting extends Model
     {
         return static::get('ride_verification_enabled', false);
     }
+
+    /**
+     * Get admin profit percentage
+     */
+    public static function getAdminProfitPercentage(): float
+    {
+        return (float) static::get('admin_profit_percentage', 0);
+    }
+
+    /**
+     * Set admin profit percentage
+     */
+    public static function setAdminProfitPercentage(float $percentage): void
+    {
+        static::set('admin_profit_percentage', $percentage, 'string', 'Admin profit percentage from rides');
+    }
 }
