@@ -27,10 +27,22 @@ class CarModelController extends Controller
         return view('car-models.create', compact('carCategories'));
     }
 
-    public function store(StoreCarModelRequest $request)
+    public function store(Request $request)
     {
-        CarModel::create($request->validated());
-        return redirect()->route('car-models.index')->with('success',  __('Created successfully'));
+        $validated = $request->validate([
+            'name' => 'required|string',
+            'car_categories' => 'required|array',
+            'car_categories.*' => 'exists:car_categories,id',
+        ]);
+
+        foreach ($validated['car_categories'] as $categoryId) {
+        CarModel::create([
+            'name' => $validated['name'],
+            'car_categories_id' => $categoryId,
+        ]);
+    }
+
+        return redirect()->route('car-models.index')->with('success', __('Created successfully.'));
     }
 
     public function show(CarModel $carModel)

@@ -15,8 +15,9 @@ class StoreCarModelRequest extends FormRequest
     public function rules()
     {
         return [
-            'car_categories_id' => 'exists:car_categories,id',
-            'name' => 'required'
+            'car_categories_id' => 'required|array',
+            'car_categories_id.*' => 'exists:car_categories,id',
+            'name' => 'required|string'
         ];
     }
 
