@@ -45,6 +45,7 @@ class User extends Authenticatable
         'fcm_token',
         'referrer_id',
         'is_referrer',
+        'zone_id'
     ];
 
     protected $casts = [
@@ -114,6 +115,11 @@ class User extends Authenticatable
     public function referrals()
     {
         return $this->hasMany(User::class, 'referrer_id');
+    }
+
+    public function zone()
+    {
+        return $this->belongsTo(Zone::class);
     }
 
 }

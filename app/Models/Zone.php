@@ -34,4 +34,9 @@ class Zone extends Model
                     ->withTimestamps();
     }
 
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
+
 }

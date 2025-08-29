@@ -140,5 +140,25 @@ class DriverProfileController extends Controller
             'is_in_ride' => $driverRide
         ]);
     }
+
+    public function addZoneId(Request $request)
+    {
+        $driver = $request->user();
+
+        $validation = Validator::make($request->all(), [
+            'zone_id' => 'required|exists:zones,id',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json($validation->errors(), 422);
+        }
+
+        $driver->zone_id = $request->zone_id;
+        $driver->save();
+
+        return response()->json([
+            'message' => 'Zone ID added successfully'
+        ]);
+    }
 }
 

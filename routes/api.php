@@ -153,6 +153,8 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 //Referrals
     Route::post('/referrals/generate', [ReferralController::class, 'generateLink']);
 
+//AddZone
+    Route::post('/add-zone', [RideEstimateController::class, 'addZone']);
 });
 
 
