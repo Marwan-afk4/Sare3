@@ -45,6 +45,7 @@ class User extends Authenticatable
         'fcm_token',
         'referrer_id',
         'is_referrer',
+        'zone_id'
     ];
 
     protected $casts = [
@@ -181,6 +182,11 @@ class User extends Authenticatable
         $role = $this->isDriver() ? ' (Driver)' : ' (User)';
         
         return $name . $role;
+    }
+
+    public function zone()
+    {
+        return $this->belongsTo(Zone::class);
     }
 
 }
