@@ -9,6 +9,9 @@ class AppSettingController extends Controller
 {
     public function index()
     {
+        // Ensure admin profit percentage setting exists
+        $this->ensureDefaultSettings();
+        
         $settings = AppSetting::orderBy('key')->get()->map(function ($setting) {
             // Cast the value properly for display
             $setting->cast_value = AppSetting::get($setting->key);
@@ -17,10 +20,22 @@ class AppSettingController extends Controller
         return view('settings.index', compact('settings'));
     }
 
+    /**
+     * Ensure default settings exist
+     */
+    private function ensureDefaultSettings()
+    {
+        // Ensure admin profit percentage setting exists
+        if (!AppSetting::where('key', 'admin_profit_percentage')->exists()) {
+            AppSetting::set('admin_profit_percentage', 10, 'string', 'Admin profit percentage from rides (0-100%)');
+        }
+    }
+
     public function update(Request $request)
     {
         $request->validate([
             'settings' => 'array',
+            'settings.admin_profit_percentage' => 'nullable|numeric|min:0|max:100',
         ]);
 
         foreach ($request->settings as $key => $value) {

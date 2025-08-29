@@ -214,6 +214,18 @@
                         </a>
                     </div>
 
+                    {{-- profit-statistics --}}
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && in_array($currentPage, ['profit-statistics', 'profit-history']) ? 'active' : '' }}"
+                            href="{{ route('admin.profit-statistics.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="trending-up"></span></span>
+                                <span class="nav-link-text-wrapper"><span
+                                        class="nav-link-text">{{ __('Profit Statistics') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+
                     {{-- support-chat --}}
                     {{-- <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'support-chat' ? 'active' : '' }}"

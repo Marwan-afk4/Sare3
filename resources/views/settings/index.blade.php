@@ -54,6 +54,24 @@
                                     name="settings[{{ $setting->key }}]"
                                     value="{{ $setting->value }}"
                                 >
+                            @elseif($setting->key === 'admin_profit_percentage')
+                                <div class="input-group">
+                                    <input 
+                                        type="number" 
+                                        class="form-control" 
+                                        id="setting_{{ $setting->key }}"
+                                        name="settings[{{ $setting->key }}]"
+                                        value="{{ $setting->value }}"
+                                        min="0"
+                                        max="100"
+                                        step="0.01"
+                                        placeholder="Enter percentage (0-100)"
+                                    >
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <small class="form-text text-muted">
+                                    This percentage will be deducted from driver earnings on each completed ride.
+                                </small>
                             @elseif($setting->type === 'json')
                                 <textarea 
                                     class="form-control" 

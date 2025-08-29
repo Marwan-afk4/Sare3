@@ -67,6 +67,12 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
         Route::get('/settings', [AppSettingController::class, 'index'])->name('settings.index');
         Route::put('/settings', [AppSettingController::class, 'update'])->name('settings.update');
 
+        // Profit Statistics routes
+        Route::prefix('profit-statistics')->name('profit-statistics.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\ProfitStatisticsWebController::class, 'index'])->name('index');
+            Route::get('/history', [\App\Http\Controllers\Admin\ProfitStatisticsWebController::class, 'history'])->name('history');
+        });
+
         Route::post('/otp-limits/{otpLimit}/reset-drivers', [OtpLimitController::class, 'resetDrivers'])->name('otp-limits.reset-drivers');
         Route::post('/otp-limits/{otpLimit}/reset-users', [OtpLimitController::class, 'resetUsers'])->name('otp-limits.reset-users');
 
