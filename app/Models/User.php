@@ -42,7 +42,9 @@ class User extends Authenticatable
         'status',
         'rejected_reason',
         'gender',
-        'fcm_token'
+        'fcm_token',
+        'referrer_id',
+        'is_referrer',
     ];
 
     protected $casts = [
@@ -53,6 +55,16 @@ class User extends Authenticatable
     public $timestamps = true;
 
     protected $appends =['image_link'];
+
+    public function referrer()
+    {
+        return $this->belongsTo(User::class, 'referrer_id');
+    }
+
+    public function referrals()
+    {
+        return $this->hasMany(User::class, 'referrer_id');
+    }
 
     public function getImageLinkAttribute()
     {
@@ -104,7 +116,7 @@ class User extends Authenticatable
         return $this->hasOne(DriverRideSetting::class, 'driver_id');
     }
 
-    /**
+     /**
      * Get the chat conversation ID for this user with admin
      * Format: admin_{user_id}
      */

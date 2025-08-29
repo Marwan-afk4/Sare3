@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\OtpLimit;
 use App\Models\Rating;
 use App\Models\Ride;
 use App\Models\User;
@@ -127,20 +128,21 @@ class ProfileController extends Controller
             return response()->json($validation->errors(), 422);
         }
 
-
         $user = User::where('phone', $request->phone)->first();
+        $otpLimit = OtpLimit::where('type', 'user')->first();
 
-        // if (!$user) {
-        //     User::create([
-        //         'phone' => $request->phone,
-        //         'otp_limit' => 2,
-        //     ]);
-        //     return response()->json(['message' => 'User created successfully.']);
-        // }
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not found.',
+                'remaining_otp' =>$otpLimit->otp_limit
+            ], 404);
+        }
+
+        $remainingOtp = $user->otp_limit - $user->otp_used;
 
         return response()->json([
             'message' => 'User already exists.',
-            'remaining_otp' => $user->otp_limit - $user->otp_used
-        ])->setStatusCode(200, 'User already exists. Remaining OTP: ' . ($user->otp_limit - $user->otp_used));
+            'remaining_otp' => $remainingOtp
+        ])->setStatusCode(200, 'User already exists. Remaining OTP: ' . $remainingOtp);
     }
 }

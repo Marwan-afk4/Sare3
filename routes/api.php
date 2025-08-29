@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\User\ProfileController;
 use App\Http\Controllers\Api\User\RaitingController;
 use App\Http\Controllers\Api\User\RideEstimateController;
 use App\Http\Controllers\Api\RideTrackingController;
+use App\Http\Controllers\Api\User\ReferralController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 //======= USER AUTH ========
@@ -47,6 +48,7 @@ Route::post('/google-auth', [AuthController::class, 'googleAuth']);
 
 //login
 Route::post('/login', [AuthController::class, 'login']);
+
 
 
 
@@ -148,6 +150,9 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 //check driver otp limit
     Route::post('/check-driver-otp-limit', [ProfileController::class, 'checkUserOtpLimit']);
 
+//Referrals
+    Route::post('/referrals/generate', [ReferralController::class, 'generateLink']);
+
 });
 
 
@@ -197,6 +202,10 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 
 //check user otp limit
     Route::post('/check-user-otp-limit', [ProfileController::class, 'checkUserOtpLimit']);
+
+//Referrals
+    Route::post('/referrals/generate', [ReferralController::class, 'generateLink']);
+
 });
 
 //======= RIDE TRACKING (Public/Admin) ========

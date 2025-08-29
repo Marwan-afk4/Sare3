@@ -1,25 +1,24 @@
 <div class="form-floating mb-3 {{ $required ? 'required' : '' }}">
-    <select
-        name="{{ $name }}"
-        id="{{ $name }}"
-        class="form-select @error($name) is-invalid @enderror"
-        {{ $required ? 'required' : '' }}
-        {{ $disabled ? 'disabled' : '' }}
-        @foreach($attrs ?? [] as $attribute => $v)
-            @if(is_numeric($attribute))
+    <select name="{{ $name }}{{ $multiple ? '[]' : '' }}" id="{{ $name }}"
+        class="form-select @error($name) is-invalid @enderror" {{ $required ? 'required' : '' }}
+        {{ $disabled ? 'disabled' : '' }} {{ $multiple ? 'multiple' : '' }}
+        @foreach ($attrs ?? [] as $attribute => $v)
+            @if (is_numeric($attribute))
                 {{ $v }}
             @else
                 {{ $attribute }}="{{ $v }}"
-            @endif
-        @endforeach
-        {{-- wire:model.change="{{ $name }}" --}}
-    >
-        <option value="" {{ !in_array(old($name, $selected), array_keys($options)) ? 'selected' : '' }}>--</option>
+            @endif @endforeach>
+        @if (!$multiple)
+            <option value="" {{ !in_array(old($name, $selected), array_keys($options)) ? 'selected' : '' }}>--
+            </option>
+        @endif
+
         @foreach ($options as $key => $value)
             <option value="{{ $key }}"
-                {{ (old($name, $selected) == $key) ? 'selected' : '' }}
-                {{ in_array($key, $disabledOptions) ? 'disabled' : '' }}
-            >
+                @if ($multiple) {{ in_array($key, old($name, (array) $selected)) ? 'selected' : '' }}
+                @else
+                    {{ old($name, $selected) == $key ? 'selected' : '' }} @endif
+                {{ in_array($key, $disabledOptions) ? 'disabled' : '' }}>
                 {{ $value }}
             </option>
         @endforeach

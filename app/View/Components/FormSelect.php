@@ -1,4 +1,5 @@
 <?php
+
 namespace App\View\Components;
 
 use Illuminate\View\Component;
@@ -9,25 +10,23 @@ class FormSelect extends Component
     public string $label;
     public array $options;
 
-    public ?array $disabledOptions;
-    public ?string $selected;
+    public array $disabledOptions;
+    public array|string|null $selected;   // ✅ يقبل string أو array
     public bool $required;
-
     public bool $disabled;
     public ?array $attrs;
-
-
-
+    public bool $multiple;
 
     public function __construct(
         string $name,
         string $label,
         array $options = [],
         array $disabledOptions = [],
-        $selected = null,
+        array|string|null $selected = null,   // ✅
         bool $required = false,
         bool $disabled = false,
-        ?array $attrs = array()
+        bool $multiple = false,
+        ?array $attrs = []
     ) {
         $this->name = $name;
         $this->label = $label;
@@ -36,6 +35,7 @@ class FormSelect extends Component
         $this->selected = $selected;
         $this->required = $required;
         $this->disabled = $disabled;
+        $this->multiple = $multiple;
         $this->attrs = $attrs;
     }
 

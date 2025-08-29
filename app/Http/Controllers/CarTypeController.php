@@ -24,7 +24,11 @@ class CarTypeController extends Controller
 
     public function create()
     {
-        $carModels = CarModel::orderBy('name')->pluck('name', 'id')->toArray();
+        $carModels = CarModel::selectRaw('MIN(id) as id, name')
+            ->groupBy('name')
+            ->orderBy('name')
+            ->pluck('name', 'id') // هنا key = id, value = name
+            ->toArray();
         return view('car-types.create', compact('carModels'));
     }
 
@@ -41,7 +45,11 @@ class CarTypeController extends Controller
 
     public function edit(CarType $carType)
     {
-        $carModels = CarModel::orderBy('name')->pluck('name', 'id')->toArray();
+        $carModels = CarModel::selectRaw('MIN(id) as id, name')
+            ->groupBy('name')
+            ->orderBy('name')
+            ->pluck('name', 'id') // هنا key = id, value = name
+            ->toArray();
         return view('car-types.edit', compact('carType', 'carModels'));
     }
 

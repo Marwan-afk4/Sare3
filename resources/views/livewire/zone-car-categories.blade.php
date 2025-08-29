@@ -8,21 +8,43 @@
             {{-- Form --}}
             <div class="row g-2 mb-3">
                 <div class="col-3">
-                    <x-form-select name="car_category_id" label="{{ __('Category') }}"
-                        :options="$carCategories" :selected="$car_category_id"
-                        :attrs="['wire:model.lazy' => 'car_category_id','class'=>'form-select form-select-sm']"/>
+                    <x-form-select name="car_category_id" label="{{ __('Category') }}" :options="$carCategories" :selected="$car_category_id"
+                        :attrs="['wire:model.lazy' => 'car_category_id', 'class' => 'form-select form-select-sm']" />
                 </div>
                 <div class="col-2">
-                    <x-form-input name="base_price" type="number" label="{{ __('Base') }}"
-                        :value="$base_price" :attrs="['min'=>'0','step'=>'0.01','wire:model.lazy'=>'base_price','class'=>'form-control form-control-sm']"/>
+                    <x-form-input name="base_price" type="number" label="{{ __('Base') }}" :value="$base_price"
+                        :attrs="[
+                            'min' => '0',
+                            'step' => '0.01',
+                            'wire:model.lazy' => 'base_price',
+                            'class' => 'form-control form-control-sm',
+                        ]" />
                 </div>
                 <div class="col-2">
-                    <x-form-input name="price_per_km" type="number" label="{{ __('Per Km') }}"
-                        :value="$price_per_km" :attrs="['min'=>'0','step'=>'0.01','wire:model.lazy'=>'price_per_km','class'=>'form-control form-control-sm']"/>
+                    <x-form-input name="price_per_km" type="number" label="{{ __('Per Km') }}" :value="$price_per_km"
+                        :attrs="[
+                            'min' => '0',
+                            'step' => '0.01',
+                            'wire:model.lazy' => 'price_per_km',
+                            'class' => 'form-control form-control-sm',
+                        ]" />
                 </div>
                 <div class="col-2">
-                    <x-form-input name="price_per_min" type="number" label="{{ __('Per Min') }}"
-                        :value="$price_per_min" :attrs="['min'=>'0','step'=>'0.01','wire:model.lazy'=>'price_per_min','class'=>'form-control form-control-sm']"/>
+                    <x-form-input name="price_per_min" type="number" label="{{ __('Per Min') }}" :value="$price_per_min"
+                        :attrs="[
+                            'min' => '0',
+                            'step' => '0.01',
+                            'wire:model.lazy' => 'price_per_min',
+                            'class' => 'form-control form-control-sm',
+                        ]" />
+                </div>
+                <div class="col-2">
+                    <x-form-input name="min_price" type="number" label="{{ __('Min Fare') }}" :attrs="[
+                        'min' => '0',
+                        'step' => '0.01',
+                        'wire:model.lazy' => 'min_price',
+                        'class' => 'form-control form-control-sm',
+                    ]" />
                 </div>
                 <div class="col-auto">
                     <button wire:click="saveCategory" class="btn btn-sm btn-success">
@@ -43,6 +65,7 @@
                             <th>{{ __('Base Price') }}</th>
                             <th>{{ __('Per Km') }}</th>
                             <th>{{ __('Per Min') }}</th>
+                            <th>{{ __('Min Price') }}</th>
                             <th>{{ __('Actions') }}</th>
                         </tr>
                     </thead>
@@ -58,6 +81,7 @@
                                 <td>{{ $cat->pivot->base_price ?? '-' }}</td>
                                 <td>{{ $cat->pivot->price_per_km ?? '-' }}</td>
                                 <td>{{ $cat->pivot->price_per_min ?? '-' }}</td>
+                                <td>{{ $cat->pivot->min_price ?? '-' }}</td>
 
                                 <td>
                                     <button wire:click="deleteCategory({{ $cat->id }})"
@@ -76,7 +100,7 @@
 
     <script>
         document.addEventListener('categoryExists', function(event) {
-            alert(event.detail.name + ' {{ __("is already assigned to this zone.") }}');
+            alert(event.detail.name + ' {{ __('is already assigned to this zone.') }}');
         });
     </script>
 </div>
