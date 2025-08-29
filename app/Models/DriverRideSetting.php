@@ -16,7 +16,8 @@ class DriverRideSetting extends Model
         'pickup_radius',
         'destination_preferences',
         'early_trip_suggestions',
-        'same_gender_trips'
+        'same_gender_trips',
+        'zone_id'
     ];
 
     public $timestamps = true;

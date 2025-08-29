@@ -19,6 +19,7 @@ class RideSettingCOntroller extends Controller
             'destination_preferences' => 'required|array',
             'early_trip_suggestions' => 'required|boolean',
             'same_gender_trips' => 'required|boolean',
+            'zone_id' => 'nullable|exists:zones,id',
         ]);
 
 
@@ -33,6 +34,7 @@ class RideSettingCOntroller extends Controller
                 'destination_preferences' => $request->destination_preferences,
                 'early_trip_suggestions' => $request->early_trip_suggestions,
                 'same_gender_trips' => $request->same_gender_trips,
+                'zone_id' => $request->zone_id??null,
             ]
         );
 
