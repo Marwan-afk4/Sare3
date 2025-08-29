@@ -42,7 +42,9 @@ class User extends Authenticatable
         'status',
         'rejected_reason',
         'gender',
-        'fcm_token'
+        'fcm_token',
+        'referrer_id',
+        'is_referrer',
     ];
 
     protected $casts = [
@@ -102,6 +104,16 @@ class User extends Authenticatable
     public function driverRideSetting()
     {
         return $this->hasOne(DriverRideSetting::class, 'driver_id');
+    }
+
+    public function referrer()
+    {
+        return $this->belongsTo(User::class, 'referrer_id');
+    }
+
+    public function referrals()
+    {
+        return $this->hasMany(User::class, 'referrer_id');
     }
 
 }
