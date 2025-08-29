@@ -105,9 +105,14 @@ class Ride extends Model
      */
     public function requiresVerificationCode(): bool
     {
-        return AppSetting::isRideVerificationEnabled() && 
-               $this->status->value === 'accepted' && 
-               !empty($this->verification_code);
+        try {
+            return \App\Models\AppSetting::isRideVerificationEnabled() && 
+                   $this->status->value === 'accepted' && 
+                   !empty($this->verification_code);
+        } catch (\Exception $e) {
+            // If database is not available, return false (feature disabled)
+            return false;
+        }
     }
 
     /**
@@ -115,11 +120,16 @@ class Ride extends Model
      */
     public function canStart(): bool
     {
-        if (!AppSetting::isRideVerificationEnabled()) {
+        try {
+            if (!\App\Models\AppSetting::isRideVerificationEnabled()) {
+                return true;
+            }
+
+            return $this->verification_code_verified || empty($this->verification_code);
+        } catch (\Exception $e) {
+            // If database is not available, allow ride to start (feature disabled)
             return true;
         }
-
-        return $this->verification_code_verified || empty($this->verification_code);
     }
 
 
