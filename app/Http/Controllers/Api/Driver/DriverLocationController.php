@@ -56,24 +56,13 @@ class DriverLocationController extends Controller
         $ride->save();
 
         // Update Firebase for real-time tracking
-        try {
-            $firebase = (new Factory)
-                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                ->createDatabase();
-
-            $firebaseRideId = $ride->firebase_ride_id ?: 'ride_' . $ride->id;
-            
-            $firebase->getReference("rides/{$firebaseRideId}/driver_location")->set([
-                'lat' => (float) $request->lat,
-                'lng' => (float) $request->lng,
-                'timestamp' => now()->timestamp,
-                'updated_at' => now()->toIso8601String(),
-            ]);
-        } catch (\Exception $e) {
-            // Log error but don't fail the request
-            \Log::error('Firebase location update failed: ' . $e->getMessage());
-        }
+        $firebaseService = app(\App\Services\FirebaseService::class);
+        $firebaseService->updateDriverLocation(
+            $ride->id,
+            $request->lat,
+            $request->lng,
+            $ride->firebase_ride_id
+        );
 
         return response()->json([
             'message' => 'Driver location updated successfully',

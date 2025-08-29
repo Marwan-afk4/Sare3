@@ -66,7 +66,7 @@ class RideTracker {
     }
 
     /**
-     * Setup map markers
+     * Setup map markers - Show both pickup and drop-off markers
      */
     setupMarkers() {
         // Pickup marker
@@ -79,7 +79,7 @@ class RideTracker {
 
         // Add info window for pickup
         const pickupInfoWindow = new google.maps.InfoWindow({
-            content: `<div><strong>Pickup Location</strong><br>${this.rideData.pickup.address}</div>`
+            content: `<div><strong>Pickup Location</strong><br>${this.rideData.pickup.address || 'Pickup Point'}</div>`
         });
         this.pickupMarker.addListener('click', () => {
             pickupInfoWindow.open(this.map, this.pickupMarker);
@@ -90,16 +90,19 @@ class RideTracker {
             this.dropoffMarker = new google.maps.Marker({
                 position: { lat: this.rideData.dropoff.lat, lng: this.rideData.dropoff.lng },
                 map: this.map,
-                title: 'Dropoff Location',
+                title: 'Drop-off Location',
                 icon: this.createMarkerIcon('#F44336', 'D')
             });
 
             const dropoffInfoWindow = new google.maps.InfoWindow({
-                content: `<div><strong>Dropoff Location</strong><br>${this.rideData.dropoff.address}</div>`
+                content: `<div><strong>Drop-off Location</strong><br>${this.rideData.dropoff.address || 'Destination'}</div>`
             });
             this.dropoffMarker.addListener('click', () => {
                 dropoffInfoWindow.open(this.map, this.dropoffMarker);
             });
+        } else {
+            // Show message when no drop-off location is set
+            this.showNoDropoffMessage();
         }
     }
 
@@ -256,28 +259,38 @@ class RideTracker {
     }
 
     /**
-     * Start real-time tracking using both Firebase and API polling
+     * Start real-time tracking - Firebase for in-progress rides, API polling for others
      */
     startRealTimeTracking() {
-        // Try Firebase first
-        if (this.rideData.firebaseRideId && typeof firebase !== 'undefined') {
+        // Use Firebase real-time tracking for in-progress rides
+        if (this.rideData.status === 'in_progress') {
             this.startFirebaseTracking();
         } else {
-            // Fallback to API polling
+            // Use API polling for other active statuses
             this.startApiPolling();
         }
     }
 
     /**
-     * Start Firebase real-time tracking
+     * Start Firebase real-time tracking with ride completion detection
      */
     startFirebaseTracking() {
         try {
+            if (typeof firebase === 'undefined' || !firebase.database) {
+                console.log('Firebase not available, falling back to API polling');
+                this.startApiPolling();
+                return;
+            }
+
             const firebaseRideId = this.rideData.firebaseRideId || `ride_${this.rideData.id}`;
             this.firebaseRef = firebase.database().ref(`rides/${firebaseRideId}/driver_location`);
 
+            console.log('Starting Firebase tracking for:', firebaseRideId);
+
             this.firebaseRef.on('value', (snapshot) => {
                 const location = snapshot.val();
+                console.log('Firebase location update:', location);
+
                 if (location && location.lat && location.lng && this.driverMarker) {
                     const newPosition = {
                         lat: parseFloat(location.lat),
@@ -285,8 +298,24 @@ class RideTracker {
                     };
 
                     this.updateDriverPosition(newPosition);
+
+                    // Update timestamp if available
+                    if (location.timestamp) {
+                        this.lastLocationUpdate = new Date(location.timestamp);
+                    }
                 }
             });
+
+            // Listen for ride status changes to stop tracking when completed
+            const rideStatusRef = firebase.database().ref(`rides/${firebaseRideId}/status`);
+            rideStatusRef.on('value', (snapshot) => {
+                const status = snapshot.val();
+                if (status && (status === 'completed' || status === 'finished')) {
+                    console.log('Ride completed, stopping Firebase tracking');
+                    this.stopTracking();
+                }
+            });
+
         } catch (error) {
             console.error('Firebase tracking error:', error);
             this.startApiPolling();
@@ -303,7 +332,7 @@ class RideTracker {
     }
 
     /**
-     * Fetch driver location from API
+     * Fetch driver location from API with ride completion detection
      */
     async fetchDriverLocation() {
         try {
@@ -317,6 +346,12 @@ class RideTracker {
                 };
 
                 this.updateDriverPosition(newPosition);
+            }
+
+            // Check if ride status changed to completed and stop tracking
+            if (data.status && (data.status === 'completed' || data.status === 'finished')) {
+                console.log('Ride completed, stopping tracking');
+                this.stopTracking();
             }
         } catch (error) {
             console.error('Error fetching driver location:', error);
@@ -376,18 +411,48 @@ class RideTracker {
     }
 
     /**
-     * Cleanup resources
+     * Show message when no drop-off location is set
      */
-    cleanup() {
-        if (this.trackingInterval) {
-            clearInterval(this.trackingInterval);
-            this.trackingInterval = null;
-        }
+    showNoDropoffMessage() {
+        // Create info window to show no drop-off message
+        const noDropoffInfoWindow = new google.maps.InfoWindow({
+            content: `<div class="alert alert-warning mb-0">
+                        <strong>No Drop-off Location</strong><br>
+                        No drop-off location has been selected for this ride.
+                      </div>`,
+            position: { lat: this.rideData.pickup.lat, lng: this.rideData.pickup.lng }
+        });
 
+        noDropoffInfoWindow.open(this.map);
+
+        // Note: Pickup marker is already shown in setupMarkers(), 
+        // so we don't need to create another marker here
+    }
+
+    /**
+     * Stop all tracking activities
+     */
+    stopTracking() {
+        // Stop Firebase listening
         if (this.firebaseRef) {
             this.firebaseRef.off();
             this.firebaseRef = null;
+            console.log('Firebase tracking stopped');
         }
+
+        // Stop API polling
+        if (this.trackingInterval) {
+            clearInterval(this.trackingInterval);
+            this.trackingInterval = null;
+            console.log('API polling stopped');
+        }
+    }
+
+    /**
+     * Cleanup resources
+     */
+    cleanup() {
+        this.stopTracking();
     }
 
     /**

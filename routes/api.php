@@ -203,3 +203,6 @@ Route::prefix('rides')->group(function () {
     Route::get('/{rideId}/tracking-data', [RideTrackingController::class, 'getRideTrackingData']);
 });
 
+//======= FIREBASE TESTING ========
+Route::get('/test-firebase', [\App\Http\Controllers\Api\FirebaseTestController::class, 'testFirebase']);
+

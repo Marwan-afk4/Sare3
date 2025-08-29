@@ -156,19 +156,26 @@
                                     {{ __('Ride #') }}{{ $ride->id }}
                                 </h4>
                                 <p class="mb-0">
-                                    @if (in_array($ride->status->value, ['in_progress', 'accepted', 'waiting_user']))
-                                        <i class="fa fa-location-arrow"></i> {{ __('Live Tracking Active') }}
+                                    @if ($ride->status->value === 'in_progress')
+                                        <i class="fa fa-broadcast-tower text-success"></i> {{ __('Real-time Firebase Tracking Active') }}
+                                    @elseif (in_array($ride->status->value, ['accepted', 'waiting_user']))
+                                        <i class="fa fa-location-arrow text-info"></i> {{ __('Live Tracking Active') }}
                                     @elseif(in_array($ride->status->value, ['completed', 'finshed']))
-                                        <i class="fa fa-check-circle"></i> {{ __('Trip Completed') }}
+                                        <i class="fa fa-check-circle text-success"></i> {{ __('Trip Completed') }}
                                     @else
-                                        <i class="fa fa-clock"></i> {{ $ride->status->label() }}
+                                        <i class="fa fa-clock text-warning"></i> {{ $ride->status->label() }}
                                     @endif
                                 </p>
                             </div>
                             <div class="text-end">
-                                <div class="badge bg-light text-dark fs-6">
+                                <div class="badge bg-light text-dark fs-6 me-2">
                                     {!! $ride->status->badge() !!}
                                 </div>
+                                @if ($ride->status->value === 'in_progress')
+                                    <div id="connection-status" class="badge bg-secondary">
+                                        Connecting...
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -199,7 +206,14 @@
                         </div>
                         <div class="col-12 mb-2">
                             <p class="text-muted">{{ __('To') }}</p>
-                            <div class="fw-bold">{{ $ride->dropoff_address ?? __('Dropoff Location') }}</div>
+                            @if($ride->dropoff_address && $ride->dropoff_lat && $ride->dropoff_lng)
+                                <div class="fw-bold">{{ $ride->dropoff_address }}</div>
+                            @else
+                                <div class="text-warning fw-bold">
+                                    <i class="fa fa-exclamation-triangle"></i> {{ __('No drop-off location selected') }}
+                                </div>
+                                <small class="text-muted">{{ __('The passenger has not selected a destination yet.') }}</small>
+                            @endif
                         </div>
                     </div>
 
@@ -380,7 +394,7 @@
                     return;
                 }
 
-                // Initialize the ride tracker
+                // Initialize the ride tracker (it will handle no drop-off location internally)
                 rideTracker = new SimpleRideTracker(rideData, 'trackingMap');
                 rideTracker.init();
             }
@@ -412,6 +426,27 @@
                         rideTracker.refreshRideData();
                     }
                 }, 15000); // Refresh every 15 seconds for tracking page
+            }
+
+            // Add connection status indicator
+            function updateConnectionStatus(status, message) {
+                const statusElement = document.getElementById('connection-status');
+                if (statusElement) {
+                    statusElement.className = `badge ${status === 'connected' ? 'bg-success' : status === 'connecting' ? 'bg-warning' : 'bg-danger'}`;
+                    statusElement.textContent = message;
+                }
+            }
+
+            // Monitor Firebase connection if available
+            if (typeof firebase !== 'undefined' && rideData.status === 'in_progress') {
+                const connectedRef = firebase.database().ref('.info/connected');
+                connectedRef.on('value', (snapshot) => {
+                    if (snapshot.val() === true) {
+                        updateConnectionStatus('connected', 'Real-time Connected');
+                    } else {
+                        updateConnectionStatus('disconnected', 'Connection Lost');
+                    }
+                });
             }
 
             // Initialize map when page loads

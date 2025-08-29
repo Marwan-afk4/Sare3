@@ -19,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register Ride Observer for Firebase updates
+        \App\Models\Ride::observe(\App\Observers\RideObserver::class);
     }
 }

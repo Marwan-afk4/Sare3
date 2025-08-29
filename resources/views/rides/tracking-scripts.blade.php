@@ -99,7 +99,7 @@ class SimpleRideTracker {
     }
 
     setupMarkers() {
-        // Pickup marker - using simple marker to avoid deprecation warnings
+        // Pickup marker
         this.pickupMarker = new google.maps.Marker({
             position: { lat: this.rideData.pickup.lat, lng: this.rideData.pickup.lng },
             map: this.map,
@@ -119,19 +119,27 @@ class SimpleRideTracker {
             }
         });
 
-        // Dropoff marker
+        // Add info window for pickup
+        const pickupInfoWindow = new google.maps.InfoWindow({
+            content: `<div><strong>Pickup Location</strong><br>${this.rideData.pickup.address || 'Pickup Point'}</div>`
+        });
+        this.pickupMarker.addListener('click', () => {
+            pickupInfoWindow.open(this.map, this.pickupMarker);
+        });
+
+        // Dropoff marker (if available)
         if (this.rideData.dropoff.lat && this.rideData.dropoff.lng) {
             this.dropoffMarker = new google.maps.Marker({
                 position: { lat: this.rideData.dropoff.lat, lng: this.rideData.dropoff.lng },
                 map: this.map,
-                title: 'Dropoff Location',
+                title: 'Drop-off Location',
                 icon: {
                     path: google.maps.SymbolPath.CIRCLE,
-                    scale: 10,
+                    scale: 12,
                     fillColor: '#F44336',
                     fillOpacity: 1,
                     strokeColor: 'white',
-                    strokeWeight: 2
+                    strokeWeight: 3
                 },
                 label: {
                     text: 'D',
@@ -139,6 +147,17 @@ class SimpleRideTracker {
                     fontWeight: 'bold'
                 }
             });
+
+            // Add info window for dropoff
+            const dropoffInfoWindow = new google.maps.InfoWindow({
+                content: `<div><strong>Drop-off Location</strong><br>${this.rideData.dropoff.address || 'Destination'}</div>`
+            });
+            this.dropoffMarker.addListener('click', () => {
+                dropoffInfoWindow.open(this.map, this.dropoffMarker);
+            });
+        } else {
+            // Show message when no drop-off location is set
+            this.showNoDropoffMessage();
         }
     }
 
@@ -234,6 +253,64 @@ class SimpleRideTracker {
     }
 
     startTracking() {
+        // Start Firebase real-time tracking for in-progress rides
+        if (this.rideData.status === 'in_progress') {
+            this.startFirebaseTracking();
+        } else {
+            // Use API polling for other active statuses
+            this.startApiPolling();
+        }
+    }
+
+    startFirebaseTracking() {
+        try {
+            if (typeof firebase === 'undefined' || !firebase.database) {
+                console.log('Firebase not available, falling back to API polling');
+                this.startApiPolling();
+                return;
+            }
+
+            const firebaseRideId = this.rideData.firebaseRideId || `ride_${this.rideData.id}`;
+            this.firebaseRef = firebase.database().ref(`rides/${firebaseRideId}/driver_location`);
+
+            console.log('Starting Firebase tracking for:', firebaseRideId);
+
+            this.firebaseRef.on('value', (snapshot) => {
+                const location = snapshot.val();
+                console.log('Firebase location update:', location);
+                
+                if (location && location.lat && location.lng && this.driverMarker) {
+                    const newPosition = {
+                        lat: parseFloat(location.lat),
+                        lng: parseFloat(location.lng)
+                    };
+                    
+                    this.updateDriverPosition(newPosition);
+                    
+                    // Update timestamp if available
+                    if (location.timestamp) {
+                        this.lastLocationUpdate = new Date(location.timestamp);
+                    }
+                }
+            });
+
+            // Also check ride status changes to stop tracking when completed
+            const rideStatusRef = firebase.database().ref(`rides/${firebaseRideId}/status`);
+            rideStatusRef.on('value', (snapshot) => {
+                const status = snapshot.val();
+                if (status && (status === 'completed' || status === 'finished')) {
+                    console.log('Ride completed, stopping Firebase tracking');
+                    this.stopTracking();
+                }
+            });
+
+        } catch (error) {
+            console.error('Firebase tracking error:', error);
+            this.startApiPolling();
+        }
+    }
+
+    startApiPolling() {
         this.trackingInterval = setInterval(() => {
             this.fetchDriverLocation();
         }, 5000);
@@ -249,17 +326,99 @@ class SimpleRideTracker {
                     lat: parseFloat(data.lat), 
                     lng: parseFloat(data.lng) 
                 };
-                this.driverMarker.setPosition(newPosition);
+                this.updateDriverPosition(newPosition);
+            }
+
+            // Check if ride status changed to completed
+            if (data.status && (data.status === 'completed' || data.status === 'finished')) {
+                console.log('Ride completed, stopping tracking');
+                this.stopTracking();
             }
         } catch (error) {
             console.error('Error fetching driver location:', error);
         }
     }
 
-    cleanup() {
+    updateDriverPosition(newPosition) {
+        if (!this.driverMarker) return;
+
+        const currentPosition = this.driverMarker.getPosition();
+        
+        if (currentPosition) {
+            // Animate marker movement for smooth transition
+            this.animateMarker(this.driverMarker, currentPosition, newPosition);
+        } else {
+            // First position update
+            this.driverMarker.setPosition(newPosition);
+        }
+
+        // Keep driver in view if they move too far
+        const bounds = this.map.getBounds();
+        if (bounds && !bounds.contains(newPosition)) {
+            this.map.panTo(newPosition);
+        }
+    }
+
+    animateMarker(marker, startPos, endPos) {
+        const startLat = startPos.lat();
+        const startLng = startPos.lng();
+        const endLat = endPos.lat;
+        const endLng = endPos.lng;
+
+        let step = 0;
+        const numSteps = 30;
+        const timePerStep = 100;
+
+        const stepLat = (endLat - startLat) / numSteps;
+        const stepLng = (endLng - startLng) / numSteps;
+
+        const animate = () => {
+            if (step <= numSteps) {
+                const lat = startLat + (stepLat * step);
+                const lng = startLng + (stepLng * step);
+                marker.setPosition({ lat, lng });
+                step++;
+                setTimeout(animate, timePerStep);
+            }
+        };
+
+        animate();
+    }
+
+    stopTracking() {
+        // Stop Firebase listening
+        if (this.firebaseRef) {
+            this.firebaseRef.off();
+            this.firebaseRef = null;
+            console.log('Firebase tracking stopped');
+        }
+
+        // Stop API polling
         if (this.trackingInterval) {
             clearInterval(this.trackingInterval);
+            this.trackingInterval = null;
+            console.log('API polling stopped');
         }
+    }
+
+    showNoDropoffMessage() {
+        // Create info window to show no drop-off message
+        const noDropoffInfoWindow = new google.maps.InfoWindow({
+            content: `<div class="alert alert-warning mb-0">
+                        <strong>No Drop-off Location</strong><br>
+                        No drop-off location has been selected for this ride.
+                      </div>`,
+            position: { lat: this.rideData.pickup.lat, lng: this.rideData.pickup.lng }
+        });
+        
+        noDropoffInfoWindow.open(this.map);
+        
+        // Note: Pickup marker is already shown in setupMarkers(), 
+        // so we don't need to create another marker here
+    }
+
+    cleanup() {
+        this.stopTracking();
     }
 
     refreshRideData() {
