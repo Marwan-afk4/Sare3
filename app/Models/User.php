@@ -104,4 +104,71 @@ class User extends Authenticatable
         return $this->hasOne(DriverRideSetting::class, 'driver_id');
     }
 
+    /**
+     * Get the chat conversation ID for this user with admin
+     * Format: admin_{user_id}
+     */
+    public function getChatConversationId(): string
+    {
+        return 'admin_' . $this->id;
+    }
+
+    /**
+     * Get display name for chat interface
+     * Returns the user's name if available, otherwise a formatted fallback
+     */
+    public function getDisplayName(): string
+    {
+        if (!empty($this->name)) {
+            return $this->name;
+        }
+
+        // Fallback to formatted name based on role
+        $roleLabel = $this->isDriver() ? 'Driver' : 'User';
+        return $roleLabel . ' #' . $this->id;
+    }
+
+    /**
+     * Check if this user is a driver
+     */
+    public function isDriver(): bool
+    {
+        return $this->role === 'driver';
+    }
+
+    /**
+     * Check if this user is a regular user (not driver or admin)
+     */
+    public function isUser(): bool
+    {
+        return $this->role === 'user' || $this->role === null;
+    }
+
+    /**
+     * Check if this user is an admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Get the user type for chat purposes
+     */
+    public function getChatUserType(): string
+    {
+        return $this->isDriver() ? 'driver' : 'user';
+    }
+
+    /**
+     * Get formatted display name with role indicator
+     */
+    public function getDisplayNameWithRole(): string
+    {
+        $name = $this->getDisplayName();
+        $role = $this->isDriver() ? ' (Driver)' : ' (User)';
+        
+        return $name . $role;
+    }
+
 }
