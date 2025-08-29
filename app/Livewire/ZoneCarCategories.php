@@ -15,6 +15,7 @@ class ZoneCarCategories extends Component
     public $base_price = '';
     public $price_per_km = '';
     public $price_per_min = '';
+    public $min_price = '';
 
     public array $carCategories = [];
     public $zoneCategories;
@@ -40,6 +41,7 @@ class ZoneCarCategories extends Component
             'base_price' => 'required|numeric|min:0',
             'price_per_km' => 'required|numeric|min:0',
             'price_per_min' => 'required|numeric|min:0',
+            'min_price' => 'required|numeric|min:0',
         ]);
 
         // check if exists already
@@ -55,11 +57,12 @@ class ZoneCarCategories extends Component
                 'base_price'   => $this->base_price,
                 'price_per_km' => $this->price_per_km,
                 'price_per_min'=> $this->price_per_min,
+                'min_price'    => $this->min_price,
             ]
         ]);
 
 
-        $this->reset(['car_category_id', 'base_price', 'price_per_km', 'price_per_min']);
+        $this->reset(['car_category_id', 'base_price', 'price_per_km', 'price_per_min', 'min_price']);
         $this->updateZoneCategories();
     }
 

@@ -30,7 +30,7 @@ class Zone extends Model
     public function carCategories()
     {
         return $this->belongsToMany(CarCategory::class, 'car_category_zone')
-                    ->withPivot(['price_per_km', 'price_per_min', 'base_price'])
+                    ->withPivot(['price_per_km', 'price_per_min', 'base_price', 'min_price'])
                     ->withTimestamps();
     }
 

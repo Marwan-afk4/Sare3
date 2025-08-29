@@ -60,8 +60,14 @@ class RideEstimateController extends Controller
             $base = $category->pivot->base_price;
             $perKm = $category->pivot->price_per_km;
             $perTime = $category->pivot->price_per_min;
+            $minPrice = $category->pivot->min_price; // لو عندك كولمن min_price في الجدول الوسيط
 
             $price = $base + ($estimatedKm * $perKm) + ($estimatedTime * $perTime);
+
+            // لو السعر النهائي أقل من المينيمم
+            if ($price < $minPrice) {
+                $price = $minPrice;
+            }
 
             return [
                 'id' => $category->id,
