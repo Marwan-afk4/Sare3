@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AppSettingsController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
 use App\Http\Controllers\Api\Driver\DriverActivtyController;
@@ -223,11 +224,11 @@ Route::prefix('rides')->group(function () {
 });
 
 //======= APP SETTINGS (Public) ========
-Route::get('/settings', [\App\Http\Controllers\Api\AppSettingsController::class, 'getSettings']);
-Route::get('/settings/ride-verification-enabled', [\App\Http\Controllers\Api\AppSettingsController::class, 'isRideVerificationEnabled']);
+Route::get('/settings', [AppSettingsController::class, 'getSettings']);
+Route::get('/settings/ride-verification-enabled', [AppSettingsController::class, 'isRideVerificationEnabled']);
 
 //======= FIREBASE TESTING ========
-Route::get('/test-firebase', [\App\Http\Controllers\Api\FirebaseTestController::class, 'testFirebase']);
+// Route::get('/test-firebase', [\App\Http\Controllers\Api\FirebaseTestController::class, 'testFirebase']);
 
 
 
