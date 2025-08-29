@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api\Driver;
 use App\Helpers\RideHelper;
 use App\Http\Controllers\Api\User\RideEstimateController;
 use App\Http\Controllers\Controller;
+use App\Models\AppSetting;
 use App\Models\CarCategory;
 use App\Models\Ride;
+use App\Services\RideVerificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -80,12 +82,23 @@ class RideActionsController extends Controller
             'status' => 'accepted',
         ]);
 
+        $firebaseData = [
+            'driver_id' => $driver->id,
+            'status' => 'accepted',
+            'accepted_at' => now()->toIso8601String(),
+        ];
+
+        // Generate verification code if feature is enabled
+        $verificationService = new RideVerificationService();
+        $verificationCode = $verificationService->generateCodeForRide($ride);
+        
+        if ($verificationCode) {
+            $firebaseData['verification_required'] = true;
+            // Code is stored separately in Firebase for user access only
+        }
+
         try {
-            $this->updateFirebase($ride, [
-                'driver_id' => $driver->id,
-                'status' => 'accepted',
-                'accepted_at' => now()->toIso8601String(),
-            ]);
+            $this->updateFirebase($ride, $firebaseData);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Ride accepted in DB, but failed in Firebase.',
@@ -93,7 +106,14 @@ class RideActionsController extends Controller
             ], 500);
         }
 
-        return response()->json(['message' => 'Ride accepted.']);
+        $response = ['message' => 'Ride accepted.'];
+        
+        if ($verificationCode) {
+            $response['verification_required'] = true;
+            $response['message'] = 'Ride accepted. Verification code generated for user.';
+        }
+
+        return response()->json($response);
     }
 
     //arrived
@@ -120,6 +140,14 @@ class RideActionsController extends Controller
     {
         $ride = $this->validateRide($request);
 
+        // Check if verification is required and not completed
+        if (!$ride->canStart()) {
+            return response()->json([
+                'message' => 'Verification code required before starting the ride.',
+                'verification_required' => true
+            ], 422);
+        }
+
         $ride->update(['status' => 'in_progress']);
 
         try {
@@ -132,6 +160,74 @@ class RideActionsController extends Controller
         }
 
         return response()->json(['message' => 'Ride started.']);
+    }
+
+    //verify ride code
+    public function verifyRideCode(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ride_id' => 'required|exists:rides,id',
+            'verification_code' => 'required|string|size:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 422);
+        }
+
+        $ride = $this->validateRide($request, 'accepted');
+
+        if (!AppSetting::isRideVerificationEnabled()) {
+            return response()->json(['message' => 'Verification feature is disabled.'], 400);
+        }
+
+        if (empty($ride->verification_code)) {
+            return response()->json(['message' => 'No verification code generated for this ride.'], 400);
+        }
+
+        if ($ride->verification_code_verified) {
+            return response()->json(['message' => 'Code already verified.'], 400);
+        }
+
+        if (!$ride->verifyCode($request->verification_code)) {
+            return response()->json(['message' => 'Invalid verification code.'], 422);
+        }
+
+        try {
+            $this->updateFirebase($ride, [
+                'verification_verified' => true,
+                'verified_at' => now()->toIso8601String(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Firebase error.', 'error' => $e->getMessage()], 500);
+        }
+
+        return response()->json([
+            'message' => 'Verification code verified successfully.',
+            'can_start_ride' => true
+        ]);
+    }
+
+    //get verification status
+    public function getVerificationStatus(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ride_id' => 'required|exists:rides,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 422);
+        }
+
+        $ride = $this->validateRide($request);
+
+        $verificationService = new RideVerificationService();
+        $status = $verificationService->getVerificationStatus($ride);
+
+        return response()->json([
+            'ride_id' => $ride->id,
+            'status' => $ride->status->value,
+            'verification' => $status
+        ]);
     }
 
     //complete ride

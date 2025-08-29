@@ -34,7 +34,10 @@ class Ride extends Model
         'time_taken',
         'firebase_ride_id',
         'payment_method_id',
-        'rejected_drivers'
+        'rejected_drivers',
+        'verification_code',
+        'verification_code_generated_at',
+        'verification_code_verified'
     ];
 
     public $timestamps = true;
@@ -43,6 +46,8 @@ class Ride extends Model
         'route_points' => 'array',
         'rejected_drivers' => 'array',
         'status' => RideStatus::class,
+        'verification_code_generated_at' => 'datetime',
+        'verification_code_verified' => 'boolean',
     ];
 
 
@@ -64,6 +69,57 @@ class Ride extends Model
     public function paymentMethod()
     {
         return $this->belongsTo(paymenentMethod::class);
+    }
+
+    /**
+     * Generate a 6-digit verification code
+     */
+    public function generateVerificationCode(): string
+    {
+        $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        
+        $this->update([
+            'verification_code' => $code,
+            'verification_code_generated_at' => now(),
+            'verification_code_verified' => false
+        ]);
+
+        return $code;
+    }
+
+    /**
+     * Verify the provided code
+     */
+    public function verifyCode(string $code): bool
+    {
+        if ($this->verification_code === $code && !$this->verification_code_verified) {
+            $this->update(['verification_code_verified' => true]);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if verification code is required for this ride
+     */
+    public function requiresVerificationCode(): bool
+    {
+        return AppSetting::isRideVerificationEnabled() && 
+               $this->status->value === 'accepted' && 
+               !empty($this->verification_code);
+    }
+
+    /**
+     * Check if ride can be started (verification passed or not required)
+     */
+    public function canStart(): bool
+    {
+        if (!AppSetting::isRideVerificationEnabled()) {
+            return true;
+        }
+
+        return $this->verification_code_verified || empty($this->verification_code);
     }
 
 

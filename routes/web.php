@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\{
+    AppSettingController,
     AuthController,
     CancelationRideController,
     CancellationPolicyController,
@@ -61,6 +62,10 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
 
         // Additional ride routes
         Route::get('/rides/{ride}/track', [RideController::class, 'track'])->name('rides.track');
+
+        // Settings routes
+        Route::get('/settings', [AppSettingController::class, 'index'])->name('settings.index');
+        Route::put('/settings', [AppSettingController::class, 'update'])->name('settings.update');
 
         Route::post('/otp-limits/{otpLimit}/reset-drivers', [OtpLimitController::class, 'resetDrivers'])->name('otp-limits.reset-drivers');
         Route::post('/otp-limits/{otpLimit}/reset-users', [OtpLimitController::class, 'resetUsers'])->name('otp-limits.reset-users');

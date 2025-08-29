@@ -110,6 +110,8 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
     Route::post('/ride/accept', [RideActionsController::class, 'acceptRide']);
     Route::post('/ride/cancel', [RideActionsController::class, 'cancelRide']);
     Route::post('/ride/arrived', [RideActionsController::class, 'arrived']);
+    Route::post('/ride/verify-code', [RideActionsController::class, 'verifyRideCode']);
+    Route::get('/ride/verification-status', [RideActionsController::class, 'getVerificationStatus']);
     Route::post('/ride/start', [RideActionsController::class, 'startRide']);
     Route::post('/ride/complete', [RideActionsController::class, 'completeRide']);
     Route::post('/ride/finish', [RideActionsController::class, 'finishRide']);
@@ -178,6 +180,8 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 
 //Ride
     Route::post('/ride/create', [RideEstimateController::class,'createRide']);
+    Route::get('/ride/verification-code', [\App\Http\Controllers\Api\User\RideActionsController::class, 'getVerificationCode']);
+    Route::get('/ride/status', [\App\Http\Controllers\Api\User\RideActionsController::class, 'getRideStatus']);
 
 //Raiting
     Route::post('/ride/rating', [RaitingController::class,'raiting']);
@@ -215,6 +219,10 @@ Route::prefix('rides')->group(function () {
     Route::get('/{rideId}/route-points', [RideTrackingController::class, 'getRoutePoints']);
     Route::get('/{rideId}/tracking-data', [RideTrackingController::class, 'getRideTrackingData']);
 });
+
+//======= APP SETTINGS (Public) ========
+Route::get('/settings', [\App\Http\Controllers\Api\AppSettingsController::class, 'getSettings']);
+Route::get('/settings/ride-verification-enabled', [\App\Http\Controllers\Api\AppSettingsController::class, 'isRideVerificationEnabled']);
 
 //======= FIREBASE TESTING ========
 Route::get('/test-firebase', [\App\Http\Controllers\Api\FirebaseTestController::class, 'testFirebase']);
