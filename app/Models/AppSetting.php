@@ -100,4 +100,20 @@ class AppSetting extends Model
     {
         static::set('admin_profit_percentage', $percentage, 'string', 'Admin profit percentage from rides');
     }
+
+    /**
+     * Get minimum driver wallet balance
+     */
+    public static function getMinimumDriverWalletBalance(): float
+    {
+        return (float) static::get('minimum_driver_wallet_balance', 0);
+    }
+
+    /**
+     * Set minimum driver wallet balance
+     */
+    public static function setMinimumDriverWalletBalance(float $amount): void
+    {
+        static::set('minimum_driver_wallet_balance', $amount, 'string', 'Minimum wallet balance required for drivers to go online');
+    }
 }

@@ -102,6 +102,9 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 //driver status
     Route::get('/driver-status', [DriverActivtyController::class, 'getDriverStatus']);
 
+//wallet status
+    Route::get('/wallet-status', [DriverProfileController::class, 'checkWalletStatus']);
+
 //Profile
     Route::get('/get-profile', [DriverProfileController::class, 'getProfileData']);
     Route::put('/update-profile', [DriverProfileController::class, 'updateDriverProfile']);
@@ -232,6 +235,11 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     // Profit Settings
     Route::get('/profit-percentage', [\App\Http\Controllers\Api\Admin\AdminSettingsController::class, 'getProfitPercentage']);
     Route::post('/profit-percentage', [\App\Http\Controllers\Api\Admin\AdminSettingsController::class, 'setProfitPercentage']);
+    
+    // Wallet Settings
+    Route::get('/minimum-driver-wallet-balance', [\App\Http\Controllers\Api\Admin\AdminSettingsController::class, 'getMinimumDriverWalletBalance']);
+    Route::post('/minimum-driver-wallet-balance', [\App\Http\Controllers\Api\Admin\AdminSettingsController::class, 'setMinimumDriverWalletBalance']);
+    
     Route::get('/settings', [\App\Http\Controllers\Api\Admin\AdminSettingsController::class, 'getAllSettings']);
     
     // Profit Statistics

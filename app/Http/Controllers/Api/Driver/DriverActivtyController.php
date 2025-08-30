@@ -15,6 +15,7 @@ class DriverActivtyController extends Controller
     public function getDriverActivity(Request $request)
     {
         $driver = $request->user();
+        $walletStatus = $driver->getWalletStatus();
 
         $data = [
             'id' => $driver->id,
@@ -22,6 +23,7 @@ class DriverActivtyController extends Controller
             'email' => $driver->email,
             'phone' => $driver->phone,
             'activity' => $driver->activity,
+            'wallet_status' => $walletStatus
         ];
 
         return response()->json(['driver' => $data]);
@@ -42,4 +44,6 @@ class DriverActivtyController extends Controller
 
         return response()->json(['driver'=> $data]);
     }
+
+
 }

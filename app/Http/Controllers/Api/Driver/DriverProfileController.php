@@ -160,5 +160,19 @@ class DriverProfileController extends Controller
             'message' => 'Zone ID added successfully'
         ]);
     }
+
+    /**
+     * Check driver wallet status and availability to go online
+     */
+    public function checkWalletStatus(Request $request)
+    {
+        $driver = $request->user();
+        $walletStatus = $driver->getWalletStatus();
+
+        return response()->json([
+            'message' => 'Wallet status retrieved successfully.',
+            'wallet_status' => $walletStatus
+        ]);
+    }
 }
 

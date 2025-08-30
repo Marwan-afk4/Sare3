@@ -189,4 +189,34 @@ class User extends Authenticatable
         return $this->belongsTo(Zone::class);
     }
 
+    /**
+     * Check if driver can go online based on wallet balance
+     */
+    public function canGoOnline(): bool
+    {
+        if (!$this->isDriver()) {
+            return true; // Non-drivers are not affected by this rule
+        }
+
+        $minimumBalance = AppSetting::getMinimumDriverWalletBalance();
+        return $this->wallet >= $minimumBalance;
+    }
+
+    /**
+     * Get wallet status for driver
+     */
+    public function getWalletStatus(): array
+    {
+        $minimumBalance = AppSetting::getMinimumDriverWalletBalance();
+        $currentBalance = $this->wallet ?? 0;
+        $canGoOnline = $this->canGoOnline();
+        
+        return [
+            'current_balance' => $currentBalance,
+            'minimum_required_balance' => $minimumBalance,
+            'can_go_online' => $canGoOnline,
+            'balance_deficit' => $canGoOnline ? 0 : ($minimumBalance - $currentBalance)
+        ];
+    }
+
 }

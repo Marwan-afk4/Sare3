@@ -48,6 +48,44 @@ class AdminSettingsController extends Controller
     }
 
     /**
+     * Get minimum driver wallet balance
+     */
+    public function getMinimumDriverWalletBalance()
+    {
+        $balance = AppSetting::getMinimumDriverWalletBalance();
+        
+        return response()->json([
+            'message' => 'Minimum driver wallet balance retrieved successfully.',
+            'minimum_driver_wallet_balance' => $balance
+        ]);
+    }
+
+    /**
+     * Set minimum driver wallet balance
+     */
+    public function setMinimumDriverWalletBalance(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'balance' => 'required|numeric|min:0'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $balance = (float) $request->balance;
+        AppSetting::setMinimumDriverWalletBalance($balance);
+
+        return response()->json([
+            'message' => 'Minimum driver wallet balance updated successfully.',
+            'minimum_driver_wallet_balance' => $balance
+        ]);
+    }
+
+    /**
      * Get all admin settings
      */
     public function getAllSettings()
@@ -56,7 +94,8 @@ class AdminSettingsController extends Controller
             'message' => 'Admin settings retrieved successfully.',
             'settings' => [
                 'admin_profit_percentage' => AppSetting::getAdminProfitPercentage(),
-                'ride_verification_enabled' => AppSetting::isRideVerificationEnabled()
+                'ride_verification_enabled' => AppSetting::isRideVerificationEnabled(),
+                'minimum_driver_wallet_balance' => AppSetting::getMinimumDriverWalletBalance()
             ]
         ]);
     }
