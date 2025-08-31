@@ -57,7 +57,7 @@ class RideHelper
             $batch = array_slice($points, $i, self::$snapBatchSize);
             $path = collect($batch)->map(fn($p) => "{$p['lat']},{$p['lng']}")->implode('|');
 
-            $url = "https://roads.googleapis.com/v1/snapToRoads?path={$path}&interpolate=true&key=" . self::$googleApiKey;
+            $url = "https://roads.googleapis.com/v1/snapToRoads?path={$path}&interpolate=false&key=" . self::$googleApiKey;
 
             try {
                 $resp = Http::timeout(self::$httpTimeout)->get($url);
@@ -224,15 +224,21 @@ class RideHelper
         } elseif (!$rides instanceof \Illuminate\Support\Collection) {
             $rides = collect($rides);
         }
-        $completedRides = $rides->whereIn('status', ['completed', 'finshed']);
+        
+        $completedRides = $rides->where('status', 'completed');
+        $finshedRides = $rides->where('status', 'finshed');
+        $cancelledRides = $rides->where('status', 'cancelled');
+        $successfulRides = $rides->whereIn('status', ['completed', 'finshed']);
         
         return [
             'total_rides' => $rides->count(),
             'completed_rides' => $completedRides->count(),
-            'cancelled_rides' => $rides->where('status', 'cancelled')->count(),
-            'total_spent' => $completedRides->sum('calculated_final_price'),
-            'total_distance' => $completedRides->sum('total_distance_in_km'),
-            'average_ride_cost' => $completedRides->count() > 0 ? $completedRides->avg('calculated_final_price') : 0,
+            'finshed_rides' => $finshedRides->count(),
+            'successful_rides' => $successfulRides->count(),
+            'cancelled_rides' => $cancelledRides->count(),
+            'total_spent' => $successfulRides->sum('calculated_final_price'),
+            'total_distance' => $successfulRides->sum('total_distance_in_km'),
+            'average_ride_cost' => $successfulRides->count() > 0 ? $successfulRides->avg('calculated_final_price') : 0,
         ];
     }
 
@@ -247,15 +253,21 @@ class RideHelper
         } elseif (!$rides instanceof \Illuminate\Support\Collection) {
             $rides = collect($rides);
         }
-        $completedRides = $rides->whereIn('status', ['completed', 'finshed']);
+        
+        $completedRides = $rides->where('status', 'completed');
+        $finshedRides = $rides->where('status', 'finshed');
+        $cancelledRides = $rides->where('status', 'cancelled');
+        $successfulRides = $rides->whereIn('status', ['completed', 'finshed']);
         
         return [
             'total_rides' => $rides->count(),
             'completed_rides' => $completedRides->count(),
-            'cancelled_rides' => $rides->where('status', 'cancelled')->count(),
-            'total_earnings' => $completedRides->sum('calculated_final_price'),
-            'total_distance' => $completedRides->sum('total_distance_in_km'),
-            'average_ride_earnings' => $completedRides->count() > 0 ? $completedRides->avg('calculated_final_price') : 0,
+            'finshed_rides' => $finshedRides->count(),
+            'successful_rides' => $successfulRides->count(),
+            'cancelled_rides' => $cancelledRides->count(),
+            'total_earnings' => $successfulRides->sum('calculated_final_price'),
+            'total_distance' => $successfulRides->sum('total_distance_in_km'),
+            'average_ride_earnings' => $successfulRides->count() > 0 ? $successfulRides->avg('calculated_final_price') : 0,
         ];
     }
 }
