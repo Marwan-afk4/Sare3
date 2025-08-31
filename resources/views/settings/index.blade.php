@@ -25,7 +25,7 @@
                             <label for="setting_{{ $setting->key }}" class="form-label">
                                 {{ ucwords(str_replace('_', ' ', $setting->key)) }}
                             </label>
-                            
+
                             @if($setting->description)
                                 <small class="form-text text-muted d-block">{{ $setting->description }}</small>
                             @endif
@@ -34,9 +34,9 @@
                                 <div class="form-check form-switch">
                                     <!-- Hidden input to ensure unchecked checkboxes send a value -->
                                     <input type="hidden" name="settings[{{ $setting->key }}]" value="0">
-                                    <input 
-                                        class="form-check-input" 
-                                        type="checkbox" 
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
                                         id="setting_{{ $setting->key }}"
                                         name="settings[{{ $setting->key }}]"
                                         value="1"
@@ -47,42 +47,42 @@
                                     </label>
                                 </div>
                             @elseif($setting->type === 'integer')
-                                <input 
-                                    type="number" 
-                                    class="form-control" 
+                                <input
+                                    type="number"
+                                    class="form-control"
                                     id="setting_{{ $setting->key }}"
                                     name="settings[{{ $setting->key }}]"
                                     value="{{ $setting->value }}"
                                 >
                             @elseif($setting->key === 'admin_profit_percentage')
                                 <div class="input-group">
-                                    <input 
-                                        type="number" 
-                                        class="form-control" 
+                                    <input
+                                        type="number"
+                                        class="form-control"
                                         id="setting_{{ $setting->key }}"
                                         name="settings[{{ $setting->key }}]"
                                         value="{{ $setting->value }}"
                                         min="0"
                                         max="100"
                                         step="0.01"
-                                        placeholder="Enter percentage (0-100)"
+                                        placeholder={{ __("Enter percentage (0-100)") }}
                                     >
                                     <span class="input-group-text">%</span>
                                 </div>
                                 <small class="form-text text-muted">
-                                    This percentage will be deducted from driver earnings on each completed ride.
+                                    {{ __('This percentage will be deducted from driver earnings on each completed ride.') }}
                                 </small>
                             @elseif($setting->type === 'json')
-                                <textarea 
-                                    class="form-control" 
+                                <textarea
+                                    class="form-control"
                                     id="setting_{{ $setting->key }}"
                                     name="settings[{{ $setting->key }}]"
                                     rows="4"
                                 >{{ is_array($setting->value) ? json_encode($setting->value, JSON_PRETTY_PRINT) : $setting->value }}</textarea>
                             @else
-                                <input 
-                                    type="text" 
-                                    class="form-control" 
+                                <input
+                                    type="text"
+                                    class="form-control"
                                     id="setting_{{ $setting->key }}"
                                     name="settings[{{ $setting->key }}]"
                                     value="{{ $setting->value }}"

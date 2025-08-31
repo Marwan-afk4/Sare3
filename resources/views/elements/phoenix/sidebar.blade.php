@@ -203,7 +203,7 @@
                     </div>
 
                     {{-- settings --}}
-                    <div class="nav-item-wrapper">
+                    {{-- <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'settings' ? 'active' : '' }}"
                             href="{{ route('settings.index') }}">
                             <div class="d-flex align-items-center">
@@ -212,7 +212,7 @@
                                         class="nav-link-text">{{ __('Settings') }}</span></span>
                             </div>
                         </a>
-                    </div>
+                    </div> --}}
 
                     {{-- profit-statistics --}}
                     <div class="nav-item-wrapper">

@@ -8,7 +8,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>{{ __('Profit History') }}</h1>
             <a href="{{ route('profit-statistics.index') }}" class="btn btn-secondary">
-                <i class="fas fa-chart-bar"></i> Back to Statistics
+                <i class="fas fa-chart-bar"></i> {{ __('Back to Statistics') }}
             </a>
         </div>
 
@@ -19,13 +19,13 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Date</th>
-                                    <th>Driver</th>
-                                    <th>Ride</th>
-                                    <th>Total Fare</th>
-                                    <th>Profit %</th>
-                                    <th>Admin Profit</th>
-                                    <th>Driver Amount</th>
+                                    <th>{{ __('Date') }}</th>
+                                    <th>{{ __('Driver') }}</th>
+                                    <th>{{ __('Ride') }}</th>
+                                    <th>{{ __('Total Fare') }}</th>
+                                    <th>{{ __('Profit %') }}</th>
+                                    <th>{{ __('Admin Profit') }}</th>
+                                    <th>{{ __('Driver Amount') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -43,8 +43,8 @@
                                         <td>
                                             <div>
                                                 <small class="text-muted">
-                                                    From: {{ Str::limit($profit->ride->pickup_address ?? 'N/A', 30) }}<br>
-                                                    To: {{ Str::limit($profit->ride->dropoff_address ?? 'N/A', 30) }}
+                                                    {{ __('From:') }} {{ Str::limit($profit->ride->pickup_address ?? 'N/A', 30) }}<br>
+                                                    {{ __('To:') }} {{ Str::limit($profit->ride->dropoff_address ?? 'N/A', 30) }}
                                                 </small>
                                             </div>
                                         </td>
@@ -73,8 +73,8 @@
                 @else
                     <div class="text-center py-5">
                         <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
-                        <h4 class="text-muted">No Profit Records Found</h4>
-                        <p class="text-muted">Profit records will appear here once rides are completed with admin profit enabled.</p>
+                        <h4 class="text-muted">{{ __('No Profit Records Found') }}</h4>
+                        <p class="text-muted">{{ __('Profit records will appear here once rides are completed with admin profit enabled.') }}</p>
                     </div>
                 @endif
             </div>

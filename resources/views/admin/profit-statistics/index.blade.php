@@ -8,14 +8,14 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>{{ __('Profit Statistics') }}</h1>
             <div class="btn-group" role="group">
-                <a href="{{ route('profit-statistics.index', ['period' => 'day']) }}" 
-                   class="btn btn-outline-primary {{ $period === 'day' ? 'active' : '' }}">Today</a>
-                <a href="{{ route('profit-statistics.index', ['period' => 'week']) }}" 
-                   class="btn btn-outline-primary {{ $period === 'week' ? 'active' : '' }}">This Week</a>
-                <a href="{{ route('profit-statistics.index', ['period' => 'month']) }}" 
-                   class="btn btn-outline-primary {{ $period === 'month' ? 'active' : '' }}">This Month</a>
-                <a href="{{ route('profit-statistics.index', ['period' => 'year']) }}" 
-                   class="btn btn-outline-primary {{ $period === 'year' ? 'active' : '' }}">This Year</a>
+                <a href="{{ route('profit-statistics.index', ['period' => 'day']) }}"
+                   class="btn btn-outline-primary {{ $period === 'day' ? 'active' : '' }}">{{ __('Today') }}</a>
+                <a href="{{ route('profit-statistics.index', ['period' => 'week']) }}"
+                   class="btn btn-outline-primary {{ $period === 'week' ? 'active' : '' }}">{{ __('This Week') }}</a>
+                <a href="{{ route('profit-statistics.index', ['period' => 'month']) }}"
+                   class="btn btn-outline-primary {{ $period === 'month' ? 'active' : '' }}">{{ __('This Month') }}</a>
+                <a href="{{ route('profit-statistics.index', ['period' => 'year']) }}"
+                   class="btn btn-outline-primary {{ $period === 'year' ? 'active' : '' }}">{{ __('This Year') }}</a>
             </div>
         </div>
 
@@ -26,7 +26,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h6 class="card-title">Total Rides</h6>
+                                <h6 class="card-title">{{ __('Total Rides') }}</h6>
                                 <h3 class="mb-0">{{ number_format($currentStats->total_rides ?? 0) }}</h3>
                             </div>
                             <div class="align-self-center">
@@ -41,7 +41,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h6 class="card-title">Total Fare</h6>
+                                <h6 class="card-title">{{ __('Total Fare') }}</h6>
                                 <h3 class="mb-0">${{ number_format($currentStats->total_fare ?? 0, 2) }}</h3>
                             </div>
                             <div class="align-self-center">
@@ -56,7 +56,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h6 class="card-title">Admin Profit</h6>
+                                <h6 class="card-title">{{ __('Admin Profit') }}</h6>
                                 <h3 class="mb-0">${{ number_format($currentStats->total_admin_profit ?? 0, 2) }}</h3>
                             </div>
                             <div class="align-self-center">
@@ -71,7 +71,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h6 class="card-title">Avg Profit %</h6>
+                                <h6 class="card-title">{{ __('Avg Profit %') }}</h6>
                                 <h3 class="mb-0">{{ number_format($currentStats->avg_profit_percentage ?? 0, 1) }}%</h3>
                             </div>
                             <div class="align-self-center">
@@ -88,7 +88,7 @@
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="card-title mb-0">Daily Profit Breakdown</h5>
+                        <h5 class="card-title mb-0">{{ __('Daily Profit Breakdown') }}</h5>
                     </div>
                     <div class="card-body">
                         <canvas id="profitChart" height="100"></canvas>
@@ -100,7 +100,7 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="card-title mb-0">Top Earning Drivers</h5>
+                        <h5 class="card-title mb-0">{{ __('Top Earning Drivers') }}</h5>
                     </div>
                     <div class="card-body">
                         @if($topDrivers->count() > 0)
@@ -109,18 +109,18 @@
                                     <div class="list-group-item d-flex justify-content-between align-items-center px-0">
                                         <div>
                                             <h6 class="mb-1">{{ $driver->driver->name ?? 'Driver #' . $driver->driver_id }}</h6>
-                                            <small class="text-muted">{{ $driver->total_rides }} rides</small>
+                                            <small class="text-muted">{{ $driver->total_rides }} {{ __('Rides') }}</small>
                                         </div>
                                         <div class="text-end">
                                             <strong>${{ number_format($driver->total_driver_earnings, 2) }}</strong>
                                             <br>
-                                            <small class="text-muted">${{ number_format($driver->total_admin_profit, 2) }} profit</small>
+                                            <small class="text-muted">${{ number_format($driver->total_admin_profit, 2) }} {{ __('Profit') }}</small>
                                         </div>
                                     </div>
                                 @endforeach
                             </div>
                         @else
-                            <p class="text-muted text-center">No data available for this period.</p>
+                            <p class="text-muted text-center">{{ __('No data available for this period.') }}</p>
                         @endif
                     </div>
                 </div>
@@ -133,10 +133,10 @@
                 <div class="card">
                     <div class="card-body text-center">
                         <a href="{{ route('profit-statistics.history') }}" class="btn btn-primary me-2">
-                            <i class="fas fa-history"></i> View Profit History
+                            <i class="fas fa-history"></i> {{ __('View Profit History') }}
                         </a>
                         <a href="{{ route('settings.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-cog"></i> Manage Settings
+                            <i class="fas fa-cog"></i> {{ __('Manage Settings') }}
                         </a>
                     </div>
                 </div>
@@ -149,7 +149,7 @@
         // Profit Chart
         const ctx = document.getElementById('profitChart').getContext('2d');
         const chartData = @json($dailyBreakdown);
-        
+
         new Chart(ctx, {
             type: 'line',
             data: {
