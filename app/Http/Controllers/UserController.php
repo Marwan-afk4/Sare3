@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-
-
+use App\Models\Rating;
+use App\Helpers\RideHelper;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
@@ -45,7 +45,55 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        return view('users.show', compact('user'));
+        // Load user rides with relationships
+        $user->load([
+            'userRides' => function ($query) {
+                $query->with(['driver.driverCars.carModel', 'carCategory'])
+                      ->orderBy('created_at', 'desc');
+            }
+        ]);
+
+        // Get user rating
+        $userRating = Rating::where('ratee_id', $user->id)
+            ->where('ratee_type', 'user')
+            ->avg('rate');
+
+        // Get ride statistics
+        $rideStatistics = RideHelper::getUserRideStatistics($user->userRides);
+
+        // Get recent rides (last 10)
+        $recentRides = RideHelper::formatUserRideHistory($user->userRides->take(10));
+
+        return view('users.show', compact('user', 'userRating', 'rideStatistics', 'recentRides'));
+    }
+
+    public function rideHistory(User $user, Request $request)
+    {
+        $status = $request->get('status', 'all');
+        $perPage = $request->get('per_page', 20);
+
+        // Build query
+        $query = $user->userRides()
+            ->with(['driver.driverCars.carModel', 'carCategory'])
+            ->orderBy('created_at', 'desc');
+
+        // Filter by status
+        if ($status !== 'all') {
+            if ($status === 'completed') {
+                $query->whereIn('status', ['completed', 'finshed']);
+            } else {
+                $query->where('status', $status);
+            }
+        }
+
+        // Paginate
+        $rides = $query->paginate($perPage);
+
+        // Format data
+        $ridesData = RideHelper::formatUserRideHistory($rides->items());
+        $rideStatistics = RideHelper::getUserRideStatistics(collect($rides->items()));
+
+        return view('users.ride-history', compact('user', 'rides', 'ridesData', 'rideStatistics', 'status'));
     }
 
     public function edit(User $user)

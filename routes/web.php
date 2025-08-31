@@ -78,8 +78,10 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
 
 
         Route::get('/drivers/{driver}/documents', [DriverController::class, 'documents'])->name('drivers.documents');
-
         Route::get('/drivers/{driver}/cars', [DriverController::class, 'cars'])->name('drivers.cars');
+        Route::get('/drivers/{driver}/ride-history', [DriverController::class, 'rideHistory'])->name('drivers.ride-history');
+        
+        Route::get('/users/{user}/ride-history', [UserController::class, 'rideHistory'])->name('users.ride-history');
 
         // Support Chat Routes
         Route::prefix('support-chat')->name('admin.support-chat.')->group(function () {

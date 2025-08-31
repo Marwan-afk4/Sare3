@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreDriverRequest;
 use App\Http\Requests\UpdateDriverRequest;
 use App\Models\User;
+use App\Models\Rating;
+use App\Helpers\RideHelper;
 use App\trait\ImageUpload;
 use Illuminate\Http\Request;
 
@@ -77,7 +79,55 @@ class DriverController extends Controller
 
     public function show(User $driver)
     {
-        return view('drivers.show', compact('driver'));
+        // Load driver rides with relationships
+        $driver->load([
+            'driverRides' => function ($query) {
+                $query->with(['user', 'carCategory'])
+                      ->orderBy('created_at', 'desc');
+            }
+        ]);
+
+        // Get driver rating
+        $driverRating = Rating::where('ratee_id', $driver->id)
+            ->where('ratee_type', 'driver')
+            ->avg('rate');
+
+        // Get ride statistics
+        $rideStatistics = RideHelper::getDriverRideStatistics($driver->driverRides);
+
+        // Get recent rides (last 10)
+        $recentRides = RideHelper::formatDriverRideHistory($driver->driverRides->take(10));
+
+        return view('drivers.show', compact('driver', 'driverRating', 'rideStatistics', 'recentRides'));
+    }
+
+    public function rideHistory(User $driver, Request $request)
+    {
+        $status = $request->get('status', 'all');
+        $perPage = $request->get('per_page', 20);
+
+        // Build query
+        $query = $driver->driverRides()
+            ->with(['user', 'carCategory'])
+            ->orderBy('created_at', 'desc');
+
+        // Filter by status
+        if ($status !== 'all') {
+            if ($status === 'completed') {
+                $query->whereIn('status', ['completed', 'finshed']);
+            } else {
+                $query->where('status', $status);
+            }
+        }
+
+        // Paginate
+        $rides = $query->paginate($perPage);
+
+        // Format data
+        $ridesData = RideHelper::formatDriverRideHistory($rides->items());
+        $rideStatistics = RideHelper::getDriverRideStatistics(collect($rides->items()));
+
+        return view('drivers.ride-history', compact('driver', 'rides', 'ridesData', 'rideStatistics', 'status'));
     }
 
     public function edit(User $driver)

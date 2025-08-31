@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Driver;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\RideHelper;
 use App\Models\Rating;
 use App\Models\Ride;
 use App\Models\RideRequestTimeLimit;
@@ -63,42 +64,64 @@ class DriverProfileController extends Controller
     {
         $driver = $request->user();
 
-        $driver->load([
-            'driverRides.user',
-            'driverCars',
+        $validation = Validator::make($request->all(), [
+            'status' => 'nullable|string|in:completed,finshed,cancelled,all',
+            'limit' => 'nullable|integer|min:1|max:100',
+            'page' => 'nullable|integer|min:1',
         ]);
 
-        $completedRides = $driver->driverRides->where('status', 'finshed');
+        if ($validation->fails()) {
+            return response()->json($validation->errors(), 422);
+        }
 
-        $ridesData = $completedRides->map(function ($ride) {
-            $user = optional($ride->user);
+        $status = $request->get('status', 'finshed');
+        $limit = $request->get('limit', 20);
+        $page = $request->get('page', 1);
 
-            return [
-                'ride_id' => $ride->id,
-                'user' => [
-                    'user_id' => $user->id,
-                    'user_name' => $user->name,
-                    'user_image_link' => $user->image_link,
-                    'user_phone' => $user->phone,
-                ],
-                'pickup_address' => $ride->pickup_address,
-                'dropoff_address' => $ride->dropoff_address,
-                'started_at' => $ride->started_at,
-                'ended_at' => $ride->ended_at,
-                'status' => $ride->status,
-                'calculated_final_price' => $ride->calculated_final_price,
-                'created_at' => $ride->created_at,
-            ];
-        })->values();
+        // Build query
+        $query = $driver->driverRides()
+            ->with([
+                'user',
+                'carCategory'
+            ])
+            ->orderBy('created_at', 'desc');
+
+        // Filter by status
+        if ($status !== 'all') {
+            if ($status === 'completed') {
+                $query->whereIn('status', ['completed', 'finshed']);
+            } else {
+                $query->where('status', $status);
+            }
+        }
+
+        // Paginate
+        $rides = $query->paginate($limit, ['*'], 'page', $page);
+
+        // Format data using helper
+        $ridesData = RideHelper::formatDriverRideHistory(collect($rides->items()));
+        $rideStatistics = RideHelper::getDriverRideStatistics(collect($rides->items()));
 
         $response = [
-            'rides' => [
-                'rides_count' => $completedRides->count(),
-            ],
+            'driver_id' => $driver->id,
+            'driver_name' => $driver->name,
+            'statistics' => $rideStatistics,
             'rides_data' => $ridesData,
+            'pagination' => [
+                'current_page' => $rides->currentPage(),
+                'last_page' => $rides->lastPage(),
+                'per_page' => $rides->perPage(),
+                'total' => $rides->total(),
+                'has_more_pages' => $rides->hasMorePages(),
+            ]
         ];
 
         return response()->json(['driver' => $response]);
+    }
+
+    public function getDriverRideHistory(Request $request)
+    {
+        return $this->getDriverCompletedRides($request);
     }
 
 

@@ -44,6 +44,13 @@
                                 <td>{!! $driver->activity->badge() !!} </td>
                             </li>
                             <li class="list-group-item"><strong>{{ __('Wallet') }}:</strong> {{ $driver->wallet }}</li>
+                            <li class="list-group-item"><strong>{{ __('Driver Rating') }}:</strong> 
+                                @if($driverRating)
+                                    <span class="badge bg-warning">{{ number_format($driverRating, 1) }} ⭐</span>
+                                @else
+                                    <span class="text-muted">{{ __('No ratings yet') }}</span>
+                                @endif
+                            </li>
                             <li class="list-group-item"><strong>{{ __('Created At') }}:</strong>
                                 {{ $driver->created_at?->diffForHumans() }}</li>
                             <li class="list-group-item"><strong>{{ __('Updated At') }}:</strong>
@@ -60,7 +67,125 @@
                 <a href="{{ route('drivers.cars', $driver->id) }}" class="btn btn-subtle-info btn-sm me-1">
                     {{ __("Cars") }} <i class="fa fa-car"></i>
                 </a>
+                <a href="{{ route('drivers.ride-history', $driver->id) }}" class="btn btn-subtle-info btn-sm me-1">
+                    {{ __("Ride History") }} <i class="fa fa-history"></i>
+                </a>
             </div>
         </div>
+
+        {{-- Ride Statistics Card --}}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">{{ __('Ride Statistics') }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <h4 class="text-primary">{{ $rideStatistics['total_rides'] }}</h4>
+                            <small class="text-muted">{{ __('Total Rides') }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <h4 class="text-success">{{ $rideStatistics['completed_rides'] }}</h4>
+                            <small class="text-muted">{{ __('Completed') }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <h4 class="text-danger">{{ $rideStatistics['cancelled_rides'] }}</h4>
+                            <small class="text-muted">{{ __('Cancelled') }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <h4 class="text-info">${{ number_format($rideStatistics['total_earnings'], 2) }}</h4>
+                            <small class="text-muted">{{ __('Total Earnings') }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <h4 class="text-warning">{{ number_format($rideStatistics['total_distance'], 1) }} km</h4>
+                            <small class="text-muted">{{ __('Distance') }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <h4 class="text-secondary">${{ number_format($rideStatistics['average_ride_earnings'], 2) }}</h4>
+                            <small class="text-muted">{{ __('Avg Earnings') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Recent Rides Card --}}
+        @if(count($recentRides) > 0)
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{{ __('Recent Rides') }}</h5>
+                <a href="{{ route('drivers.ride-history', $driver->id) }}" class="btn btn-sm btn-outline-primary">
+                    {{ __('View All') }} <i class="fa fa-arrow-right"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>{{ __('Ride ID') }}</th>
+                                <th>{{ __('Passenger') }}</th>
+                                <th>{{ __('Route') }}</th>
+                                <th>{{ __('Status') }}</th>
+                                <th>{{ __('Earnings') }}</th>
+                                <th>{{ __('Date') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($recentRides as $ride)
+                            <tr>
+                                <td>#{{ $ride['ride_id'] }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        @if($ride['user']['user_image_link'])
+                                            <img src="{{ $ride['user']['user_image_link'] }}" 
+                                                 alt="{{ $ride['user']['user_name'] }}" 
+                                                 class="rounded-circle me-2" width="30" height="30">
+                                        @endif
+                                        <div>
+                                            <div class="fw-bold">{{ $ride['user']['user_name'] }}</div>
+                                            <small class="text-muted">{{ $ride['user']['user_phone'] }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <small class="text-success">{{ __('From') }}: {{ Str::limit($ride['pickup_address'], 30) }}</small><br>
+                                        <small class="text-danger">{{ __('To') }}: {{ Str::limit($ride['dropoff_address'], 30) }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    @php
+                                        $statusValue = is_object($ride['status']) ? $ride['status']->value : $ride['status'];
+                                        $statusClass = match($statusValue) {
+                                            'completed', 'finshed' => 'success',
+                                            'cancelled' => 'danger',
+                                            'in_progress' => 'warning',
+                                            default => 'secondary'
+                                        };
+                                    @endphp
+                                    <span class="badge bg-{{ $statusClass }}">{{ ucfirst($statusValue) }}</span>
+                                </td>
+                                <td>${{ number_format($ride['calculated_final_price'], 2) }}</td>
+                                <td>{{ \Carbon\Carbon::parse($ride['created_at'])->format('M d, Y H:i') }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 @endsection

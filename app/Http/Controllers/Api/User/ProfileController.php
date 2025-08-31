@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\RideHelper;
 use App\Models\OtpLimit;
 use App\Models\Rating;
 use App\Models\Ride;
@@ -32,33 +33,9 @@ class ProfileController extends Controller
 
         $completedRides = $user->userRides;
 
-        // Map ride data
-        $ridesData = $completedRides->map(function ($ride) {
-            $driver = optional($ride->driver);
-            $car = $driver && $driver->driverCars ? optional($driver->driverCars->first()) : null;
-
-            return [
-                'ride_id' => $ride->id,
-                'driver' => [
-                    'driver_id' => $driver->id,
-                    'driver_name' => $driver->name,
-                    'driver_image_link' => $driver->image_link,
-                    'driver_phone' => $driver->phone,
-                ],
-                'car' => [
-                    'car_number' => optional($car)->car_number,
-                    'car_model' => optional($car)->car_model,
-                    'car_image_link' => optional($car)->car_image_link,
-                ],
-                'pickup_address' => $ride->pickup_address,
-                'dropoff_address' => $ride->dropoff_address,
-                'started_at' => $ride->started_at,
-                'ended_at' => $ride->ended_at,
-                'status' => $ride->status,
-                'calculated_final_price' => $ride->calculated_final_price,
-                'created_at' => $ride->created_at,
-            ];
-        })->values();
+        // Format ride data using helper
+        $ridesData = RideHelper::formatUserRideHistory($completedRides);
+        $rideStatistics = RideHelper::getUserRideStatistics($completedRides);
 
         // Response data
         $response = [
@@ -67,10 +44,7 @@ class ProfileController extends Controller
             'email' => $user->email,
             'phone' => $user->phone,
             'image_link' => $user->image_link,
-            'rides' => [
-                'rides_count' => $completedRides->count(),
-                'total_earning' => $completedRides->sum('calculated_final_price'),
-            ],
+            'rides' => $rideStatistics,
             'rides_data' => $ridesData,
             'wallet' => $user->wallet,
             'activity' => $user->activity,
@@ -146,5 +120,64 @@ class ProfileController extends Controller
             'message' => 'User already exists.',
             'remaining_otp' => $remainingOtp
         ])->setStatusCode(200, 'User already exists. Remaining OTP: ' . $remainingOtp);
+    }
+
+    public function getUserRideHistory(Request $request)
+    {
+        $user = $request->user();
+
+        $validation = Validator::make($request->all(), [
+            'status' => 'nullable|string|in:completed,finshed,cancelled,all',
+            'limit' => 'nullable|integer|min:1|max:100',
+            'page' => 'nullable|integer|min:1',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json($validation->errors(), 422);
+        }
+
+        $status = $request->get('status', 'all');
+        $limit = $request->get('limit', 20);
+        $page = $request->get('page', 1);
+
+        // Build query
+        $query = $user->userRides()
+            ->with([
+                'driver.driverCars.carModel',
+                'carCategory'
+            ])
+            ->orderBy('created_at', 'desc');
+
+        // Filter by status
+        if ($status !== 'all') {
+            if ($status === 'completed') {
+                $query->whereIn('status', ['completed', 'finshed']);
+            } else {
+                $query->where('status', $status);
+            }
+        }
+
+        // Paginate
+        $rides = $query->paginate($limit, ['*'], 'page', $page);
+
+        // Format data
+        $ridesData = RideHelper::formatUserRideHistory(collect($rides->items()));
+        $rideStatistics = RideHelper::getUserRideStatistics(collect($rides->items()));
+
+        return response()->json([
+            'user' => [
+                'user_id' => $user->id,
+                'user_name' => $user->name,
+                'statistics' => $rideStatistics,
+                'rides_data' => $ridesData,
+                'pagination' => [
+                    'current_page' => $rides->currentPage(),
+                    'last_page' => $rides->lastPage(),
+                    'per_page' => $rides->perPage(),
+                    'total' => $rides->total(),
+                    'has_more_pages' => $rides->hasMorePages(),
+                ]
+            ]
+        ]);
     }
 }
