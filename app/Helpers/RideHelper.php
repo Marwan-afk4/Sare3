@@ -12,7 +12,7 @@ class RideHelper
 
     private static int $snapBatchSize = 100;
     private static int $httpTimeout = 12;
-    private static float $minMoveMeters = 2.0;
+    private static float $minMoveMeters = 5.0;
     private static float $maxJumpMeters = 5000.0;
 
     /**
@@ -26,15 +26,16 @@ class RideHelper
 
         Log::info('[Total] raw points: ' . count($points));
 
-        $snapped = self::snapToRoads($points);
-        Log::info('[Total] snapped points: ' . count($snapped));
-
-        $filtered = self::filterPath($snapped);
+        $filtered = self::filterPath($points);
         Log::info('[Total] filtered points: ' . count($filtered));
 
+        $snapped = self::snapToRoads($filtered);
+        Log::info('[Total] snapped points: ' . count($snapped));
+
+        
         $totalMeters = 0.0;
-        for ($i = 0; $i < count($filtered) - 1; $i++) {
-            $totalMeters += self::haversineMeters($filtered[$i], $filtered[$i + 1]);
+        for ($i = 0; $i < count($snapped) - 1; $i++) {
+            $totalMeters += self::haversineMeters($snapped[$i], $snapped[$i + 1]);
         }
 
         $km = $totalMeters / 1000.0;
