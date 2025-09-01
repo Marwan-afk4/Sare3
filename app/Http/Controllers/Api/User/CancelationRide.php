@@ -50,15 +50,44 @@ class CancelationRide extends Controller
 
         if (!$selectedPolicy) {
             ModelsCancelationRide::create([
-            'ride_id' => $ride->id,
-            'user_id' => $user->role === 'user' ? $user->id : null,
-            'driver_id' => $user->role === 'driver' ? $user->id : null,
-            'canceled_by' => $user->role ?? 'unknown',
-            'canceled_at' => $now,
-            'reason' => $request->input('reason'),
-        ]);
-            Ride::where('id', $ride->id)->update(['status' => 'cancelled']);
-            return response()->json(['message' => 'Ride canceled successfully , No applicable cancellation policy found.'], 200);
+                'ride_id' => $ride->id,
+                'user_id' => $user->role === 'user' ? $user->id : null,
+                'driver_id' => $user->role === 'driver' ? $user->id : null,
+                'canceled_by' => $user->role ?? 'unknown',
+                'canceled_at' => $now,
+                'reason' => $request->input('reason'),
+            ]);
+
+            // Update ride in DB
+            $ride->update(['status' => 'cancelled']);
+
+            // Update Firebase
+            try {
+                $firebase = (new Factory)
+                    ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                    ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                    ->createDatabase();
+
+                $firebaseRef = $firebase->getReference("rides/{$ride->firebase_ride_id}");
+
+                if ($user->role === 'driver') {
+                    $firebaseRef->update([
+                        'status' => 'canceled',
+                    ]);
+                } elseif ($user->role === 'user') {
+                    $firebaseRef->remove();
+                }
+            } catch (\Exception $e) {
+                return response()->json([
+                    'message' => 'Ride canceled, but failed to update Firebase',
+                    'firebase_error' => $e->getMessage(),
+                ], 500);
+            }
+
+            // ✅ Only now return response
+            return response()->json([
+                'message' => 'Ride canceled successfully , No applicable cancellation policy found.',
+            ], 200);
         }
 
         // حساب الغرامة
