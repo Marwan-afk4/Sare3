@@ -286,52 +286,74 @@ class RideActionsController extends Controller
 
         // 4️⃣ Fare Calculation
         $timeFare = $durationMinutes * $carCategory->price_per_time;
-        $fare = $carCategory->base_price + ($distanceKm * $carCategory->price_per_km) + $timeFare;
+        $originalFare = $carCategory->base_price + ($distanceKm * $carCategory->price_per_km) + $timeFare;
 
-        // 5️⃣ Admin Profit Calculation
+        // 5️⃣ Apply Referral Discounts
+        $referralDiscountService = new \App\Services\ReferralDiscountService();
+        $discountResult = $referralDiscountService->applyDiscounts($ride, $originalFare);
+        $fare = $discountResult['final_fare'];
+
+        // 6️⃣ Admin Profit Calculation (on discounted fare)
         $adminProfitPercentage = \App\Models\AppSetting::getAdminProfitPercentage();
         $profitAmounts = \App\Models\RideProfit::calculateProfit($fare, $adminProfitPercentage);
 
-        // 6️⃣ Update Driver Wallet (deduct admin profit)
+        // 7️⃣ Update Driver Wallet (deduct admin profit)
         $driver = $ride->driver;
         if ($driver && $profitAmounts['admin_profit_amount'] > 0) {
             $driver->decrement('wallet', $profitAmounts['admin_profit_amount']);
         }
 
-        // 7️⃣ Create Profit Record
+        // 8️⃣ Create Profit Record
         if ($adminProfitPercentage > 0) {
             \App\Models\RideProfit::createForRide($ride, $fare, $adminProfitPercentage);
         }
 
-        // 8️⃣ Update Ride
+        // 9️⃣ Update Ride
         $ride->update([
             'calculated_final_price' => round($fare, 2),
+            'original_price' => round($originalFare, 2),
+            'discount_amount' => round($discountResult['total_discount_amount'], 2),
             'status' => 'completed',
             'ended_at' => $endTime,
             'time_taken' => $durationMinutes,
             'total_distance_in_km' => round($distanceKm, 2),
         ]);
 
-        // 9️⃣ Push to Firebase
+        // 🔟 Push to Firebase
         try {
-            $this->updateFirebase($ride, [
+            $firebaseData = [
                 'status' => 'completed',
                 'completed_at' => $endTime->toIso8601String(),
                 'final_price' => [
-                    'fare' => round($fare, 2),
+                    'original_fare' => round($originalFare, 2),
+                    'final_fare' => round($fare, 2),
+                    'discount_amount' => round($discountResult['total_discount_amount'], 2),
                     'distance_km' => round($distanceKm, 2),
                     'duration_minutes' => $durationMinutes,
                 ],
-            ]);
+            ];
+
+            if (!empty($discountResult['applied_discounts'])) {
+                $firebaseData['discounts'] = $discountResult['applied_discounts'];
+            }
+
+            $this->updateFirebase($ride, $firebaseData);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Firebase error.', 'error' => $e->getMessage()], 500);
         }
 
         return response()->json([
             'message' => 'Ride completed.',
-            'final_price' => round($fare, 2),
-            'distance_km' => round($distanceKm, 2),
-            'duration_minutes' => $durationMinutes,
+            'pricing' => [
+                'original_fare' => round($originalFare, 2),
+                'final_fare' => round($fare, 2),
+                'discount_amount' => round($discountResult['total_discount_amount'], 2),
+                'applied_discounts' => $discountResult['applied_discounts']
+            ],
+            'ride_details' => [
+                'distance_km' => round($distanceKm, 2),
+                'duration_minutes' => $durationMinutes,
+            ],
             'admin_profit' => [
                 'percentage' => $adminProfitPercentage,
                 'amount' => $profitAmounts['admin_profit_amount'],

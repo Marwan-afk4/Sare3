@@ -226,6 +226,30 @@
                         </a>
                     </div>
 
+                    {{-- referrals --}}
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'referrals' ? 'active' : '' }}"
+                            href="{{ route('referrals.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="share-2"></span></span>
+                                <span class="nav-link-text-wrapper"><span
+                                        class="nav-link-text">{{ __('Referral Management') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+
+                    {{-- settings --}}
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'settings' ? 'active' : '' }}"
+                            href="{{ route('settings.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="settings"></span></span>
+                                <span class="nav-link-text-wrapper"><span
+                                        class="nav-link-text">{{ __('Settings') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+
                     {{-- support-chat --}}
                     {{-- <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'support-chat' ? 'active' : '' }}"

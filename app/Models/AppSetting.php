@@ -116,4 +116,68 @@ class AppSetting extends Model
     {
         static::set('minimum_driver_wallet_balance', $amount, 'string', 'Minimum wallet balance required for drivers to go online');
     }
+
+    /**
+     * Get referral discount percentage
+     */
+    public static function getReferralDiscountPercentage(): float
+    {
+        return (float) static::get('referral_discount_percentage', 10);
+    }
+
+    /**
+     * Set referral discount percentage
+     */
+    public static function setReferralDiscountPercentage(float $percentage): void
+    {
+        static::set('referral_discount_percentage', $percentage, 'string', 'Discount percentage for referral users');
+    }
+
+    /**
+     * Get referral discount rides count
+     */
+    public static function getReferralDiscountRides(): int
+    {
+        return (int) static::get('referral_discount_rides', 5);
+    }
+
+    /**
+     * Set referral discount rides count
+     */
+    public static function setReferralDiscountRides(int $rides): void
+    {
+        static::set('referral_discount_rides', $rides, 'integer', 'Number of rides with referral discount');
+    }
+
+    /**
+     * Get referrer reward percentage
+     */
+    public static function getReferrerRewardPercentage(): float
+    {
+        return (float) static::get('referrer_reward_percentage', 5);
+    }
+
+    /**
+     * Set referrer reward percentage
+     */
+    public static function setReferrerRewardPercentage(float $percentage): void
+    {
+        static::set('referrer_reward_percentage', $percentage, 'string', 'Reward percentage for referrers');
+    }
+
+    /**
+     * Get referrer reward rides count
+     */
+    public static function getReferrerRewardRides(): int
+    {
+        return (int) static::get('referrer_reward_rides', 10);
+    }
+
+    /**
+     * Set referrer reward rides count
+     */
+    public static function setReferrerRewardRides(int $rides): void
+    {
+        static::set('referrer_reward_rides', $rides, 'integer', 'Number of rides with referrer rewards');
+    }
 }

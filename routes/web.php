@@ -22,7 +22,6 @@ use App\Http\Controllers\{
     PaymenentMethodController,
     RideController,
     RideRequestTimeLimitController,
-    SupportChatController,
     WalletRequestController,
     ZoneController
 };
@@ -73,6 +72,14 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
             Route::get('/history', [\App\Http\Controllers\Admin\ProfitStatisticsWebController::class, 'history'])->name('history');
         });
 
+        // Referral Management routes
+        Route::prefix('referrals')->name('referrals.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\ReferralController::class, 'index'])->name('index');
+            Route::get('/list', [\App\Http\Controllers\Admin\ReferralController::class, 'list'])->name('list');
+            Route::get('/settings', [\App\Http\Controllers\Admin\ReferralController::class, 'settings'])->name('settings');
+            Route::put('/settings', [\App\Http\Controllers\Admin\ReferralController::class, 'updateSettings'])->name('settings.update');
+        });
+
         Route::post('/otp-limits/{otpLimit}/reset-drivers', [OtpLimitController::class, 'resetDrivers'])->name('otp-limits.reset-drivers');
         Route::post('/otp-limits/{otpLimit}/reset-users', [OtpLimitController::class, 'resetUsers'])->name('otp-limits.reset-users');
 
@@ -83,14 +90,5 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
         
         Route::get('/users/{user}/ride-history', [UserController::class, 'rideHistory'])->name('users.ride-history');
 
-        // Support Chat Routes
-        Route::prefix('support-chat')->name('admin.support-chat.')->group(function () {
-            Route::get('/', [SupportChatController::class, 'index'])->name('index');
-            Route::get('/conversations/users', [SupportChatController::class, 'getUserConversations'])->name('conversations.users');
-            Route::get('/conversations/drivers', [SupportChatController::class, 'getDriverConversations'])->name('conversations.drivers');
-            Route::get('/conversation/{conversationId}', [SupportChatController::class, 'getConversation'])->name('conversation.show');
-            Route::post('/message', [SupportChatController::class, 'sendMessage'])->name('message.send');
-            Route::patch('/conversation/{conversationId}/read', [SupportChatController::class, 'markAsRead'])->name('conversation.read');
-            Route::get('/stats', [SupportChatController::class, 'getStats'])->name('stats');
-        });
+
     });

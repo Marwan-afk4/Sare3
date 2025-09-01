@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\User;
+namespace App\Http\Controllers\Api\Driver;
 
 use App\Http\Controllers\Controller;
 use App\Services\ReferralService;
@@ -17,13 +17,13 @@ class ReferralController extends Controller
     }
 
     /**
-     * Generate referral link for user
+     * Generate referral link for driver
      */
     public function generateLink(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $driver = $request->user();
         
-        $referralData = $this->referralService->generateReferralToken($user);
+        $referralData = $this->referralService->generateReferralToken($driver);
 
         return response()->json([
             'success' => true,
@@ -33,13 +33,13 @@ class ReferralController extends Controller
     }
 
     /**
-     * Get user's referral statistics
+     * Get driver's referral statistics
      */
     public function getStats(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $driver = $request->user();
         
-        $stats = $this->referralService->getReferralStats($user);
+        $stats = $this->referralService->getReferralStats($driver);
 
         return response()->json([
             'success' => true,
@@ -48,13 +48,13 @@ class ReferralController extends Controller
     }
 
     /**
-     * Get user's discount status
+     * Get driver's discount status
      */
     public function getDiscountStatus(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $driver = $request->user();
         
-        $discountStatus = $this->referralService->getUserDiscountStatus($user);
+        $discountStatus = $this->referralService->getUserDiscountStatus($driver);
 
         return response()->json([
             'success' => true,
@@ -63,7 +63,7 @@ class ReferralController extends Controller
     }
 
     /**
-     * Apply referral code (used after user signs in)
+     * Apply referral code (used after driver signs in)
      */
     public function applyCode(Request $request): JsonResponse
     {
@@ -71,10 +71,10 @@ class ReferralController extends Controller
             'referral_code' => 'required|string'
         ]);
 
-        $user = $request->user();
+        $driver = $request->user();
 
-        // Check if user already has a referrer
-        if ($user->referrer_id) {
+        // Check if driver already has a referrer
+        if ($driver->referrer_id) {
             return response()->json([
                 'success' => false,
                 'message' => 'You have already used a referral code'
@@ -97,8 +97,8 @@ class ReferralController extends Controller
             ], 400);
         }
 
-        // Check if user is trying to refer themselves
-        if ($referral->referrer_id === $user->id) {
+        // Check if driver is trying to refer themselves
+        if ($referral->referrer_id === $driver->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'You cannot use your own referral code'
@@ -106,7 +106,7 @@ class ReferralController extends Controller
         }
 
         // Apply the referral
-        $success = $this->referralService->applyReferralCode($referral->token, $user);
+        $success = $this->referralService->applyReferralCode($referral->token, $driver);
 
         if ($success) {
             return response()->json([
@@ -134,10 +134,10 @@ class ReferralController extends Controller
             'referral_code' => 'required|string'
         ]);
 
-        $user = $request->user();
+        $driver = $request->user();
 
-        // Check if user already has a referrer
-        if ($user->referrer_id) {
+        // Check if driver already has a referrer
+        if ($driver->referrer_id) {
             return response()->json([
                 'success' => false,
                 'message' => 'You have already used a referral code',
@@ -162,8 +162,8 @@ class ReferralController extends Controller
             ]);
         }
 
-        // Check if user is trying to refer themselves
-        if ($referral->referrer_id === $user->id) {
+        // Check if driver is trying to refer themselves
+        if ($referral->referrer_id === $driver->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'You cannot use your own referral code',

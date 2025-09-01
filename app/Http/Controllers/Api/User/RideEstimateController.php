@@ -45,6 +45,7 @@ class RideEstimateController extends Controller
             return response()->json(['message' => $validation->errors()->first()], 422);
         }
 
+        $user = $request->user();
         $zoneId = $request->zone_id;
         $estimatedKm = $request->estimated_km ?? 0;
         $estimatedTime = $request->estimated_time ?? 0;
@@ -56,7 +57,9 @@ class RideEstimateController extends Controller
             return response()->json(['message' => 'Zone not found'], 404);
         }
 
-        $result = $zone->carCategories->map(function ($category) use ($estimatedKm, $estimatedTime) {
+        $rideService = app(\App\Services\RideService::class);
+
+        $result = $zone->carCategories->map(function ($category) use ($estimatedKm, $estimatedTime, $user, $rideService) {
             $base = $category->pivot->base_price;
             $perKm = $category->pivot->price_per_km;
             $perTime = $category->pivot->price_per_min;
@@ -69,13 +72,17 @@ class RideEstimateController extends Controller
                 $price = $minPrice;
             }
 
+            // Calculate discount preview
+            $estimateWithDiscount = $rideService->getRideEstimateWithDiscount($user, $price);
+
             return [
                 'id' => $category->id,
                 'name' => $category->name,
                 'description' => $category->description,
                 'estimated_price' => round($price, 2),
                 'estimated_time' => $estimatedTime,
-                'icon_url' => $category->getIconUrlAttribute()
+                'icon_url' => $category->getIconUrlAttribute(),
+                'discount_preview' => $estimateWithDiscount['discount_preview']
             ];
         });
 

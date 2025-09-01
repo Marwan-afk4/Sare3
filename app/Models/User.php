@@ -45,6 +45,7 @@ class User extends Authenticatable
         'fcm_token',
         'referrer_id',
         'is_referrer',
+        'referral_code',
         'zone_id'
     ];
 
@@ -65,6 +66,39 @@ class User extends Authenticatable
     public function referrals()
     {
         return $this->hasMany(User::class, 'referrer_id');
+    }
+
+    public function referralTokens()
+    {
+        return $this->hasMany(Referral::class, 'referrer_id');
+    }
+
+    public function activeReferral()
+    {
+        return $this->hasOne(Referral::class, 'referred_user_id')
+                    ->where('is_active', true)
+                    ->whereColumn('used_rides_count', '<', 'discount_rides_count');
+    }
+
+    /**
+     * Generate unique referral code for user
+     */
+    public function generateReferralCode(): string
+    {
+        do {
+            $code = strtoupper(substr($this->name ?? 'USER', 0, 3) . rand(1000, 9999));
+        } while (User::where('referral_code', $code)->exists());
+
+        $this->update(['referral_code' => $code]);
+        return $code;
+    }
+
+    /**
+     * Get or create referral code
+     */
+    public function getReferralCode(): string
+    {
+        return $this->referral_code ?? $this->generateReferralCode();
     }
 
     public function getImageLinkAttribute()

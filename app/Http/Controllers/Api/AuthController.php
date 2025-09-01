@@ -178,20 +178,6 @@ class AuthController extends Controller
         // ✅ Generate token بعد ما يبقى عندنا يوزر فعلي
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        if ($request->has('ref')) {
-            $ref = Referral::where('token', $request->ref)->first();
-
-            if ($ref) {
-                $user->referrer_id = $ref->referrer_id;
-                $user->is_referrer = true;
-                $user->save();
-
-                // تحديث referral
-                $ref->referred_user_id = $user->id;
-                $ref->save();
-            }
-        }
-
         return response()->json([
             'message' => 'Phone number verified successfully',
             'token'=> $token,

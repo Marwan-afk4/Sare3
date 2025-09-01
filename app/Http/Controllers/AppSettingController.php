@@ -29,6 +29,44 @@ class AppSettingController extends Controller
         if (!AppSetting::where('key', 'admin_profit_percentage')->exists()) {
             AppSetting::set('admin_profit_percentage', 10, 'string', 'Admin profit percentage from rides (0-100%)');
         }
+
+        // Ensure referral settings exist
+        $this->ensureReferralSettings();
+    }
+
+    /**
+     * Ensure referral settings exist
+     */
+    private function ensureReferralSettings()
+    {
+        $referralSettings = [
+            'referral_discount_percentage' => [
+                'value' => '10',
+                'type' => 'string',
+                'description' => 'Discount percentage for new users who use referral codes (0-100%)'
+            ],
+            'referral_discount_rides' => [
+                'value' => '5',
+                'type' => 'integer',
+                'description' => 'Number of rides with discount for referred users (1-50)'
+            ],
+            'referrer_reward_percentage' => [
+                'value' => '5',
+                'type' => 'string',
+                'description' => 'Reward percentage for users who refer others (0-100%)'
+            ],
+            'referrer_reward_rides' => [
+                'value' => '10',
+                'type' => 'integer',
+                'description' => 'Number of rides with rewards for referrers (1-100)'
+            ]
+        ];
+
+        foreach ($referralSettings as $key => $config) {
+            if (!AppSetting::where('key', $key)->exists()) {
+                AppSetting::set($key, $config['value'], $config['type'], $config['description']);
+            }
+        }
     }
 
     public function update(Request $request)
@@ -36,6 +74,10 @@ class AppSettingController extends Controller
         $request->validate([
             'settings' => 'array',
             'settings.admin_profit_percentage' => 'nullable|numeric|min:0|max:100',
+            'settings.referral_discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'settings.referral_discount_rides' => 'nullable|integer|min:1|max:50',
+            'settings.referrer_reward_percentage' => 'nullable|numeric|min:0|max:100',
+            'settings.referrer_reward_rides' => 'nullable|integer|min:1|max:100',
         ]);
 
         foreach ($request->settings as $key => $value) {
