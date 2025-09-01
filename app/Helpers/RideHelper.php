@@ -32,7 +32,7 @@ class RideHelper
         $snapped = self::snapToRoads($filtered);
         Log::info('[Total] snapped points: ' . count($snapped));
 
-        
+
         $totalMeters = 0.0;
         for ($i = 0; $i < count($snapped) - 1; $i++) {
             $totalMeters += self::haversineMeters($snapped[$i], $snapped[$i + 1]);
@@ -145,7 +145,7 @@ class RideHelper
         } elseif (!$rides instanceof \Illuminate\Support\Collection) {
             $rides = collect($rides);
         }
-        
+
         return $rides->map(function ($ride) {
             $driver = optional($ride->driver);
             $car = $driver && $driver->driverCars ? optional($driver->driverCars->first()) : null;
@@ -188,7 +188,7 @@ class RideHelper
         } elseif (!$rides instanceof \Illuminate\Support\Collection) {
             $rides = collect($rides);
         }
-        
+
         return $rides->map(function ($ride) {
             $user = optional($ride->user);
 
@@ -224,12 +224,12 @@ class RideHelper
         } elseif (!$rides instanceof \Illuminate\Support\Collection) {
             $rides = collect($rides);
         }
-        
+
         $completedRides = $rides->where('status', 'finshed'); // mo2ktn 3shan zh2t w kiro msh fahmny
         $finshedRides = $rides->where('status', 'finshed');
         $cancelledRides = $rides->where('status', 'cancelled');
         $successfulRides = $rides->whereIn('status', ['completed', 'finshed']);
-        
+
         return [
             'total_rides' => $rides->count(),
             'completed_rides' => $completedRides->count(),
@@ -253,12 +253,12 @@ class RideHelper
         } elseif (!$rides instanceof \Illuminate\Support\Collection) {
             $rides = collect($rides);
         }
-        
+
         $completedRides = $rides->where('status', 'finshed'); // mo2ktn 3shan zh2t w kiro msh fahmny #2
         $finshedRides = $rides->where('status', 'finshed');
         $cancelledRides = $rides->where('status', 'cancelled');
         $successfulRides = $rides->whereIn('status', ['completed', 'finshed']);
-        
+
         return [
             'total_rides' => $rides->count(),
             'completed_rides' => $completedRides->count(),

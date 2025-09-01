@@ -135,11 +135,11 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             @if($ride['driver']['driver_image_link'])
-                                                <img src="{{ $ride['driver']['driver_image_link'] }}" 
-                                                     alt="{{ $ride['driver']['driver_name'] }}" 
+                                                <img src="{{ $ride['driver']['driver_image_link'] }}"
+                                                     alt="{{ $ride['driver']['driver_name'] }}"
                                                      class="rounded-circle me-2" width="40" height="40">
                                             @else
-                                                <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                                                <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center"
                                                      style="width: 40px; height: 40px;">
                                                     <i class="fa fa-user text-white"></i>
                                                 </div>
@@ -191,15 +191,20 @@
                                     </td>
                                     <td>
                                         @php
-                                            $statusClass = match($ride['status']) {
-                                                'completed', 'finshed' => 'success',
-                                                'cancelled' => 'danger',
-                                                'in_progress' => 'warning',
-                                                'accepted' => 'info',
-                                                default => 'secondary'
+                                            $status = ucfirst(strtolower($ride['status'])); // normalize value
+
+                                            $statusClass = match($status) {
+                                                'Completed', 'Finshed' => 'success',
+                                                'Cancelled' , 'Rejected' => 'danger',
+                                                'In_progress' , 'Waiting_user' => 'warning',
+                                                'Accepted' => 'info',
+                                                default => 'secondary',
                                             };
                                         @endphp
-                                        <span class="badge bg-{{ $statusClass }}">{{ ucfirst(str_replace('_', ' ', $ride['status'])) }}</span>
+
+                                        <span class="badge bg-{{ $statusClass }}">
+                                            {{ __(ucfirst(str_replace('_', ' ', $ride['status']))) }}
+                                        </span>
                                     </td>
                                     <td>
                                         <strong>${{ number_format($ride['calculated_final_price'], 2) }}</strong>
@@ -217,15 +222,16 @@
                     </div>
 
                     {{-- Pagination --}}
-                    <div class="d-flex justify-content-between align-items-center mt-3">
+                    {{-- <div class="d-flex justify-content-between align-items-center mt-3">
                         <div>
-                            {{ __('Showing') }} {{ $rides->firstItem() }} {{ __('to') }} {{ $rides->lastItem() }} 
+                            {{ __('Showing') }} {{ $rides->firstItem() }} {{ __('to') }} {{ $rides->lastItem() }}
                             {{ __('of') }} {{ $rides->total() }} {{ __('rides') }}
                         </div>
                         <div>
-                            {{ $rides->appends(request()->query())->links() }}
+                            {{ $users->links('pagination::custom') }}
                         </div>
-                    </div>
+                    </div> --}}
+                    {{ $rides->links('pagination::custom') }}
                 @else
                     <div class="text-center py-5">
                         <i class="fa fa-car fa-3x text-muted mb-3"></i>

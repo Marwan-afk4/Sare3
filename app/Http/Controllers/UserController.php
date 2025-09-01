@@ -75,12 +75,12 @@ class UserController extends Controller
         // Build query
         $query = $user->userRides()
             ->with(['driver.driverCars.carModel', 'carCategory'])
-            ->orderBy('created_at', 'desc');
+            ->orderBy('created_at', 'asc');
 
         // Filter by status
         if ($status !== 'all') {
             if ($status === 'completed') {
-                $query->whereIn('status', ['completed', 'finshed']);
+                $query->whereIn('status', ['completed', 'finished']);
             } else {
                 $query->where('status', $status);
             }

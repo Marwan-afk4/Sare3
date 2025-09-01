@@ -20,13 +20,29 @@ class RideController extends Controller
     {
         $sortField = $request->get('sort', 'id');
         $sortOrder = $request->get('order', 'asc');
+        $keyword   = $request->get('keyword');
 
         $ridesQuery = Ride::with(['user', 'driver', 'carCategory'])
+            ->when($keyword, function ($query, $keyword) {
+                $query->where(function ($q) use ($keyword) {
+                    $q->where('id', 'LIKE', "%{$keyword}%")
+                    ->orWhere('pickup_address', 'LIKE', "%{$keyword}%")
+                    ->orWhere('dropoff_address', 'LIKE', "%{$keyword}%")
+                    ->orWhereHas('user', function ($userQuery) use ($keyword) {
+                        $userQuery->where('name', 'LIKE', "%{$keyword}%")
+                                    ->orWhere('phone', 'LIKE', "%{$keyword}%")
+                                    ->orWhere('email', 'LIKE', "%{$keyword}%");
+                    })
+                    ->orWhereHas('driver', function ($driverQuery) use ($keyword) {
+                        $driverQuery->where('name', 'LIKE', "%{$keyword}%")
+                                    ->orWhere('phone', 'LIKE', "%{$keyword}%");
+                    });
+                });
+            })
+            ->when($request->filled('status'), function ($query) use ($request) {
+                $query->where('status', $request->status);
+            })
             ->orderBy($sortField, $sortOrder);
-
-        if ($request->filled('status')) {
-            $ridesQuery->where('status', $request->status);
-        }
 
         $rides = $ridesQuery->paginate(30);
 
@@ -47,6 +63,7 @@ class RideController extends Controller
             'rideStatuses'
         ));
     }
+
 
 
     public function create()
