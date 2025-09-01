@@ -10,7 +10,7 @@ class UserNotificatonController extends Controller
 {
 
 
-    public function getNotificaions(Request $request)
+    public function getNotificaions()
     {
         $notifications = Notification::where('type', 'user')
             ->get();
