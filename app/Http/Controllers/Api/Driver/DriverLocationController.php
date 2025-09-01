@@ -20,9 +20,9 @@ class DriverLocationController extends Controller
     public function updateDriverLocation(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            'ride_id' => 'required|exists:rides,id',
-            'lat' => 'required|numeric|between:-90,90',
-            'lng' => 'required|numeric|between:-180,180',
+            'ride_id' => 'required',
+            'lat' => 'required',
+            'lng' => 'required',
         ]);
 
         if ($validation->fails()) {
