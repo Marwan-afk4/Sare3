@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
 use App\Http\Controllers\Api\Driver\DriverActivtyController;
 use App\Http\Controllers\Api\Driver\DriverLocationController;
+use App\Http\Controllers\Api\Driver\DriverNotificationController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
 use App\Http\Controllers\Api\Driver\PointController as DriverPointController;
 use App\Http\Controllers\Api\Driver\RaitingController as DriverRaitingController;
@@ -151,7 +152,7 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 
 //Notification
     Route::post('/push-notification', [NotificationController::class, 'broadcastNotification']);
-    Route::get('/notifications', [UserNotificatonController::class, 'getNotificaions']);
+    Route::get('/notifications', [DriverNotificationController::class, 'getDriverNotificaions']);
 
 //is in ride
     Route::get('/driver-in-ride', [DriverProfileController::class, 'isInRide']);
