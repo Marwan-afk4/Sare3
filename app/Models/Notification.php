@@ -22,6 +22,11 @@ class Notification extends Model
 
     public $timestamps = true;
 
+    protected $hidden = [
+        'updated_at',
+        'created_at',
+    ];
+
     protected $casts = [
         'type'=> OtpTypes::class, //user or driver
     ];
