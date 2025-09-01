@@ -68,6 +68,7 @@ class RideActionsController extends Controller
     public function acceptRide(Request $request)
     {
         $driver = $request->user();
+        $startTime = Carbon::now();
 
         $ride = Ride::where('id', $request->ride_id)
             ->whereIn('status', ['pending', 'rejected']) // Allow accepting rejected rides
@@ -79,6 +80,7 @@ class RideActionsController extends Controller
 
         $ride->update([
             'driver_id' => $driver->id,
+            'started_at' => $startTime,
             'status' => 'accepted',
         ]);
 
@@ -91,7 +93,7 @@ class RideActionsController extends Controller
         // Generate verification code if feature is enabled
         $verificationService = new RideVerificationService();
         $verificationCode = $verificationService->generateCodeForRide($ride);
-        
+
         if ($verificationCode) {
             $firebaseData['verification_required'] = true;
             // Code is stored separately in Firebase for user access only
@@ -107,7 +109,7 @@ class RideActionsController extends Controller
         }
 
         $response = ['message' => 'Ride accepted.'];
-        
+
         if ($verificationCode) {
             $response['verification_required'] = true;
             $response['message'] = 'Ride accepted. Verification code generated for user.';
@@ -176,7 +178,7 @@ class RideActionsController extends Controller
 
         // Allow verification for rides in 'accepted' or 'waiting_user' status
         $ride = $this->validateRide($request);
-        
+
         if (!in_array($ride->status->value, ['accepted', 'waiting_user'])) {
             return response()->json([
                 'message' => 'Ride must be in accepted or waiting status for verification.',
@@ -271,11 +273,16 @@ class RideActionsController extends Controller
         }
 
         // 3️⃣ Duration Calculation
-        $startTimestamp = $points[0]['timestamp'];
-        $endTimestamp = $points[count($points) - 1]['timestamp'];
-        $startTime = Carbon::createFromTimestamp($startTimestamp);
-        $endTime = Carbon::createFromTimestamp($endTimestamp);
-        $durationMinutes = $startTime->diffInMinutes($endTime);
+        // $startTimestamp = $points[0]['timestamp'];
+        // $endTimestamp = $points[count($points) - 1]['timestamp'];
+        if (!$ride->started_at) {
+            return response()->json(['message' => 'Ride has no start time.'], 400);
+        }
+
+        $startTime = Carbon::parse($ride->started_at);
+        $endTime = Carbon::now();
+        $durationMinutes = ceil($startTime->floatDiffInMinutes($endTime));
+
 
         // 4️⃣ Fare Calculation
         $timeFare = $durationMinutes * $carCategory->price_per_time;
@@ -284,7 +291,7 @@ class RideActionsController extends Controller
         // 5️⃣ Admin Profit Calculation
         $adminProfitPercentage = \App\Models\AppSetting::getAdminProfitPercentage();
         $profitAmounts = \App\Models\RideProfit::calculateProfit($fare, $adminProfitPercentage);
-        
+
         // 6️⃣ Update Driver Wallet (deduct admin profit)
         $driver = $ride->driver;
         if ($driver && $profitAmounts['admin_profit_amount'] > 0) {
