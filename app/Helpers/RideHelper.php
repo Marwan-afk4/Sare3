@@ -254,7 +254,7 @@ class RideHelper
             $rides = collect($rides);
         }
 
-        $completedRides = $rides->where('status', 'finshed'); // mo2ktn 3shan zh2t w kiro msh fahmny #2
+        $completedRides = $rides->where('status', 'finshed'); // mo2ktn 3shan zh2t w kiro msh fahmny #2 hollaaaa
         $finshedRides = $rides->where('status', 'finshed');
         $cancelledRides = $rides->where('status', 'cancelled');
         $successfulRides = $rides->whereIn('status', ['completed', 'finshed']);
