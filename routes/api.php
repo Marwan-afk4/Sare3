@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\AdminSettingsController;
+use App\Http\Controllers\Api\Admin\ProfitStatisticsController;
 use App\Http\Controllers\Api\AppSettingsController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
 use App\Http\Controllers\Api\Driver\DriverActivtyController;
 use App\Http\Controllers\Api\Driver\DriverLocationController;
+use App\Http\Controllers\Api\Driver\DriverNotificationController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
 use App\Http\Controllers\Api\Driver\PointController as DriverPointController;
 use App\Http\Controllers\Api\Driver\RaitingController as DriverRaitingController;
@@ -23,6 +26,9 @@ use App\Http\Controllers\Api\User\RaitingController;
 use App\Http\Controllers\Api\User\RideEstimateController;
 use App\Http\Controllers\Api\RideTrackingController;
 use App\Http\Controllers\Api\User\ReferralController;
+use App\Http\Controllers\Api\User\RideActionsController as UserRideActionsController;
+use App\Http\Controllers\Api\User\UserNotificatonController;
+use App\Models\AppSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 //======= USER AUTH ========
@@ -144,8 +150,9 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 //Logout
     Route::delete('/logout', [DriverAuthController::class, 'logout']);
 
-//push notification
+//Notification
     Route::post('/push-notification', [NotificationController::class, 'broadcastNotification']);
+    Route::get('/notifications', [DriverNotificationController::class, 'getDriverNotificaions']);
 
 //is in ride
     Route::get('/driver-in-ride', [DriverProfileController::class, 'isInRide']);
@@ -190,8 +197,8 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 
 //Ride
     Route::post('/ride/create', [RideEstimateController::class,'createRide']);
-    Route::get('/ride/verification-code', [\App\Http\Controllers\Api\User\RideActionsController::class, 'getVerificationCode']);
-    Route::get('/ride/status', [\App\Http\Controllers\Api\User\RideActionsController::class, 'getRideStatus']);
+    Route::get('/ride/verification-code', [UserRideActionsController::class, 'getVerificationCode']);
+    Route::get('/ride/status', [UserRideActionsController::class, 'getRideStatus']);
 
 //Raiting
     Route::post('/ride/rating', [RaitingController::class,'raiting']);
@@ -205,8 +212,9 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 //Logout
     Route::delete('/logout', [DriverAuthController::class, 'logout']);
 
-//Push Notification
+//Notification
     Route::post('/push-notification', [NotificationController::class, 'broadcastNotification']);
+    Route::get('/notifications', [UserNotificatonController::class, 'getNotificaions']);
 
 //user in Ride
     Route::get('/user-in-ride', [ProfileController::class, 'isInRide']);
@@ -241,15 +249,15 @@ Route::get('/settings/ride-verification-enabled', [AppSettingsController::class,
 //======= ADMIN SETTINGS ========
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
     // Profit Settings
-    Route::get('/profit-percentage', [\App\Http\Controllers\Api\Admin\AdminSettingsController::class, 'getProfitPercentage']);
-    Route::post('/profit-percentage', [\App\Http\Controllers\Api\Admin\AdminSettingsController::class, 'setProfitPercentage']);
-    
+    Route::get('/profit-percentage', [AdminSettingsController::class, 'getProfitPercentage']);
+    Route::post('/profit-percentage', [AdminSettingsController::class, 'setProfitPercentage']);
+
     // Wallet Settings
-    Route::get('/minimum-driver-wallet-balance', [\App\Http\Controllers\Api\Admin\AdminSettingsController::class, 'getMinimumDriverWalletBalance']);
-    Route::post('/minimum-driver-wallet-balance', [\App\Http\Controllers\Api\Admin\AdminSettingsController::class, 'setMinimumDriverWalletBalance']);
-    
-    Route::get('/settings', [\App\Http\Controllers\Api\Admin\AdminSettingsController::class, 'getAllSettings']);
-    
+    Route::get('/minimum-driver-wallet-balance', [AdminSettingsController::class, 'getMinimumDriverWalletBalance']);
+    Route::post('/minimum-driver-wallet-balance', [AdminSettingsController::class, 'setMinimumDriverWalletBalance']);
+
+    Route::get('/settings', [AdminSettingsController::class, 'getAllSettings']);
+
     // Profit Statistics
     Route::get('/profit-statistics', [\App\Http\Controllers\Api\Admin\ProfitStatisticsController::class, 'getProfitStatistics']);
     Route::get('/profit-statistics/daily', [\App\Http\Controllers\Api\Admin\ProfitStatisticsController::class, 'getDailyProfitBreakdown']);
@@ -266,23 +274,19 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
 //======= DEBUG ENDPOINT (Temporary) ========
 Route::get('/debug/ride/{rideId}', function($rideId) {
     $ride = \App\Models\Ride::find($rideId);
-    
+
     if (!$ride) {
         return response()->json(['error' => 'Ride not found'], 404);
     }
-    
+
     return response()->json([
         'ride_id' => $ride->id,
         'status' => $ride->status,
         'driver_id' => $ride->driver_id,
         'verification_code' => $ride->verification_code,
         'verification_code_verified' => $ride->verification_code_verified,
-        'verification_enabled' => \App\Models\AppSetting::isRideVerificationEnabled()
+        'verification_enabled' => AppSetting::isRideVerificationEnabled()
     ]);
 });
-
-//======= FIREBASE TESTING ========
-// Route::get('/test-firebase', [\App\Http\Controllers\Api\FirebaseTestController::class, 'testFirebase']);
-
 
 
