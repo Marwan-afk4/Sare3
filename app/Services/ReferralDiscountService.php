@@ -89,15 +89,10 @@ class ReferralDiscountService
      */
     private function applyReferrerRewardDiscount(Ride $ride, User $user, float $originalFare): ?array
     {
-        // Find active referrals where this user is the referrer and has unused rewards
+        // Find active referrals where this user is the referrer
         $referral = Referral::where('referrer_id', $user->id)
             ->whereNotNull('referred_user_id') // Must be accepted
             ->where('is_active', true)
-            ->whereHas('referrerDiscounts', function($query) {
-                // Count existing referrer discounts for this referral
-            }, '<', function($query) {
-                return AppSetting::getReferrerRewardRides();
-            })
             ->first();
 
         if (!$referral) {
