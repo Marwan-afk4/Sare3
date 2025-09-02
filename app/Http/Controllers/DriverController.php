@@ -151,12 +151,10 @@ class DriverController extends Controller
                     ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
                     ->createDatabase();
 
-                $firebaseRef = $firebase->getReference("drivers/{$driver->id}");
+                $firebaseRef = $firebase->getReference("drivers/driver {$driver->id}");
 
-                // Remove driver if exists
-                if ($firebaseRef->getValue()) {
-                    $firebaseRef->remove();
-                }
+                $firebaseRef->remove();
+
             } catch (\Exception $e) {
                 return redirect()->route('drivers.index')->with('error', 'Driver updated, but failed to update Firebase: ' . $e->getMessage());
             }
