@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
 use App\Models\CarCategory;
 use App\Models\Ride;
+use App\Models\RideProfit;
+use App\Services\ReferralDiscountService;
 use App\Services\RideVerificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -289,13 +291,13 @@ class RideActionsController extends Controller
         $originalFare = $carCategory->base_price + ($distanceKm * $carCategory->price_per_km) + $timeFare;
 
         // 5️⃣ Apply Referral Discounts
-        $referralDiscountService = new \App\Services\ReferralDiscountService();
+        $referralDiscountService = new ReferralDiscountService();
         $discountResult = $referralDiscountService->applyDiscounts($ride, $originalFare);
         $fare = $discountResult['final_fare'];
 
         // 6️⃣ Admin Profit Calculation (on discounted fare)
-        $adminProfitPercentage = \App\Models\AppSetting::getAdminProfitPercentage();
-        $profitAmounts = \App\Models\RideProfit::calculateProfit($fare, $adminProfitPercentage);
+        $adminProfitPercentage = AppSetting::getAdminProfitPercentage();
+        $profitAmounts = RideProfit::calculateProfit($fare, $adminProfitPercentage);
 
         // 7️⃣ Update Driver Wallet (deduct admin profit)
         $driver = $ride->driver;
@@ -305,7 +307,7 @@ class RideActionsController extends Controller
 
         // 8️⃣ Create Profit Record
         if ($adminProfitPercentage > 0) {
-            \App\Models\RideProfit::createForRide($ride, $fare, $adminProfitPercentage);
+            RideProfit::createForRide($ride, $fare, $adminProfitPercentage);
         }
 
         // 9️⃣ Update Ride
