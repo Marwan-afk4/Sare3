@@ -93,6 +93,7 @@
         "7": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     },
     "Name": [
+        "resources\/views\/admin\/referrals\/index.blade.php",
         "resources\/views\/cancellation-policies\/create.blade.php",
         "resources\/views\/cancellation-policies\/edit.blade.php",
         "resources\/views\/cancellation-policies\/index.blade.php",
@@ -194,14 +195,16 @@
         "resources\/views\/zones\/edit.blade.php",
         "resources\/views\/zones\/index.blade.php"
     ],
-    "Active": [
-        "resources\/views\/document-types\/create.blade.php",
-        "resources\/views\/document-types\/edit.blade.php",
-        "resources\/views\/drivers\/edit.blade.php",
-        "resources\/views\/users\/edit.blade.php",
-        "app\/Enums\/ActiveStatuses.php",
-        "app\/Enums\/ActivtyType.php"
-    ],
+    "Active": {
+        "0": "resources\/views\/admin\/referrals\/index.blade.php",
+        "1": "resources\/views\/admin\/referrals\/list.blade.php",
+        "3": "resources\/views\/document-types\/create.blade.php",
+        "4": "resources\/views\/document-types\/edit.blade.php",
+        "5": "resources\/views\/drivers\/edit.blade.php",
+        "6": "resources\/views\/users\/edit.blade.php",
+        "7": "app\/Enums\/ActiveStatuses.php",
+        "8": "app\/Enums\/ActivtyType.php"
+    },
     "Inactive": [
         "resources\/views\/document-types\/create.blade.php",
         "resources\/views\/document-types\/edit.blade.php",
@@ -239,6 +242,7 @@
     ],
     "Keyword": [
         "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/rides\/index.blade.php",
         "resources\/views\/users\/index.blade.php"
     ],
     "Id": [
@@ -364,13 +368,12 @@
         "25": "resources\/views\/paymenent-methods\/show.blade.php",
         "26": "resources\/views\/ride-request-time-limits\/index.blade.php",
         "27": "resources\/views\/ride-request-time-limits\/show.blade.php",
-        "29": "resources\/views\/rides\/index.blade.php",
-        "30": "resources\/views\/rides\/show.blade.php",
-        "31": "resources\/views\/users\/index.blade.php",
-        "32": "resources\/views\/users\/show.blade.php",
-        "34": "resources\/views\/wallet-requests\/show.blade.php",
-        "35": "resources\/views\/zones\/index.blade.php",
-        "36": "resources\/views\/zones\/show.blade.php"
+        "29": "resources\/views\/rides\/show.blade.php",
+        "30": "resources\/views\/users\/index.blade.php",
+        "31": "resources\/views\/users\/show.blade.php",
+        "33": "resources\/views\/wallet-requests\/show.blade.php",
+        "34": "resources\/views\/zones\/index.blade.php",
+        "35": "resources\/views\/zones\/show.blade.php"
     },
     "Delete": [
         "resources\/views\/cancelation-rides\/index.blade.php",
@@ -388,7 +391,6 @@
         "resources\/views\/paymenent-methods\/index.blade.php",
         "resources\/views\/paymenent-methods\/show.blade.php",
         "resources\/views\/ride-request-time-limits\/index.blade.php",
-        "resources\/views\/rides\/index.blade.php",
         "resources\/views\/users\/index.blade.php",
         "resources\/views\/wallet-requests\/show.blade.php",
         "resources\/views\/zones\/index.blade.php"
@@ -716,6 +718,7 @@
         "resources\/views\/document-types\/show.blade.php"
     ],
     "Showing": [
+        "resources\/views\/admin\/referrals\/list.blade.php",
         "resources\/views\/drivers\/ride-history.blade.php",
         "resources\/views\/users\/ride-history.blade.php",
         "resources\/views\/vendor\/livewire\/bootstrap.blade.php",
@@ -724,6 +727,7 @@
         "resources\/views\/vendor\/pagination\/tailwind.blade.php"
     ],
     "to": [
+        "resources\/views\/admin\/referrals\/list.blade.php",
         "resources\/views\/drivers\/ride-history.blade.php",
         "resources\/views\/users\/ride-history.blade.php",
         "resources\/views\/vendor\/livewire\/bootstrap.blade.php",
@@ -732,6 +736,7 @@
         "resources\/views\/vendor\/pagination\/tailwind.blade.php"
     ],
     "of": [
+        "resources\/views\/admin\/referrals\/list.blade.php",
         "resources\/views\/drivers\/ride-history.blade.php",
         "resources\/views\/users\/ride-history.blade.php",
         "resources\/views\/vendor\/livewire\/bootstrap.blade.php",
@@ -740,6 +745,7 @@
         "resources\/views\/vendor\/pagination\/tailwind.blade.php"
     ],
     "results": [
+        "resources\/views\/admin\/referrals\/list.blade.php",
         "resources\/views\/vendor\/livewire\/bootstrap.blade.php",
         "resources\/views\/vendor\/livewire\/tailwind.blade.php",
         "resources\/views\/vendor\/pagination\/bootstrap-5.blade.php",
@@ -1104,28 +1110,30 @@
         "resources\/views\/rides\/edit.blade.php"
     ],
     "Status": {
-        "0": "resources\/views\/cancellation-policies\/create.blade.php",
-        "1": "resources\/views\/cancellation-policies\/edit.blade.php",
-        "2": "resources\/views\/cancellation-policies\/index.blade.php",
-        "3": "resources\/views\/cancellation-policies\/show.blade.php",
-        "4": "resources\/views\/drivers\/edit.blade.php",
-        "5": "resources\/views\/drivers\/index.blade.php",
-        "6": "resources\/views\/drivers\/ride-history.blade.php",
-        "8": "resources\/views\/drivers\/show.blade.php",
-        "10": "resources\/views\/paymenent-methods\/create.blade.php",
-        "11": "resources\/views\/paymenent-methods\/edit.blade.php",
-        "12": "resources\/views\/paymenent-methods\/index.blade.php",
-        "13": "resources\/views\/paymenent-methods\/show.blade.php",
-        "14": "resources\/views\/rides\/create.blade.php",
-        "15": "resources\/views\/rides\/edit.blade.php",
-        "16": "resources\/views\/rides\/index.blade.php",
-        "17": "resources\/views\/rides\/show.blade.php",
-        "18": "resources\/views\/users\/ride-history.blade.php",
-        "20": "resources\/views\/users\/show.blade.php",
-        "21": "resources\/views\/wallet-requests\/create.blade.php",
-        "22": "resources\/views\/wallet-requests\/edit.blade.php",
-        "23": "resources\/views\/wallet-requests\/index.blade.php",
-        "24": "resources\/views\/wallet-requests\/show.blade.php"
+        "0": "resources\/views\/admin\/referrals\/index.blade.php",
+        "1": "resources\/views\/admin\/referrals\/list.blade.php",
+        "3": "resources\/views\/cancellation-policies\/create.blade.php",
+        "4": "resources\/views\/cancellation-policies\/edit.blade.php",
+        "5": "resources\/views\/cancellation-policies\/index.blade.php",
+        "6": "resources\/views\/cancellation-policies\/show.blade.php",
+        "7": "resources\/views\/drivers\/edit.blade.php",
+        "8": "resources\/views\/drivers\/index.blade.php",
+        "9": "resources\/views\/drivers\/ride-history.blade.php",
+        "11": "resources\/views\/drivers\/show.blade.php",
+        "13": "resources\/views\/paymenent-methods\/create.blade.php",
+        "14": "resources\/views\/paymenent-methods\/edit.blade.php",
+        "15": "resources\/views\/paymenent-methods\/index.blade.php",
+        "16": "resources\/views\/paymenent-methods\/show.blade.php",
+        "17": "resources\/views\/rides\/create.blade.php",
+        "18": "resources\/views\/rides\/edit.blade.php",
+        "19": "resources\/views\/rides\/index.blade.php",
+        "20": "resources\/views\/rides\/show.blade.php",
+        "21": "resources\/views\/users\/ride-history.blade.php",
+        "23": "resources\/views\/users\/show.blade.php",
+        "24": "resources\/views\/wallet-requests\/create.blade.php",
+        "25": "resources\/views\/wallet-requests\/edit.blade.php",
+        "26": "resources\/views\/wallet-requests\/index.blade.php",
+        "27": "resources\/views\/wallet-requests\/show.blade.php"
     },
     "Edit Ride": [
         "resources\/views\/rides\/edit.blade.php"
@@ -1234,11 +1242,13 @@
         "app\/Enums\/RideStatus.php"
     ],
     "Completed": {
-        "0": "resources\/views\/drivers\/ride-history.blade.php",
-        "2": "resources\/views\/drivers\/show.blade.php",
-        "3": "resources\/views\/users\/ride-history.blade.php",
-        "5": "resources\/views\/users\/show.blade.php",
-        "6": "app\/Enums\/RideStatus.php"
+        "0": "resources\/views\/admin\/referrals\/index.blade.php",
+        "1": "resources\/views\/admin\/referrals\/list.blade.php",
+        "3": "resources\/views\/drivers\/ride-history.blade.php",
+        "5": "resources\/views\/drivers\/show.blade.php",
+        "6": "resources\/views\/users\/ride-history.blade.php",
+        "8": "resources\/views\/users\/show.blade.php",
+        "9": "app\/Enums\/RideStatus.php"
     },
     "Cancelled": {
         "0": "resources\/views\/drivers\/ride-history.blade.php",
@@ -1298,6 +1308,7 @@
         "resources\/views\/wallet-requests\/show.blade.php"
     ],
     "Type": [
+        "resources\/views\/admin\/referrals\/index.blade.php",
         "resources\/views\/notifications\/create.blade.php",
         "resources\/views\/notifications\/edit.blade.php",
         "resources\/views\/notifications\/index.blade.php",
@@ -2125,6 +2136,7 @@
     ],
     "Date": [
         "resources\/views\/admin\/profit-statistics\/history.blade.php",
+        "resources\/views\/admin\/referrals\/index.blade.php",
         "resources\/views\/drivers\/ride-history.blade.php",
         "resources\/views\/drivers\/show.blade.php",
         "resources\/views\/users\/ride-history.blade.php",
@@ -2223,6 +2235,7 @@
         "resources\/views\/users\/ride-history.blade.php"
     ],
     "Per Page": [
+        "resources\/views\/admin\/referrals\/list.blade.php",
         "resources\/views\/drivers\/ride-history.blade.php",
         "resources\/views\/users\/ride-history.blade.php"
     ],
@@ -2279,6 +2292,8 @@
         "resources\/views\/users\/show.blade.php"
     ],
     "Settings": [
+        "resources\/views\/admin\/referrals\/index.blade.php",
+        "resources\/views\/admin\/referrals\/list.blade.php",
         "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     ],
     "Min Fare": [
@@ -2323,9 +2338,199 @@
         "app\/Http\/Controllers\/CarModelController.php"
     ],
     "This percentage will be deducted from driver earnings on each completed ride.": [
-        "resources\/views\/settings\/index.blade.php"
+        "resources\/views\/settings\/partials\/setting-field.blade.php"
     ],
     "Enter percentage (0-100)": [
+        "resources\/views\/settings\/partials\/setting-field.blade.php"
+    ],
+    "Referral Management": {
+        "0": "resources\/views\/admin\/referrals\/index.blade.php",
+        "2": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    },
+    "View All Referrals": [
+        "resources\/views\/admin\/referrals\/index.blade.php"
+    ],
+    "Total Referrals": [
+        "resources\/views\/admin\/referrals\/index.blade.php"
+    ],
+    "Active Referrals": [
+        "resources\/views\/admin\/referrals\/index.blade.php"
+    ],
+    "Total Discounts Given": [
+        "resources\/views\/admin\/referrals\/index.blade.php"
+    ],
+    "Rides with Discounts": [
+        "resources\/views\/admin\/referrals\/index.blade.php"
+    ],
+    "Top Referrers": [
+        "resources\/views\/admin\/referrals\/index.blade.php"
+    ],
+    "Rank": [
+        "resources\/views\/admin\/referrals\/index.blade.php"
+    ],
+    "Referrals": [
+        "resources\/views\/admin\/referrals\/index.blade.php",
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "No referrals found yet": [
+        "resources\/views\/admin\/referrals\/index.blade.php"
+    ],
+    "Recent Referrals": [
+        "resources\/views\/admin\/referrals\/index.blade.php"
+    ],
+    "Referrer": [
+        "resources\/views\/admin\/referrals\/index.blade.php",
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "New User": [
+        "resources\/views\/admin\/referrals\/index.blade.php"
+    ],
+    "No recent referrals found": [
+        "resources\/views\/admin\/referrals\/index.blade.php"
+    ],
+    "Discount Breakdown": [
+        "resources\/views\/admin\/referrals\/index.blade.php"
+    ],
+    "New User Discounts": [
+        "resources\/views\/admin\/referrals\/index.blade.php"
+    ],
+    "Discounts given to referred users": [
+        "resources\/views\/admin\/referrals\/index.blade.php"
+    ],
+    "Referrer Rewards": [
+        "resources\/views\/admin\/referrals\/index.blade.php",
+        "resources\/views\/admin\/referrals\/settings.blade.php",
         "resources\/views\/settings\/index.blade.php"
+    ],
+    "Rewards given to referrers": [
+        "resources\/views\/admin\/referrals\/index.blade.php"
+    ],
+    "Referral List": [
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "Back to Dashboard": [
+        "resources\/views\/admin\/referrals\/list.blade.php",
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "All Statuses": [
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "From Date": [
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "To Date": [
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "Apply Filters": [
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "Clear Filters": [
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "Referred User": [
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "Referral Code": [
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "Discount Info": [
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "Usage": [
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "Date Accepted": [
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "Not accepted": [
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "No Referrals Found": [
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "No referrals match your current filters. Try adjusting your search criteria.": [
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "No referrals have been created yet.": [
+        "resources\/views\/admin\/referrals\/list.blade.php"
+    ],
+    "Referral Settings": [
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "View Referrals": [
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "Please fix the following errors:": [
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "New User Benefits": [
+        "resources\/views\/admin\/referrals\/settings.blade.php",
+        "resources\/views\/settings\/index.blade.php"
+    ],
+    "Rewards given to users who use referral codes": [
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "Discount Percentage": [
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "Percentage discount new users get on their rides": [
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "Number of Discounted Rides": [
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "How many rides the new user gets the discount for": [
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "Rewards given to users who successfully refer others": [
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "Reward Percentage": [
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "Percentage discount referrers get as a reward": [
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "Number of Reward Rides": [
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "How many rides the referrer gets the reward for": [
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "Update Referral Settings": [
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "New user discount percentage must be between 0 and 100": [
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "Referrer reward percentage must be between 0 and 100": [
+        "resources\/views\/admin\/referrals\/settings.blade.php"
+    ],
+    "Referral System Settings": [
+        "resources\/views\/settings\/index.blade.php"
+    ],
+    "Configure referral rewards for both new users and referrers": [
+        "resources\/views\/settings\/index.blade.php"
+    ],
+    "How it works:": [
+        "resources\/views\/settings\/index.blade.php"
+    ],
+    "When someone uses a referral code, the new user gets discount benefits and the referrer gets reward benefits. Both can be active simultaneously.": [
+        "resources\/views\/settings\/index.blade.php"
+    ],
+    "Business Settings": [
+        "resources\/views\/settings\/index.blade.php"
+    ],
+    "Configure profit margins and financial settings": [
+        "resources\/views\/settings\/index.blade.php"
+    ],
+    "General Settings": [
+        "resources\/views\/settings\/index.blade.php"
+    ],
+    "Discount given to new users who use referral codes.": [
+        "resources\/views\/settings\/partials\/setting-field.blade.php"
+    ],
+    "Reward given to users who successfully refer others.": [
+        "resources\/views\/settings\/partials\/setting-field.blade.php"
     ]
 }

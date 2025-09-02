@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('referrals', function (Blueprint $table) {
             // Add referrer rewards
-            $table->decimal('referrer_discount_percentage', 5, 2)->default(0)->after('used_rides_count');
+            $table->decimal('referrer_discount_percentage', 5, 2)->default(0);
             $table->integer('referrer_discount_rides_count')->default(0)->after('referrer_discount_percentage');
             $table->integer('referrer_used_rides_count')->default(0)->after('referrer_discount_rides_count');
             $table->boolean('referrer_rewards_active')->default(true)->after('referrer_used_rides_count');
@@ -39,7 +39,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('referrer_discounts');
-        
+
         Schema::table('referrals', function (Blueprint $table) {
             $table->dropColumn([
                 'referrer_discount_percentage',

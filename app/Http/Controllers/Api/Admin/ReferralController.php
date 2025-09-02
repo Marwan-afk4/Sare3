@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
 use App\Models\Referral;
 use App\Models\ReferralDiscount;
+use App\Models\ReferrerDiscount;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -65,7 +66,7 @@ class ReferralController extends Controller
         $activeReferrals = Referral::where('is_active', true)
             ->whereColumn('used_rides_count', '<', 'discount_rides_count')
             ->count();
-        
+
         $totalReferralDiscounts = ReferralDiscount::sum('discount_amount');
         $totalReferrerRewards = ReferrerDiscount::sum('discount_amount');
         $totalDiscounts = $totalReferralDiscounts + $totalReferrerRewards;

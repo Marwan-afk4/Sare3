@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Admin\AdminSettingsController;
 use App\Http\Controllers\Api\Admin\ProfitStatisticsController;
+use App\Http\Controllers\Api\Admin\ReferralController as AdminReferralController;
 use App\Http\Controllers\Api\AppSettingsController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Api\Driver\DriverNotificationController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
 use App\Http\Controllers\Api\Driver\PointController as DriverPointController;
 use App\Http\Controllers\Api\Driver\RaitingController as DriverRaitingController;
+use App\Http\Controllers\Api\Driver\ReferralController as DriverReferralController;
 use App\Http\Controllers\Api\Driver\RideActionsController;
 use App\Http\Controllers\Api\Driver\RideRequestLimitController;
 use App\Http\Controllers\Api\Driver\RideSettingCOntroller;
@@ -164,11 +166,11 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
     Route::post('/check-driver-otp-limit', [ProfileController::class, 'checkUserOtpLimit']);
 
 //Referrals
-    Route::post('/referrals/generate', [\App\Http\Controllers\Api\Driver\ReferralController::class, 'generateLink']);
-    Route::get('/referrals/stats', [\App\Http\Controllers\Api\Driver\ReferralController::class, 'getStats']);
-    Route::get('/referrals/discount-status', [\App\Http\Controllers\Api\Driver\ReferralController::class, 'getDiscountStatus']);
-    Route::post('/referrals/validate', [\App\Http\Controllers\Api\Driver\ReferralController::class, 'validateCode']);
-    Route::post('/referrals/apply', [\App\Http\Controllers\Api\Driver\ReferralController::class, 'applyCode']);
+    Route::post('/referrals/generate', [DriverReferralController::class, 'generateLink']);
+    Route::get('/referrals/stats', [DriverReferralController::class, 'getStats']);
+    Route::get('/referrals/discount-status', [DriverReferralController::class, 'getDiscountStatus']);
+    Route::post('/referrals/validate', [DriverReferralController::class, 'validateCode']);
+    Route::post('/referrals/apply', [DriverReferralController::class, 'applyCode']);
 
 //AddZone
     Route::post('/add-zone', [DriverProfileController::class, 'addZoneId']);
@@ -259,16 +261,16 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/settings', [AdminSettingsController::class, 'getAllSettings']);
 
     // Profit Statistics
-    Route::get('/profit-statistics', [\App\Http\Controllers\Api\Admin\ProfitStatisticsController::class, 'getProfitStatistics']);
-    Route::get('/profit-statistics/daily', [\App\Http\Controllers\Api\Admin\ProfitStatisticsController::class, 'getDailyProfitBreakdown']);
-    Route::get('/profit-statistics/top-drivers', [\App\Http\Controllers\Api\Admin\ProfitStatisticsController::class, 'getTopEarningDrivers']);
-    Route::get('/profit-history', [\App\Http\Controllers\Api\Admin\ProfitStatisticsController::class, 'getProfitHistory']);
-    
+    Route::get('/profit-statistics', [ProfitStatisticsController::class, 'getProfitStatistics']);
+    Route::get('/profit-statistics/daily', [ProfitStatisticsController::class, 'getDailyProfitBreakdown']);
+    Route::get('/profit-statistics/top-drivers', [ProfitStatisticsController::class, 'getTopEarningDrivers']);
+    Route::get('/profit-history', [ProfitStatisticsController::class, 'getProfitHistory']);
+
     // Referral Management
-    Route::get('/referrals/settings', [\App\Http\Controllers\Api\Admin\ReferralController::class, 'getSettings']);
-    Route::post('/referrals/settings', [\App\Http\Controllers\Api\Admin\ReferralController::class, 'updateSettings']);
-    Route::get('/referrals/statistics', [\App\Http\Controllers\Api\Admin\ReferralController::class, 'getStatistics']);
-    Route::get('/referrals/list', [\App\Http\Controllers\Api\Admin\ReferralController::class, 'getReferralList']);
+    Route::get('/referrals/settings', [AdminReferralController::class, 'getSettings']);
+    Route::post('/referrals/settings', [AdminReferralController::class, 'updateSettings']);
+    Route::get('/referrals/statistics', [AdminReferralController::class, 'getStatistics']);
+    Route::get('/referrals/list', [AdminReferralController::class, 'getReferralList']);
 });
 
 //======= DEBUG ENDPOINT (Temporary) ========

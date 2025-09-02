@@ -19,10 +19,10 @@ return new class extends Migration
             if (Schema::hasColumn('referrals', 'used_rides')) {
                 $table->renameColumn('used_rides', 'used_rides_count');
             }
-            
+
             // Add missing columns
             if (!Schema::hasColumn('referrals', 'expires_at')) {
-                $table->timestamp('expires_at')->nullable()->after('is_active');
+                $table->timestamp('expires_at')->nullable();
             }
         });
 
@@ -54,13 +54,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('referral_discounts');
-        
+
         Schema::table('users', function (Blueprint $table) {
             if (Schema::hasColumn('users', 'referral_code')) {
                 $table->dropColumn('referral_code');
             }
         });
-        
+
         Schema::table('referrals', function (Blueprint $table) {
             if (Schema::hasColumn('referrals', 'expires_at')) {
                 $table->dropColumn('expires_at');
