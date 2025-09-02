@@ -12,6 +12,7 @@ use App\Models\Rating;
 use App\Helpers\RideHelper;
 use App\trait\ImageUpload;
 use Illuminate\Http\Request;
+use Kreait\Firebase\Factory;
 
 class DriverController extends Controller
 {
@@ -83,7 +84,7 @@ class DriverController extends Controller
         $driver->load([
             'driverRides' => function ($query) {
                 $query->with(['user', 'carCategory'])
-                      ->orderBy('created_at', 'desc');
+                    ->orderBy('created_at', 'desc');
             }
         ]);
 
@@ -142,18 +143,27 @@ class DriverController extends Controller
     {
         $data = $request->validated();
 
-        // Auto-update activity based on status
-        // if (isset($data['status'])) {
-        //     $data['activity'] = $data['status'] === 'approved' ? 'active' : 'inactive';
-        // }
+        //Check if activity is updated to inactive
+        if ($request->has('activity') && $request->input('activity') === 'inactive') {
+            try {
+                $firebase = (new Factory)
+                    ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                    ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                    ->createDatabase();
 
+                $firebaseRef = $firebase->getReference("active_drivers/{$driver->id}");
 
+                // Remove driver if exists
+                if ($firebaseRef->getValue()) {
+                    $firebaseRef->remove();
+                }
+            } catch (\Exception $e) {
+                return redirect()->route('drivers.index')->with('error', 'Driver updated, but failed to update Firebase: ' . $e->getMessage());
+            }
+        }
 
         $driver->update($data);
 
         return redirect()->route('drivers.index')->with('success', __('Driver updated successfully.'));
     }
-
-
-
 }
