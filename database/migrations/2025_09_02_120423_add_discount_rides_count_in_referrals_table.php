@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('referrals', function (Blueprint $table) {
-            $table->unsignedBigInteger('discount_rides_count')->default(0)->after('referrer_discount_percentage');
+            if (!Schema::hasColumn('referrals', 'discount_rides_count')) {
+                $table->unsignedBigInteger('discount_rides_count')->default(0)->after('referrer_discount_percentage');
+            }
         });
     }
 

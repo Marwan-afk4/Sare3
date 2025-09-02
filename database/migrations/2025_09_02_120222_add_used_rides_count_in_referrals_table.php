@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('referrals', function (Blueprint $table) {
-            $table->unsignedInteger('used_rides_count')->default(0)->after('referrer_used_rides_count');
+            if (!Schema::hasColumn('referrals', 'used_rides_count')) {
+                $table->unsignedInteger('used_rides_count')->default(0)->after('referrer_used_rides_count');
+            }
         });
     }
 

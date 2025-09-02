@@ -234,6 +234,12 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
     Route::post('/referrals/validate', [ReferralController::class, 'validateCode']);
     Route::post('/referrals/apply', [ReferralController::class, 'applyCode']);
 
+//Coupons
+    Route::get('/coupons/available', [\App\Http\Controllers\Api\CouponController::class, 'getUserCoupons']);
+    Route::post('/coupons/validate', [\App\Http\Controllers\Api\CouponController::class, 'validateCoupon']);
+    Route::post('/coupons/apply', [\App\Http\Controllers\Api\CouponController::class, 'applyCoupon']);
+    Route::post('/coupons/remove', [\App\Http\Controllers\Api\CouponController::class, 'removeCoupon']);
+
 });
 
 //======= RIDE TRACKING (Public/Admin) ========
@@ -271,6 +277,15 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::post('/referrals/settings', [AdminReferralController::class, 'updateSettings']);
     Route::get('/referrals/statistics', [AdminReferralController::class, 'getStatistics']);
     Route::get('/referrals/list', [AdminReferralController::class, 'getReferralList']);
+
+    // Coupon Management
+    Route::get('/coupons', [\App\Http\Controllers\Admin\CouponController::class, 'index']);
+    Route::post('/coupons', [\App\Http\Controllers\Admin\CouponController::class, 'store']);
+    Route::get('/coupons/{coupon}', [\App\Http\Controllers\Admin\CouponController::class, 'show']);
+    Route::put('/coupons/{coupon}', [\App\Http\Controllers\Admin\CouponController::class, 'update']);
+    Route::delete('/coupons/{coupon}', [\App\Http\Controllers\Admin\CouponController::class, 'destroy']);
+    Route::patch('/coupons/{coupon}/toggle-status', [\App\Http\Controllers\Admin\CouponController::class, 'toggleStatus']);
+    Route::get('/coupons-statistics', [\App\Http\Controllers\Admin\CouponController::class, 'statistics']);
 });
 
 //======= DEBUG ENDPOINT (Temporary) ========

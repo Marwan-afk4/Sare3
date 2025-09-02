@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('referrals', function (Blueprint $table) {
-            $table->boolean('is_active')->default(true)->after('accepted_at');
+            if (!Schema::hasColumn('referrals', 'is_active')) {
+                $table->boolean('is_active')->default(true)->after('accepted_at');
+            }
         });
     }
 

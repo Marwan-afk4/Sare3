@@ -37,7 +37,9 @@ class Ride extends Model
         'rejected_drivers',
         'verification_code',
         'verification_code_generated_at',
-        'verification_code_verified'
+        'verification_code_verified',
+        'coupon_id',
+        'coupon_discount'
     ];
 
     public $timestamps = true;
@@ -74,6 +76,16 @@ class Ride extends Model
     public function profit()
     {
         return $this->hasOne(RideProfit::class);
+    }
+
+    public function coupon()
+    {
+        return $this->belongsTo(Coupon::class);
+    }
+
+    public function couponUsage()
+    {
+        return $this->hasOne(CouponUsage::class);
     }
 
     /**

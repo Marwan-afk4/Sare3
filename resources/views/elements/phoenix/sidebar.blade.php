@@ -238,6 +238,18 @@
                         </a>
                     </div>
 
+                    {{-- coupons --}}
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'coupons' ? 'active' : '' }}"
+                            href="{{ route('coupons.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="tag"></span></span>
+                                <span class="nav-link-text-wrapper"><span
+                                        class="nav-link-text">{{ __('Coupon Management') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+
                     {{-- settings --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'settings' ? 'active' : '' }}"

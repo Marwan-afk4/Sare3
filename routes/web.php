@@ -80,6 +80,11 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
             Route::put('/settings', [\App\Http\Controllers\Admin\ReferralController::class, 'updateSettings'])->name('settings.update');
         });
 
+        // Coupon Management routes
+        Route::get('/coupons', function () {
+            return view('admin.coupons.index', ['currentPage' => 'coupons']);
+        })->name('coupons.index');
+
         Route::post('/otp-limits/{otpLimit}/reset-drivers', [OtpLimitController::class, 'resetDrivers'])->name('otp-limits.reset-drivers');
         Route::post('/otp-limits/{otpLimit}/reset-users', [OtpLimitController::class, 'resetUsers'])->name('otp-limits.reset-users');
 
