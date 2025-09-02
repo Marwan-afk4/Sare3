@@ -212,7 +212,7 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
     Route::post('/cancel-ride', [CancelationRide::class, 'cancel']);
 
 //Logout
-    Route::delete('/logout', [DriverAuthController::class, 'logout']);
+    Route::delete('/logout', [AuthController::class, 'logout']);
 
 //Notification
     Route::post('/push-notification', [NotificationController::class, 'broadcastNotification']);
