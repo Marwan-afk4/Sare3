@@ -151,7 +151,7 @@ class DriverController extends Controller
                     ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
                     ->createDatabase();
 
-                $firebaseRef = $firebase->getReference("active_drivers/{$driver->id}");
+                $firebaseRef = $firebase->getReference("drivers/{$driver->id}");
 
                 // Remove driver if exists
                 if ($firebaseRef->getValue()) {
