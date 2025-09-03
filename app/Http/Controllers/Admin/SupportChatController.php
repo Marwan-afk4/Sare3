@@ -161,48 +161,45 @@ class SupportChatController extends Controller
         try {
             $roomId = "admin_{$targetId}";
             
-            Log::info('getChatMessages called', [
-                'targetId' => $targetId,
-                'targetType' => $targetType,
-                'roomId' => $roomId
-            ]);
-            
             // Get messages directly from Firebase
             $firebaseMessages = $this->firebaseService->getMessages($roomId, 100);
             $messages = [];
 
             Log::info('Firebase messages retrieved', [
                 'roomId' => $roomId,
-                'firebaseMessages' => $firebaseMessages,
-                'isEmpty' => empty($firebaseMessages),
                 'count' => is_array($firebaseMessages) ? count($firebaseMessages) : 0
             ]);
 
             if (!empty($firebaseMessages)) {
                 foreach ($firebaseMessages as $messageId => $messageData) {
-                    Log::info('Processing message', [
-                        'messageId' => $messageId,
-                        'messageData' => $messageData
-                    ]);
+                    
+                    // Determine if this is an admin message based on senderId
+                    // If senderId is 0 or matches admin user, it's an admin message
+                    // If senderId matches the target user (3 in this case), it's a user message
+                    $senderId = $messageData['senderId'] ?? null;
+                    $receiverId = $messageData['receiverId'] ?? null;
+                    $isAdminMessage = ($senderId == 0) || ($receiverId == $targetId);
                     
                     $messages[] = [
                         'id' => $messageId,
-                        'sender_id' => $messageData['senderId'] ?? null,
-                        'receiver_id' => $messageData['receiverId'] ?? null,
-                        'sender_type' => $messageData['senderType'] ?? null,
-                        'receiver_type' => $messageData['receiverType'] ?? null,
+                        'sender_id' => $senderId,
+                        'receiver_id' => $receiverId,
+                        'sender_type' => $isAdminMessage ? 'admin' : 'user',
+                        'receiver_type' => $isAdminMessage ? 'user' : 'admin',
                         'message' => $messageData['text'] ?? '',
                         'timestamp' => isset($messageData['timestamp']) 
                             ? date('Y-m-d H:i:s', $messageData['timestamp'] / 1000) 
                             : null,
                         'status' => $messageData['status'] ?? 'sent',
-                        'is_admin_message' => ($messageData['senderType'] ?? null) === 'admin'
+                        'is_admin_message' => $isAdminMessage
                     ];
                 }
 
                 // Sort messages by timestamp
                 usort($messages, function($a, $b) {
-                    return strtotime($a['timestamp'] ?? '1970-01-01') - strtotime($b['timestamp'] ?? '1970-01-01');
+                    $aTime = isset($a['timestamp']) ? strtotime($a['timestamp']) : 0;
+                    $bTime = isset($b['timestamp']) ? strtotime($b['timestamp']) : 0;
+                    return $aTime - $bTime;
                 });
             } else {
                 Log::warning('No messages found in Firebase for room', [
@@ -211,9 +208,8 @@ class SupportChatController extends Controller
                 ]);
             }
 
-            Log::info('Final messages to return', [
-                'messagesCount' => count($messages),
-                'messages' => $messages
+            Log::info('Processed messages', [
+                'messagesCount' => count($messages)
             ]);
 
             return response()->json([
@@ -253,8 +249,8 @@ class SupportChatController extends Controller
 
             // Prepare message data for Firebase
             $messageData = [
-                'senderId' => $admin->id,
-                'receiverId' => $request->target_id,
+                'senderId' => (int) $admin->id,
+                'receiverId' => (int) $request->target_id,
                 'senderType' => 'admin',
                 'receiverType' => $request->target_type,
                 'text' => $request->message,

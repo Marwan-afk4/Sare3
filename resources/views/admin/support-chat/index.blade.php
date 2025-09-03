@@ -284,6 +284,7 @@
                 this.currentConversation = null;
                 this.currentType = 'user';
                 this.refreshInterval = null;
+                this.messagePollingInterval = null;
             }
 
             init() {
@@ -437,6 +438,12 @@
             async selectConversation(requesterId, requesterType) {
                 console.log('Selecting conversation:', requesterId, requesterType);
                 
+                // Stop any existing polling for the previous conversation
+                if (this.messagePollingInterval) {
+                    clearInterval(this.messagePollingInterval);
+                    this.messagePollingInterval = null;
+                }
+                
                 // Update active state
                 document.querySelectorAll('.conversation-item').forEach(item => {
                     item.classList.remove('active');
@@ -468,6 +475,9 @@
 
                 // Load conversation
                 await this.loadConversation(requesterId, requesterType);
+                
+                // Setup real-time listening for this conversation
+                this.setupRealtimeListening();
             }
 
             async loadConversation(requesterId, requesterType) {
@@ -639,6 +649,81 @@
                     // DON'T refresh current conversation automatically to avoid disrupting the view
                     console.log('Auto-refresh: Updated conversation list only');
                 }, 30000);
+            }
+
+            setupRealtimeListening() {
+                // Clear any existing polling
+                if (this.messagePollingInterval) {
+                    clearInterval(this.messagePollingInterval);
+                }
+                
+                if (!this.currentConversation) return;
+                
+                // Try Laravel Echo first (if configured)
+                if (typeof Echo !== 'undefined') {
+                    const channelName = `support-chat.${this.currentConversation.requester_id}`;
+                    console.log('Setting up Echo listening for channel:', channelName);
+                    
+                    Echo.channel(channelName)
+                        .listen('MessageSent', (e) => {
+                            console.log('New message received via Echo:', e);
+                            this.addNewMessage(e.message);
+                        });
+                } else {
+                    // Fallback to polling every 3 seconds
+                    console.log('Echo not available, using polling for real-time updates');
+                    this.messagePollingInterval = setInterval(() => {
+                        this.checkForNewMessages();
+                    }, 3000);
+                }
+            }
+
+            async checkForNewMessages() {
+                if (!this.currentConversation) return;
+                
+                try {
+                    const response = await fetch(`{{ url('admin/support-chat/chat') }}/${this.currentConversation.requester_id}/${this.currentConversation.requester_type}`);
+                    const data = await response.json();
+                    
+                    if (data.success && data.data.messages) {
+                        const currentMessageCount = document.querySelectorAll('.message-bubble').length;
+                        const newMessageCount = data.data.messages.length;
+                        
+                        // If there are new messages, re-render
+                        if (newMessageCount > currentMessageCount) {
+                            console.log(`New messages detected: ${newMessageCount - currentMessageCount}`);
+                            this.renderMessages(data.data.messages);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking for new messages:', error);
+                }
+            }
+
+            addNewMessage(messageData) {
+                console.log('Adding new message to chat:', messageData);
+                
+                const container = document.getElementById('chat-messages');
+                const isAdmin = messageData.is_admin_message === true;
+                
+                const messageHtml = `
+                    <div class="d-flex ${isAdmin ? 'justify-content-end' : 'justify-content-start'} mb-2">
+                        <div class="message-bubble ${isAdmin ? 'admin' : 'user'}">
+                            <div>${messageData.message || messageData.text}</div>
+                            <div class="message-time">${this.formatTime(messageData.timestamp || new Date().toISOString())}</div>
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML += messageHtml;
+                container.scrollTop = container.scrollHeight;
+                
+                // Update conversation list to show new message
+                if (this.currentType === 'user') {
+                    this.loadUserConversations();
+                } else {
+                    this.loadDriverConversations();
+                }
             }
         }
 

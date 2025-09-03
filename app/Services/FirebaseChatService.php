@@ -89,15 +89,14 @@ class FirebaseChatService
             if ($this->database) {
                 // Use Firebase Admin SDK
                 $reference = $this->database->getReference("chats/{$roomId}/messages");
-                $query = $reference->orderByChild('timestamp')->limitToLast($limit);
-                $snapshot = $query->getSnapshot();
+                $snapshot = $reference->getSnapshot();
                 $result = $snapshot->getValue() ?? [];
                 
                 Log::info('Firebase Admin SDK result', [
                     'roomId' => $roomId,
-                    'result' => $result,
                     'resultType' => gettype($result),
-                    'count' => is_array($result) ? count($result) : 0
+                    'count' => is_array($result) ? count($result) : 0,
+                    'sampleKeys' => is_array($result) ? array_slice(array_keys($result), 0, 3) : []
                 ]);
                 
                 return $result;

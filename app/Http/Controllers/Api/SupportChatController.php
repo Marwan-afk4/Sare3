@@ -43,8 +43,8 @@ class SupportChatController extends Controller
 
             // Prepare message data for Firebase
             $messageData = [
-                'senderId' => $user->id,
-                'receiverId' => 1, // Admin ID
+                'senderId' => (int) $user->id,
+                'receiverId' => 1, // Admin ID (already integer)
                 'senderType' => $userType,
                 'receiverType' => 'admin',
                 'text' => $request->message,

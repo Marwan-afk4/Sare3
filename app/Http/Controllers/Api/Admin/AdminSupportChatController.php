@@ -213,8 +213,8 @@ class AdminSupportChatController extends Controller
 
             // Prepare message data for Firebase
             $messageData = [
-                'senderId' => $admin->id,
-                'receiverId' => $request->target_id,
+                'senderId' => (int) $admin->id,
+                'receiverId' => (int) $request->target_id,
                 'senderType' => 'admin',
                 'receiverType' => $request->target_type,
                 'text' => $request->message,
