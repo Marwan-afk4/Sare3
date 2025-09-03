@@ -25,9 +25,18 @@ class AdminSupportChatController extends Controller
     public function getActiveSupportRequests()
     {
         try {
+            \Log::info('AdminSupportChatController: getActiveSupportRequests called', [
+                'user_id' => Auth::id(),
+                'user_email' => Auth::user()->email ?? 'N/A'
+            ]);
+            
             // Get all chats from Firebase
             $firebaseChats = $this->firebaseService->getAllChats();
             $activeSupportRequests = [];
+            
+            \Log::info('Firebase chats retrieved', [
+                'count' => count($firebaseChats ?? [])
+            ]);
 
             if (!empty($firebaseChats)) {
                 foreach ($firebaseChats as $roomId => $chatData) {
@@ -50,7 +59,7 @@ class AdminSupportChatController extends Controller
                             $userEmail = $user->email;
                             $userPhone = $user->phone;
                             // Determine user type based on role
-                            $userType = $user->hasRole('driver') ? 'driver' : 'user';
+                            $userType = $user->isDriver() ? 'driver' : 'user';
                         }
 
                         // Get last message from chat data
@@ -94,12 +103,21 @@ class AdminSupportChatController extends Controller
                 });
             }
 
+            \Log::info('Returning support requests', [
+                'count' => count($activeSupportRequests)
+            ]);
+
             return response()->json([
                 'success' => true,
                 'data' => $activeSupportRequests
             ]);
 
         } catch (\Exception $e) {
+            \Log::error('AdminSupportChatController error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to get support requests: ' . $e->getMessage()

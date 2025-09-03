@@ -278,10 +278,6 @@
 
     <!-- JavaScript -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const chatInterface = new SupportChatInterface();
-            chatInterface.init();
-        });
 
         class SupportChatInterface {
             constructor() {
@@ -413,8 +409,7 @@
                     <div class="conversation-item ${conv.unread_count > 0 ? 'unread' : ''}" 
                          data-conversation-id="${conv.id}" 
                          data-requester-id="${conv.requester_id}"
-                         data-requester-type="${conv.requester_type}"
-                         onclick="chatInterface.selectConversation('${conv.requester_id}', '${conv.requester_type}')">
+                         data-requester-type="${conv.requester_type}">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <h6 class="mb-1">${conv.requester_name}</h6>
@@ -428,25 +423,48 @@
                         </div>
                     </div>
                 `).join('');
+                
+                // Add click event listeners to conversation items
+                container.querySelectorAll('.conversation-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const requesterId = item.getAttribute('data-requester-id');
+                        const requesterType = item.getAttribute('data-requester-type');
+                        this.selectConversation(requesterId, requesterType);
+                    });
+                });
             }
 
             async selectConversation(requesterId, requesterType) {
+                console.log('Selecting conversation:', requesterId, requesterType);
+                
                 // Update active state
                 document.querySelectorAll('.conversation-item').forEach(item => {
                     item.classList.remove('active');
                 });
-                document.querySelector(`[data-requester-id="${requesterId}"]`).classList.add('active');
+                
+                const selectedItem = document.querySelector(`[data-requester-id="${requesterId}"][data-requester-type="${requesterType}"]`);
+                if (selectedItem) {
+                    selectedItem.classList.add('active');
+                    console.log('Selected item found and activated');
+                } else {
+                    console.log('Selected item not found');
+                }
 
                 this.currentConversation = {
                     requester_id: requesterId,
                     requester_type: requesterType
                 };
                 
-                // Show chat interface
+                console.log('Current conversation set:', this.currentConversation);
+                
+                // Show chat interface immediately
+                console.log('Showing chat interface elements...');
                 document.getElementById('welcome-message').classList.add('d-none');
                 document.getElementById('chat-header').classList.remove('d-none');
                 document.getElementById('chat-messages').classList.remove('d-none');
                 document.getElementById('message-input-container').classList.remove('d-none');
+                
+                console.log('Chat interface should now be visible');
 
                 // Load conversation
                 await this.loadConversation(requesterId, requesterType);
@@ -454,48 +472,83 @@
 
             async loadConversation(requesterId, requesterType) {
                 try {
-                    const response = await fetch(`{{ url('admin/support-chat/chat') }}/${requesterId}/${requesterType}`);
+                    console.log('Loading conversation for:', requesterId, requesterType);
+                    const url = `{{ url('admin/support-chat/chat') }}/${requesterId}/${requesterType}`;
+                    console.log('Fetching URL:', url);
+                    
+                    const response = await fetch(url);
                     const data = await response.json();
                     
+                    console.log('Conversation response:', data);
+                    console.log('Response status:', response.status);
+                    console.log('Response headers:', response.headers);
+                    
                     if (data.success) {
-                        const { messages, target_info } = data.data;
+                        const { messages, target_info, room_id } = data.data;
+                        console.log('Messages received from Firebase:', messages);
+                        console.log('Messages count:', messages ? messages.length : 0);
                         
                         // Update header
                         if (target_info) {
-                            document.getElementById('chat-participant-name').textContent = target_info.name;
-                            document.getElementById('chat-participant-type').textContent = `${target_info.type} - ${target_info.email}`;
+                            document.getElementById('chat-participant-name').textContent = target_info.name || `User ${requesterId}`;
+                            document.getElementById('chat-participant-type').textContent = `${target_info.type || requesterType} - ${target_info.email || 'No email'}`;
+                        } else {
+                            document.getElementById('chat-participant-name').textContent = `User ${requesterId}`;
+                            document.getElementById('chat-participant-type').textContent = requesterType;
                         }
                         
                         // Render messages
                         this.renderMessages(messages);
+                    } else {
+                        console.error('Failed to load conversation:', data.message);
+                        alert('Failed to load conversation: ' + data.message);
                     }
                 } catch (error) {
                     console.error('Error loading conversation:', error);
+                    alert('Error loading conversation: ' + error.message);
                 }
             }
 
             renderMessages(messages) {
+                console.log('Rendering messages:', messages);
+                
                 const container = document.getElementById('chat-messages');
                 
-                if (messages.length === 0) {
+                // Always show the chat interface when renderMessages is called
+                document.getElementById('welcome-message').classList.add('d-none');
+                document.getElementById('chat-header').classList.remove('d-none');
+                document.getElementById('chat-messages').classList.remove('d-none');
+                document.getElementById('message-input-container').classList.remove('d-none');
+                
+                // Handle empty messages
+                if (!messages || messages.length === 0) {
                     container.innerHTML = `
                         <div class="text-center p-4">
-                            <p class="text-muted">{{ __('No messages in this conversation') }}</p>
+                            <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-2">{{ __('No messages in this conversation') }}</p>
+                            <small class="text-muted">{{ __('Send the first message to start the conversation') }}</small>
                         </div>
                     `;
                     return;
                 }
 
-                container.innerHTML = messages.map(msg => `
-                    <div class="d-flex ${msg.is_admin_message ? 'justify-content-end' : 'justify-content-start'} mb-2">
-                        <div class="message-bubble ${msg.is_admin_message ? 'admin' : 'user'}">
-                            <div>${msg.message}</div>
-                            <div class="message-time">${this.formatTime(msg.timestamp)}</div>
+                // Render each message
+                const messagesHtml = messages.map(msg => {
+                    const messageText = msg.message || msg.text || '';
+                    const isAdmin = msg.is_admin_message === true;
+                    const timestamp = msg.timestamp || msg.created_at || '';
+                    
+                    return `
+                        <div class="d-flex ${isAdmin ? 'justify-content-end' : 'justify-content-start'} mb-2">
+                            <div class="message-bubble ${isAdmin ? 'admin' : 'user'}">
+                                <div>${messageText}</div>
+                                <div class="message-time">${this.formatTime(timestamp)}</div>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
 
-                // Scroll to bottom
+                container.innerHTML = messagesHtml;
                 container.scrollTop = container.scrollHeight;
             }
 
@@ -540,6 +593,8 @@
                 }
             }
 
+
+
             async markAsRead() {
                 if (!this.currentConversation) return;
 
@@ -573,7 +628,7 @@
             }
 
             startAutoRefresh() {
-                // Refresh conversations every 30 seconds
+                // Refresh conversations every 30 seconds, but NOT the current conversation
                 this.refreshInterval = setInterval(() => {
                     if (this.currentType === 'user') {
                         this.loadUserConversations();
@@ -581,16 +636,19 @@
                         this.loadDriverConversations();
                     }
                     
-                    // Refresh current conversation if one is selected
-                    if (this.currentConversation) {
-                        this.loadConversation(this.currentConversation);
-                    }
+                    // DON'T refresh current conversation automatically to avoid disrupting the view
+                    console.log('Auto-refresh: Updated conversation list only');
                 }, 30000);
             }
         }
 
         // Global variable for access from onclick handlers
         let chatInterface;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            chatInterface = new SupportChatInterface();
+            chatInterface.init();
+        });
 
         // Update sidebar notification badge
         function updateSidebarBadge() {
@@ -617,6 +675,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             updateSidebarBadge();
             setInterval(updateSidebarBadge, 60000); // Update every minute
+        });
+
+        // Prevent any unwanted page refreshes
+        window.addEventListener('beforeunload', function(e) {
+            console.log('Page is about to unload/refresh');
         });
     </script>
 @endsection

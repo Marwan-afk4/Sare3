@@ -3,15 +3,21 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\SupportRequest;
-use App\Models\Chat;
-use App\Models\ChatMessage;
 use App\Models\User;
+use App\Services\FirebaseChatService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class SupportChatController extends Controller
 {
+    protected $firebaseService;
+
+    public function __construct(FirebaseChatService $firebaseService)
+    {
+        $this->firebaseService = $firebaseService;
+    }
+
     public function index()
     {
         try {
@@ -20,6 +26,8 @@ class SupportChatController extends Controller
             
             return view('admin.support-chat.index', compact('stats'));
         } catch (\Exception $e) {
+            Log::error('Support chat index error: ' . $e->getMessage());
+            
             // Fallback with empty stats if there's an error
             $stats = [
                 'total_requests' => 0,
@@ -42,41 +50,105 @@ class SupportChatController extends Controller
     public function getActiveSupportRequests()
     {
         try {
-            $supportRequests = SupportRequest::with(['requester', 'chat'])
-                ->whereIn('status', [
-                    SupportRequest::STATUS_PENDING,
-                    SupportRequest::STATUS_IN_PROGRESS
-                ])
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(function ($request) {
-                    $requester = $request->requester;
-                    return [
-                        'id' => $request->id,
-                        'requester_id' => $request->requester_id,
-                        'requester_type' => $request->requester_type,
-                        'requester_name' => $requester ? $requester->name : 'Unknown User',
-                        'requester_email' => $requester ? $requester->email : null,
-                        'requester_phone' => $requester ? $requester->phone : null,
-                        'status' => $request->status,
-                        'priority' => $request->priority,
-                        'subject' => $request->subject,
-                        'room_id' => $request->chat ? $request->chat->room_id : null,
-                        'last_message' => $request->chat ? $request->chat->last_message : null,
-                        'last_message_at' => $request->chat && $request->chat->last_message_at 
-                            ? $request->chat->last_message_at->format('Y-m-d H:i:s') : null,
-                        'created_at' => $request->created_at->format('Y-m-d H:i:s'),
-                        'updated_at' => $request->updated_at->format('Y-m-d H:i:s'),
-                        'unread_count' => $this->getUnreadCount($request->chat_id)
-                    ];
+            Log::info('SupportChatController: getActiveSupportRequests called');
+            
+            // Get all chats from Firebase
+            $firebaseChats = $this->firebaseService->getAllChats();
+            $activeSupportRequests = [];
+            
+            Log::info('Firebase chats retrieved', [
+                'count' => count($firebaseChats ?? [])
+            ]);
+
+            if (!empty($firebaseChats)) {
+                foreach ($firebaseChats as $roomId => $chatData) {
+                    
+                    // Only process admin chats (room_id format: admin_3)
+                    if (strpos($roomId, 'admin_') === 0) {
+                        $userId = str_replace('admin_', '', $roomId);
+                        
+                        // Get user info from database
+                        $user = User::find($userId);
+                        
+                        // If user doesn't exist, create a placeholder
+                        if (!$user) {
+                            $userName = "Unknown User (ID: {$userId})";
+                            $userEmail = null;
+                            $userPhone = null;
+                            $userType = 'user'; // Default to user type
+                        } else {
+                            $userName = $user->name;
+                            $userEmail = $user->email;
+                            $userPhone = $user->phone;
+                            // Determine user type based on role
+                            $userType = $user->isDriver() ? 'driver' : 'user';
+                        }
+
+                        // Get last message from chat data
+                        $lastMessage = null;
+                        $lastMessageAt = null;
+                        $unreadCount = 0;
+                        
+                        if (isset($chatData['messages']) && is_array($chatData['messages'])) {
+                            $messages = $chatData['messages'];
+                            $lastMessageKey = array_key_last($messages);
+                            if ($lastMessageKey && isset($messages[$lastMessageKey])) {
+                                $lastMessageData = $messages[$lastMessageKey];
+                                $lastMessage = $lastMessageData['text'] ?? null;
+                                $lastMessageAt = isset($lastMessageData['timestamp']) 
+                                    ? date('Y-m-d H:i:s', $lastMessageData['timestamp'] / 1000) 
+                                    : null;
+                            }
+                            
+                            // Count unread messages (messages from user/driver, not admin)
+                            foreach ($messages as $message) {
+                                if (isset($message['senderType']) && $message['senderType'] !== 'admin') {
+                                    $unreadCount++;
+                                }
+                            }
+                        }
+
+                        $activeSupportRequests[] = [
+                            'id' => $roomId,
+                            'requester_id' => $userId,
+                            'requester_type' => $userType,
+                            'requester_name' => $userName,
+                            'requester_email' => $userEmail,
+                            'requester_phone' => $userPhone,
+                            'status' => 'pending', // Default status for Firebase chats
+                            'priority' => 'medium', // Default priority
+                            'subject' => 'Support Request',
+                            'room_id' => $roomId,
+                            'last_message' => $lastMessage,
+                            'last_message_at' => $lastMessageAt,
+                            'created_at' => $lastMessageAt, // Use last message time as created time
+                            'updated_at' => $lastMessageAt,
+                            'unread_count' => $unreadCount
+                        ];
+                    }
+                }
+
+                // Sort by last message time (most recent first)
+                usort($activeSupportRequests, function($a, $b) {
+                    return strtotime($b['last_message_at'] ?? '1970-01-01') - strtotime($a['last_message_at'] ?? '1970-01-01');
                 });
+            }
+
+            Log::info('Returning support requests', [
+                'count' => count($activeSupportRequests)
+            ]);
 
             return response()->json([
                 'success' => true,
-                'data' => $supportRequests
+                'data' => $activeSupportRequests
             ]);
 
         } catch (\Exception $e) {
+            Log::error('SupportChatController error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to get support requests: ' . $e->getMessage()
@@ -88,48 +160,77 @@ class SupportChatController extends Controller
     {
         try {
             $roomId = "admin_{$targetId}";
-            $chat = Chat::where('room_id', $roomId)->first();
+            
+            Log::info('getChatMessages called', [
+                'targetId' => $targetId,
+                'targetType' => $targetType,
+                'roomId' => $roomId
+            ]);
+            
+            // Get messages directly from Firebase
+            $firebaseMessages = $this->firebaseService->getMessages($roomId, 100);
+            $messages = [];
 
-            if (!$chat) {
-                return response()->json([
-                    'success' => true,
-                    'data' => [
-                        'messages' => [],
-                        'room_id' => $roomId,
-                        'target_info' => $this->getTargetInfo($targetId, $targetType)
-                    ]
+            Log::info('Firebase messages retrieved', [
+                'roomId' => $roomId,
+                'firebaseMessages' => $firebaseMessages,
+                'isEmpty' => empty($firebaseMessages),
+                'count' => is_array($firebaseMessages) ? count($firebaseMessages) : 0
+            ]);
+
+            if (!empty($firebaseMessages)) {
+                foreach ($firebaseMessages as $messageId => $messageData) {
+                    Log::info('Processing message', [
+                        'messageId' => $messageId,
+                        'messageData' => $messageData
+                    ]);
+                    
+                    $messages[] = [
+                        'id' => $messageId,
+                        'sender_id' => $messageData['senderId'] ?? null,
+                        'receiver_id' => $messageData['receiverId'] ?? null,
+                        'sender_type' => $messageData['senderType'] ?? null,
+                        'receiver_type' => $messageData['receiverType'] ?? null,
+                        'message' => $messageData['text'] ?? '',
+                        'timestamp' => isset($messageData['timestamp']) 
+                            ? date('Y-m-d H:i:s', $messageData['timestamp'] / 1000) 
+                            : null,
+                        'status' => $messageData['status'] ?? 'sent',
+                        'is_admin_message' => ($messageData['senderType'] ?? null) === 'admin'
+                    ];
+                }
+
+                // Sort messages by timestamp
+                usort($messages, function($a, $b) {
+                    return strtotime($a['timestamp'] ?? '1970-01-01') - strtotime($b['timestamp'] ?? '1970-01-01');
+                });
+            } else {
+                Log::warning('No messages found in Firebase for room', [
+                    'roomId' => $roomId,
+                    'firebaseMessages' => $firebaseMessages
                 ]);
             }
 
-            $messages = ChatMessage::where('chat_id', $chat->id)
-                ->orderBy('created_at', 'asc')
-                ->limit(100)
-                ->get()
-                ->map(function ($message) {
-                    return [
-                        'id' => $message->id,
-                        'sender_id' => $message->sender_id,
-                        'receiver_id' => $message->receiver_id,
-                        'sender_type' => $message->sender_type,
-                        'receiver_type' => $message->receiver_type,
-                        'message' => $message->message,
-                        'timestamp' => $message->created_at->format('Y-m-d H:i:s'),
-                        'status' => $message->status,
-                        'is_admin_message' => $message->sender_type === 'admin'
-                    ];
-                });
+            Log::info('Final messages to return', [
+                'messagesCount' => count($messages),
+                'messages' => $messages
+            ]);
 
             return response()->json([
                 'success' => true,
                 'data' => [
                     'messages' => $messages,
                     'room_id' => $roomId,
-                    'chat_id' => $chat->id,
                     'target_info' => $this->getTargetInfo($targetId, $targetType)
                 ]
             ]);
 
         } catch (\Exception $e) {
+            Log::error('getChatMessages error: ' . $e->getMessage(), [
+                'targetId' => $targetId,
+                'targetType' => $targetType,
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to get messages: ' . $e->getMessage()
@@ -145,15 +246,44 @@ class SupportChatController extends Controller
             'message' => 'required|string|max:1000'
         ]);
 
+        $admin = Auth::user();
+
         try {
-            // Use the API controller to send the message
-            $apiController = new \App\Http\Controllers\Api\Admin\AdminSupportChatController(
-                new \App\Services\FirebaseChatService()
-            );
-            
-            return $apiController->sendReply($request);
+            $roomId = "admin_{$request->target_id}";
+
+            // Prepare message data for Firebase
+            $messageData = [
+                'senderId' => $admin->id,
+                'receiverId' => $request->target_id,
+                'senderType' => 'admin',
+                'receiverType' => $request->target_type,
+                'text' => $request->message,
+                'timestamp' => now()->timestamp * 1000,
+                'status' => 'sent'
+            ];
+
+            // Send to Firebase
+            $firebaseMessageId = $this->firebaseService->sendMessage($roomId, $messageData);
+
+            if (!$firebaseMessageId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to send message to Firebase'
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Reply sent successfully',
+                'data' => [
+                    'room_id' => $roomId,
+                    'firebase_message_id' => $firebaseMessageId,
+                    'message_data' => $messageData
+                ]
+            ]);
 
         } catch (\Exception $e) {
+            Log::error('sendReply error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to send reply: ' . $e->getMessage()
@@ -199,50 +329,146 @@ class SupportChatController extends Controller
 
     private function getSupportStatistics()
     {
-        return [
-            'total_requests' => SupportRequest::count(),
-            'pending_requests' => SupportRequest::where('status', SupportRequest::STATUS_PENDING)->count(),
-            'in_progress_requests' => SupportRequest::where('status', SupportRequest::STATUS_IN_PROGRESS)->count(),
-            'resolved_requests' => SupportRequest::where('status', SupportRequest::STATUS_RESOLVED)->count(),
-            'closed_requests' => SupportRequest::where('status', SupportRequest::STATUS_CLOSED)->count(),
-            'today_requests' => SupportRequest::whereDate('created_at', today())->count(),
-            'this_week_requests' => SupportRequest::whereBetween('created_at', [
-                now()->startOfWeek(),
-                now()->endOfWeek()
-            ])->count(),
-            'this_month_requests' => SupportRequest::whereMonth('created_at', now()->month)
-                ->whereYear('created_at', now()->year)
-                ->count(),
-            'total_unread_messages' => $this->getTotalUnreadMessages(),
-            'user_conversations' => SupportRequest::where('requester_type', 'user')
-                ->whereIn('status', [SupportRequest::STATUS_PENDING, SupportRequest::STATUS_IN_PROGRESS])
-                ->count(),
-            'driver_conversations' => SupportRequest::where('requester_type', 'driver')
-                ->whereIn('status', [SupportRequest::STATUS_PENDING, SupportRequest::STATUS_IN_PROGRESS])
-                ->count()
-        ];
+        try {
+            // Get all chats from Firebase
+            $firebaseChats = $this->firebaseService->getAllChats();
+            $totalRequests = 0;
+            $todayRequests = 0;
+            $thisWeekRequests = 0;
+            $thisMonthRequests = 0;
+            $totalUnreadMessages = 0;
+            $userConversations = 0;
+            $driverConversations = 0;
+
+            $today = now()->startOfDay();
+            $weekStart = now()->startOfWeek();
+            $monthStart = now()->startOfMonth();
+
+            if (!empty($firebaseChats)) {
+                foreach ($firebaseChats as $roomId => $chatData) {
+                    // Only count admin chats
+                    if (strpos($roomId, 'admin_') === 0) {
+                        $totalRequests++;
+                        
+                        $userId = str_replace('admin_', '', $roomId);
+                        $user = User::find($userId);
+                        $userType = 'user';
+                        
+                        if ($user && $user->isDriver()) {
+                            $userType = 'driver';
+                            $driverConversations++;
+                        } else {
+                            $userConversations++;
+                        }
+
+                        // Get the first message timestamp to determine creation date
+                        if (isset($chatData['messages']) && is_array($chatData['messages'])) {
+                            $messages = $chatData['messages'];
+                            $firstMessage = reset($messages);
+                            
+                            if (isset($firstMessage['timestamp'])) {
+                                $messageDate = \Carbon\Carbon::createFromTimestamp($firstMessage['timestamp'] / 1000);
+                                
+                                if ($messageDate->gte($today)) {
+                                    $todayRequests++;
+                                }
+                                
+                                if ($messageDate->gte($weekStart)) {
+                                    $thisWeekRequests++;
+                                }
+                                
+                                if ($messageDate->gte($monthStart)) {
+                                    $thisMonthRequests++;
+                                }
+                            }
+                            
+                            // Count unread messages (messages from user/driver, not admin)
+                            foreach ($messages as $message) {
+                                if (isset($message['senderType']) && $message['senderType'] !== 'admin') {
+                                    $totalUnreadMessages++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return [
+                'total_requests' => $totalRequests,
+                'pending_requests' => $totalRequests, // All Firebase chats are considered pending
+                'in_progress_requests' => 0,
+                'resolved_requests' => 0,
+                'closed_requests' => 0,
+                'today_requests' => $todayRequests,
+                'this_week_requests' => $thisWeekRequests,
+                'this_month_requests' => $thisMonthRequests,
+                'total_unread_messages' => $totalUnreadMessages,
+                'user_conversations' => $userConversations,
+                'driver_conversations' => $driverConversations
+            ];
+        } catch (\Exception $e) {
+            Log::error('getSupportStatistics error: ' . $e->getMessage());
+            
+            return [
+                'total_requests' => 0,
+                'pending_requests' => 0,
+                'in_progress_requests' => 0,
+                'resolved_requests' => 0,
+                'closed_requests' => 0,
+                'today_requests' => 0,
+                'this_week_requests' => 0,
+                'this_month_requests' => 0,
+                'total_unread_messages' => 0,
+                'user_conversations' => 0,
+                'driver_conversations' => 0
+            ];
+        }
     }
 
-    private function getTotalUnreadMessages()
+    public function testFirebaseConnection()
     {
-        // Count messages where admin hasn't replied yet or recent user messages
-        return ChatMessage::where('sender_type', '!=', 'admin')
-            ->where('created_at', '>', now()->subDays(7))
-            ->whereDoesntHave('chat.messages', function($query) {
-                $query->where('sender_type', 'admin')
-                    ->where('created_at', '>', now()->subHours(1));
-            })
-            ->count();
-    }
-
-    private function getUnreadCount($chatId)
-    {
-        if (!$chatId) return 0;
-        
-        return ChatMessage::where('chat_id', $chatId)
-            ->where('sender_type', '!=', 'admin')
-            ->where('created_at', '>', now()->subDays(1))
-            ->count();
+        try {
+            // Test Firebase connection by trying to send a test message
+            $roomId = "admin_3"; // Test room
+            $testMessage = [
+                'senderId' => 1,
+                'receiverId' => 3,
+                'senderType' => 'admin',
+                'receiverType' => 'user',
+                'text' => 'Test message from admin - ' . now()->format('Y-m-d H:i:s'),
+                'timestamp' => now()->timestamp * 1000,
+                'status' => 'sent'
+            ];
+            
+            Log::info('Sending test message to Firebase', [
+                'roomId' => $roomId,
+                'message' => $testMessage
+            ]);
+            
+            $messageId = $this->firebaseService->sendMessage($roomId, $testMessage);
+            
+            Log::info('Test message sent', ['messageId' => $messageId]);
+            
+            // Now try to retrieve messages
+            $messages = $this->firebaseService->getMessages($roomId, 10);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Firebase test completed',
+                'data' => [
+                    'sent_message_id' => $messageId,
+                    'retrieved_messages' => $messages,
+                    'messages_count' => is_array($messages) ? count($messages) : 0
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Firebase test failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Firebase test failed: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     private function getTargetInfo($targetId, $targetType)

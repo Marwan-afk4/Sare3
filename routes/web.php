@@ -91,6 +91,7 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
             Route::get('/test', function() {
                 return 'Support Chat is working! <a href="' . route('support-chat.index') . '">Go to Support Chat</a>';
             })->name('test');
+            Route::get('/test-firebase', [\App\Http\Controllers\Admin\SupportChatController::class, 'testFirebaseConnection'])->name('test-firebase');
             Route::get('/realtime', function() {
                 $stats = [
                     'total_requests' => 0,

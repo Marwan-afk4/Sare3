@@ -80,12 +80,27 @@ class FirebaseChatService
     public function getMessages($roomId, $limit = 50)
     {
         try {
+            Log::info('FirebaseChatService: getMessages called', [
+                'roomId' => $roomId,
+                'limit' => $limit,
+                'hasDatabaseConnection' => !is_null($this->database)
+            ]);
+
             if ($this->database) {
                 // Use Firebase Admin SDK
                 $reference = $this->database->getReference("chats/{$roomId}/messages");
                 $query = $reference->orderByChild('timestamp')->limitToLast($limit);
                 $snapshot = $query->getSnapshot();
-                return $snapshot->getValue() ?? [];
+                $result = $snapshot->getValue() ?? [];
+                
+                Log::info('Firebase Admin SDK result', [
+                    'roomId' => $roomId,
+                    'result' => $result,
+                    'resultType' => gettype($result),
+                    'count' => is_array($result) ? count($result) : 0
+                ]);
+                
+                return $result;
             } else {
                 // Fallback to HTTP requests
                 $url = "{$this->firebaseUrl}/chats/{$roomId}/messages.json";
@@ -97,16 +112,37 @@ class FirebaseChatService
                 $params['orderBy'] = '"timestamp"';
                 $params['limitToLast'] = $limit;
 
+                Log::info('Firebase HTTP request', [
+                    'url' => $url,
+                    'params' => $params
+                ]);
+
                 $response = Http::get($url, $params);
 
                 if ($response->successful()) {
-                    return $response->json() ?? [];
+                    $result = $response->json() ?? [];
+                    Log::info('Firebase HTTP result', [
+                        'roomId' => $roomId,
+                        'result' => $result,
+                        'resultType' => gettype($result),
+                        'count' => is_array($result) ? count($result) : 0
+                    ]);
+                    return $result;
+                } else {
+                    Log::error('Firebase HTTP request failed', [
+                        'url' => $url,
+                        'status' => $response->status(),
+                        'body' => $response->body()
+                    ]);
                 }
 
                 return [];
             }
         } catch (\Exception $e) {
-            Log::error('Firebase get messages error: ' . $e->getMessage());
+            Log::error('Firebase get messages error: ' . $e->getMessage(), [
+                'roomId' => $roomId,
+                'trace' => $e->getTraceAsString()
+            ]);
             return [];
         }
     }

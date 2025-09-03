@@ -315,6 +315,34 @@ Route::get('/debug/ride/{rideId}', function($rideId) {
     ]);
 });
 
+// Debug Support Chat (No Auth Required)
+Route::get('/debug/support-chats', function() {
+    try {
+        $controller = new \App\Http\Controllers\Api\Admin\AdminSupportChatController(
+            app(\App\Services\FirebaseChatService::class)
+        );
+        
+        return $controller->getActiveSupportRequests();
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
+// Debug Admin Auth
+Route::middleware(['auth:sanctum', 'role:admin'])->get('/debug/admin-auth', function() {
+    return response()->json([
+        'success' => true,
+        'user_id' => Auth::id(),
+        'user_email' => Auth::user()->email,
+        'user_roles' => Auth::user()->getRoleNames(),
+        'message' => 'Admin authentication working'
+    ]);
+});
+
 
 
 
