@@ -85,6 +85,35 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
             return view('admin.coupons.index', ['currentPage' => 'coupons']);
         })->name('coupons.index');
 
+        // Support Chat Management routes
+        Route::prefix('support-chat')->name('support-chat.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\SupportChatController::class, 'index'])->name('index');
+            Route::get('/test', function() {
+                return 'Support Chat is working! <a href="' . route('support-chat.index') . '">Go to Support Chat</a>';
+            })->name('test');
+            Route::get('/realtime', function() {
+                $stats = [
+                    'total_requests' => 0,
+                    'pending_requests' => 0,
+                    'in_progress_requests' => 0,
+                    'resolved_requests' => 0,
+                    'closed_requests' => 0,
+                    'today_requests' => 0,
+                    'this_week_requests' => 0,
+                    'this_month_requests' => 0,
+                    'total_unread_messages' => 0,
+                    'user_conversations' => 0,
+                    'driver_conversations' => 0
+                ];
+                return view('admin.support-chat.realtime', compact('stats'));
+            })->name('realtime');
+            Route::get('/active-requests', [\App\Http\Controllers\Admin\SupportChatController::class, 'getActiveSupportRequests'])->name('active-requests');
+            Route::get('/chat/{target_id}/{target_type}', [\App\Http\Controllers\Admin\SupportChatController::class, 'getChatMessages'])->name('chat');
+            Route::post('/reply', [\App\Http\Controllers\Admin\SupportChatController::class, 'sendReply'])->name('reply');
+            Route::patch('/requests/{support_request}/status', [\App\Http\Controllers\Admin\SupportChatController::class, 'updateSupportRequestStatus'])->name('update-status');
+            Route::get('/statistics', [\App\Http\Controllers\Admin\SupportChatController::class, 'getStatistics'])->name('statistics');
+        });
+
         Route::post('/otp-limits/{otpLimit}/reset-drivers', [OtpLimitController::class, 'resetDrivers'])->name('otp-limits.reset-drivers');
         Route::post('/otp-limits/{otpLimit}/reset-users', [OtpLimitController::class, 'resetUsers'])->name('otp-limits.reset-users');
 

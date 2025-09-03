@@ -286,6 +286,15 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::delete('/coupons/{coupon}', [\App\Http\Controllers\Admin\CouponController::class, 'destroy']);
     Route::patch('/coupons/{coupon}/toggle-status', [\App\Http\Controllers\Admin\CouponController::class, 'toggleStatus']);
     Route::get('/coupons-statistics', [\App\Http\Controllers\Admin\CouponController::class, 'statistics']);
+
+    // Support Chat Management
+    Route::get('/support/active-requests', [\App\Http\Controllers\Api\Admin\AdminSupportChatController::class, 'getActiveSupportRequests']);
+    Route::get('/support/chat/{target_id}/{target_type}', [\App\Http\Controllers\Api\Admin\AdminSupportChatController::class, 'getChatMessages']);
+    Route::post('/support/reply', [\App\Http\Controllers\Api\Admin\AdminSupportChatController::class, 'sendReply']);
+    Route::patch('/support/requests/{support_request}/status', [\App\Http\Controllers\Api\Admin\AdminSupportChatController::class, 'updateSupportRequestStatus']);
+    Route::get('/support/statistics', [\App\Http\Controllers\Api\Admin\AdminSupportChatController::class, 'getSupportStatistics']);
+    
+
 });
 
 //======= DEBUG ENDPOINT (Temporary) ========
@@ -305,5 +314,7 @@ Route::get('/debug/ride/{rideId}', function($rideId) {
         'verification_enabled' => AppSetting::isRideVerificationEnabled()
     ]);
 });
+
+
 
 

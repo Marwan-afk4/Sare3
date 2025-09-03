@@ -21,7 +21,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="mb-0">{{ __('Support Chat') }}</h1>
             <div class="d-flex align-items-center">
-                <span class="badge bg-primary me-2" id="total-unread">{{ $stats['unread_messages'] }}</span>
+                <span class="badge bg-primary me-2" id="total-unread">{{ $stats['total_unread_messages'] ?? 0 }}</span>
                 <small class="text-muted">{{ __('Unread Messages') }}</small>
             </div>
         </div>
@@ -33,7 +33,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h4 class="mb-0">{{ $stats['total_conversations'] }}</h4>
+                                <h4 class="mb-0">{{ ($stats['user_conversations'] ?? 0) + ($stats['driver_conversations'] ?? 0) }}</h4>
                                 <p class="mb-0">{{ __('Total Conversations') }}</p>
                             </div>
                             <div class="align-self-center">
@@ -48,7 +48,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h4 class="mb-0">{{ $stats['unread_messages'] }}</h4>
+                                <h4 class="mb-0">{{ $stats['total_unread_messages'] ?? 0 }}</h4>
                                 <p class="mb-0">{{ __('Unread Messages') }}</p>
                             </div>
                             <div class="align-self-center">
@@ -333,12 +333,13 @@
                     // Show loading state
                     this.showLoadingState('user-conversations');
                     
-                    const response = await fetch('{{ route("admin.support-chat.conversations.users") }}');
+                    const response = await fetch('{{ route("support-chat.active-requests") }}');
                     const data = await response.json();
                     
-                    if (data.status === 'success') {
-                        this.renderConversations(data.data, 'user-conversations');
-                        document.getElementById('user-count').textContent = data.data.length;
+                    if (data.success) {
+                        const userConversations = data.data.filter(conv => conv.requester_type === 'user');
+                        this.renderConversations(userConversations, 'user-conversations');
+                        document.getElementById('user-count').textContent = userConversations.length;
                     } else {
                         this.showErrorState('user-conversations');
                     }
@@ -353,12 +354,13 @@
                     // Show loading state
                     this.showLoadingState('driver-conversations');
                     
-                    const response = await fetch('{{ route("admin.support-chat.conversations.drivers") }}');
+                    const response = await fetch('{{ route("support-chat.active-requests") }}');
                     const data = await response.json();
                     
-                    if (data.status === 'success') {
-                        this.renderConversations(data.data, 'driver-conversations');
-                        document.getElementById('driver-count').textContent = data.data.length;
+                    if (data.success) {
+                        const driverConversations = data.data.filter(conv => conv.requester_type === 'driver');
+                        this.renderConversations(driverConversations, 'driver-conversations');
+                        document.getElementById('driver-count').textContent = driverConversations.length;
                     } else {
                         this.showErrorState('driver-conversations');
                     }
@@ -409,27 +411,36 @@
 
                 container.innerHTML = conversations.map(conv => `
                     <div class="conversation-item ${conv.unread_count > 0 ? 'unread' : ''}" 
-                         data-conversation-id="${conv.id}" onclick="chatInterface.selectConversation('${conv.id}')">
+                         data-conversation-id="${conv.id}" 
+                         data-requester-id="${conv.requester_id}"
+                         data-requester-type="${conv.requester_type}"
+                         onclick="chatInterface.selectConversation('${conv.requester_id}', '${conv.requester_type}')">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
-                                <h6 class="mb-1">${conv.participant_name}</h6>
+                                <h6 class="mb-1">${conv.requester_name}</h6>
                                 <p class="mb-1 text-muted small">${conv.last_message || '{{ __("No messages yet") }}'}</p>
-                                <small class="text-muted">${this.formatTime(conv.last_message_time)}</small>
+                                <small class="text-muted">${this.formatTime(conv.last_message_at)}</small>
                             </div>
-                            ${conv.unread_count > 0 ? `<span class="unread-badge">${conv.unread_count}</span>` : ''}
+                            <div class="d-flex flex-column align-items-end">
+                                ${conv.unread_count > 0 ? `<span class="unread-badge">${conv.unread_count}</span>` : ''}
+                                <span class="badge bg-${conv.status === 'pending' ? 'warning' : 'info'} mt-1">${conv.status}</span>
+                            </div>
                         </div>
                     </div>
                 `).join('');
             }
 
-            async selectConversation(conversationId) {
+            async selectConversation(requesterId, requesterType) {
                 // Update active state
                 document.querySelectorAll('.conversation-item').forEach(item => {
                     item.classList.remove('active');
                 });
-                document.querySelector(`[data-conversation-id="${conversationId}"]`).classList.add('active');
+                document.querySelector(`[data-requester-id="${requesterId}"]`).classList.add('active');
 
-                this.currentConversation = conversationId;
+                this.currentConversation = {
+                    requester_id: requesterId,
+                    requester_type: requesterType
+                };
                 
                 // Show chat interface
                 document.getElementById('welcome-message').classList.add('d-none');
@@ -438,20 +449,22 @@
                 document.getElementById('message-input-container').classList.remove('d-none');
 
                 // Load conversation
-                await this.loadConversation(conversationId);
+                await this.loadConversation(requesterId, requesterType);
             }
 
-            async loadConversation(conversationId) {
+            async loadConversation(requesterId, requesterType) {
                 try {
-                    const response = await fetch(`{{ url('admin/support-chat/conversation') }}/${conversationId}`);
+                    const response = await fetch(`{{ url('admin/support-chat/chat') }}/${requesterId}/${requesterType}`);
                     const data = await response.json();
                     
-                    if (data.status === 'success') {
-                        const { conversation, messages } = data.data;
+                    if (data.success) {
+                        const { messages, target_info } = data.data;
                         
                         // Update header
-                        document.getElementById('chat-participant-name').textContent = conversation.participant_name;
-                        document.getElementById('chat-participant-type').textContent = conversation.participant_type;
+                        if (target_info) {
+                            document.getElementById('chat-participant-name').textContent = target_info.name;
+                            document.getElementById('chat-participant-type').textContent = `${target_info.type} - ${target_info.email}`;
+                        }
                         
                         // Render messages
                         this.renderMessages(messages);
@@ -493,24 +506,25 @@
                 if (!message || !this.currentConversation) return;
 
                 try {
-                    const response = await fetch('{{ route("admin.support-chat.message.send") }}', {
+                    const response = await fetch('{{ route("support-chat.reply") }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
                         body: JSON.stringify({
-                            conversation_id: this.currentConversation,
+                            target_id: this.currentConversation.requester_id,
+                            target_type: this.currentConversation.requester_type,
                             message: message
                         })
                     });
 
                     const data = await response.json();
                     
-                    if (data.status === 'success') {
+                    if (data.success) {
                         input.value = '';
                         // Reload conversation to show new message
-                        await this.loadConversation(this.currentConversation);
+                        await this.loadConversation(this.currentConversation.requester_id, this.currentConversation.requester_type);
                         // Refresh conversation list
                         if (this.currentType === 'user') {
                             this.loadUserConversations();
@@ -530,7 +544,7 @@
                 if (!this.currentConversation) return;
 
                 try {
-                    const response = await fetch(`{{ url('admin/support-chat/conversation') }}/${this.currentConversation}/read`, {
+                    const response = await fetch(`{{ url('admin/support-chat/requests') }}/${this.currentConversation}/read`, {
                         method: 'PATCH',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
@@ -580,10 +594,10 @@
 
         // Update sidebar notification badge
         function updateSidebarBadge() {
-            fetch('{{ route("admin.support-chat.stats") }}')
+            fetch('{{ route("support-chat.statistics") }}')
                 .then(response => response.json())
                 .then(data => {
-                    if (data.status === 'success' && data.data.total_unread_messages > 0) {
+                    if (data.success && data.data.total_unread_messages > 0) {
                         const badge = document.getElementById('support-chat-badge');
                         if (badge) {
                             badge.textContent = data.data.total_unread_messages;
