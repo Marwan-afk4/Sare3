@@ -115,6 +115,7 @@
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/drivers\/show.blade.php",
+        "resources\/views\/livewire\/coupon-manager.blade.php",
         "resources\/views\/paymenent-methods\/create.blade.php",
         "resources\/views\/paymenent-methods\/index.blade.php",
         "resources\/views\/paymenent-methods\/show.blade.php",
@@ -203,18 +204,20 @@
         "4": "resources\/views\/document-types\/create.blade.php",
         "5": "resources\/views\/document-types\/edit.blade.php",
         "6": "resources\/views\/drivers\/edit.blade.php",
-        "7": "resources\/views\/users\/edit.blade.php",
-        "8": "app\/Enums\/ActiveStatuses.php",
-        "9": "app\/Enums\/ActivtyType.php"
+        "7": "resources\/views\/livewire\/coupon-manager.blade.php",
+        "10": "resources\/views\/users\/edit.blade.php",
+        "11": "app\/Enums\/ActiveStatuses.php",
+        "12": "app\/Enums\/ActivtyType.php"
     },
-    "Inactive": [
-        "resources\/views\/document-types\/create.blade.php",
-        "resources\/views\/document-types\/edit.blade.php",
-        "resources\/views\/drivers\/edit.blade.php",
-        "resources\/views\/users\/edit.blade.php",
-        "app\/Enums\/ActiveStatuses.php",
-        "app\/Enums\/ActivtyType.php"
-    ],
+    "Inactive": {
+        "0": "resources\/views\/document-types\/create.blade.php",
+        "1": "resources\/views\/document-types\/edit.blade.php",
+        "2": "resources\/views\/drivers\/edit.blade.php",
+        "3": "resources\/views\/livewire\/coupon-manager.blade.php",
+        "5": "resources\/views\/users\/edit.blade.php",
+        "6": "app\/Enums\/ActiveStatuses.php",
+        "7": "app\/Enums\/ActivtyType.php"
+    },
     "Activity": [
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/index.blade.php",
@@ -280,6 +283,7 @@
     ],
     "Image": [
         "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/livewire\/chat.blade.php",
         "resources\/views\/users\/create.blade.php",
         "resources\/views\/users\/index.blade.php"
     ],
@@ -338,6 +342,7 @@
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/driver-documents\/index.blade.php",
         "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/livewire\/coupon-manager.blade.php",
         "resources\/views\/livewire\/zone-car-categories.blade.php",
         "resources\/views\/notifications\/index.blade.php",
         "resources\/views\/otp-limits\/index.blade.php",
@@ -828,7 +833,8 @@
         "resources\/views\/car-types\/create.blade.php",
         "resources\/views\/car-types\/edit.blade.php",
         "resources\/views\/car-types\/index.blade.php",
-        "resources\/views\/car-types\/show.blade.php"
+        "resources\/views\/car-types\/show.blade.php",
+        "resources\/views\/livewire\/coupon-manager.blade.php"
     ],
     "Icon": [
         "resources\/views\/car-categories\/create.blade.php",
@@ -1129,20 +1135,21 @@
         "9": "resources\/views\/drivers\/index.blade.php",
         "10": "resources\/views\/drivers\/ride-history.blade.php",
         "12": "resources\/views\/drivers\/show.blade.php",
-        "14": "resources\/views\/paymenent-methods\/create.blade.php",
-        "15": "resources\/views\/paymenent-methods\/edit.blade.php",
-        "16": "resources\/views\/paymenent-methods\/index.blade.php",
-        "17": "resources\/views\/paymenent-methods\/show.blade.php",
-        "18": "resources\/views\/rides\/create.blade.php",
-        "19": "resources\/views\/rides\/edit.blade.php",
-        "20": "resources\/views\/rides\/index.blade.php",
-        "21": "resources\/views\/rides\/show.blade.php",
-        "22": "resources\/views\/users\/ride-history.blade.php",
-        "24": "resources\/views\/users\/show.blade.php",
-        "25": "resources\/views\/wallet-requests\/create.blade.php",
-        "26": "resources\/views\/wallet-requests\/edit.blade.php",
-        "27": "resources\/views\/wallet-requests\/index.blade.php",
-        "28": "resources\/views\/wallet-requests\/show.blade.php"
+        "14": "resources\/views\/livewire\/coupon-manager.blade.php",
+        "15": "resources\/views\/paymenent-methods\/create.blade.php",
+        "16": "resources\/views\/paymenent-methods\/edit.blade.php",
+        "17": "resources\/views\/paymenent-methods\/index.blade.php",
+        "18": "resources\/views\/paymenent-methods\/show.blade.php",
+        "19": "resources\/views\/rides\/create.blade.php",
+        "20": "resources\/views\/rides\/edit.blade.php",
+        "21": "resources\/views\/rides\/index.blade.php",
+        "22": "resources\/views\/rides\/show.blade.php",
+        "23": "resources\/views\/users\/ride-history.blade.php",
+        "25": "resources\/views\/users\/show.blade.php",
+        "26": "resources\/views\/wallet-requests\/create.blade.php",
+        "27": "resources\/views\/wallet-requests\/edit.blade.php",
+        "28": "resources\/views\/wallet-requests\/index.blade.php",
+        "29": "resources\/views\/wallet-requests\/show.blade.php"
     },
     "Edit Ride": [
         "resources\/views\/rides\/edit.blade.php"
@@ -1321,6 +1328,7 @@
     ],
     "Type": [
         "resources\/views\/admin\/referrals\/index.blade.php",
+        "resources\/views\/livewire\/coupon-manager.blade.php",
         "resources\/views\/notifications\/create.blade.php",
         "resources\/views\/notifications\/edit.blade.php",
         "resources\/views\/notifications\/index.blade.php",
@@ -1774,7 +1782,8 @@
         "resources\/views\/admin\/support-chat\/realtime.blade.php"
     ],
     "Send": [
-        "resources\/views\/admin\/support-chat\/index.blade.php"
+        "resources\/views\/admin\/support-chat\/index.blade.php",
+        "resources\/views\/livewire\/chat.blade.php"
     ],
     "Press Enter to send": [
         "resources\/views\/admin\/support-chat\/index.blade.php"
@@ -2461,7 +2470,8 @@
         "resources\/views\/admin\/referrals\/list.blade.php"
     ],
     "Usage": [
-        "resources\/views\/admin\/referrals\/list.blade.php"
+        "resources\/views\/admin\/referrals\/list.blade.php",
+        "resources\/views\/livewire\/coupon-manager.blade.php"
     ],
     "Date Accepted": [
         "resources\/views\/admin\/referrals\/list.blade.php"
@@ -2660,6 +2670,89 @@
         "resources\/views\/components\/support-chat-widget.blade.php"
     ],
     "Coupon Management": [
-        "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+        "resources\/views\/admin\/coupons\/index.blade.php",
+        "resources\/views\/elements\/phoenix\/sidebar.blade.php",
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Coupons": [
+        "resources\/views\/admin\/coupons\/index.blade.php"
+    ],
+    "Chat with": [
+        "resources\/views\/livewire\/chat.blade.php"
+    ],
+    "You": [
+        "resources\/views\/livewire\/chat.blade.php"
+    ],
+    "No messages yet. Start the conversation!": [
+        "resources\/views\/livewire\/chat.blade.php"
+    ],
+    "\/500 characters": [
+        "resources\/views\/livewire\/chat.blade.php"
+    ],
+    "Add New Coupon": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "All Status": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Expired": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Code": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Value": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Expires At": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "No coupons found": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Coupon": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Coupon Code": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Coupon Name": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Discount Type": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Percentage": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Fixed Amount": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Discount Value": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Minimum Ride Amount": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Maximum Discount": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Total Usage Limit": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Per User Limit": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Start Date": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "End Date": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Cancel": [
+        "resources\/views\/livewire\/coupon-manager.blade.php"
+    ],
+    "Please select a valid supplier from the list.": [
+        "resources\/views\/livewire\/supplier-autocomplete.blade.php"
     ]
 }

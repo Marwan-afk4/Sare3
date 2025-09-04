@@ -3,10 +3,10 @@
         <div class="card-header bg-primary text-white">
             <h4 class="mb-0">
                 <i class="fas fa-comments me-2"></i>
-                Chat with {{ $selectedUser->name }}
+                {{ __('Chat with') }} {{ $selectedUser->name }}
             </h4>
         </div>
-        
+
         <div class="card-body">
             <!-- Messages Container -->
             <div class="messages-container mb-3" style="height: 400px; overflow-y: auto; border: 1px solid #dee2e6; padding: 15px; border-radius: 8px; background-color: #f8f9fa;">
@@ -17,9 +17,9 @@
                                 <div class="message-header mb-1">
                                     <small class="text-muted">
                                         <strong>
-                                            @if ($message->sender_id == auth()->id()) 
-                                                You 
-                                            @else 
+                                            @if ($message->sender_id == auth()->id())
+                                                {{ __('You') }}
+                                            @else
                                                 {{ $message->sender->name ?? 'Unknown User' }}
                                             @endif
                                         </strong>
@@ -29,11 +29,11 @@
                                     </small>
                                 </div>
                                 <div class="message-content p-2 rounded" style="background-color: {{ $message->sender_id == auth()->id() ? '#007bff' : '#e9ecef' }}; color: {{ $message->sender_id == auth()->id() ? 'white' : '#333' }};">
-                                    @if ($message->message == 'a') 
+                                    @if ($message->message == 'a')
                                         <a href="{{ $message->id }}" target="_blank" class="text-decoration-none">
-                                            <i class="fas fa-image"></i> Image
-                                        </a> 
-                                    @else 
+                                            <i class="fas fa-image"></i> {{ __('Image') }}
+                                        </a>
+                                    @else
                                         {{ $message->message }}
                                     @endif
                                 </div>
@@ -43,32 +43,32 @@
                 @else
                     <div class="text-center text-muted py-5">
                         <i class="fas fa-comments fa-3x mb-3"></i>
-                        <p>No messages yet. Start the conversation!</p>
+                        <p>{{ __('No messages yet. Start the conversation!') }}</p>
                     </div>
                 @endif
             </div>
 
             <!-- Message Input Form -->
             <form wire:submit="submit" class="d-flex gap-2">
-                <input 
-                    type="text" 
-                    wire:model="newMessage" 
-                    class="form-control" 
-                    placeholder="Type your message..." 
+                <input
+                    type="text"
+                    wire:model="newMessage"
+                    class="form-control"
+                    placeholder="Type your message..."
                     maxlength="500"
                 />
-                <button 
-                    type="submit" 
+                <button
+                    type="submit"
                     class="btn btn-primary"
                     {{ empty($newMessage) ? 'disabled' : '' }}
                 >
                     <i class="fas fa-paper-plane"></i>
-                    Send
+                    {{ __('Send') }}
                 </button>
             </form>
-            
+
             @if($newMessage)
-                <small class="text-muted mt-1 d-block">{{ strlen($newMessage) }}/500 characters</small>
+                <small class="text-muted mt-1 d-block">{{ strlen($newMessage) }} {{ __('/500 characters') }}</small>
             @endif
         </div>
     </div>
@@ -88,12 +88,12 @@
         .messages-container::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
         }
-        
+
         .message-bubble.sent .message-content {
             background-color: #007bff !important;
             color: white !important;
         }
-        
+
         .message-bubble.received .message-content {
             background-color: #e9ecef !important;
             color: #333 !important;
@@ -108,7 +108,7 @@
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }
         });
-        
+
         // Initial scroll to bottom
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
