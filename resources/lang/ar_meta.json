@@ -85,12 +85,13 @@
     ],
     "Drivers": {
         "0": "resources\/views\/admin\/support-chat\/index.blade.php",
-        "1": "resources\/views\/drivers\/create.blade.php",
-        "2": "resources\/views\/drivers\/edit.blade.php",
-        "3": "resources\/views\/drivers\/index.blade.php",
-        "5": "resources\/views\/drivers\/ride-history.blade.php",
-        "6": "resources\/views\/drivers\/show.blade.php",
-        "7": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+        "1": "resources\/views\/admin\/support-chat\/realtime.blade.php",
+        "3": "resources\/views\/drivers\/create.blade.php",
+        "4": "resources\/views\/drivers\/edit.blade.php",
+        "5": "resources\/views\/drivers\/index.blade.php",
+        "7": "resources\/views\/drivers\/ride-history.blade.php",
+        "8": "resources\/views\/drivers\/show.blade.php",
+        "9": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     },
     "Name": [
         "resources\/views\/admin\/referrals\/index.blade.php",
@@ -196,14 +197,15 @@
         "resources\/views\/zones\/index.blade.php"
     ],
     "Active": {
-        "0": "resources\/views\/admin\/referrals\/index.blade.php",
-        "1": "resources\/views\/admin\/referrals\/list.blade.php",
-        "3": "resources\/views\/document-types\/create.blade.php",
-        "4": "resources\/views\/document-types\/edit.blade.php",
-        "5": "resources\/views\/drivers\/edit.blade.php",
-        "6": "resources\/views\/users\/edit.blade.php",
-        "7": "app\/Enums\/ActiveStatuses.php",
-        "8": "app\/Enums\/ActivtyType.php"
+        "0": "resources\/views\/admin\/dashboard-support-widget.blade.php",
+        "1": "resources\/views\/admin\/referrals\/index.blade.php",
+        "2": "resources\/views\/admin\/referrals\/list.blade.php",
+        "4": "resources\/views\/document-types\/create.blade.php",
+        "5": "resources\/views\/document-types\/edit.blade.php",
+        "6": "resources\/views\/drivers\/edit.blade.php",
+        "7": "resources\/views\/users\/edit.blade.php",
+        "8": "app\/Enums\/ActiveStatuses.php",
+        "9": "app\/Enums\/ActivtyType.php"
     },
     "Inactive": [
         "resources\/views\/document-types\/create.blade.php",
@@ -327,6 +329,7 @@
         "resources\/views\/zones\/index.blade.php"
     ],
     "Actions": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php",
         "resources\/views\/cancelation-rides\/index.blade.php",
         "resources\/views\/cancellation-policies\/index.blade.php",
         "resources\/views\/car-categories\/index.blade.php",
@@ -417,13 +420,14 @@
     ],
     "Users": {
         "0": "resources\/views\/admin\/support-chat\/index.blade.php",
-        "1": "resources\/views\/elements\/phoenix\/sidebar.blade.php",
-        "2": "resources\/views\/elements\/sidebar.blade.php",
-        "3": "resources\/views\/users\/create.blade.php",
-        "4": "resources\/views\/users\/edit.blade.php",
-        "5": "resources\/views\/users\/index.blade.php",
-        "7": "resources\/views\/users\/ride-history.blade.php",
-        "8": "resources\/views\/users\/show.blade.php"
+        "1": "resources\/views\/admin\/support-chat\/realtime.blade.php",
+        "3": "resources\/views\/elements\/phoenix\/sidebar.blade.php",
+        "4": "resources\/views\/elements\/sidebar.blade.php",
+        "5": "resources\/views\/users\/create.blade.php",
+        "6": "resources\/views\/users\/edit.blade.php",
+        "7": "resources\/views\/users\/index.blade.php",
+        "9": "resources\/views\/users\/ride-history.blade.php",
+        "10": "resources\/views\/users\/show.blade.php"
     },
     "Employees": [
         "resources\/views\/elements\/phoenix\/sidebar.blade.php",
@@ -465,6 +469,7 @@
     ],
     "Dashboard": [
         "resources\/views\/admin\/support-chat\/index.blade.php",
+        "resources\/views\/admin\/support-chat\/realtime.blade.php",
         "resources\/views\/elements\/sidebar.blade.php"
     ],
     "Logout": [
@@ -596,6 +601,7 @@
         "app\/Http\/Requests\/StoreRatingRequest.php"
     ],
     "All": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php",
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/rides\/index.blade.php"
     ],
@@ -612,6 +618,8 @@
         "resources\/views\/home\/welcome.blade.php"
     ],
     "In Progress": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php",
+        "resources\/views\/components\/support-chat-widget.blade.php",
         "app\/Enums\/ActivtyType.php",
         "app\/Enums\/RideStatus.php"
     ],
@@ -1112,28 +1120,29 @@
     "Status": {
         "0": "resources\/views\/admin\/referrals\/index.blade.php",
         "1": "resources\/views\/admin\/referrals\/list.blade.php",
-        "3": "resources\/views\/cancellation-policies\/create.blade.php",
-        "4": "resources\/views\/cancellation-policies\/edit.blade.php",
-        "5": "resources\/views\/cancellation-policies\/index.blade.php",
-        "6": "resources\/views\/cancellation-policies\/show.blade.php",
-        "7": "resources\/views\/drivers\/edit.blade.php",
-        "8": "resources\/views\/drivers\/index.blade.php",
-        "9": "resources\/views\/drivers\/ride-history.blade.php",
-        "11": "resources\/views\/drivers\/show.blade.php",
-        "13": "resources\/views\/paymenent-methods\/create.blade.php",
-        "14": "resources\/views\/paymenent-methods\/edit.blade.php",
-        "15": "resources\/views\/paymenent-methods\/index.blade.php",
-        "16": "resources\/views\/paymenent-methods\/show.blade.php",
-        "17": "resources\/views\/rides\/create.blade.php",
-        "18": "resources\/views\/rides\/edit.blade.php",
-        "19": "resources\/views\/rides\/index.blade.php",
-        "20": "resources\/views\/rides\/show.blade.php",
-        "21": "resources\/views\/users\/ride-history.blade.php",
-        "23": "resources\/views\/users\/show.blade.php",
-        "24": "resources\/views\/wallet-requests\/create.blade.php",
-        "25": "resources\/views\/wallet-requests\/edit.blade.php",
-        "26": "resources\/views\/wallet-requests\/index.blade.php",
-        "27": "resources\/views\/wallet-requests\/show.blade.php"
+        "3": "resources\/views\/admin\/support-chat\/realtime.blade.php",
+        "4": "resources\/views\/cancellation-policies\/create.blade.php",
+        "5": "resources\/views\/cancellation-policies\/edit.blade.php",
+        "6": "resources\/views\/cancellation-policies\/index.blade.php",
+        "7": "resources\/views\/cancellation-policies\/show.blade.php",
+        "8": "resources\/views\/drivers\/edit.blade.php",
+        "9": "resources\/views\/drivers\/index.blade.php",
+        "10": "resources\/views\/drivers\/ride-history.blade.php",
+        "12": "resources\/views\/drivers\/show.blade.php",
+        "14": "resources\/views\/paymenent-methods\/create.blade.php",
+        "15": "resources\/views\/paymenent-methods\/edit.blade.php",
+        "16": "resources\/views\/paymenent-methods\/index.blade.php",
+        "17": "resources\/views\/paymenent-methods\/show.blade.php",
+        "18": "resources\/views\/rides\/create.blade.php",
+        "19": "resources\/views\/rides\/edit.blade.php",
+        "20": "resources\/views\/rides\/index.blade.php",
+        "21": "resources\/views\/rides\/show.blade.php",
+        "22": "resources\/views\/users\/ride-history.blade.php",
+        "24": "resources\/views\/users\/show.blade.php",
+        "25": "resources\/views\/wallet-requests\/create.blade.php",
+        "26": "resources\/views\/wallet-requests\/edit.blade.php",
+        "27": "resources\/views\/wallet-requests\/index.blade.php",
+        "28": "resources\/views\/wallet-requests\/show.blade.php"
     },
     "Edit Ride": [
         "resources\/views\/rides\/edit.blade.php"
@@ -1238,6 +1247,9 @@
         "app\/Http\/Requests\/UpdateRideRequest.php"
     ],
     "Pending": [
+        "resources\/views\/admin\/dashboard-support-widget.blade.php",
+        "resources\/views\/admin\/support-chat\/realtime.blade.php",
+        "resources\/views\/components\/support-chat-widget.blade.php",
         "app\/Enums\/DriverStatus.php",
         "app\/Enums\/RideStatus.php"
     ],
@@ -1719,12 +1731,16 @@
         "app\/Http\/Requests\/StoreRideRequestTimeLimitRequest.php"
     ],
     "Support Chat": {
-        "0": "resources\/views\/admin\/support-chat\/index.blade.php",
-        "3": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+        "0": "resources\/views\/admin\/dashboard-support-widget.blade.php",
+        "1": "resources\/views\/admin\/support-chat\/index.blade.php",
+        "4": "resources\/views\/admin\/support-chat\/realtime.blade.php",
+        "5": "resources\/views\/components\/support-chat-widget.blade.php",
+        "6": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     },
-    "Unread Messages": [
-        "resources\/views\/admin\/support-chat\/index.blade.php"
-    ],
+    "Unread Messages": {
+        "0": "resources\/views\/admin\/support-chat\/index.blade.php",
+        "2": "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    },
     "Total Conversations": [
         "resources\/views\/admin\/support-chat\/index.blade.php"
     ],
@@ -1741,7 +1757,8 @@
         "resources\/views\/admin\/support-chat\/index.blade.php"
     ],
     "Select a conversation": [
-        "resources\/views\/admin\/support-chat\/index.blade.php"
+        "resources\/views\/admin\/support-chat\/index.blade.php",
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
     ],
     "Mark as Read": [
         "resources\/views\/admin\/support-chat\/index.blade.php"
@@ -1753,7 +1770,8 @@
         "resources\/views\/admin\/support-chat\/index.blade.php"
     ],
     "Type your message...": [
-        "resources\/views\/admin\/support-chat\/index.blade.php"
+        "resources\/views\/admin\/support-chat\/index.blade.php",
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
     ],
     "Send": [
         "resources\/views\/admin\/support-chat\/index.blade.php"
@@ -1781,14 +1799,17 @@
         "resources\/views\/admin\/support-chat\/index.blade.php"
     ],
     "No messages yet": [
-        "resources\/views\/admin\/support-chat\/index.blade.php"
+        "resources\/views\/admin\/support-chat\/index.blade.php",
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
     ],
     "No messages in this conversation": [
-        "resources\/views\/admin\/support-chat\/index.blade.php"
+        "resources\/views\/admin\/support-chat\/index.blade.php",
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
     ],
-    "Failed to send message": [
-        "resources\/views\/admin\/support-chat\/index.blade.php"
-    ],
+    "Failed to send message": {
+        "0": "resources\/views\/admin\/support-chat\/index.blade.php",
+        "2": "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    },
     "Active Rides": [
         "resources\/views\/components\/active-rides-widget.blade.php"
     ],
@@ -2173,7 +2194,8 @@
         "2": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     },
     "Today": [
-        "resources\/views\/admin\/profit-statistics\/index.blade.php"
+        "resources\/views\/admin\/profit-statistics\/index.blade.php",
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
     ],
     "This Week": [
         "resources\/views\/admin\/profit-statistics\/index.blade.php"
@@ -2288,6 +2310,8 @@
         "resources\/views\/users\/show.blade.php"
     ],
     "View All": [
+        "resources\/views\/admin\/dashboard-support-widget.blade.php",
+        "resources\/views\/components\/support-chat-widget.blade.php",
         "resources\/views\/drivers\/show.blade.php",
         "resources\/views\/users\/show.blade.php"
     ],
@@ -2532,5 +2556,110 @@
     ],
     "Reward given to users who successfully refer others.": [
         "resources\/views\/settings\/partials\/setting-field.blade.php"
+    ],
+    "Open Real-time Chat": [
+        "resources\/views\/admin\/dashboard-support-widget.blade.php"
+    ],
+    "Test": [
+        "resources\/views\/admin\/dashboard-support-widget.blade.php"
+    ],
+    "Send the first message to start the conversation": [
+        "resources\/views\/admin\/support-chat\/index.blade.php"
+    ],
+    "Support Chat - Real-time": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Connecting...": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Total": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Active Support Requests": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Search by name or email...": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Mark In Progress": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Mark Resolved": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Close Ticket": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "High Priority": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Welcome to Real-time Support Chat": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Select a support request from the left panel to start chatting": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Real-time updates enabled": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "User is typing...": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Press Enter to send, Shift+Enter for new line": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Connected": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Disconnected": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "No support requests found": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Start the conversation by sending a message": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Status updated to": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Failed to update status": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Priority set to": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Failed to set priority": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+    ],
+    "Just now": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php",
+        "resources\/views\/components\/support-chat-widget.blade.php"
+    ],
+    "m ago": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php",
+        "resources\/views\/components\/support-chat-widget.blade.php"
+    ],
+    "h ago": [
+        "resources\/views\/admin\/support-chat\/realtime.blade.php",
+        "resources\/views\/components\/support-chat-widget.blade.php"
+    ],
+    "Recent Activity": [
+        "resources\/views\/components\/support-chat-widget.blade.php"
+    ],
+    "Live": [
+        "resources\/views\/components\/support-chat-widget.blade.php"
+    ],
+    "Open Chat Dashboard": [
+        "resources\/views\/components\/support-chat-widget.blade.php"
+    ],
+    "Refresh": [
+        "resources\/views\/components\/support-chat-widget.blade.php"
+    ],
+    "No recent activity": [
+        "resources\/views\/components\/support-chat-widget.blade.php"
+    ],
+    "Coupon Management": [
+        "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     ]
 }
