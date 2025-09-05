@@ -10,7 +10,7 @@
         <label for="supplier">{{ __('Supplier') }}</label>
         @if ($showError)
             <div class="invalid-feedback">
-                Please select a valid supplier from the list.
+                {{ __('Please select a valid supplier from the list.') }}
             </div>
         @endif
     </div>

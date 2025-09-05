@@ -19,7 +19,7 @@ class RideController extends Controller
     public function index(Request $request)
     {
         $sortField = $request->get('sort', 'id');
-        $sortOrder = $request->get('order', 'asc');
+        $sortOrder = $request->get('order', 'desc');
         $keyword   = $request->get('keyword');
 
         $ridesQuery = Ride::with(['user', 'driver', 'carCategory'])
