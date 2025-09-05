@@ -135,6 +135,27 @@ class RideHelper
     }
 
     /**
+     * Create display-ready path for polylines (filtered and optionally snapped)
+     */
+    public static function makeDisplayPath(array $points, bool $snap = true): array
+    {
+        if (empty($points)) return [];
+        
+        Log::info('[DisplayPath] Processing ' . count($points) . ' points, snap=' . ($snap ? 'true' : 'false'));
+        
+        $filtered = self::filterPath($points);
+        Log::info('[DisplayPath] After filtering: ' . count($filtered) . ' points');
+        
+        if ($snap) {
+            $snapped = self::snapToRoads($filtered);
+            Log::info('[DisplayPath] After snapping: ' . count($snapped) . ' points');
+            return $snapped;
+        }
+        
+        return $filtered;
+    }
+
+    /**
      * Format ride history data for user
      */
     public static function formatUserRideHistory($rides): array

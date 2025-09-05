@@ -139,9 +139,80 @@ class RideTracker {
     }
 
     /**
-     * Show completed ride route using stored points
+     * Show completed ride route using filtered/snapped points
      */
-    showCompletedRoute() {
+    async showCompletedRoute() {
+        try {
+            // Fetch filtered/snapped route points from API
+            const response = await fetch(`/api/rides/${this.rideData.id}/route-points`);
+            const data = await response.json();
+
+            console.log('Route points response:', data);
+
+            // Use filtered points if available, fallback to raw points
+            const points = (data.points && data.points.length > 0)
+                ? data.points
+                : (this.rideData.routePoints || []);
+
+            if (points.length > 0) {
+                const routePath = points.map(point => ({
+                    lat: parseFloat(point.lat),
+                    lng: parseFloat(point.lng)
+                }));
+
+                this.routePolyline = new google.maps.Polyline({
+                    path: routePath,
+                    geodesic: true,
+                    strokeColor: '#4CAF50',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 4
+                });
+
+                this.routePolyline.setMap(this.map);
+
+                // Add markers for start and end points
+                if (routePath.length > 0) {
+                    new google.maps.Marker({
+                        position: routePath[0],
+                        map: this.map,
+                        title: 'Trip Start',
+                        icon: this.createMarkerIcon('#2196F3', 'S')
+                    });
+
+                    new google.maps.Marker({
+                        position: routePath[routePath.length - 1],
+                        map: this.map,
+                        title: 'Trip End',
+                        icon: this.createMarkerIcon('#FF9800', 'E')
+                    });
+                }
+
+                // Fit map to show entire route
+                const bounds = new google.maps.LatLngBounds();
+                routePath.forEach(point => bounds.extend(point));
+                if (this.pickupMarker) bounds.extend(this.pickupMarker.getPosition());
+                if (this.dropoffMarker) bounds.extend(this.dropoffMarker.getPosition());
+                this.map.fitBounds(bounds);
+
+                // Log filtering results
+                if (data.total_points && data.filtered_points) {
+                    console.log(`Route filtered: ${data.total_points} -> ${data.filtered_points} points (snapped: ${data.snapped})`);
+                }
+            } else {
+                console.log('No route points available, showing static route');
+                this.showStaticRoute();
+            }
+        } catch (error) {
+            console.error('Error fetching route points:', error);
+            // Fallback to original method
+            this.showCompletedRouteFallback();
+        }
+    }
+
+    /**
+     * Fallback method for showing completed route (original implementation)
+     */
+    showCompletedRouteFallback() {
         if (this.rideData.routePoints && this.rideData.routePoints.length > 0) {
             const routePath = this.rideData.routePoints.map(point => ({
                 lat: parseFloat(point.lat),
