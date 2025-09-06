@@ -105,14 +105,14 @@
                         </th>
                         <th>
                             <a
-                                href="{{ route('rides.index', ['sort' => 'estimated_km', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
-                                {{ __('Estimated Km') }}
+                                href="{{ route('rides.index', ['sort' => 'total_distance_in_km', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                {{ __('Total Distance') }}
                                 @if ($sortField === 'estimated_km')
                                     <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
                                 @endif
                             </a>
                         </th>
-                        <th>
+                        {{-- <th>
                             <a
                                 href="{{ route('rides.index', ['sort' => 'estimated_time', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
                                 {{ __('Estimated Time') }}
@@ -120,8 +120,8 @@
                                     <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
                                 @endif
                             </a>
-                        </th>
-                        <th>
+                        </th> --}}
+                        {{-- <th>
                             <a
                                 href="{{ route('rides.index', ['sort' => 'calculated_initial_price', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
                                 {{ __('Initial Price') }}
@@ -138,7 +138,7 @@
                                     <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
                                 @endif
                             </a>
-                        </th>
+                        </th> --}}
                         <th>
                             <a
                                 href="{{ route('rides.index', ['sort' => 'time_taken', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
@@ -153,6 +153,15 @@
                                 href="{{ route('rides.index', ['sort' => 'status', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
                                 {{ __('Status') }}
                                 @if ($sortField === 'status')
+                                    <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
+                                @endif
+                            </a>
+                        </th>
+                        <th>
+                            <a
+                                href="{{ route('rides.index', ['sort' => 'created_at', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                {{ __('Created At') }}
+                                @if ($sortField === 'created_at')
                                     <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
                                 @endif
                             </a>
@@ -182,12 +191,13 @@
                                 </td>
                                 <td>{{ $ride->pickup_address }}</td>
                                 <td>{{ $ride->dropoff_address }}</td>
-                                <td>{{ $ride->estimated_km }}</td>
-                                <td>{{ $ride->estimated_time }}</td>
-                                <td>{{ $ride->calculated_initial_price }}</td>
-                                <td>{{ $ride->calculated_final_price }}</td>
+                                <td>{{ $ride->total_distance_in_km }}</td>
+                                {{-- <td>{{ $ride->estimated_time }}</td> --}}
+                                {{-- <td>{{ $ride->calculated_initial_price }}</td>
+                                <td>{{ $ride->calculated_final_price }}</td> --}}
                                 <td>{{ $ride->time_taken }}</td>
                                 <td>{!! $ride->status->badge() !!}</td>
+                                <td>{{ $ride->created_at?->translatedFormat('l d F Y - h:i A') ?? '' }}</td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group">
                                         <a href='{{ route('rides.show', $ride) }}' class="btn btn-subtle-primary btn-sm"
