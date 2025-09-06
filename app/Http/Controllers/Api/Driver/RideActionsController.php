@@ -312,13 +312,13 @@ class RideActionsController extends Controller
 
         // 9️⃣ Update Ride
         $ride->update([
-            'calculated_final_price' => round($fare, 2),
-            'original_price' => round($originalFare, 2),
+            'calculated_final_price' => round($fare, 1),
+            'original_price' => round($originalFare, 1),
             'discount_amount' => round($discountResult['total_discount_amount'], 2),
             'status' => 'completed',
             'ended_at' => $endTime,
             'time_taken' => $durationMinutes,
-            'total_distance_in_km' => round($distanceKm, 2),
+            'total_distance_in_km' => round($distanceKm, 1),
         ]);
 
         // 🔟 Push to Firebase
@@ -327,10 +327,10 @@ class RideActionsController extends Controller
                 'status' => 'completed',
                 'completed_at' => $endTime->toIso8601String(),
                 'final_price' => [
-                    'original_fare' => round($originalFare, 2),
-                    'final_fare' => round($fare, 2),
-                    'discount_amount' => round($discountResult['total_discount_amount'], 2),
-                    'distance_km' => round($distanceKm, 2),
+                    'original_fare' => round($originalFare, 1),
+                    'final_fare' => round($fare, 1),
+                    'discount_amount' => round($discountResult['total_discount_amount'], 1),
+                    'distance_km' => round($distanceKm, 1),
                     'duration_minutes' => $durationMinutes,
                 ],
             ];
@@ -347,13 +347,13 @@ class RideActionsController extends Controller
         return response()->json([
             'message' => 'Ride completed.',
             'pricing' => [
-                'original_fare' => round($originalFare, 2),
-                'final_fare' => round($fare, 2),
-                'discount_amount' => round($discountResult['total_discount_amount'], 2),
+                'original_fare' => round($originalFare, 1),
+                'final_fare' => round($fare, 1),
+                'discount_amount' => round($discountResult['total_discount_amount'], 1),
                 'applied_discounts' => $discountResult['applied_discounts']
             ],
             'ride_details' => [
-                'distance_km' => round($distanceKm, 2),
+                'distance_km' => round($distanceKm, 1),
                 'duration_minutes' => $durationMinutes,
             ],
             'admin_profit' => [
