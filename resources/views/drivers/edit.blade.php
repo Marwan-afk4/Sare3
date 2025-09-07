@@ -12,7 +12,7 @@
 	</div>
 	<div class="main-card mb-3 card">
 		<div class="card-body">
-			<form method='POST' enctype="multipart/form-data" action='{{ route('drivers.update', $driver->id) }}' class="needs-validation" novalidate>
+			<form method='POST' enctype="multipart/form-data" action='{{ route('drivers.update', $driver->id) }}'  novalidate>
 				@csrf
 				@method('PUT')
 				<x-form-input
@@ -36,7 +36,8 @@
                 <x-form-input
                     name="wallet"
                     type="number"
-                    label="{{__('Wallet')}}"
+                    step="0.01"
+                    label="{{ __('Wallet') }}"
                     :value="$driver->wallet ?? ''"
                 />
                 <x-form-select
