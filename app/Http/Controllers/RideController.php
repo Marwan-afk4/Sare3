@@ -130,7 +130,7 @@ class RideController extends Controller
 
         return redirect()
             ->route('rides.show', $ride)
-            ->with('success', __('Ride status updated successfully from :old to :new'));
+            ->with('success', __('Ride status updated successfully'));
     }
 
 
