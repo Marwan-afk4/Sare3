@@ -2834,5 +2834,8 @@
     "The is_active field must be true or false.": [
         "app\/Http\/Requests\/StoreCancellationReasonRequest.php",
         "app\/Http\/Requests\/UpdateCancellationReasonRequest.php"
+    ],
+    "Ride status updated successfully": [
+        "app\/Http\/Controllers\/RideController.php"
     ]
 }
