@@ -112,8 +112,8 @@ class RideController extends Controller
             'status' => ['required', Rule::in(array_keys(RideStatus::labels()))],
         ]);
 
-        $oldStatus = $ride->status;
-        $newStatus = $request->status;
+        $oldStatus = $ride->status->value;
+        $newStatus = $request->status->value;
 
         $ride->update(['status' => $newStatus]);
 
@@ -130,10 +130,7 @@ class RideController extends Controller
 
         return redirect()
             ->route('rides.show', $ride)
-            ->with('success', __('Ride status updated successfully from :old to :new', [
-                'old' => $oldStatus,
-                'new' => $newStatus,
-            ]));
+            ->with('success', __('Ride status updated successfully from :old to :new'));
     }
 
 
