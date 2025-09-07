@@ -37,12 +37,18 @@
                             <li class="list-group-item"><strong>{{ __('Email') }}:</strong> {{ $driver->email }}</li>
                             <li class="list-group-item"><strong>{{ __('Phone') }}:</strong> {{ $driver->phone }}</li>
                             <li class="list-group-item"><strong>{{ __('Status') }}:</strong>
-                                <td>{!! $driver->status->badge() !!} </td>
+                                {!! $driver->status->badge() !!}
                             </li>
                             <li class="list-group-item"><strong>{{ __('Activity') }}:</strong>
-                                <td>{!! $driver->activity->badge() !!} </td>
+                                {!! $driver->activity->badge() !!}
                             </li>
-                            <li class="list-group-item"><strong>{{ __('Wallet') }}:</strong> {{ $driver->wallet }}</li>
+                            <li class="list-group-item"><strong>{{ __('Wallet') }}:</strong>
+                                @if($driver->wallet < 0)
+                                    <span style="color: red;">{{ $driver->wallet }} 🔴</span>
+                                @else
+                                    {{ $driver->wallet ?? '-' }}
+                                @endif
+                            </li>
                             <li class="list-group-item"><strong>{{ __('Driver Rating') }}:</strong>
                                 @if ($driverRating)
                                     <span class="badge bg-warning">{{ number_format($driverRating, 1) }} ⭐</span>
