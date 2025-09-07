@@ -112,8 +112,8 @@ class RideController extends Controller
             'status' => ['required', Rule::in(array_keys(RideStatus::labels()))],
         ]);
 
-        $oldStatus = $ride->status->value;
-        $newStatus = $request->status->value;
+        $oldStatus = $ride->status;
+        $newStatus = $request->status;
 
         $ride->update(['status' => $newStatus]);
 
