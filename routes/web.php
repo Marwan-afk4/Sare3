@@ -63,6 +63,8 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
             '/cancellation-reasons' => CancellationReasonController::class,
         ]);
 
+        Route::patch('/rides/{ride}/status', [RideController::class, 'updateStatus'])->name('rides.updateStatus');
+
         // Additional ride routes
         Route::get('/rides/{ride}/track', [RideController::class, 'track'])->name('rides.track');
 

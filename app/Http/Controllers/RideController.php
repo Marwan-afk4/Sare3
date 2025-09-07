@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreRideRequest;
 use App\Http\Requests\UpdateRideRequest;
 use App\Http\Controllers\Controller;
+use Illuminate\Validation\Rule;
 
 class RideController extends Controller
 {
@@ -83,8 +84,25 @@ class RideController extends Controller
 
     public function show(Ride $ride)
     {
-        return view('rides.show', compact('ride'));
+        $rideStatuses = RideStatus::labels();
+        return view('rides.show', compact('ride', 'rideStatuses'));
     }
+
+    public function updateStatus(Request $request, Ride $ride)
+    {
+        $request->validate([
+            'status' => ['required', Rule::in(array_keys(RideStatus::labels()))],
+        ]);
+
+        $ride->update([
+            'status' => $request->status,
+        ]);
+
+        return redirect()
+            ->route('rides.show', $ride)
+            ->with('success', __('Ride status updated successfully'));
+    }
+
 
     public function edit(Ride $ride)
     {
