@@ -57,7 +57,7 @@ class RideHelper
             $batch = array_slice($points, $i, self::$snapBatchSize);
             $path = collect($batch)->map(fn($p) => "{$p['lat']},{$p['lng']}")->implode('|');
 
-            $url = "https://roads.googleapis.com/v1/snapToRoads?path={$path}&interpolate=false&key=" . self::$googleApiKey;
+            $url = "https://roads.googleapis.com/v1/snapToRoads?path={$path}&interpolate=true&key=" . self::$googleApiKey;
 
             try {
                 $resp = Http::timeout(self::$httpTimeout)->get($url);
