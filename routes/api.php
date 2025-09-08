@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Admin\ReferralController as AdminReferralController
 use App\Http\Controllers\Api\AppSettingsController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
+use App\Http\Controllers\Api\Driver\CancelationReasonController as DriverCancelationReasonController;
 use App\Http\Controllers\Api\Driver\DriverActivtyController;
 use App\Http\Controllers\Api\Driver\DriverLocationController;
 use App\Http\Controllers\Api\Driver\DriverNotificationController;
@@ -27,11 +28,13 @@ use App\Http\Controllers\Api\User\ProfileController;
 use App\Http\Controllers\Api\User\RaitingController;
 use App\Http\Controllers\Api\User\RideEstimateController;
 use App\Http\Controllers\Api\RideTrackingController;
+use App\Http\Controllers\Api\User\CancelationReasonController;
 use App\Http\Controllers\Api\User\ReferralController;
 use App\Http\Controllers\Api\User\RideActionsController as UserRideActionsController;
 use App\Http\Controllers\Api\User\UserNotificatonController;
 use App\Models\AppSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 //======= USER AUTH ========
 //phone otp
@@ -174,6 +177,10 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 
 //AddZone
     Route::post('/add-zone', [DriverProfileController::class, 'addZoneId']);
+
+//Cancelation Reasons
+    Route::get('/cancelation-reasons', [DriverCancelationReasonController::class, 'getDriverCancelationReason']);
+
 });
 
 
@@ -240,6 +247,9 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
     Route::post('/coupons/apply', [\App\Http\Controllers\Api\CouponController::class, 'applyCoupon']);
     Route::post('/coupons/remove', [\App\Http\Controllers\Api\CouponController::class, 'removeCoupon']);
 
+//Cancelation Reasons
+    Route::get('/cancelation-reasons', [CancelationReasonController::class, 'getUserCancelationReason']);
+
 });
 
 //======= RIDE TRACKING (Public/Admin) ========
@@ -293,7 +303,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::post('/support/reply', [\App\Http\Controllers\Api\Admin\AdminSupportChatController::class, 'sendReply']);
     Route::patch('/support/requests/{support_request}/status', [\App\Http\Controllers\Api\Admin\AdminSupportChatController::class, 'updateSupportRequestStatus']);
     Route::get('/support/statistics', [\App\Http\Controllers\Api\Admin\AdminSupportChatController::class, 'getSupportStatistics']);
-    
+
 
 });
 
@@ -321,7 +331,7 @@ Route::get('/debug/support-chats', function() {
         $controller = new \App\Http\Controllers\Api\Admin\AdminSupportChatController(
             app(\App\Services\FirebaseChatService::class)
         );
-        
+
         return $controller->getActiveSupportRequests();
     } catch (\Exception $e) {
         return response()->json([

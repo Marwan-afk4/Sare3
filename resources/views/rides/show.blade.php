@@ -107,6 +107,18 @@
                             <li class="list-group-item">
                                 <strong>{{ __('Status') }}:</strong>
                                 {!! $ride->status->badge() !!}
+
+                                <form action="{{ route('rides.updateStatus', $ride) }}" method="POST" class="d-inline-block ms-2">
+                                    @csrf
+                                    @method('PATCH')
+                                    <select name="status" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
+                                        @foreach($rideStatuses as $value => $label)
+                                            <option value="{{ $value }}" {{ $ride->status->value === $value ? 'selected' : '' }}>
+                                                {{ $label }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </form>
                             </li>
                             <li class="list-group-item">
                                 <strong>{{ __('Created At') }}:</strong> {{ $ride->created_at->diffForHumans() ?? '-' }}
@@ -116,11 +128,11 @@
                     <div class="col-md-6">
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">
-                                <strong>{{ __('Pickup Address') }}:</strong> 
+                                <strong>{{ __('Pickup Address') }}:</strong>
                                 <small class="text-muted d-block">{{ $ride->pickup_address ?? '-' }}</small>
                             </li>
                             <li class="list-group-item">
-                                <strong>{{ __('Dropoff Address') }}:</strong> 
+                                <strong>{{ __('Dropoff Address') }}:</strong>
                                 <small class="text-muted d-block">{{ $ride->dropoff_address ?? '-' }}</small>
                             </li>
                             <li class="list-group-item">
@@ -223,7 +235,7 @@ window.addEventListener('beforeunload', cleanup);
 
 <!-- Google Maps API -->
 @if(config('services.google_maps.api_key') && config('services.google_maps.api_key') !== 'your_actual_api_key_here')
-<script async defer 
+<script async defer
     src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.api_key') }}&callback=initMap&libraries=marker">
 </script>
 @else

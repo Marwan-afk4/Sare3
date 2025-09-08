@@ -128,7 +128,13 @@
                         <td>{{ $driver->email ?? '-' }}</td>
                         <td>{{ $driver->phone ?? '-' }}</td>
                         {{-- <td>{{ $driver->image }}</td> --}}
-                        <td>{{ $driver->wallet ?? '-' }}</td>
+                        <td>
+                            @if($driver->wallet < 0)
+                                <span style="color: red;">{{ $driver->wallet }} 🔴</span>
+                            @else
+                                {{ $driver->wallet ?? '-' }}
+                            @endif
+                        </td>
                         <td>{!! $driver->activity->badge() !!} </td>
                         <td>{!! $driver->status->badge() !!} </td>
                         {{-- <td>{{ $user->role }}</td> --}}

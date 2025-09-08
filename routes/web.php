@@ -7,6 +7,7 @@ use App\Http\Controllers\{
     AuthController,
     CancelationRideController,
     CancellationPolicyController,
+    CancellationReasonController,
     CarCategoryController,
     CarModelController,
     CarTypeController,
@@ -23,8 +24,10 @@ use App\Http\Controllers\{
     RideController,
     RideRequestTimeLimitController,
     WalletRequestController,
-    ZoneController
+    ZoneController,
 };
+use App\Http\Controllers\Admin\ReferralController as AdminReferralController;
+use App\Http\Controllers\Admin\SupportChatController as AdminSupportChatController;
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/', [HomePageController::class, 'index'])->name('home');
@@ -57,7 +60,10 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
             '/otp-limits' => OtpLimitController::class,
             '/notifications' => NotificationController::class,
             '/zones' => ZoneController::class,
+            '/cancellation-reasons' => CancellationReasonController::class,
         ]);
+
+        Route::patch('/rides/{ride}/status', [RideController::class, 'updateStatus'])->name('rides.updateStatus');
 
         // Additional ride routes
         Route::get('/rides/{ride}/track', [RideController::class, 'track'])->name('rides.track');
@@ -74,10 +80,10 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
 
         // Referral Management routes
         Route::prefix('referrals')->name('referrals.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Admin\ReferralController::class, 'index'])->name('index');
-            Route::get('/list', [\App\Http\Controllers\Admin\ReferralController::class, 'list'])->name('list');
-            Route::get('/settings', [\App\Http\Controllers\Admin\ReferralController::class, 'settings'])->name('settings');
-            Route::put('/settings', [\App\Http\Controllers\Admin\ReferralController::class, 'updateSettings'])->name('settings.update');
+            Route::get('/', [AdminReferralController::class, 'index'])->name('index');
+            Route::get('/list', [AdminReferralController::class, 'list'])->name('list');
+            Route::get('/settings', [AdminReferralController::class, 'settings'])->name('settings');
+            Route::put('/settings', [AdminReferralController::class, 'updateSettings'])->name('settings.update');
         });
 
         // Coupon Management routes
@@ -87,11 +93,11 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
 
         // Support Chat Management routes
         Route::prefix('support-chat')->name('support-chat.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Admin\SupportChatController::class, 'index'])->name('index');
+            Route::get('/', [AdminSupportChatController::class, 'index'])->name('index');
             Route::get('/test', function() {
                 return 'Support Chat is working! <a href="' . route('support-chat.index') . '">Go to Support Chat</a>';
             })->name('test');
-            Route::get('/test-firebase', [\App\Http\Controllers\Admin\SupportChatController::class, 'testFirebaseConnection'])->name('test-firebase');
+            Route::get('/test-firebase', [AdminSupportChatController::class, 'testFirebaseConnection'])->name('test-firebase');
             Route::get('/realtime', function() {
                 $stats = [
                     'total_requests' => 0,
@@ -108,11 +114,11 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
                 ];
                 return view('admin.support-chat.realtime', compact('stats'));
             })->name('realtime');
-            Route::get('/active-requests', [\App\Http\Controllers\Admin\SupportChatController::class, 'getActiveSupportRequests'])->name('active-requests');
-            Route::get('/chat/{target_id}/{target_type}', [\App\Http\Controllers\Admin\SupportChatController::class, 'getChatMessages'])->name('chat');
-            Route::post('/reply', [\App\Http\Controllers\Admin\SupportChatController::class, 'sendReply'])->name('reply');
-            Route::patch('/requests/{support_request}/status', [\App\Http\Controllers\Admin\SupportChatController::class, 'updateSupportRequestStatus'])->name('update-status');
-            Route::get('/statistics', [\App\Http\Controllers\Admin\SupportChatController::class, 'getStatistics'])->name('statistics');
+            Route::get('/active-requests', [AdminSupportChatController::class, 'getActiveSupportRequests'])->name('active-requests');
+            Route::get('/chat/{target_id}/{target_type}', [AdminSupportChatController::class, 'getChatMessages'])->name('chat');
+            Route::post('/reply', [AdminSupportChatController::class, 'sendReply'])->name('reply');
+            Route::patch('/requests/{support_request}/status', [AdminSupportChatController::class, 'updateSupportRequestStatus'])->name('update-status');
+            Route::get('/statistics', [AdminSupportChatController::class, 'getStatistics'])->name('statistics');
         });
 
         Route::post('/otp-limits/{otpLimit}/reset-drivers', [OtpLimitController::class, 'resetDrivers'])->name('otp-limits.reset-drivers');
@@ -122,7 +128,7 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
         Route::get('/drivers/{driver}/documents', [DriverController::class, 'documents'])->name('drivers.documents');
         Route::get('/drivers/{driver}/cars', [DriverController::class, 'cars'])->name('drivers.cars');
         Route::get('/drivers/{driver}/ride-history', [DriverController::class, 'rideHistory'])->name('drivers.ride-history');
-        
+
         Route::get('/users/{user}/ride-history', [UserController::class, 'rideHistory'])->name('users.ride-history');
 
 

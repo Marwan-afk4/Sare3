@@ -609,5 +609,16 @@
     "Start Date": "تاريخ البدء",
     "End Date": "تاريخ الانتهاء",
     "Cancel": "إلغاء",
-    "Please select a valid supplier from the list.": "يرجى اختيار مورد صالح من القائمة."
+    "Please select a valid supplier from the list.": "يرجى اختيار مورد صالح من القائمة.",
+    "Total Distance": "إجمالي المسافة",
+    "Create Cancellation Reason": "إنشاء سبب إلغاء",
+    "Cancellation Reasons": "أسباب الإلغاء",
+    "Is Active": "نشط",
+    "Edit Cancellation Reason": "تعديل سبب الإلغاء",
+    "The reason is already exists.": "السبب موجود بالفعل.",
+    "The Reason may not be greater than 255 characters.": "لا يمكن أن يزيد السبب عن 255 حرفًا.",
+    "The Type field is required.": "حقل النوع مطلوب.",
+    "The selected type is invalid. It must be either user or driver.": "النوع المحدد غير صالح. يجب أن يكون إما مستخدم أو سائق.",
+    "The is_active field must be true or false.": "حقل التفعيل يجب أن يكون صحيحًا أو خطأ.",
+    "Ride status updated successfully": "تم تحديث حالة الرحلة بنجاح"
 }

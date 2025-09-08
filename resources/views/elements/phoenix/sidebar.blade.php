@@ -140,6 +140,18 @@
                         </a>
                     </div>
 
+                    {{-- cancellation-reasons --}}
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'cancellation-reasons' ? 'active' : '' }}"
+                            href="{{ route('cancellation-reasons.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="x-circle"></span></span>
+                                <span class="nav-link-text-wrapper"><span
+                                        class="nav-link-text">{{ __('Cancellation Reasons') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+
                     {{-- cancelation-rides --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'cancelation-rides' ? 'active' : '' }}"
