@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Enums\DriverStatus;
+use App\Enums\WalletRequestType;
 use App\Models\WalletRequest;
 
 class WalletRequestObserver
@@ -52,22 +53,26 @@ class WalletRequestObserver
         $driver = $walletRequest->driver;
         $amount = $walletRequest->amount;
 
-        if ($walletRequest->type === 'withdraw') {
-            $amount = -$amount;
-        }
-
         if ($operation === 'add') {
-            $driver->wallet += $amount;
+            if ($walletRequest->type === WalletRequestType::Deposit) {
+                $driver->wallet += $amount;
+            } elseif ($walletRequest->type === WalletRequestType::Withdraw) {
+                $driver->wallet -= $amount;
+            }
         } elseif ($operation === 'subtract') {
-            $driver->wallet -= $amount;
+            if ($walletRequest->type === WalletRequestType::Deposit) {
+                $driver->wallet -= $amount;
+            } elseif ($walletRequest->type === WalletRequestType::Withdraw) {
+                $driver->wallet += $amount;
+            }
         }
 
-        // Ensure wallet doesn't go negative
+        // ماينفعش الرصيد يبقى أقل من 0
         if ($driver->wallet < 0) {
-
             $driver->wallet = 0;
         }
 
         $driver->save();
     }
+
 }
