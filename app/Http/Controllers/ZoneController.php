@@ -46,4 +46,19 @@ class ZoneController extends Controller
         $zone->update($request->validated());
         return redirect()->route('zones.index')->with('success',  __('Updated successfully.'));
     }
+
+    public function destroy(zone $zone)
+    {
+        try {
+            $zone->delete();
+
+            return redirect()
+                ->route('zones.index')
+                ->with('success', __('Zone deleted successfully.'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('zones.index')
+                ->with('error', __('Failed to delete zone.. Please try again.'));
+        }
+    }
 }

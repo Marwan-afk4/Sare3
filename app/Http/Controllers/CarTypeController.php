@@ -58,4 +58,19 @@ class CarTypeController extends Controller
         $carType->update($request->validated());
         return redirect()->route('car-types.index')->with('success',  __('Updated successfully.'));
     }
+
+    public function destroy(CarType $carType)
+    {
+        try {
+            $carType->delete();
+
+            return redirect()
+                ->route('car-types.index')
+                ->with('success', __('Car type deleted successfully.'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('car-types.index')
+                ->with('error', __('Failed to delete car type. Please try again.'));
+        }
+    }
 }

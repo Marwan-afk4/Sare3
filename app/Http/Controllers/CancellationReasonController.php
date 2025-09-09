@@ -49,4 +49,19 @@ class CancellationReasonController extends Controller
         $cancellationReason->update($request->validated());
         return redirect()->route('cancellation-reasons.index')->with('success',  __('Updated successfully.'));
     }
+
+    public function destroy(CancellationReason $cancellationReason)
+    {
+        try {
+            $cancellationReason->delete();
+
+            return redirect()
+                ->route('cancellation-reasons.index')
+                ->with('success', __('Cancellation Reason deleted successfully.'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('cancellation-reasons.index')
+                ->with('error', __('Failed to delete Cancellation Reason. Please try again.'));
+        }
+    }
 }

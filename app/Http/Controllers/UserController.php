@@ -106,4 +106,20 @@ class UserController extends Controller
         $user->update($request->validated());
         return redirect()->route('users.index')->with('success',  __('Updated successfully.'));
     }
+
+    public function destroy(User $user)
+    {
+        try {
+            $user->delete();
+
+            return redirect()
+                ->route('users.index')
+                ->with('success', __('User deleted successfully.'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('users.index')
+                ->with('error', __('Failed to delete user. Please try again.'));
+        }
+    }
+
 }

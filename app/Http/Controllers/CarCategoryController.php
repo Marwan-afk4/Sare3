@@ -65,4 +65,19 @@ class CarCategoryController extends Controller
         $carCategory->update($validatedData);
         return redirect()->route('car-categories.index')->with('success', __('Updated successfully.'));
     }
+
+    public function destroy(CarCategory $carCategory)
+    {
+        try {
+            $carCategory->delete();
+
+            return redirect()
+                ->route('car-categories.index')
+                ->with('success', __('Car category deleted successfully.'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('car-categories.index')
+                ->with('error', __('Failed to delete car category. Please try again.'));
+        }
+    }
 }

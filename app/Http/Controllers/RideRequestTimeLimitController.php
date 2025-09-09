@@ -46,4 +46,19 @@ class RideRequestTimeLimitController extends Controller
         $rideRequestTimeLimit->update($request->validated());
         return redirect()->route('ride-request-time-limits.index')->with('success', __('Updated successfully.'));
     }
+
+    public function destroy(RideRequestTimeLimit $rideRequestTimeLimit)
+    {
+        try {
+            $rideRequestTimeLimit->delete();
+
+            return redirect()
+                ->route('ride-request-time-limits.index')
+                ->with('success', __('Ride request time limit deleted successfully.'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('ride-request-time-limits.index')
+                ->with('error', __('Failed to delete ride request time limit. Please try again.'));
+        }
+    }
 }

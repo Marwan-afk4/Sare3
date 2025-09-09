@@ -82,11 +82,14 @@
 					<td>{{ $cancellationPolicy->created_at->diffForHumans() ?? '-' }}</td>
 					<td class="text-center">
 						<a href='{{ route('cancellation-policies.show', $cancellationPolicy) }}' class="btn btn-subtle-primary btn-sm me-1">{{ __("Details") }} <i class="fa fa-eye"></i></a>
-						{{-- <a href='{{ route('cancellation-policies.edit', $cancellationPolicy) }}' class="btn btn-subtle-warning btn-sm me-1">{{ __("Edit") }} <i class="fa fa-edit"></i></a> --}}
-						{{-- <form method='POST' action='{{ route('cancellation-policies.destroy', $cancellationPolicy) }}' onsubmit='return confirm("Are you sure you want to delete this item?")'>
-							<input type='hidden' name='_method' value='DELETE'>
-							<button type='submit' class="btn btn-square btn-danger">{{ __('Delete') }}</button>
-						</form> --}}
+						<form action="{{ route('cancellation-policies.destroy', $cancellationPolicy) }}" method="POST" class="d-inline"
+                            onsubmit="return confirm('{{ __('Are you sure you want to delete this cancellation policy?') }}')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-subtle-danger btn-sm">
+                                {{ __('Delete') }} <i class="fa fa-trash"></i>
+                            </button>
+                        </form>
 					</td>
 				</tr>
 				@endforeach

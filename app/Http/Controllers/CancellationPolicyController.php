@@ -49,4 +49,19 @@ class CancellationPolicyController extends Controller
         $cancellationPolicy->update($request->validated());
         return redirect()->route('cancellation-policies.index')->with('success', __('Updated successfully.'));
     }
+
+    public function destroy(CancellationPolicy $cancellationPolicy)
+    {
+        try {
+            $cancellationPolicy->delete();
+
+            return redirect()
+                ->route('cancellation-policies.index')
+                ->with('success', __('Cancellation Policy deleted successfully.'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('cancellation-policies.index')
+                ->with('error', __('Failed to delete Cancellation Policy. Please try again.'));
+        }
+    }
 }

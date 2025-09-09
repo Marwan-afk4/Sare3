@@ -78,6 +78,14 @@
 					<td>{{ $carCategory->created_at ? $carCategory->created_at->diffForHumans() : '-' }}</td>
 					<td class="text-center">
 						<a href='{{ route('car-categories.show', $carCategory) }}' class="btn btn-subtle-primary btn-sm me-1">{{ __("Details") }} <i class="fa fa-eye"></i></a>
+                        <form action="{{ route('car-categories.destroy', $carCategory) }}" method="POST" class="d-inline"
+                            onsubmit="return confirm('{{ __('Are you sure you want to delete this car category?') }}')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-subtle-danger btn-sm">
+                                {{ __('Delete') }} <i class="fa fa-trash"></i>
+                            </button>
+                        </form>
 						{{-- <a href='{{ route('car-categories.edit', $carCategory) }}' class="btn btn-subtle-warning btn-sm me-1">{{ __("Edit") }} <i class="fa fa-edit"></i></a> --}}
 						{{-- <form method='POST' action='{{ route('car-categories.destroy', $carCategory) }}' onsubmit='return confirm("Are you sure you want to delete this item?")'>
 							<input type='hidden' name='_method' value='DELETE'>

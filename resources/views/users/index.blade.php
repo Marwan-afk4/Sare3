@@ -129,6 +129,15 @@
                                 <a href='{{ route('users.show', $user) }}'
                                     class="btn btn-subtle-primary btn-sm me-1">{{ __('Details') }} <i
                                         class="fa fa-eye"></i></a>
+                                <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline"
+                                    onsubmit="return confirm('{{ __('Are you sure you want to delete this user?') }}')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-subtle-danger btn-sm">
+                                        {{ __('Delete') }} <i class="fa fa-trash"></i>
+                                    </button>
+                                </form>
+
                                 {{-- <a href='{{ route('users.edit', $user) }}'
                                     class="btn btn-subtle-warning btn-sm me-1">{{ __('Edit') }} <i
                                         class="fa fa-edit"></i></a> --}}

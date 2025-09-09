@@ -51,6 +51,21 @@ class OtpLimitController extends Controller
         return redirect()->route('otp-limits.index')->with('success',  __('Updated successfully.'));
     }
 
+    public function destroy(OtpLimit $otpLimit)
+    {
+        try {
+            $otpLimit->delete();
+
+            return redirect()
+                ->route('otp-limits.index')
+                ->with('success', __('Otp limit deleted successfully.'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('otp-limits.index')
+                ->with('error', __('Failed to delete Otp limit. Please try again.'));
+        }
+    }
+
     public function resetDrivers(OtpLimit $otpLimit)
     {
         $drivers = User::where('role', 'driver')->get();

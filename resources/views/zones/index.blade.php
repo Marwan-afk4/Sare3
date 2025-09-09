@@ -78,11 +78,14 @@
 					<td>{{ $zone->created_at?->diffForHumans()??'-' }}</td>
 					<td class="text-center">
 						<a href='{{ route('zones.show', $zone) }}' class="btn btn-subtle-primary btn-sm me-1">{{ __("Details") }} <i class="fa fa-eye"></i></a>
-						{{-- <a href='{{ route('zones.edit', $zone) }}' class="btn btn-subtle-warning btn-sm me-1">{{ __("Edit") }} <i class="fa fa-edit"></i></a> --}}
-						{{-- <form method='POST' action='{{ route('zones.destroy', $zone) }}' onsubmit='return confirm("Are you sure you want to delete this item?")'>
-							<input type='hidden' name='_method' value='DELETE'>
-							<button type='submit' class="btn btn-square btn-danger">{{ __('Delete') }}</button>
-						</form> --}}
+						<form action="{{ route('zones.destroy', $zone) }}" method="POST" class="d-inline"
+                            onsubmit="return confirm('{{ __('Are you sure you want to delete this zone?') }}')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-subtle-danger btn-sm">
+                                {{ __('Delete') }} <i class="fa fa-trash"></i>
+                            </button>
+                        </form>
 					</td>
 				</tr>
 				@endforeach

@@ -99,4 +99,18 @@ class NotificationController extends Controller
     {
         return view('notifications.show', compact('notification'));
     }
-}
+
+    public function destroy(Notification $notification)
+    {
+        try {
+            $notification->delete();
+
+            return redirect()
+                ->route('notifications.index')
+                ->with('success', __('Notification deleted successfully.'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('notifications.index')
+                ->with('error', __('Failed to delete notification.. Please try again.'));
+        }
+    }}

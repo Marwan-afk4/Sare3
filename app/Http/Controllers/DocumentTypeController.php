@@ -49,4 +49,19 @@ class DocumentTypeController extends Controller
         $documentType->update($request->validated());
         return redirect()->route('document-types.index')->with('success',  __('Updated successfully.'));
     }
+
+    public function destroy(DocumentType $documentType)
+    {
+        try {
+            $documentType->delete();
+
+            return redirect()
+                ->route('document-types.index')
+                ->with('success', __('Document type deleted successfully.'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('document-types.index')
+                ->with('error', __('Failed to delete document type. Please try again.'));
+        }
+    }
 }
