@@ -373,57 +373,51 @@
     "Edit": {
         "0": "resources\/views\/cancelation-rides\/index.blade.php",
         "1": "resources\/views\/cancelation-rides\/show.blade.php",
-        "2": "resources\/views\/cancellation-policies\/index.blade.php",
-        "3": "resources\/views\/cancellation-policies\/show.blade.php",
-        "5": "resources\/views\/cancellation-reasons\/index.blade.php",
-        "6": "resources\/views\/cancellation-reasons\/show.blade.php",
-        "8": "resources\/views\/car-categories\/index.blade.php",
-        "9": "resources\/views\/car-categories\/show.blade.php",
-        "11": "resources\/views\/car-models\/show.blade.php",
-        "13": "resources\/views\/car-types\/index.blade.php",
-        "14": "resources\/views\/car-types\/show.blade.php",
-        "16": "resources\/views\/document-types\/index.blade.php",
-        "17": "resources\/views\/driver-documents\/index.blade.php",
-        "18": "resources\/views\/driver-documents\/show.blade.php",
-        "19": "resources\/views\/drivers\/index.blade.php",
-        "20": "resources\/views\/drivers\/show.blade.php",
-        "22": "resources\/views\/notifications\/index.blade.php",
-        "23": "resources\/views\/notifications\/show.blade.php",
-        "24": "resources\/views\/otp-limits\/index.blade.php",
-        "25": "resources\/views\/otp-limits\/show.blade.php",
-        "27": "resources\/views\/paymenent-methods\/index.blade.php",
-        "28": "resources\/views\/paymenent-methods\/show.blade.php",
-        "29": "resources\/views\/ride-request-time-limits\/index.blade.php",
-        "30": "resources\/views\/ride-request-time-limits\/show.blade.php",
-        "32": "resources\/views\/rides\/show.blade.php",
-        "33": "resources\/views\/users\/index.blade.php",
-        "34": "resources\/views\/users\/show.blade.php",
-        "36": "resources\/views\/wallet-requests\/show.blade.php",
-        "37": "resources\/views\/zones\/index.blade.php",
-        "38": "resources\/views\/zones\/show.blade.php"
+        "2": "resources\/views\/cancellation-policies\/show.blade.php",
+        "4": "resources\/views\/cancellation-reasons\/show.blade.php",
+        "6": "resources\/views\/car-categories\/index.blade.php",
+        "7": "resources\/views\/car-categories\/show.blade.php",
+        "9": "resources\/views\/car-models\/show.blade.php",
+        "11": "resources\/views\/car-types\/show.blade.php",
+        "13": "resources\/views\/document-types\/index.blade.php",
+        "14": "resources\/views\/driver-documents\/index.blade.php",
+        "15": "resources\/views\/driver-documents\/show.blade.php",
+        "16": "resources\/views\/drivers\/index.blade.php",
+        "17": "resources\/views\/drivers\/show.blade.php",
+        "19": "resources\/views\/notifications\/show.blade.php",
+        "20": "resources\/views\/otp-limits\/show.blade.php",
+        "22": "resources\/views\/paymenent-methods\/index.blade.php",
+        "23": "resources\/views\/paymenent-methods\/show.blade.php",
+        "24": "resources\/views\/ride-request-time-limits\/show.blade.php",
+        "26": "resources\/views\/rides\/show.blade.php",
+        "27": "resources\/views\/users\/index.blade.php",
+        "28": "resources\/views\/users\/show.blade.php",
+        "30": "resources\/views\/wallet-requests\/show.blade.php",
+        "31": "resources\/views\/zones\/show.blade.php"
     },
-    "Delete": [
-        "resources\/views\/cancelation-rides\/index.blade.php",
-        "resources\/views\/cancelation-rides\/show.blade.php",
-        "resources\/views\/cancellation-policies\/index.blade.php",
-        "resources\/views\/cancellation-reasons\/index.blade.php",
-        "resources\/views\/cancellation-reasons\/show.blade.php",
-        "resources\/views\/car-categories\/index.blade.php",
-        "resources\/views\/car-types\/index.blade.php",
-        "resources\/views\/document-types\/index.blade.php",
-        "resources\/views\/driver-documents\/index.blade.php",
-        "resources\/views\/driver-documents\/show.blade.php",
-        "resources\/views\/drivers\/index.blade.php",
-        "resources\/views\/notifications\/index.blade.php",
-        "resources\/views\/notifications\/show.blade.php",
-        "resources\/views\/otp-limits\/index.blade.php",
-        "resources\/views\/paymenent-methods\/index.blade.php",
-        "resources\/views\/paymenent-methods\/show.blade.php",
-        "resources\/views\/ride-request-time-limits\/index.blade.php",
-        "resources\/views\/users\/index.blade.php",
-        "resources\/views\/wallet-requests\/show.blade.php",
-        "resources\/views\/zones\/index.blade.php"
-    ],
+    "Delete": {
+        "0": "resources\/views\/cancelation-rides\/index.blade.php",
+        "1": "resources\/views\/cancelation-rides\/show.blade.php",
+        "2": "resources\/views\/cancellation-policies\/index.blade.php",
+        "3": "resources\/views\/cancellation-reasons\/index.blade.php",
+        "4": "resources\/views\/cancellation-reasons\/show.blade.php",
+        "5": "resources\/views\/car-categories\/index.blade.php",
+        "7": "resources\/views\/car-models\/index.blade.php",
+        "8": "resources\/views\/car-types\/index.blade.php",
+        "9": "resources\/views\/document-types\/index.blade.php",
+        "11": "resources\/views\/driver-documents\/index.blade.php",
+        "12": "resources\/views\/driver-documents\/show.blade.php",
+        "13": "resources\/views\/drivers\/index.blade.php",
+        "14": "resources\/views\/notifications\/index.blade.php",
+        "15": "resources\/views\/notifications\/show.blade.php",
+        "16": "resources\/views\/otp-limits\/index.blade.php",
+        "17": "resources\/views\/paymenent-methods\/index.blade.php",
+        "18": "resources\/views\/paymenent-methods\/show.blade.php",
+        "19": "resources\/views\/ride-request-time-limits\/index.blade.php",
+        "20": "resources\/views\/users\/index.blade.php",
+        "22": "resources\/views\/wallet-requests\/show.blade.php",
+        "23": "resources\/views\/zones\/index.blade.php"
+    },
     "Updated At": [
         "resources\/views\/cancelation-rides\/show.blade.php",
         "resources\/views\/cancellation-policies\/show.blade.php",
@@ -2837,5 +2831,107 @@
     ],
     "Ride status updated successfully": [
         "app\/Http\/Controllers\/RideController.php"
+    ],
+    "Are you sure you want to delete this cancellation policy?": [
+        "resources\/views\/cancellation-policies\/index.blade.php"
+    ],
+    "Are you sure you want to delete this cancellation reason?": [
+        "resources\/views\/cancellation-reasons\/index.blade.php"
+    ],
+    "Are you sure you want to delete this car category?": [
+        "resources\/views\/car-categories\/index.blade.php"
+    ],
+    "Are you sure you want to delete this car model?": [
+        "resources\/views\/car-models\/index.blade.php"
+    ],
+    "Are you sure you want to delete this car type?": [
+        "resources\/views\/car-types\/index.blade.php"
+    ],
+    "Are you sure you want to delete this document type?": [
+        "resources\/views\/document-types\/index.blade.php"
+    ],
+    "Are you sure you want to delete this notification?": [
+        "resources\/views\/notifications\/index.blade.php"
+    ],
+    "Are you sure you want to delete this otp limit?": [
+        "resources\/views\/otp-limits\/index.blade.php"
+    ],
+    "Are you sure you want to delete this ride request time limit?": [
+        "resources\/views\/ride-request-time-limits\/index.blade.php"
+    ],
+    "Are you sure you want to delete this user?": [
+        "resources\/views\/users\/index.blade.php"
+    ],
+    "Are you sure you want to delete this zone?": [
+        "resources\/views\/zones\/index.blade.php"
+    ],
+    "Cancellation Policy deleted successfully.": [
+        "app\/Http\/Controllers\/CancellationPolicyController.php"
+    ],
+    "Failed to delete Cancellation Policy. Please try again.": [
+        "app\/Http\/Controllers\/CancellationPolicyController.php"
+    ],
+    "Cancellation Reason deleted successfully.": [
+        "app\/Http\/Controllers\/CancellationReasonController.php"
+    ],
+    "Failed to delete Cancellation Reason. Please try again.": [
+        "app\/Http\/Controllers\/CancellationReasonController.php"
+    ],
+    "Car category deleted successfully.": [
+        "app\/Http\/Controllers\/CarCategoryController.php"
+    ],
+    "Failed to delete car category. Please try again.": [
+        "app\/Http\/Controllers\/CarCategoryController.php"
+    ],
+    "Car model deleted successfully.": [
+        "app\/Http\/Controllers\/CarModelController.php"
+    ],
+    "Failed to delete car model. Please try again.": [
+        "app\/Http\/Controllers\/CarModelController.php"
+    ],
+    "Car type deleted successfully.": [
+        "app\/Http\/Controllers\/CarTypeController.php"
+    ],
+    "Failed to delete car type. Please try again.": [
+        "app\/Http\/Controllers\/CarTypeController.php"
+    ],
+    "Document type deleted successfully.": [
+        "app\/Http\/Controllers\/DocumentTypeController.php"
+    ],
+    "Failed to delete document type. Please try again.": [
+        "app\/Http\/Controllers\/DocumentTypeController.php"
+    ],
+    "Notification deleted successfully.": [
+        "app\/Http\/Controllers\/NotificationController.php"
+    ],
+    "Failed to delete notification.. Please try again.": [
+        "app\/Http\/Controllers\/NotificationController.php"
+    ],
+    "Otp limit deleted successfully.": [
+        "app\/Http\/Controllers\/OtpLimitController.php"
+    ],
+    "Failed to delete Otp limit. Please try again.": [
+        "app\/Http\/Controllers\/OtpLimitController.php"
+    ],
+    "Ride updated in DB but failed in Firebase: ": [
+        "app\/Http\/Controllers\/RideController.php"
+    ],
+    "Ride request time limit deleted successfully.": [
+        "app\/Http\/Controllers\/RideRequestTimeLimitController.php"
+    ],
+    "Failed to delete ride request time limit. Please try again.": [
+        "app\/Http\/Controllers\/RideRequestTimeLimitController.php"
+    ],
+    "User deleted successfully.": [
+        "app\/Http\/Controllers\/UserController.php"
+    ],
+    "Failed to delete user. Please try again.": [
+        "app\/Http\/Controllers\/UserController.php"
+    ],
+    "Zone deleted successfully.": [
+        "app\/Http\/Controllers\/ZoneController.php"
+    ],
+    "Failed to delete zone.. Please try again.": [
+        "app\/Http\/Controllers\/ZoneController.php"
     ]
 }
