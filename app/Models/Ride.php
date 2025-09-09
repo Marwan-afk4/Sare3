@@ -39,7 +39,8 @@ class Ride extends Model
         'verification_code_generated_at',
         'verification_code_verified',
         'coupon_id',
-        'coupon_discount'
+        'coupon_discount',
+        'cancellation_reason_id'
     ];
 
     public $timestamps = true;
@@ -88,13 +89,18 @@ class Ride extends Model
         return $this->hasOne(CouponUsage::class);
     }
 
+    public function cancellationReason()
+    {
+        return $this->belongsTo(CancellationReason::class);
+    }
+
     /**
      * Generate a 6-digit verification code
      */
     public function generateVerificationCode(): string
     {
         $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        
+
         $this->update([
             'verification_code' => $code,
             'verification_code_generated_at' => now(),
@@ -123,8 +129,8 @@ class Ride extends Model
     public function requiresVerificationCode(): bool
     {
         try {
-            return \App\Models\AppSetting::isRideVerificationEnabled() && 
-                   $this->status->value === 'accepted' && 
+            return \App\Models\AppSetting::isRideVerificationEnabled() &&
+                   $this->status->value === 'accepted' &&
                    !empty($this->verification_code);
         } catch (\Exception $e) {
             // If database is not available, return false (feature disabled)

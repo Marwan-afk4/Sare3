@@ -388,6 +388,7 @@ class RideActionsController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'ride_id' => 'required|exists:rides,id',
+            'reason' => 'nullable|exists:cancellation_reasons,id',
         ]);
 
         if ($validator->fails()) {
@@ -425,7 +426,7 @@ class RideActionsController extends Controller
             ]);
 
             // دور على بديل
-            $rideEstimateController = new \App\Http\Controllers\Api\User\RideEstimateController();
+            $rideEstimateController = new RideEstimateController();
             $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
 
             DB::commit();
@@ -434,6 +435,7 @@ class RideActionsController extends Controller
                 $ride->update([
                     'driver_id' => $alternativeDriver['id'],
                     'status' => 'pending',
+                    'cancellation_reason_id' => $request->reason ?? null,
                     'reassigned_at' => now(),
                 ]);
 

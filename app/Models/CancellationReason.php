@@ -28,4 +28,9 @@ class CancellationReason extends Model
     protected $casts = [
         'type' => OtpTypes::class
     ];
+
+    public function rides()
+    {
+        return $this->hasMany(Ride::class);
+    }
 }
