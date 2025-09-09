@@ -29,7 +29,7 @@ enum WalletRequestType: string
     {
         return match ($this) {
             self::Withdraw => '3B82F6', // blue
-            self::Deposit => '22C55E', // green
+            self::Deposit => '8B5CF6', // purple
         };
     }
 
