@@ -57,7 +57,7 @@ class RideHelper
             $batch = array_slice($points, $i, self::$snapBatchSize);
             $path = collect($batch)->map(fn($p) => "{$p['lat']},{$p['lng']}")->implode('|');
 
-            $url = "https://roads.googleapis.com/v1/snapToRoads?path={$path}&interpolate=true&key=" . self::$googleApiKey;
+            $url = "https://roads.googleapis.com/v1/snapToRoads?path={$path}&interpolate=false&key=" . self::$googleApiKey;
 
             try {
                 $resp = Http::timeout(self::$httpTimeout)->get($url);
@@ -95,22 +95,58 @@ class RideHelper
     }
 
     /**
-     * Filter tiny jitter and absurd jumps.
+     * Filter tiny jitter, absurd jumps, and unrealistic speeds.
      */
     private static function filterPath(array $points): array
     {
         if (count($points) < 2) return $points;
 
         $kept = [$points[0]];
+
         for ($i = 1; $i < count($points); $i++) {
-            $d = self::haversineMeters($kept[count($kept) - 1], $points[$i]);
-            if ($d < self::$minMoveMeters) continue; // ignore micro jitter
+            $prev = $kept[count($kept) - 1];
+            $curr = $points[$i];
+
+            $d = self::haversineMeters($prev, $curr);
+            
+            // Check if timestamps exist and calculate time difference
+            $dt = 0;
+            if (isset($prev['timestamp']) && isset($curr['timestamp'])) {
+                $prevTime = is_string($prev['timestamp']) ? strtotime($prev['timestamp']) : $prev['timestamp'];
+                $currTime = is_string($curr['timestamp']) ? strtotime($curr['timestamp']) : $curr['timestamp'];
+                $dt = $currTime - $prevTime;
+                
+                if ($dt <= 0) {
+                    continue; // invalid timestamp
+                }
+            }
+
+            // Calculate speed in km/h if we have valid timestamps
+            $vKmh = 0;
+            if ($dt > 0) {
+                $vKmh = ($d / $dt) * 3.6;
+            }
+
+            // Filters
+            if ($d < self::$minMoveMeters) {
+                continue; // jitter
+            }
+            
             if ($d > self::$maxJumpMeters) {
-                Log::info("[Filter] Skipping jump " . number_format($d / 1000, 2) . " km at index $i");
+                Log::info("[Filter] Skipping big jump " . number_format($d / 1000, 2) . " km at index $i");
                 continue;
             }
-            $kept[] = $points[$i];
+            
+            if ($vKmh > 150.0) {
+                Log::info("[Filter] Replacing point due to unrealistic speed " . number_format($vKmh, 1) . " km/h at index $i");
+                array_pop($kept); // remove last point
+                $kept[] = $curr; // add current point
+                continue;
+            }
+
+            $kept[] = $curr;
         }
+        
         return $kept;
     }
 
