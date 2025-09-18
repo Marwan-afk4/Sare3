@@ -10,10 +10,57 @@ class RideHelper
 {
     private static string $googleApiKey = 'AIzaSyBQpCJAXkrWtiIQfmKdWUyClvjagGoxotY';
 
-    private static int $snapBatchSize = 100;
+    private static int $snapBatchSize = 90; // smaller to allow overlap
     private static int $httpTimeout = 12;
     private static float $minMoveMeters = 5.0;
     private static float $maxJumpMeters = 5000.0;
+    private static int $maxGapSeconds = 60; // if gap > 60s, use interpolation
+
+
+
+    /**
+     * Check if the data has significant gaps that would benefit from interpolation
+     */
+    private static function hasSignificantGaps(array $points): bool
+    {
+        if (count($points) < 2) return false;
+
+        $hasGaps = false;
+        $gapCount = 0;
+
+        for ($i = 0; $i < count($points) - 1; $i++) {
+            $timeDiff = 0;
+            if (isset($points[$i]['timestamp']) && isset($points[$i + 1]['timestamp'])) {
+                $prevTime = is_string($points[$i]['timestamp']) ? strtotime($points[$i]['timestamp']) : $points[$i]['timestamp'];
+                $nextTime = is_string($points[$i + 1]['timestamp']) ? strtotime($points[$i + 1]['timestamp']) : $points[$i + 1]['timestamp'];
+                $timeDiff = $nextTime - $prevTime;
+            }
+
+            if ($timeDiff > self::$maxGapSeconds) {
+                $gapCount++;
+                $hasGaps = true;
+                Log::info("[GapDetection] Gap {$gapCount}: {$timeDiff}s between points {$i} and " . ($i + 1));
+            }
+        }
+
+        if ($hasGaps) {
+            Log::info("[GapDetection] Total gaps found: {$gapCount} (threshold: " . self::$maxGapSeconds . "s)");
+        }
+
+        return $hasGaps;
+    }
+
+    /**
+     * Sum haversine meters across a list of points
+     */
+    private static function sumMeters(array $points): float
+    {
+        $meters = 0.0;
+        for ($i = 0; $i < count($points) - 1; $i++) {
+            $meters += self::haversineMeters($points[$i], $points[$i + 1]);
+        }
+        return $meters;
+    }
 
     /**
      * Just sum haversine distances after snapping & filtering.
@@ -29,15 +76,14 @@ class RideHelper
         $filtered = self::filterPath($points);
         Log::info('[Total] filtered points: ' . count($filtered));
 
+        // Get distance before snapping for comparison
+        $distanceBeforeSnap = self::sumMeters($filtered);
+        Log::info('[Total] distance before snap: ' . number_format($distanceBeforeSnap, 2) . 'm');
+
         $snapped = self::snapToRoads($filtered);
         Log::info('[Total] snapped points: ' . count($snapped));
 
-
-        $totalMeters = 0.0;
-        for ($i = 0; $i < count($snapped) - 1; $i++) {
-            $totalMeters += self::haversineMeters($snapped[$i], $snapped[$i + 1]);
-        }
-
+        $totalMeters = self::sumMeters($snapped);
         $km = $totalMeters / 1000.0;
         Log::info('[Total] distance = ' . number_format($km, 3) . ' km');
 
@@ -45,11 +91,15 @@ class RideHelper
     }
 
     /**
-     * SnapToRoads API
+     * SnapToRoads API with dynamic interpolation
      */
     private static function snapToRoads(array $points): array
     {
         if (empty($points)) return [];
+
+        // Check if we should use interpolation based on gaps in the data
+        $shouldInterpolate = self::hasSignificantGaps($points);
+        Log::info('[SnapToRoads] Using interpolation: ' . ($shouldInterpolate ? 'true' : 'false'));
 
         $snapped = [];
 
@@ -57,7 +107,8 @@ class RideHelper
             $batch = array_slice($points, $i, self::$snapBatchSize);
             $path = collect($batch)->map(fn($p) => "{$p['lat']},{$p['lng']}")->implode('|');
 
-            $url = "https://roads.googleapis.com/v1/snapToRoads?path={$path}&interpolate=false&key=" . self::$googleApiKey;
+            $interpolateParam = $shouldInterpolate ? 'true' : 'false';
+            $url = "https://roads.googleapis.com/v1/snapToRoads?path={$path}&interpolate={$interpolateParam}&key=" . self::$googleApiKey;
 
             try {
                 $resp = Http::timeout(self::$httpTimeout)->get($url);
@@ -70,6 +121,7 @@ class RideHelper
                         $snapped[] = [
                             'lat' => (float) $loc['latitude'],
                             'lng' => (float) $loc['longitude'],
+                            'timestamp' => now(), // Add current timestamp for new points
                         ];
                     }
                     Log::info('[SnapToRoads] batch ' . (intdiv($i, self::$snapBatchSize) + 1) . ' added ' . count($pointsApi) . ' pts');
@@ -83,7 +135,7 @@ class RideHelper
             }
         }
 
-        // Guard: remove duplicates
+        // Guard: remove duplicates (exact lat/lng)
         $dedup = [];
         foreach ($snapped as $p) {
             if (empty($dedup) || $p['lat'] != $dedup[count($dedup) - 1]['lat'] || $p['lng'] != $dedup[count($dedup) - 1]['lng']) {
@@ -149,8 +201,6 @@ class RideHelper
         
         return $kept;
     }
-
-
 
     /**
      * Haversine formula (meters).
