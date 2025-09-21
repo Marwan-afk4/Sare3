@@ -16,6 +16,36 @@ class RideHelper
     private static float $maxJumpMeters = 5000.0;
     private static int $maxGapSeconds = 60; // if gap > 60s, use interpolation
 
+    /**
+     * Sort points by seq field if available, otherwise maintain original order
+     */
+    private static function sortPointsBySeq(array $points): array
+    {
+        // Check if any point has seq field
+        $hasSeq = false;
+        foreach ($points as $point) {
+            if (isset($point['seq']) && $point['seq'] !== null) {
+                $hasSeq = true;
+                break;
+            }
+        }
+
+        if (!$hasSeq) {
+            Log::info('[SortPoints] No seq field found, maintaining original order');
+            return $points;
+        }
+
+        // Sort by seq, handling null values by putting them at the end
+        usort($points, function ($a, $b) {
+            $seqA = $a['seq'] ?? PHP_INT_MAX;
+            $seqB = $b['seq'] ?? PHP_INT_MAX;
+            return $seqA <=> $seqB;
+        });
+
+        Log::info('[SortPoints] Sorted ' . count($points) . ' points by seq field');
+        return $points;
+    }
+
 
 
     /**
@@ -73,7 +103,11 @@ class RideHelper
 
         Log::info('[Total] raw points: ' . count($points));
 
-        $filtered = self::filterPath($points);
+        // Sort points by seq first
+        $sorted = self::sortPointsBySeq($points);
+        Log::info('[Total] sorted points: ' . count($sorted));
+
+        $filtered = self::filterPath($sorted);
         Log::info('[Total] filtered points: ' . count($filtered));
 
         // Get distance before snapping for comparison
@@ -229,7 +263,11 @@ class RideHelper
         
         Log::info('[DisplayPath] Processing ' . count($points) . ' points, snap=' . ($snap ? 'true' : 'false'));
         
-        $filtered = self::filterPath($points);
+        // Sort points by seq first
+        $sorted = self::sortPointsBySeq($points);
+        Log::info('[DisplayPath] Sorted points: ' . count($sorted));
+        
+        $filtered = self::filterPath($sorted);
         Log::info('[DisplayPath] After filtering: ' . count($filtered) . ' points');
         
         if ($snap) {

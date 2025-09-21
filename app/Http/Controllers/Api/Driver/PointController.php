@@ -43,6 +43,7 @@ class PointController extends Controller
         $validation = Validator::make($request->all(), [
             'longitude' => 'required|numeric',
             'latitude' => 'required|numeric',
+            'seq' => 'nullable|integer',
         ]);
         if ($validation->fails()) {
             return response()->json(['message' => $validation->errors()->first()], 422);
@@ -57,6 +58,7 @@ class PointController extends Controller
             'longitude' => $request->longitude,
             'latitude' => $request->latitude,
             'point_type' => 'driverLocation',
+            'seq' => $request->seq,
         ]);
 
         Redis::geoadd('drivers:locations', $request->longitude, $request->latitude, $point->user_id);
