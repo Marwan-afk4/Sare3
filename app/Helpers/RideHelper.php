@@ -12,9 +12,9 @@ class RideHelper
 
     private static int $snapBatchSize = 90; // smaller to allow overlap
     private static int $httpTimeout = 12;
-    private static float $minMoveMeters = 5.0;
+    private static float $minMoveMeters = 6.0;
     private static float $maxJumpMeters = 5000.0;
-    private static int $maxGapSeconds = 60; // if gap > 60s, use interpolation
+    private static int $maxGapSeconds = 360; // if gap > 60s, use interpolation
 
     /**
      * Sort points by seq field if available, otherwise maintain original order
@@ -223,7 +223,7 @@ class RideHelper
                 continue;
             }
             
-            if ($vKmh > 150.0) {
+            if ($vKmh > 200.0) {
                 Log::info("[Filter] Replacing point due to unrealistic speed " . number_format($vKmh, 1) . " km/h at index $i");
                 array_pop($kept); // remove last point
                 $kept[] = $curr; // add current point
