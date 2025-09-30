@@ -20,9 +20,9 @@ class StoreCarCategoryRequest extends FormRequest
             'icon' => 'nullable',
             'inital_price' => 'nullable',
             'final_price' => 'nullable',
-            'price_per_km' => 'required|numeric|min:0',
-            'price_per_time' => 'required|numeric|min:0',
-            'base_price' => 'required|numeric|min:0'
+            'price_per_km' => 'nullable|numeric|min:0',
+            'price_per_time' => 'nullable|numeric|min:0',
+            'base_price' => 'nullable|numeric|min:0'
         ];
     }
 
