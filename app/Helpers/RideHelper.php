@@ -10,10 +10,87 @@ class RideHelper
 {
     private static string $googleApiKey = 'AIzaSyBQpCJAXkrWtiIQfmKdWUyClvjagGoxotY';
 
-    private static int $snapBatchSize = 100;
+    private static int $snapBatchSize = 90; // smaller to allow overlap
     private static int $httpTimeout = 12;
-    private static float $minMoveMeters = 5.0;
+    private static float $minMoveMeters = 6.0;
     private static float $maxJumpMeters = 5000.0;
+    private static int $maxGapSeconds = 360; // if gap > 60s, use interpolation
+
+    /**
+     * Sort points by seq field if available, otherwise maintain original order
+     */
+    private static function sortPointsBySeq(array $points): array
+    {
+        // Check if any point has seq field
+        $hasSeq = false;
+        foreach ($points as $point) {
+            if (isset($point['seq']) && $point['seq'] !== null) {
+                $hasSeq = true;
+                break;
+            }
+        }
+
+        if (!$hasSeq) {
+            Log::info('[SortPoints] No seq field found, maintaining original order');
+            return $points;
+        }
+
+        // Sort by seq, handling null values by putting them at the end
+        usort($points, function ($a, $b) {
+            $seqA = $a['seq'] ?? PHP_INT_MAX;
+            $seqB = $b['seq'] ?? PHP_INT_MAX;
+            return $seqA <=> $seqB;
+        });
+
+        Log::info('[SortPoints] Sorted ' . count($points) . ' points by seq field');
+        return $points;
+    }
+
+
+
+    /**
+     * Check if the data has significant gaps that would benefit from interpolation
+     */
+    private static function hasSignificantGaps(array $points): bool
+    {
+        if (count($points) < 2) return false;
+
+        $hasGaps = false;
+        $gapCount = 0;
+
+        for ($i = 0; $i < count($points) - 1; $i++) {
+            $timeDiff = 0;
+            if (isset($points[$i]['timestamp']) && isset($points[$i + 1]['timestamp'])) {
+                $prevTime = is_string($points[$i]['timestamp']) ? strtotime($points[$i]['timestamp']) : $points[$i]['timestamp'];
+                $nextTime = is_string($points[$i + 1]['timestamp']) ? strtotime($points[$i + 1]['timestamp']) : $points[$i + 1]['timestamp'];
+                $timeDiff = $nextTime - $prevTime;
+            }
+
+            if ($timeDiff > self::$maxGapSeconds) {
+                $gapCount++;
+                $hasGaps = true;
+                Log::info("[GapDetection] Gap {$gapCount}: {$timeDiff}s between points {$i} and " . ($i + 1));
+            }
+        }
+
+        if ($hasGaps) {
+            Log::info("[GapDetection] Total gaps found: {$gapCount} (threshold: " . self::$maxGapSeconds . "s)");
+        }
+
+        return $hasGaps;
+    }
+
+    /**
+     * Sum haversine meters across a list of points
+     */
+    private static function sumMeters(array $points): float
+    {
+        $meters = 0.0;
+        for ($i = 0; $i < count($points) - 1; $i++) {
+            $meters += self::haversineMeters($points[$i], $points[$i + 1]);
+        }
+        return $meters;
+    }
 
     /**
      * Just sum haversine distances after snapping & filtering.
@@ -26,18 +103,21 @@ class RideHelper
 
         Log::info('[Total] raw points: ' . count($points));
 
-        $filtered = self::filterPath($points);
+        // Sort points by seq first
+        $sorted = self::sortPointsBySeq($points);
+        Log::info('[Total] sorted points: ' . count($sorted));
+
+        $filtered = self::filterPath($sorted);
         Log::info('[Total] filtered points: ' . count($filtered));
+
+        // Get distance before snapping for comparison
+        $distanceBeforeSnap = self::sumMeters($filtered);
+        Log::info('[Total] distance before snap: ' . number_format($distanceBeforeSnap, 2) . 'm');
 
         $snapped = self::snapToRoads($filtered);
         Log::info('[Total] snapped points: ' . count($snapped));
 
-
-        $totalMeters = 0.0;
-        for ($i = 0; $i < count($snapped) - 1; $i++) {
-            $totalMeters += self::haversineMeters($snapped[$i], $snapped[$i + 1]);
-        }
-
+        $totalMeters = self::sumMeters($snapped);
         $km = $totalMeters / 1000.0;
         Log::info('[Total] distance = ' . number_format($km, 3) . ' km');
 
@@ -45,11 +125,15 @@ class RideHelper
     }
 
     /**
-     * SnapToRoads API
+     * SnapToRoads API with dynamic interpolation
      */
     private static function snapToRoads(array $points): array
     {
         if (empty($points)) return [];
+
+        // Check if we should use interpolation based on gaps in the data
+        $shouldInterpolate = self::hasSignificantGaps($points);
+        Log::info('[SnapToRoads] Using interpolation: ' . ($shouldInterpolate ? 'true' : 'false'));
 
         $snapped = [];
 
@@ -57,7 +141,8 @@ class RideHelper
             $batch = array_slice($points, $i, self::$snapBatchSize);
             $path = collect($batch)->map(fn($p) => "{$p['lat']},{$p['lng']}")->implode('|');
 
-            $url = "https://roads.googleapis.com/v1/snapToRoads?path={$path}&interpolate=true&key=" . self::$googleApiKey;
+            $interpolateParam = $shouldInterpolate ? 'true' : 'false';
+            $url = "https://roads.googleapis.com/v1/snapToRoads?path={$path}&interpolate={$interpolateParam}&key=" . self::$googleApiKey;
 
             try {
                 $resp = Http::timeout(self::$httpTimeout)->get($url);
@@ -70,6 +155,7 @@ class RideHelper
                         $snapped[] = [
                             'lat' => (float) $loc['latitude'],
                             'lng' => (float) $loc['longitude'],
+                            'timestamp' => now(), // Add current timestamp for new points
                         ];
                     }
                     Log::info('[SnapToRoads] batch ' . (intdiv($i, self::$snapBatchSize) + 1) . ' added ' . count($pointsApi) . ' pts');
@@ -83,7 +169,7 @@ class RideHelper
             }
         }
 
-        // Guard: remove duplicates
+        // Guard: remove duplicates (exact lat/lng)
         $dedup = [];
         foreach ($snapped as $p) {
             if (empty($dedup) || $p['lat'] != $dedup[count($dedup) - 1]['lat'] || $p['lng'] != $dedup[count($dedup) - 1]['lng']) {
@@ -95,26 +181,60 @@ class RideHelper
     }
 
     /**
-     * Filter tiny jitter and absurd jumps.
+     * Filter tiny jitter, absurd jumps, and unrealistic speeds.
      */
     private static function filterPath(array $points): array
     {
         if (count($points) < 2) return $points;
 
         $kept = [$points[0]];
+
         for ($i = 1; $i < count($points); $i++) {
-            $d = self::haversineMeters($kept[count($kept) - 1], $points[$i]);
-            if ($d < self::$minMoveMeters) continue; // ignore micro jitter
+            $prev = $kept[count($kept) - 1];
+            $curr = $points[$i];
+
+            $d = self::haversineMeters($prev, $curr);
+            
+            // Check if timestamps exist and calculate time difference
+            $dt = 0;
+            if (isset($prev['timestamp']) && isset($curr['timestamp'])) {
+                $prevTime = is_string($prev['timestamp']) ? strtotime($prev['timestamp']) : $prev['timestamp'];
+                $currTime = is_string($curr['timestamp']) ? strtotime($curr['timestamp']) : $curr['timestamp'];
+                $dt = $currTime - $prevTime;
+                
+                if ($dt <= 0) {
+                    continue; // invalid timestamp
+                }
+            }
+
+            // Calculate speed in km/h if we have valid timestamps
+            $vKmh = 0;
+            if ($dt > 0) {
+                $vKmh = ($d / $dt) * 3.6;
+            }
+
+            // Filters
+            if ($d < self::$minMoveMeters) {
+                continue; // jitter
+            }
+            
             if ($d > self::$maxJumpMeters) {
-                Log::info("[Filter] Skipping jump " . number_format($d / 1000, 2) . " km at index $i");
+                Log::info("[Filter] Skipping big jump " . number_format($d / 1000, 2) . " km at index $i");
                 continue;
             }
-            $kept[] = $points[$i];
+            
+            if ($vKmh > 200.0) {
+                Log::info("[Filter] Replacing point due to unrealistic speed " . number_format($vKmh, 1) . " km/h at index $i");
+                array_pop($kept); // remove last point
+                $kept[] = $curr; // add current point
+                continue;
+            }
+
+            $kept[] = $curr;
         }
+        
         return $kept;
     }
-
-
 
     /**
      * Haversine formula (meters).
@@ -143,7 +263,11 @@ class RideHelper
         
         Log::info('[DisplayPath] Processing ' . count($points) . ' points, snap=' . ($snap ? 'true' : 'false'));
         
-        $filtered = self::filterPath($points);
+        // Sort points by seq first
+        $sorted = self::sortPointsBySeq($points);
+        Log::info('[DisplayPath] Sorted points: ' . count($sorted));
+        
+        $filtered = self::filterPath($sorted);
         Log::info('[DisplayPath] After filtering: ' . count($filtered) . ' points');
         
         if ($snap) {

@@ -23,6 +23,7 @@ class DriverLocationController extends Controller
             'ride_id' => 'required',
             'lat' => 'required',
             'lng' => 'required',
+            'seq' => 'nullable|integer',
         ]);
 
         if ($validation->fails()) {
@@ -46,8 +47,7 @@ class DriverLocationController extends Controller
             'lat' => (float) $request->lat,
             'lng' => (float) $request->lng,
             'timestamp' => now()->timestamp,
-            'speed' => $request->speed ?? null,
-            'heading' => $request->heading ?? null,
+            'seq' => $request->seq ?? null,
         ];
 
         $points[] = $newPoint;

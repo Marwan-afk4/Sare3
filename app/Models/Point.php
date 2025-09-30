@@ -16,7 +16,8 @@ class Point extends Model
         'point_type',
         'latitude',
         'longitude',
-        'location'
+        'location',
+        'seq'
     ];
     
     public $timestamps = true;
