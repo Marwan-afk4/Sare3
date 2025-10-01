@@ -173,7 +173,6 @@ class RideEstimateController extends Controller
 
         RideEstimate::create([
             'user_id' => $user->id,
-            'zone_id' => $request->zone_id,
             'car_category_id' => $request->car_category_id,
             'pickup_lat' => $request->pickup_lat,
             'pickup_lng' => $request->pickup_lng,
