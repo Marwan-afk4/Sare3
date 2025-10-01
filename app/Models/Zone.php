@@ -39,4 +39,9 @@ class Zone extends Model
         return $this->hasMany(User::class);
     }
 
+    public function rides()
+    {
+        return $this->hasMany(Ride::class);
+    }
+
 }

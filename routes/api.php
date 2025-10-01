@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Driver\ReferralController as DriverReferralControll
 use App\Http\Controllers\Api\Driver\RideActionsController;
 use App\Http\Controllers\Api\Driver\RideRequestLimitController;
 use App\Http\Controllers\Api\Driver\RideSettingCOntroller;
+use App\Http\Controllers\Api\Driver\TransactionController;
 use App\Http\Controllers\Api\Driver\WalletRequestController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Paytabs\PaymentController;
@@ -180,6 +181,9 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 
 //Cancelation Reasons
     Route::get('/cancelation-reasons', [DriverCancelationReasonController::class, 'getDriverCancelationReason']);
+
+//transfare to user wallet
+    Route::post('/transfare-to-user-wallet', [TransactionController::class, 'transfareToUserWallet']);
 
 });
 

@@ -40,7 +40,8 @@ class Ride extends Model
         'verification_code_verified',
         'coupon_id',
         'coupon_discount',
-        'cancellation_reason_id'
+        'cancellation_reason_id',
+        'zone_id'
     ];
 
     public $timestamps = true;
@@ -53,6 +54,10 @@ class Ride extends Model
         'verification_code_verified' => 'boolean',
     ];
 
+    public function zone()
+    {
+        return $this->belongsTo(Zone::class);
+    }
 
     public function user()
     {
