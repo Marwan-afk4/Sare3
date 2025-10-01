@@ -214,7 +214,7 @@ class User extends Authenticatable
     {
         $name = $this->getDisplayName();
         $role = $this->isDriver() ? ' (Driver)' : ' (User)';
-        
+
         return $name . $role;
     }
 
@@ -244,7 +244,7 @@ class User extends Authenticatable
         $minimumBalance = AppSetting::getMinimumDriverWalletBalance();
         $currentBalance = $this->wallet ?? 0;
         $canGoOnline = $this->canGoOnline();
-        
+
         return [
             'current_balance' => $currentBalance,
             'minimum_required_balance' => $minimumBalance,

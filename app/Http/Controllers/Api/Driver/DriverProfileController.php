@@ -21,6 +21,7 @@ class DriverProfileController extends Controller
         $user->load([
         'driverRides.driver.driverCars.carModel',
         'driverCars.carModel', // <- this line
+        'driverCars.carCategory',
     ]);
 
         $requestLimit = RideRequestTimeLimit::first();
@@ -49,8 +50,9 @@ class DriverProfileController extends Controller
                 'car_number' => $firstCar->car_number ?? null,
                 'car_model' => $firstCar?->carModel?->name ?? null,
                 'car_color' => $firstCar->car_color ?? null,
-                'car_category_id' => $firstCar->car_category_id ?? null,
+                'car_category_id' => $firstCar->car_categories_id ?? null,
                 'car_category' => $firstCar->carCategory->name ?? null,
+                'car_type_id' => $firstCar->car_type_id ?? null,
                 'car_type' => $firstCar->carType->type_name ?? null,
                 'car_license' => $firstCar->car_license_link ?? null,
                 'car_image_link' => $firstCar->car_image_link ?? null,
