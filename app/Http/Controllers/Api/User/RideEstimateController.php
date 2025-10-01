@@ -98,6 +98,7 @@ class RideEstimateController extends Controller
         $user = $request->user();
 
         $validation = Validator::make($request->all(), [
+            'zone_id' => 'required|exists:zones,id',
             'driver_id' => 'required|exists:users,id',
             'car_category_id' => 'required|exists:car_categories,id',
             'estimated_km' => 'nullable|numeric|min:0',
@@ -127,9 +128,35 @@ class RideEstimateController extends Controller
 
         $driver = User::with('driverCars')->findOrFail($request->driver_id);
 
-        $carCategory = CarCategory::find($request->car_category_id);
+        // Get zone with car categories to use zone-specific pricing
+        $zone = Zone::with('carCategories')->find($request->zone_id);
 
-        $price = ($carCategory->base_price + ($request->estimated_km * $carCategory->price_per_km) + ($request->estimated_time * $carCategory->price_per_time));
+        if (!$zone) {
+            return response()->json(['message' => 'Zone not found'], 404);
+        }
+
+        // Find the specific category in this zone
+        $categoryInZone = $zone->carCategories->where('id', $request->car_category_id)->first();
+
+        if (!$categoryInZone) {
+            return response()->json(['message' => 'Car category not available in this zone'], 404);
+        }
+
+        // Calculate price using zone-specific rates (same logic as estimateForAllCategories)
+        $base = $categoryInZone->pivot->base_price;
+        $perKm = $categoryInZone->pivot->price_per_km;
+        $perTime = $categoryInZone->pivot->price_per_min;
+        $minPrice = $categoryInZone->pivot->min_price;
+
+        $estimatedKm = $request->estimated_km ?? 0;
+        $estimatedTime = $request->estimated_time ?? 0;
+
+        $price = $base + ($estimatedKm * $perKm) + ($estimatedTime * $perTime);
+
+        // Apply minimum price if calculated price is lower
+        if ($price < $minPrice) {
+            $price = $minPrice;
+        }
 
         // Calculate average rating for the user
         $userRating = Rating::where('ratee_id', $user->id)
@@ -146,26 +173,28 @@ class RideEstimateController extends Controller
 
         RideEstimate::create([
             'user_id' => $user->id,
+            'zone_id' => $request->zone_id,
             'car_category_id' => $request->car_category_id,
             'pickup_lat' => $request->pickup_lat,
             'pickup_lng' => $request->pickup_lng,
             'dropoff_lat' => $request->dropoff_lat,
             'dropoff_lng' => $request->dropoff_lng,
-            'estimated_km' => $request->estimated_km,
-            'estimated_time' => $request->estimated_time,
+            'estimated_km' => $estimatedKm,
+            'estimated_time' => $estimatedTime,
             'calculated_price' => $price,
         ]);
 
         $ride = Ride::create([
             'user_id' => $user->id,
+            'zone_id' => $request->zone_id,
             'car_category_id' => $request->car_category_id,
             'pickup_lat' => $request->pickup_lat,
             'pickup_lng' => $request->pickup_lng,
             'dropoff_lat' => $request->dropoff_lat,
             'dropoff_lng' => $request->dropoff_lng,
             'status' => 'pending',
-            'estimated_km' => $request->estimated_km,
-            'estimated_time' => $request->estimated_time,
+            'estimated_km' => $estimatedKm,
+            'estimated_time' => $estimatedTime,
             'calculated_initial_price' => $price,
             'pickup_address' => $request->pickup_address,
             'dropoff_address' => $request->dropoff_address,

@@ -9,6 +9,7 @@ use App\Models\AppSetting;
 use App\Models\CarCategory;
 use App\Models\Ride;
 use App\Models\RideProfit;
+use App\Models\Zone;
 use App\Services\ReferralDiscountService;
 use App\Services\RideVerificationService;
 use Carbon\Carbon;
@@ -268,15 +269,23 @@ class RideActionsController extends Controller
         // 1️⃣ Distance Calculation
         $distanceKm = RideHelper::calculateTotalDistanceAccurate($points);
 
-        // 2️⃣ Car Category
-        $carCategory = CarCategory::find($ride->car_category_id);
-        if (!$carCategory) {
-            return response()->json(['message' => 'Car category not found'], 404);
+        // 2️⃣ Get Zone with Car Categories for zone-specific pricing
+        if (!$ride->zone_id) {
+            return response()->json(['message' => 'Ride has no zone assigned'], 400);
+        }
+
+        $zone = Zone::with('carCategories')->find($ride->zone_id);
+        if (!$zone) {
+            return response()->json(['message' => 'Zone not found'], 404);
+        }
+
+        // Find the specific category in this zone
+        $categoryInZone = $zone->carCategories->where('id', $ride->car_category_id)->first();
+        if (!$categoryInZone) {
+            return response()->json(['message' => 'Car category not available in this zone'], 404);
         }
 
         // 3️⃣ Duration Calculation
-        // $startTimestamp = $points[0]['timestamp'];
-        // $endTimestamp = $points[count($points) - 1]['timestamp'];
         if (!$ride->started_at) {
             return response()->json(['message' => 'Ride has no start time.'], 400);
         }
@@ -285,10 +294,18 @@ class RideActionsController extends Controller
         $endTime = Carbon::now();
         $durationMinutes = ceil($startTime->floatDiffInMinutes($endTime));
 
+        // 4️⃣ Fare Calculation using zone-specific pricing
+        $base = $categoryInZone->pivot->base_price;
+        $perKm = $categoryInZone->pivot->price_per_km;
+        $perTime = $categoryInZone->pivot->price_per_min;
+        $minPrice = $categoryInZone->pivot->min_price;
 
-        // 4️⃣ Fare Calculation
-        $timeFare = $durationMinutes * $carCategory->price_per_time;
-        $originalFare = $carCategory->base_price + ($distanceKm * $carCategory->price_per_km) + $timeFare;
+        $originalFare = $base + ($distanceKm * $perKm) + ($durationMinutes * $perTime);
+
+        // Apply minimum price if calculated fare is lower
+        if ($originalFare < $minPrice) {
+            $originalFare = $minPrice;
+        }
 
         // 5️⃣ Apply Referral Discounts
         $referralDiscountService = new ReferralDiscountService();
