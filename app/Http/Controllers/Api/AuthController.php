@@ -245,7 +245,7 @@ class AuthController extends Controller
         $validation = Validator::make($request->all(), [
             'phone' => 'required|string|exists:users,phone',
             'name' => 'required|string|max:255',
-            'gender' => 'required|string|in:male,female',
+            'gender' => 'nullable|string|in:male,female',
             'fcm_token' => 'required|string'
         ]);
 
@@ -263,7 +263,7 @@ class AuthController extends Controller
             $user->name = $request->name;
             $user->role = 'user';
             $user->activity = 'active';
-            $user->gender = $request->gender;
+            $user->gender = $request->gender ?? null;
             $user->fcm_token = $request->fcm_token;
             $user->wallet = 0; // Initialize wallet to 0
             $user->save();
