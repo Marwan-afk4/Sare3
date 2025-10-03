@@ -3,7 +3,7 @@
 // Enhanced Queue Worker Monitor Script
 // This script ensures the queue worker is always running with better reliability
 
-$projectPath = '/var/www/vhosts/sare3.tld';
+$projectPath = '/var/www/vhosts/aomsst.com/dashboard';
 $logFile = $projectPath.'/storage/logs/queue-monitor.log';
 $pidFile = $projectPath.'/storage/logs/queue-worker.pid';
 
