@@ -249,12 +249,12 @@ class RideEstimateController extends Controller
         }
 
         // // Schedule auto-reject job
-        // $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
-        // AutoRejectRideJob::dispatch(
-        //     $ride->id,
-        //     $request->driver_id,
-        //     $ride->updated_at->format('Y-m-d H:i:s')
-        // )->delay(now()->addSeconds($timeoutSeconds));
+        $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
+        AutoRejectRideJob::dispatch(
+            $ride->id,
+            $request->driver_id,
+            $ride->updated_at->format('Y-m-d H:i:s')
+        )->delay(now()->addSeconds($timeoutSeconds));
 
         return response()->json([
             'message' => 'Ride created successfully',
