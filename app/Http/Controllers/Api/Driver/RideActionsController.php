@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Driver;
 use App\Helpers\RideHelper;
 use App\Http\Controllers\Api\User\RideEstimateController;
 use App\Http\Controllers\Controller;
+use App\Jobs\AutoRejectRideJob;
 use App\Models\AppSetting;
 use App\Models\CarCategory;
 use App\Models\Ride;
@@ -462,6 +463,14 @@ class RideActionsController extends Controller
                     'reassigned_at' => now()->toIso8601String(),
                     'previous_rejections' => count($rejectedDrivers),
                 ]);
+
+                // Schedule auto-reject job for the new driver
+                $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
+                AutoRejectRideJob::dispatch(
+                    $ride->id,
+                    $alternativeDriver['id'],
+                    $ride->updated_at->format('Y-m-d H:i:s')
+                )->delay(now()->addSeconds($timeoutSeconds));
             } else {
                 return response()->json([
                     'message' => 'Ride rejected. No alternative drivers available.',

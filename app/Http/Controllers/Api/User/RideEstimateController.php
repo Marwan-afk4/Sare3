@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Kreait\Firebase\Factory;
 use App\Helpers\RideHelper;
-use App\Jobs\HandleDriverTimeout;
+use App\Jobs\AutoRejectRideJob;
 use App\Models\CancellationPolicy;
 use App\Models\Rating;
 use App\Models\RideRequestTimeLimit;
@@ -247,6 +247,14 @@ class RideEstimateController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'Ride created, but failed to sync with Firebase', 'error' => $e->getMessage()], 500);
         }
+
+        // // Schedule auto-reject job
+        // $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
+        // AutoRejectRideJob::dispatch(
+        //     $ride->id,
+        //     $request->driver_id,
+        //     $ride->updated_at->format('Y-m-d H:i:s')
+        // )->delay(now()->addSeconds($timeoutSeconds));
 
         return response()->json([
             'message' => 'Ride created successfully',
@@ -517,12 +525,13 @@ class RideEstimateController extends Controller
                 Log::warning("No FCM token found for driver {$nearestDriver['id']}");
             }
 
-            // بعد ما تحدث ride بالـ nearest driver
-            $timeLimit = RideRequestTimeLimit::first()->time_limit_seconds ?? 30;
-
-            dispatch(new HandleDriverTimeout($ride->id, $nearestDriver['id']))
-                ->delay(now()->addSeconds($timeLimit));
-
+            // Schedule auto-reject job
+            $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
+            AutoRejectRideJob::dispatch(
+                $ride->id,
+                $nearestDriver['id'],
+                $ride->updated_at->format('Y-m-d H:i:s')
+            )->delay(now()->addSeconds($timeoutSeconds));
 
             return $nearestDriver;
         } catch (\Exception $e) {
