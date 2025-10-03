@@ -61,10 +61,6 @@ class TransactionController extends Controller
                             'title' => 'Wallet Updated',
                             'body' => "You received {$request->amount} in your wallet. New balance: {$ride->user->wallet}",
                             'type' => 'wallet_transfer',
-                            'amount' => $request->amount,
-                            'new_balance' => $ride->user->wallet,
-                            'description' => 'Driver paid remaining balance',
-                            'ride_id' => $ride->id,
                         ]
                     ]);
                     Log::info('Sending wallet notification');

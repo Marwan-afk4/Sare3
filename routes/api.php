@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\RideTrackingController;
 use App\Http\Controllers\Api\User\CancelationReasonController;
 use App\Http\Controllers\Api\User\ReferralController;
 use App\Http\Controllers\Api\User\RideActionsController as UserRideActionsController;
+use App\Http\Controllers\Api\User\TransactionController as UserTransactionController;
 use App\Http\Controllers\Api\User\UserNotificatonController;
 use App\Models\AppSetting;
 use Illuminate\Http\Request;
@@ -253,6 +254,9 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
 
 //Cancelation Reasons
     Route::get('/cancelation-reasons', [CancelationReasonController::class, 'getUserCancelationReason']);
+
+//User Transactions
+    Route::get('/transactions', [UserTransactionController::class, 'getTransactions']);
 
 });
 
