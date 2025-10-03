@@ -23,31 +23,22 @@
 					required
 				/>
 
-				{{-- <div class="mb-3">
-					<label class="form-label">{{ __('Zone Area Selection') }}</label>
-					<div class="btn-group mb-3" role="group">
-						<input type="radio" class="btn-check" name="selection_method" id="polygon_method" value="polygon" {{ $zone->polygon_coordinates ? 'checked' : '' }}>
-						<label class="btn btn-outline-primary" for="polygon_method">{{ __('Edit Polygon') }}</label>
-
-						<input type="radio" class="btn-check" name="selection_method" id="coordinates_method" value="coordinates" {{ !$zone->polygon_coordinates ? 'checked' : '' }}>
-						<label class="btn btn-outline-primary" for="coordinates_method">{{ __('Manual Coordinates') }}</label>
-					</div>
-				</div> --}}
-
-				<!-- Google Maps Container -->
-				<div id="polygon_section" class="mb-3" style="{{ !$zone->polygon_coordinates ? 'display: none;' : '' }}">
-					<label class="form-label">{{ __('Edit Zone Polygon on Map') }}</label>
-					<div id="map" style="height: 400px; width: 100%; border: 1px solid #ddd; border-radius: 4px;"></div>
-					<small class="form-text text-muted">{{ __('Click and drag the polygon points to edit the zone area.') }}</small>
-					<div class="mt-2">
-						<button type="button" class="btn btn-sm btn-warning" id="clearPolygon">{{ __('Clear Polygon') }}</button>
-						<button type="button" class="btn btn-sm btn-success" id="drawNewPolygon">{{ __('Draw New Polygon') }}</button>
-						<button type="button" class="btn btn-sm btn-info" id="centerMap">{{ __('Center Map') }}</button>
-					</div>
+			<!-- Google Maps Container - Always Visible -->
+			<div id="polygon_section" class="mb-3">
+				<label class="form-label">{{ __('Edit Zone Area on Map') }}</label>
+				<div id="map" style="height: 500px; width: 100%; border: 1px solid #ddd; border-radius: 4px;"></div>
+				<small class="form-text text-muted">
+					{{ __('Click and drag the polygon points to reshape the zone, or draw a new polygon on the map.') }}
+				</small>
+				<div class="mt-2">
+					<button type="button" class="btn btn-sm btn-warning" id="clearPolygon">{{ __('Clear') }}</button>
+					<button type="button" class="btn btn-sm btn-success" id="drawNewPolygon">{{ __('Draw New Polygon') }}</button>
+					<button type="button" class="btn btn-sm btn-info" id="centerMap">{{ __('Center Map') }}</button>
 				</div>
+			</div>
 
-				<!-- Manual Coordinates Section -->
-				<div id="coordinates_section" style="{{ $zone->polygon_coordinates ? 'display: none;' : '' }}">
+			<!-- Manual Coordinates Section - Hidden by default, auto-updated by map -->
+			<div id="coordinates_section" style="display: none;">
 					<div class="row">
 						<div class="col-md-6">
 							<x-form-input
@@ -107,29 +98,36 @@ let currentPolygon = null;
 let polygonCoordinates = [];
 
 // Existing polygon data from server
-const existingPolygonData = @json($zone->polygon_coordinates ?? []);
+let existingPolygonData = @json($zone->polygon_coordinates ?? []);
+
+// If no polygon data but we have rectangle coordinates, convert to polygon
+const hasRectangleCoords = {{ $zone->from_lat ?? 'null' }} !== null && {{ $zone->from_lng ?? 'null' }} !== null;
+if (existingPolygonData.length === 0 && hasRectangleCoords) {
+    const fromLat = {{ $zone->from_lat ?? 0 }};
+    const fromLng = {{ $zone->from_lng ?? 0 }};
+    const toLat = {{ $zone->to_lat ?? 0 }};
+    const toLng = {{ $zone->to_lng ?? 0 }};
+    
+    // Convert rectangle to polygon (4 corners)
+    existingPolygonData = [
+        { lat: fromLat, lng: fromLng },
+        { lat: fromLat, lng: toLng },
+        { lat: toLat, lng: toLng },
+        { lat: toLat, lng: fromLng }
+    ];
+}
 
 function initMap() {
-    // Default center or use existing polygon center
+    // Default center or use existing data center
     let defaultCenter = { lat: 24.7136, lng: 46.6753 }; // Riyadh, Saudi Arabia
 
-    // If we have existing polygon data, center on it
+    // Calculate center from existing data
     if (existingPolygonData.length > 0) {
         const bounds = new google.maps.LatLngBounds();
         existingPolygonData.forEach(coord => {
             bounds.extend(new google.maps.LatLng(coord.lat, coord.lng));
         });
         defaultCenter = bounds.getCenter().toJSON();
-    } else if ({{ $zone->from_lat ?? 'null' }} && {{ $zone->from_lng ?? 'null' }}) {
-        // Use existing coordinate center
-        const lat1 = {{ $zone->from_lat ?? 0 }};
-        const lng1 = {{ $zone->from_lng ?? 0 }};
-        const lat2 = {{ $zone->to_lat ?? 0 }};
-        const lng2 = {{ $zone->to_lng ?? 0 }};
-        defaultCenter = {
-            lat: (lat1 + lat2) / 2,
-            lng: (lng1 + lng2) / 2
-        };
     }
 
     map = new google.maps.Map(document.getElementById('map'), {
@@ -280,55 +278,48 @@ document.getElementById('centerMap').addEventListener('click', function() {
     }
 });
 
-// Toggle between polygon and manual coordinate input
-document.querySelectorAll('input[name="selection_method"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-        const polygonSection = document.getElementById('polygon_section');
-        const coordinatesSection = document.getElementById('coordinates_section');
+// Toggle between polygon and manual coordinate input (if radio buttons are present)
+const selectionMethodRadios = document.querySelectorAll('input[name="selection_method"]');
+if (selectionMethodRadios.length > 0) {
+    selectionMethodRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const polygonSection = document.getElementById('polygon_section');
+            const coordinatesSection = document.getElementById('coordinates_section');
 
-        if (this.value === 'polygon') {
-            polygonSection.style.display = 'block';
-            coordinatesSection.style.display = 'none';
-        } else {
-            polygonSection.style.display = 'none';
-            coordinatesSection.style.display = 'block';
+            if (this.value === 'polygon') {
+                polygonSection.style.display = 'block';
+                coordinatesSection.style.display = 'none';
+            } else {
+                polygonSection.style.display = 'none';
+                coordinatesSection.style.display = 'block';
 
-            // Clear polygon data when switching to manual
-            if (currentPolygon) {
-                currentPolygon.setMap(null);
-                currentPolygon = null;
+                // Clear polygon data when switching to manual
+                if (currentPolygon) {
+                    currentPolygon.setMap(null);
+                    currentPolygon = null;
+                }
+                document.getElementById('polygon_coordinates').value = '';
             }
-            document.getElementById('polygon_coordinates').value = '';
-        }
+        });
     });
-});
+}
 
 // Form validation
 document.getElementById('zoneEditForm').addEventListener('submit', function(e) {
-    const selectionMethod = document.querySelector('input[name="selection_method"]:checked').value;
+    const polygonData = document.getElementById('polygon_coordinates').value;
+    const hasPolygon = polygonData && polygonData !== '[]' && polygonData !== '';
+    
+    // Check if we have either polygon or manual coordinates
+    const fromLat = document.querySelector('input[name="from_lat"]').value;
+    const fromLng = document.querySelector('input[name="from_lng"]').value;
+    const toLat = document.querySelector('input[name="to_lat"]').value;
+    const toLng = document.querySelector('input[name="to_lng"]').value;
+    const hasManualCoords = fromLat && fromLng && toLat && toLng;
 
-    if (selectionMethod === 'polygon') {
-        const polygonData = document.getElementById('polygon_coordinates').value;
-        if (!polygonData || polygonData === '[]') {
-            e.preventDefault();
-            alert('{{ __("Please draw a polygon on the map or switch to manual coordinates.") }}');
-            return false;
-        }
-    } else {
-        // Validate manual coordinates
-        const fromLat = document.querySelector('input[name="from_lat"]').value;
-        const fromLng = document.querySelector('input[name="from_lng"]').value;
-        const toLat = document.querySelector('input[name="to_lat"]').value;
-        const toLng = document.querySelector('input[name="to_lng"]').value;
-
-        if (!fromLat || !fromLng || !toLat || !toLng) {
-            e.preventDefault();
-            alert('{{ __("Please fill in all coordinate fields or switch to polygon drawing.") }}');
-            return false;
-        }
-
-        // Clear polygon data when using manual coordinates
-        document.getElementById('polygon_coordinates').value = '';
+    if (!hasPolygon && !hasManualCoords) {
+        e.preventDefault();
+        alert('{{ __("Please draw a polygon on the map to define the zone area.") }}');
+        return false;
     }
 });
 </script>
@@ -336,10 +327,13 @@ document.getElementById('zoneEditForm').addEventListener('submit', function(e) {
 @if(env('GOOGLE_MAPS_API_KEY'))
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=drawing&callback=initMap"></script>
 @else
-<div class="alert alert-warning">
-    <strong>{{ __('Google Maps API Key Required') }}</strong><br>
-    {{ __('Please configure GOOGLE_MAPS_API_KEY in your .env file to use the map features.') }}
-</div>
+<script>
+    // Show error message in map container if API key is missing
+    function initMap() {
+        document.getElementById('map').innerHTML = '<div class="alert alert-danger m-3" style="margin: 20px !important;"><strong>{{ __('Google Maps API Key Required') }}</strong><br>{{ __('Please add GOOGLE_MAPS_API_KEY to your .env file to enable map editing.') }}<br><small class="text-muted">Contact your system administrator to configure the Google Maps API.</small></div>';
+    }
+    window.addEventListener('load', initMap);
+</script>
 @endif
 @endpush
 @endsection

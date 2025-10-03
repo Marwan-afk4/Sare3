@@ -41,6 +41,18 @@
                             </div>
                         </a>
                     </div>
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'driver-cars' ? 'active' : '' }}" href="{{ route('driver-cars.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon">
+                                    <span data-feather="car"></span>
+                                </span>
+                                <span class="nav-link-text-wrapper">
+                                    <span class="nav-link-text">{{ __('Driver Cars') }}</span>
+                                </span>
+                            </div>
+                        </a>
+                    </div>
                     {{-- wallet-requests --}}
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'wallet-requests' ? 'active' : '' }}"

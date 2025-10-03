@@ -313,7 +313,7 @@ class RideHelper
                 'dropoff_address' => $ride->dropoff_address,
                 'started_at' => $ride->started_at,
                 'ended_at' => $ride->ended_at,
-                'status' => $ride->status->value ?? $ride->status,
+                'status' => is_object($ride->status) ? ($ride->status instanceof \BackedEnum ? $ride->status->value : (method_exists($ride->status, 'value') ? $ride->status->value : '')) : (string) $ride->status,
                 'calculated_final_price' => $ride->calculated_final_price,
                 'total_distance_in_km' => $ride->total_distance_in_km,
                 'time_taken' => $ride->time_taken,
@@ -349,7 +349,7 @@ class RideHelper
                 'dropoff_address' => $ride->dropoff_address,
                 'started_at' => $ride->started_at,
                 'ended_at' => $ride->ended_at,
-                'status' => $ride->status->value ?? $ride->status,
+                'status' => is_object($ride->status) ? ($ride->status instanceof \BackedEnum ? $ride->status->value : (method_exists($ride->status, 'value') ? $ride->status->value : '')) : (string) $ride->status,
                 'calculated_final_price' => $ride->calculated_final_price,
                 'total_distance_in_km' => $ride->total_distance_in_km,
                 'time_taken' => $ride->time_taken,
@@ -370,13 +370,33 @@ class RideHelper
             $rides = collect($rides);
         }
 
-        $completedRides = $rides->where('status', 'finshed'); // mo2ktn 3shan zh2t w kiro msh fahmny
-        $finshedRides = $rides->where('status', 'finshed');
-        $cancelledRides = $rides->where('status', 'cancelled');
-        $successfulRides = $rides->whereIn('status', ['completed', 'finshed']);
+        // Normalize enum/string values to plain strings
+        $normalized = $rides->map(function ($ride) {
+            if (is_object($ride->status)) {
+                // Handle enum objects
+                if ($ride->status instanceof \BackedEnum) {
+                    $status = $ride->status->value;
+                } elseif (method_exists($ride->status, 'value')) {
+                    $status = $ride->status->value;
+                } else {
+                    $status = (string) $ride->status;
+                }
+            } else {
+                $status = (string) $ride->status;
+            }
+            $ride->normalized_status = strtolower($status);
+            return $ride;
+        });
+
+        $completedRides = $normalized->where('normalized_status', 'completed');
+        $finshedRides = $normalized->where('normalized_status', 'finshed');
+        $cancelledRides = $normalized->where('normalized_status', 'cancelled');
+        $successfulRides = $normalized->filter(function ($ride) {
+            return in_array($ride->normalized_status, ['completed', 'finshed']);
+        });
 
         return [
-            'total_rides' => $rides->count(),
+            'total_rides' => $normalized->count(),
             'completed_rides' => $completedRides->count(),
             'finshed_rides' => $finshedRides->count(),
             'successful_rides' => $successfulRides->count(),
@@ -399,13 +419,33 @@ class RideHelper
             $rides = collect($rides);
         }
 
-        $completedRides = $rides->where('status', 'finshed'); // mo2ktn 3shan zh2t w kiro msh fahmny #2 hollaaaa
-        $finshedRides = $rides->where('status', 'finshed');
-        $cancelledRides = $rides->where('status', 'cancelled');
-        $successfulRides = $rides->whereIn('status', ['completed', 'finshed']);
+        // Normalize statuses for driver stats as well
+        $normalized = $rides->map(function ($ride) {
+            if (is_object($ride->status)) {
+                // Handle enum objects
+                if ($ride->status instanceof \BackedEnum) {
+                    $status = $ride->status->value;
+                } elseif (method_exists($ride->status, 'value')) {
+                    $status = $ride->status->value;
+                } else {
+                    $status = (string) $ride->status;
+                }
+            } else {
+                $status = (string) $ride->status;
+            }
+            $ride->normalized_status = strtolower($status);
+            return $ride;
+        });
+
+        $completedRides = $normalized->where('normalized_status', 'completed');
+        $finshedRides = $normalized->where('normalized_status', 'finshed');
+        $cancelledRides = $normalized->where('normalized_status', 'cancelled');
+        $successfulRides = $normalized->filter(function ($ride) {
+            return in_array($ride->normalized_status, ['completed', 'finshed']);
+        });
 
         return [
-            'total_rides' => $rides->count(),
+            'total_rides' => $normalized->count(),
             'completed_rides' => $completedRides->count(),
             'finshed_rides' => $finshedRides->count(),
             'successful_rides' => $successfulRides->count(),

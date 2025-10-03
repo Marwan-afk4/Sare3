@@ -10,9 +10,14 @@
 <div class="container-fluid">
     <h1>{{ __('Cars for') }} {{ $driver->name }}</h1>
 
-    <a href="{{ route('drivers.show', $driver->id) }}" class="btn btn-secondary btn-sm mb-3">
-        <i class="fa fa-arrow-right"></i> {{ __('Back to Driver') }}
-    </a>
+    <div class="mb-3">
+        <a href="{{ route('drivers.show', $driver->id) }}" class="btn btn-secondary btn-sm me-1">
+            <i class="fa fa-arrow-right"></i> {{ __('Back to Driver') }}
+        </a>
+        <a href="{{ route('driver-cars.create') }}?driver_id={{ $driver->id }}" class="btn btn-primary btn-sm">
+            <i class="fa fa-plus"></i> {{ __('Add New Car') }}
+        </a>
+    </div>
 
     <div class="row">
         @forelse ($cars as $car)
@@ -33,17 +38,26 @@
                             {{ __('Color:') }} {{ $car->car_color ?? '-' }}
                         </p>
 
-                        <!-- View Car Image -->
-                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#carImageModal{{ $car->id }}">
-                            {{ __('View Full Car Image') }} <i class="fa fa-image"></i>
-                        </button>
-
-                        <!-- View License if available -->
-                        @if ($carLicense)
-                            <button type="button" class="btn btn-info btn-sm mt-1" data-bs-toggle="modal" data-bs-target="#carLicenseModal{{ $car->id }}">
-                                {{ __('View Car License') }} <i class="fa fa-id-card"></i>
+                        <!-- Action Buttons -->
+                        <div class="d-flex flex-wrap gap-1">
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#carImageModal{{ $car->id }}">
+                                {{ __('View Image') }} <i class="fa fa-image"></i>
                             </button>
-                        @endif
+
+                            @if ($carLicense)
+                                <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#carLicenseModal{{ $car->id }}">
+                                    {{ __('View License') }} <i class="fa fa-id-card"></i>
+                                </button>
+                            @endif
+
+                            <a href="{{ route('driver-cars.edit', $car->id) }}" class="btn btn-warning btn-sm">
+                                {{ __('Edit') }} <i class="fa fa-edit"></i>
+                            </a>
+
+                            <a href="{{ route('driver-cars.show', $car->id) }}" class="btn btn-success btn-sm">
+                                {{ __('Details') }} <i class="fa fa-eye"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -9,8 +9,8 @@
         <div class="mb-3">
             <a href="{{ route('zones.index') }}" class="btn btn-secondary btn-sm me-1"> <i class="fa fa-arrow-right"></i>
                 {{ __('Back to') }} {{ __('Zones') }}</a>
-            {{-- <a href='{{ route('zones.edit', $zone) }}' class="btn btn-warning btn-sm me-1">{{ __('Edit') }} <i
-                    class="fa fa-edit"></i></a> --}}
+            <a href='{{ route('zones.edit', $zone) }}' class="btn btn-warning btn-sm me-1">{{ __('Edit') }} <i
+                    class="fa fa-edit"></i></a>
         </div>
 
         <div class="row">
