@@ -19,7 +19,6 @@ class TransactionController extends Controller
         $validation = Validator::make($request->all(), [
             'ride_id' => 'required|exists:rides,id',
             'amount' => 'required|numeric|min:1',
-            'description' => 'required|string',
         ]);
 
         if ($validation->fails()) {
@@ -49,7 +48,7 @@ class TransactionController extends Controller
                 'user_id'     => $ride->user->id,
                 'driver_id'   => $ride->driver->id,
                 'amount'      => $request->amount,
-                'description' => $request->description,
+                'description' => 'Driver paid remaining balance',
             ]);
 
             // Send notification to user about wallet update
@@ -62,10 +61,6 @@ class TransactionController extends Controller
                             'title' => 'Wallet Updated',
                             'body' => "You received {$request->amount} in your wallet. New balance: {$ride->user->wallet}",
                             'type' => 'wallet_transfer',
-                            'amount' => $request->amount,
-                            'new_balance' => $ride->user->wallet,
-                            'description' => $request->description,
-                            'ride_id' => $ride->id,
                         ]
                     ]);
                     Log::info('Sending wallet notification');
