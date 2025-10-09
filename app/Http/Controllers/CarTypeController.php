@@ -18,7 +18,7 @@ class CarTypeController extends Controller
     {
         $sortField = $request->get('sort', 'id');
         $sortOrder = $request->get('order', 'ASC');
-        $carTypes = CarType::with(['carCategory'])->orderBy($sortField, $sortOrder)->paginate(30);
+        $carTypes = CarType::with(['carCategories'])->orderBy($sortField, $sortOrder)->paginate(30);
         return view('car-types.index', compact('carTypes', 'sortField', 'sortOrder'));
     }
 
@@ -32,7 +32,13 @@ class CarTypeController extends Controller
 
     public function store(StoreCarTypeRequest $request)
     {
-        CarType::create($request->validated());
+        $validated = $request->validated();
+        $categoryIds = $validated['car_category_ids'] ?? [];
+        unset($validated['car_category_ids']);
+        
+        $carType = CarType::create($validated);
+        $carType->carCategories()->sync($categoryIds);
+        
         return redirect()->route('car-types.index')->with('success',  __('Created successfully'));
     }
 
@@ -51,7 +57,13 @@ class CarTypeController extends Controller
 
     public function update(UpdateCarTypeRequest $request, CarType $carType)
     {
-        $carType->update($request->validated());
+        $validated = $request->validated();
+        $categoryIds = $validated['car_category_ids'] ?? [];
+        unset($validated['car_category_ids']);
+        
+        $carType->update($validated);
+        $carType->carCategories()->sync($categoryIds);
+        
         return redirect()->route('car-types.index')->with('success',  __('Updated successfully.'));
     }
 

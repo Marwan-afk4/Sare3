@@ -16,11 +16,12 @@
 				@csrf
 				@method('PUT')
 				<x-form-select
-					name="car_category_id"
+					name="car_category_ids"
 					type="select"
-					label="{{__('Car Category')}}"
-					:selected="$carType->car_category_id ?? ''"
+					label="{{__('Car Categories')}}"
+					:selected="$carType->carCategories->pluck('id')->toArray()"
 					required
+					multiple
 					:options="$carCategories"
 				/>
 				<x-form-input
