@@ -19,6 +19,15 @@
 			<form method='POST' action='{{ route('car-types.store') }}' class="needs-validation" novalidate>
 				@csrf
 				
+				<x-form-select
+					name="car_brand_id"
+					type="select"
+					label="{{__('Car Brand')}}"
+					:selected="old('car_brand_id', '')"
+					required
+					:options="$carBrands"
+				/>
+
 				<div class="form-floating mb-3 required">
 					<select name="car_category_ids[]" id="car_category_ids_select" 
 						class="form-select @error('car_category_ids') is-invalid @enderror" 

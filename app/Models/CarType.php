@@ -12,6 +12,7 @@ class CarType extends Model
     protected $table = 'car_types';
 
     protected $fillable = [
+        'car_brand_id',
         'type_name',
         'description'
     ];
@@ -23,6 +24,11 @@ class CarType extends Model
         'updated_at'
     ];
 
+
+    public function carBrand()
+    {
+        return $this->belongsTo(CarBrand::class, 'car_brand_id');
+    }
 
     public function carCategories()
     {

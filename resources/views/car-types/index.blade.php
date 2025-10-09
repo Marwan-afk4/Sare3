@@ -19,9 +19,8 @@
 							@if($sortField === 'id')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
 						</a>
 					</th>
-					<th>
-						{{ __("Car Categories") }}
-					</th>
+					<th>{{ __("Car Brand") }}</th>
+					<th>{{ __("Car Categories") }}</th>
 					<th>
 						<a href="{{ route('car-types.index', ['sort' => 'type_name', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
 							{{ __("Type Name") }}
@@ -45,6 +44,13 @@
 				@foreach($carTypes as $carType)
 				<tr>
 					<td>{{ $carType->id }}</td>
+					<td>
+                        @if($carType->carBrand)
+                            <span class="badge bg-success">{{ $carType->carBrand->name }}</span>
+                        @else
+                            <span class="text-muted">-</span>
+                        @endif
+                    </td>
 					<td>
                         @if($carType->carCategories->count() > 0)
                             @foreach($carType->carCategories as $category)

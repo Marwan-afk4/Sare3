@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CarType;
 use App\Models\CarCategory;
-
+use App\Models\CarBrand;
 
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreCarTypeRequest;
@@ -18,7 +18,7 @@ class CarTypeController extends Controller
     {
         $sortField = $request->get('sort', 'id');
         $sortOrder = $request->get('order', 'ASC');
-        $carTypes = CarType::with(['carCategories'])->orderBy($sortField, $sortOrder)->paginate(30);
+        $carTypes = CarType::with(['carCategories', 'carBrand'])->orderBy($sortField, $sortOrder)->paginate(30);
         return view('car-types.index', compact('carTypes', 'sortField', 'sortOrder'));
     }
 
@@ -27,7 +27,11 @@ class CarTypeController extends Controller
         $carCategories = CarCategory::orderBy('name')
             ->pluck('name', 'id')
             ->toArray();
-        return view('car-types.create', compact('carCategories'));
+        $carBrands = CarBrand::where('is_active', true)
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->toArray();
+        return view('car-types.create', compact('carCategories', 'carBrands'));
     }
 
     public function store(StoreCarTypeRequest $request)
@@ -52,7 +56,11 @@ class CarTypeController extends Controller
         $carCategories = CarCategory::orderBy('name')
             ->pluck('name', 'id')
             ->toArray();
-        return view('car-types.edit', compact('carType', 'carCategories'));
+        $carBrands = CarBrand::where('is_active', true)
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->toArray();
+        return view('car-types.edit', compact('carType', 'carCategories', 'carBrands'));
     }
 
     public function update(UpdateCarTypeRequest $request, CarType $carType)
