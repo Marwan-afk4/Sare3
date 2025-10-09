@@ -199,5 +199,35 @@ class DriverProfileController extends Controller
             'wallet_status' => $walletStatus
         ]);
     }
+
+	public function hasCarData(Request $request)
+	{
+		$driver = $request->user();
+		$hasCar = $driver->driverCars()->exists();
+
+		$carData = null;
+		if ($hasCar) {
+			$car = $driver->driverCars()
+				->with(['carModel', 'carCategory', 'carType'])
+				->first();
+
+			$carData = [
+				'car_number' => $car->car_number,
+				'car_model' => $car->carModel->name ?? null,
+				'car_color' => $car->car_color,
+				'car_category_id' => $car->car_categories_id,
+				'car_category' => $car->carCategory->name ?? null,
+				'car_type_id' => $car->car_type_id,
+				'car_type' => $car->carType->type_name ?? null,
+				'car_license' => $car->car_license_link,
+				'car_image_link' => $car->car_image_link,
+			];
+		}
+
+		return response()->json([
+			'has_car' => $hasCar,
+			'car' => $carData,
+		]);
+	}
 }
 
