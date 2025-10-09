@@ -14,12 +14,12 @@
 			<form method='POST' action='{{ route('car-types.store') }}' class="needs-validation" novalidate>
 				@csrf
 				<x-form-select
-					name="car_model_id"
+					name="car_category_id"
 					type="select"
-					label="{{__('Car Model')}}"
-					:selected="$car_type->car_model_id ?? ''"
+					label="{{__('Car Category')}}"
+					:selected="$car_type->car_category_id ?? ''"
 					required
-					:options="$carModels"
+					:options="$carCategories"
 				/>
 				<x-form-input
 					name="type_name"

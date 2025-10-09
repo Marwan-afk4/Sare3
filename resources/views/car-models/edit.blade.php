@@ -15,13 +15,6 @@
 			<form method='POST' action='{{ route('car-models.update', $carModel->id) }}' class="needs-validation" novalidate>
 				@csrf
 				@method('PUT')
-				<x-form-select 
-					name="car_categories_id"
-					type="select"
-					label="{{__('Car Categories')}}"
-					:selected="$carModel->car_categories_id ?? ''"
-					:options="$carCategories"
-				/>
 				<x-form-input 
 					name="name"
 					type="text"

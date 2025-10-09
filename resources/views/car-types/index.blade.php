@@ -20,8 +20,8 @@
 						</a>
 					</th>
 					<th>
-						<a href="{{ route('car-types.index', ['sort' => 'car_model_id', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
-							{{ __("Car Model") }}
+						<a href="{{ route('car-types.index', ['sort' => 'car_category_id', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+							{{ __("Car Category") }}
 							@if($sortField === 'car_category_id')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
 						</a>
 					</th>
@@ -49,8 +49,8 @@
 				<tr>
 					<td>{{ $carType->id }}</td>
 					<td>
-                        @if($carType->carModel)
-                            <a href="{{ route('car-models.show', $carType->carModel) }}">{{ $carType->carModel?->name ?? '-' }}</a>
+                        @if($carType->carCategory)
+                            <a href="{{ route('car-categories.show', $carType->carCategory) }}">{{ $carType->carCategory?->name ?? '-' }}</a>
                         @endif
                     </td>
 					<td>{{ $carType->type_name }}</td>

@@ -20,12 +20,6 @@
 						</a>
 					</th>
 					<th>
-						<a href="{{ route('car-models.index', ['sort' => 'car_categories_id', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
-							{{ __("Car Categories") }}
-							@if($sortField === 'car_categories_id')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
-						</a>
-					</th>
-					<th>
 						<a href="{{ route('car-models.index', ['sort' => 'name', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
 							{{ __("Name") }}
 							@if($sortField === 'name')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
@@ -42,11 +36,6 @@
 				@foreach($carModels as $carModel)
 				<tr>
 					<td>{{ $carModel->id }}</td>
-					<td>
-                        @if($carModel->carCategories)
-                            <a href="{{ route('car-categories.show', $carModel->carCategories) }}">{{ $carModel->carCategories?->name ?? '-' }}</a>
-                        @endif
-                    </td>
 					<td>{{ $carModel->name }}</td>
 					<td>{{ $carModel->created_at?->diffForHumans() ?? '-' }}</td>
 					<td class="text-center">

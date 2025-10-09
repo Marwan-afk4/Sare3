@@ -24,12 +24,10 @@ class CarTypeController extends Controller
 
     public function create()
     {
-        $carModels = CarModel::selectRaw('MIN(id) as id, name')
-            ->groupBy('name')
-            ->orderBy('name')
-            ->pluck('name', 'id') // هنا key = id, value = name
+        $carCategories = CarCategory::orderBy('name')
+            ->pluck('name', 'id')
             ->toArray();
-        return view('car-types.create', compact('carModels'));
+        return view('car-types.create', compact('carCategories'));
     }
 
     public function store(StoreCarTypeRequest $request)
@@ -45,12 +43,10 @@ class CarTypeController extends Controller
 
     public function edit(CarType $carType)
     {
-        $carModels = CarModel::selectRaw('MIN(id) as id, name')
-            ->groupBy('name')
-            ->orderBy('name')
-            ->pluck('name', 'id') // هنا key = id, value = name
+        $carCategories = CarCategory::orderBy('name')
+            ->pluck('name', 'id')
             ->toArray();
-        return view('car-types.edit', compact('carType', 'carModels'));
+        return view('car-types.edit', compact('carType', 'carCategories'));
     }
 
     public function update(UpdateCarTypeRequest $request, CarType $carType)

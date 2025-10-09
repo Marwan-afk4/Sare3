@@ -426,7 +426,7 @@ class AuthController extends Controller
     {
         $carModels = CarModel::all();
 
-        $carTypes = CarType::with('carModel')->get();
+        $carTypes = CarType::with('carCategory')->get();
 
         $carCategories = CarCategory::all();
 
