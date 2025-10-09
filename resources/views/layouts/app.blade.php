@@ -169,6 +169,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     </style>
     @livewireStyles
+    @stack('styles')
 </head>
 
 <body>

@@ -1,0 +1,178 @@
+/* Enhanced Choices.js styling for Car Type Categories */
+.choices__inner {
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid #dee2e6;
+    background-color: #fff;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.choices.is-focused .choices__inner {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.choices__list--multiple .choices__item {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+    border: 1px solid #0d6efd;
+    border-radius: 0.375rem;
+    padding: 0.35rem 0.65rem;
+    margin: 0.15rem;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+}
+
+.choices__list--multiple .choices__item.is-highlighted {
+    background: linear-gradient(135deg, #0b5ed7 0%, #084298 100%);
+    border-color: #0b5ed7;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+}
+
+.choices__button {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='white'%3E%3Cpath fill-rule='evenodd' d='M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-size: 12px;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: 0;
+    padding: 0;
+    margin: 0 0 0 10px;
+    width: 18px;
+    height: 18px;
+    opacity: 0.7;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.choices__button:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.choices__list--dropdown {
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    margin-top: 0.25rem;
+}
+
+.choices__list--dropdown .choices__item--selectable {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    transition: background-color 0.15s ease;
+}
+
+.choices__list--dropdown .choices__item--selectable.is-highlighted {
+    background-color: #e7f1ff;
+    color: #0d6efd;
+}
+
+.choices__list--dropdown .choices__item--selectable::before {
+    content: '✓';
+    margin-right: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.choices__list--dropdown .choices__item--selectable[aria-selected="true"]::before {
+    opacity: 1;
+    color: #0d6efd;
+    font-weight: bold;
+}
+
+.choices[data-type*="select-multiple"] .choices__input {
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.choices__placeholder {
+    opacity: 0.6;
+}
+
+/* Category counter badge */
+.category-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 0.375rem;
+    border: 1px solid #dee2e6;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.category-counter.has-selections {
+    background: linear-gradient(135deg, #d1e7ff 0%, #c8e1ff 100%);
+    border-color: #86b7fe;
+}
+
+.category-counter .counter-badge {
+    background-color: #0d6efd;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-weight: 600;
+    min-width: 24px;
+    text-align: center;
+}
+
+.category-counter .counter-text {
+    color: #495057;
+    font-weight: 500;
+}
+
+/* RTL Support */
+[dir="rtl"] .choices__button {
+    margin: 0 10px 0 0;
+}
+
+[dir="rtl"] .choices__list--dropdown .choices__item--selectable::before {
+    margin-right: 0;
+    margin-left: 8px;
+}
+
+/* Animation for dropdown */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.choices__list--dropdown.is-active {
+    animation: slideDown 0.2s ease;
+}
+
+/* Loading state */
+.choices.is-loading::after {
+    content: '';
+    position: absolute;
+    right: 11px;
+    top: 50%;
+    margin-top: -10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #e9ecef;
+    border-top-color: #0d6efd;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

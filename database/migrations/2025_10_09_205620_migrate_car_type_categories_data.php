@@ -11,11 +11,13 @@ return new class extends Migration
     public function up(): void
     {
         // Migrate existing car_category_id relationships to the pivot table
+        // Only insert records where the car_category_id exists in car_categories table
         DB::statement('
             INSERT INTO car_category_car_type (car_category_id, car_type_id, created_at, updated_at)
-            SELECT car_category_id, id, NOW(), NOW()
-            FROM car_types
-            WHERE car_category_id IS NOT NULL
+            SELECT ct.car_category_id, ct.id, NOW(), NOW()
+            FROM car_types ct
+            INNER JOIN car_categories cc ON ct.car_category_id = cc.id
+            WHERE ct.car_category_id IS NOT NULL
         ');
     }
 
