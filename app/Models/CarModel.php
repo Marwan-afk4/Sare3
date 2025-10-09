@@ -22,4 +22,9 @@ class CarModel extends Model
         'updated_at'
     ];
 
+    public function carTypes()
+    {
+        return $this->hasMany(CarType::class, 'car_model_id');
+    }
+
 }

@@ -19,7 +19,7 @@
 							@if($sortField === 'id')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
 						</a>
 					</th>
-					<th>{{ __("Car Brand") }}</th>
+					<th>{{ __("Car Model/Brand") }}</th>
 					<th>{{ __("Car Categories") }}</th>
 					<th>
 						<a href="{{ route('car-types.index', ['sort' => 'type_name', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
@@ -45,8 +45,8 @@
 				<tr>
 					<td>{{ $carType->id }}</td>
 					<td>
-                        @if($carType->carBrand)
-                            <span class="badge bg-success">{{ $carType->carBrand->name }}</span>
+                        @if($carType->carModel)
+                            <span class="badge bg-success">{{ $carType->carModel->name }}</span>
                         @else
                             <span class="text-muted">-</span>
                         @endif

@@ -17,9 +17,9 @@
 					<strong>{{ __("Id") }}:</strong> {{ $carType->id }}
 				</li>
 				<li class="list-group-item">
-					<strong>{{ __("Car Brand") }}:</strong> 
-					@if($carType->carBrand)
-						<span class="badge bg-success">{{ $carType->carBrand->name }}</span>
+					<strong>{{ __("Car Model/Brand") }}:</strong> 
+					@if($carType->carModel)
+						<span class="badge bg-success">{{ $carType->carModel->name }}</span>
 					@else
 						-
 					@endif

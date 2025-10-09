@@ -20,12 +20,12 @@
 				@csrf
 				
 				<x-form-select
-					name="car_brand_id"
+					name="car_model_id"
 					type="select"
-					label="{{__('Car Brand')}}"
-					:selected="old('car_brand_id', '')"
+					label="{{__('Car Model/Brand')}}"
+					:selected="old('car_model_id', '')"
 					required
-					:options="$carBrands"
+					:options="$carModels"
 				/>
 
 				<div class="form-floating mb-3 required">

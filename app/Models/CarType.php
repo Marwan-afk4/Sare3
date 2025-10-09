@@ -12,7 +12,7 @@ class CarType extends Model
     protected $table = 'car_types';
 
     protected $fillable = [
-        'car_brand_id',
+        'car_model_id',
         'type_name',
         'description'
     ];
@@ -25,9 +25,9 @@ class CarType extends Model
     ];
 
 
-    public function carBrand()
+    public function carModel()
     {
-        return $this->belongsTo(CarBrand::class, 'car_brand_id');
+        return $this->belongsTo(CarModel::class, 'car_model_id');
     }
 
     public function carCategories()
