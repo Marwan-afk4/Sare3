@@ -45,12 +45,12 @@ class DriverCarController extends Controller
         
         // Handle car image upload
         if ($request->hasFile('car_image')) {
-            $data['car_image'] = $this->uploadImage($request->file('car_image'), 'driver-cars');
+            $data['car_image'] = $this->uploadFile($request->file('car_image'), 'driver-cars');
         }
         
         // Handle car license upload
         if ($request->hasFile('car_license')) {
-            $data['car_license'] = $this->uploadImage($request->file('car_license'), 'driver-cars/licenses');
+            $data['car_license'] = $this->uploadFile($request->file('car_license'), 'driver-cars/licenses');
         }
         
         DriverCar::create($data);
@@ -82,7 +82,7 @@ class DriverCarController extends Controller
             if ($driverCar->car_image) {
                 $this->deleteImage($driverCar->car_image);
             }
-            $data['car_image'] = $this->uploadImage($request->file('car_image'), 'driver-cars');
+            $data['car_image'] = $this->uploadFile($request->file('car_image'), 'driver-cars');
         }
         
         // Handle car license upload
@@ -91,7 +91,7 @@ class DriverCarController extends Controller
             if ($driverCar->car_license) {
                 $this->deleteImage($driverCar->car_license);
             }
-            $data['car_license'] = $this->uploadImage($request->file('car_license'), 'driver-cars/licenses');
+            $data['car_license'] = $this->uploadFile($request->file('car_license'), 'driver-cars/licenses');
         }
         
         $driverCar->update($data);

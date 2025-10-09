@@ -253,12 +253,34 @@ document.getElementById('zoneForm').addEventListener('submit', function(e) {
 </script>
 
 @if(env('GOOGLE_MAPS_API_KEY'))
-<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=drawing&callback=initMap"></script>
+<script>
+    // Load Google Maps API dynamically with proper async loading
+    (function() {
+        const script = document.createElement('script');
+        script.src = 'https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=drawing&loading=async&callback=initMap';
+        script.async = true;
+        script.defer = true;
+        script.onerror = function() {
+            console.error('Failed to load Google Maps API');
+            const mapEl = document.getElementById('map');
+            if (mapEl) {
+                mapEl.innerHTML = '<div class="alert alert-danger m-3" style="margin: 20px !important;"><strong>{{ __('Failed to load Google Maps') }}</strong><br>{{ __('Please check your internet connection and API key.') }}</div>';
+            }
+        };
+        document.head.appendChild(script);
+    })();
+</script>
 @else
-<div class="alert alert-warning">
-    <strong>{{ __('Google Maps API Key Required') }}</strong><br>
-    {{ __('Please configure GOOGLE_MAPS_API_KEY in your .env file to use the map features.') }}
-</div>
+<script>
+    // Show error message in map container if API key is missing
+    function initMap() {
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+            mapEl.innerHTML = '<div class="alert alert-danger m-3" style="margin: 20px !important;"><strong>{{ __('Google Maps API Key Required') }}</strong><br>{{ __('Please add GOOGLE_MAPS_API_KEY to your .env file to enable map drawing.') }}<br><small class="text-muted">Contact your system administrator to configure the Google Maps API.</small></div>';
+        }
+    }
+    window.addEventListener('load', initMap);
+</script>
 @endif
 @endpush
 @endsection
