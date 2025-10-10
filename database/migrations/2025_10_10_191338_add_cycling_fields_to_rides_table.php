@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('rides', function (Blueprint $table) {
-            $table->timestamp('reassigned_at')->nullable()->after('ended_at');
+            if (!Schema::hasColumn('rides', 'reassigned_at')) {
+                $table->timestamp('reassigned_at')->nullable()->after('ended_at');
+            }
         });
     }
 
@@ -22,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('rides', function (Blueprint $table) {
-            $table->dropColumn('reassigned_at');
+            if (Schema::hasColumn('rides', 'reassigned_at')) {
+                $table->dropColumn('reassigned_at');
+            }
         });
     }
 };
