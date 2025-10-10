@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::table('rides', function (Blueprint $table) {
             $table->timestamp('reassigned_at')->nullable()->after('ended_at');
-            $table->timestamp('auto_rejected_at')->nullable()->after('reassigned_at');
         });
     }
 
@@ -23,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('rides', function (Blueprint $table) {
-            $table->dropColumn(['reassigned_at', 'auto_rejected_at']);
+            $table->dropColumn('reassigned_at');
         });
     }
 };
