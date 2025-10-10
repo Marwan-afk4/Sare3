@@ -233,7 +233,7 @@ class RideEstimateController extends Controller
                 ],
                 'estimated_time' => $request->estimated_time,
                 'estimated_km' => $request->estimated_km,
-                'initial_price' => (float)($price),
+                'initial_price' => (float)($price + 0.01),
                 'status' => $ride->status,
                 'cancellation_policy' => $policyExists,
                 'created_at' => now()->toIso8601String(),
