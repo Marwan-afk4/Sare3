@@ -22,6 +22,8 @@ class DriverProfileController extends Controller
         'driverRides.driver.driverCars.carModel',
         'driverCars.carModel', // <- this line
         'driverCars.carCategory',
+        'driverCars.carCategories',
+        'driverCars.carType',
     ]);
 
         $requestLimit = RideRequestTimeLimit::first();
@@ -46,17 +48,30 @@ class DriverProfileController extends Controller
             'rejected_reason' => $user->rejected_reason ?? 'your account is not rejected',
             'wallet' => $user->wallet,
             'ride_request_time_limit' => $requestLimit->time_limit_seconds ?? null,
-            'car' => [
-                'car_number' => $firstCar->car_number ?? null,
-                'car_model' => $firstCar?->carModel?->name ?? null,
-                'car_color' => $firstCar->car_color ?? null,
-                'car_category_id' => $firstCar->car_categories_id ?? null,
-                'car_category' => $firstCar->carCategory->name ?? null,
-                'car_type_id' => $firstCar->car_type_id ?? null,
-                'car_type' => $firstCar->carType->type_name ?? null,
-                'car_license' => $firstCar->car_license_link ?? null,
-                'car_image_link' => $firstCar->car_image_link ?? null,
-            ]
+            'car' => (function() use ($firstCar) {
+                if (!$firstCar) {
+                    return null;
+                }
+
+                $categoryIds = $firstCar->carCategories?->pluck('id')->toArray() ?? [];
+                $categoryNames = $firstCar->carCategories?->pluck('name')->toArray() ?? [];
+
+                return [
+                    'car_number' => $firstCar->car_number,
+                    'car_model' => $firstCar?->carModel?->name ?? null,
+                    'car_color' => $firstCar->car_color,
+                    // Legacy fields (fallback to first from arrays)
+                    'car_category_id' => $firstCar->car_categories_id ?? ($categoryIds[0] ?? null),
+                    'car_category' => $firstCar->carCategory->name ?? ($categoryNames[0] ?? null),
+                    // New array fields
+                    'car_category_ids' => $categoryIds,
+                    'car_categories' => $categoryNames,
+                    'car_type_id' => $firstCar->car_type_id ?? null,
+                    'car_type' => $firstCar->carType->type_name ?? null,
+                    'car_license' => $firstCar->car_license_link ?? null,
+                    'car_image_link' => $firstCar->car_image_link ?? null,
+                ];
+            })()
         ];
 
         return response()->json($data);
@@ -208,15 +223,22 @@ class DriverProfileController extends Controller
 		$carData = null;
 		if ($hasCar) {
 			$car = $driver->driverCars()
-				->with(['carModel', 'carCategory', 'carType'])
+				->with(['carModel', 'carCategory', 'carCategories', 'carType'])
 				->first();
+
+			$categoryIds = $car->carCategories?->pluck('id')->toArray() ?? [];
+			$categoryNames = $car->carCategories?->pluck('name')->toArray() ?? [];
 
 			$carData = [
 				'car_number' => $car->car_number,
 				'car_model' => $car->carModel->name ?? null,
 				'car_color' => $car->car_color,
-				'car_category_id' => $car->car_categories_id,
-				'car_category' => $car->carCategory->name ?? null,
+				// Legacy single fields (fallback from arrays)
+				'car_category_id' => $car->car_categories_id ?? ($categoryIds[0] ?? null),
+				'car_category' => $car->carCategory->name ?? ($categoryNames[0] ?? null),
+				// New array fields
+				'car_category_ids' => $categoryIds,
+				'car_categories' => $categoryNames,
 				'car_type_id' => $car->car_type_id,
 				'car_type' => $car->carType->type_name ?? null,
 				'car_license' => $car->car_license_link,
