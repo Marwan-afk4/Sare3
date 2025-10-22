@@ -35,8 +35,8 @@ class WalletRequestController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Go and pay in our places.',
-            // 'data' => $walletRequest,
+            'message' => 'Wallet request created successfully.',
+            'data' => $walletRequest,
         ], 200);
     }
 
