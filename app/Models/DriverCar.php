@@ -50,6 +50,12 @@ class DriverCar extends Model
         return $this->belongsTo(CarCategory::class, 'car_categories_id');
     }
 
+	public function carCategories()
+	{
+		return $this->belongsToMany(CarCategory::class, 'car_category_driver_car', 'driver_car_id', 'car_category_id')
+			->withTimestamps();
+	}
+
     public function carType()
     {
         return $this->belongsTo(CarType::class, 'car_type_id');

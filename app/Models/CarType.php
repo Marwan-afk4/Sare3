@@ -25,19 +25,20 @@ class CarType extends Model
     ];
 
 
-    public function carCategory()
+    public function carModel()
     {
-        return $this->belongsTo(CarCategory::class);
+        return $this->belongsTo(CarModel::class, 'car_model_id');
+    }
+
+    public function carCategories()
+    {
+        return $this->belongsToMany(CarCategory::class, 'car_category_car_type', 'car_type_id', 'car_category_id')
+                    ->withTimestamps();
     }
 
     public function driverCars()
     {
         return $this->hasMany(DriverCar::class, 'car_type_id');
-    }
-
-    public function carModel()
-    {
-        return $this->belongsTo(CarModel::class, 'car_model_id');
     }
 
 }

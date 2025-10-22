@@ -15,16 +15,15 @@ class UpdateCarModelRequest extends FormRequest
     public function rules()
     {
         return [
-            'car_categories_id' => 'exists:car_categories,id',
-            'name' => 'required'
+            'name' => 'required|string|max:255'
         ];
     }
 
     public function messages()
     {
         return [
-            'car_categories_id.exists' => __('The selected Car Categories is invalid.'),
-            'name.required' => __('The Name field is required.')
+            'name.required' => __('The Name field is required.'),
+            'name.max' => __('The Name may not be greater than 255 characters.')
         ];
     }
 

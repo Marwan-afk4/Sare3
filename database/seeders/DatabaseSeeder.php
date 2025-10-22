@@ -13,11 +13,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Ensure a base test user exists without relying on factory columns
+        if (!User::where('email', 'test@example.com')->exists()) {
+            User::create([
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+                'phone' => '+966555000001',
+                'password' => 'password123',
+                'role' => 'user',
+                'activity' => 'active',
+            ]);
+        }
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Seed test drivers with cars and demo rides
+        $this->call([
+            TestDriversSeeder::class,
+            TestRidesSeeder::class,
         ]);
     }
 }

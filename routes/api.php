@@ -186,6 +186,9 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 //transfare to user wallet
     Route::post('/transfare-to-user-wallet', [TransactionController::class, 'transfareToUserWallet']);
 
+//Driver car presence
+    Route::get('/has-car', [DriverProfileController::class, 'hasCarData']);
+
 });
 
 

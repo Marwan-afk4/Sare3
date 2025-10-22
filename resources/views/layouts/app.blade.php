@@ -34,11 +34,14 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    new Choices('#car_categories', {
-        removeItemButton: true,
-        searchPlaceholderValue: 'ابحث عن فئة سيارة...',
-        noResultsText: 'لا توجد نتائج',
-    });
+    const carCategoriesElement = document.querySelector('#car_categories');
+    if (carCategoriesElement) {
+        new Choices('#car_categories', {
+            removeItemButton: true,
+            searchPlaceholderValue: 'ابحث عن فئة سيارة...',
+            noResultsText: 'لا توجد نتائج',
+        });
+    }
 });
 </script>
 
@@ -166,6 +169,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     </style>
     @livewireStyles
+    @stack('styles')
 </head>
 
 <body>

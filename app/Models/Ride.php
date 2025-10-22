@@ -41,7 +41,9 @@ class Ride extends Model
         'coupon_id',
         'coupon_discount',
         'cancellation_reason_id',
-        'zone_id'
+        'zone_id',
+        'reassigned_at',
+        'auto_rejected_at'
     ];
 
     public $timestamps = true;
@@ -52,6 +54,8 @@ class Ride extends Model
         'status' => RideStatus::class,
         'verification_code_generated_at' => 'datetime',
         'verification_code_verified' => 'boolean',
+        'reassigned_at' => 'datetime',
+        'auto_rejected_at' => 'datetime',
     ];
 
     public function zone()

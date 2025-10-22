@@ -233,7 +233,7 @@ class RideEstimateController extends Controller
                 ],
                 'estimated_time' => $request->estimated_time,
                 'estimated_km' => $request->estimated_km,
-                'initial_price' => $price,
+                'initial_price' => (float)($price + 0.01),
                 'status' => $ride->status,
                 'cancellation_policy' => $policyExists,
                 'created_at' => now()->toIso8601String(),
@@ -249,12 +249,12 @@ class RideEstimateController extends Controller
         }
 
         // // Schedule auto-reject job
-        // $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
-        // AutoRejectRideJob::dispatch(
-        //     $ride->id,
-        //     $request->driver_id,
-        //     $ride->updated_at->format('Y-m-d H:i:s')
-        // )->delay(now()->addSeconds($timeoutSeconds));
+        $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
+        AutoRejectRideJob::dispatch(
+            $ride->id,
+            $request->driver_id,
+            $ride->updated_at->format('Y-m-d H:i:s')
+        )->delay(now()->addSeconds($timeoutSeconds));
 
         return response()->json([
             'message' => 'Ride created successfully',
@@ -430,17 +430,19 @@ class RideEstimateController extends Controller
                 ]);
             }
 
-            // Get eligible drivers
-            $eligibleDrivers = $this->getEligibleDrivers(
+            // Check if we need to cycle back to first drivers (after 12 rejections)
+            $shouldCycleDrivers = count($excludedDriverIds) > 12;
+            
+            // Get all available drivers
+            $allDrivers = $this->getEligibleDrivers(
                 $ride->pickup_lat,
                 $ride->pickup_lng,
-                $excludedDriverIds
+                [] // Get all drivers first
             );
 
-            // لو مفيش سواقين متاحين
-            if (empty($eligibleDrivers)) {
-                Log::info("All drivers rejected ride {$ride->id}, setting driver_id to null");
-
+            if (empty($allDrivers)) {
+                Log::info("No drivers available at all for ride {$ride->id}");
+                
                 $ride->update([
                     'driver_id' => null,
                     'status' => 'pending',
@@ -462,19 +464,47 @@ class RideEstimateController extends Controller
                 return null;
             }
 
-            // Find nearest driver by ETA
-            $nearestDriver = $this->findNearestDriverByETA(
-                $ride->pickup_lat,
-                $ride->pickup_lng,
-                $eligibleDrivers
-            );
+            if ($shouldCycleDrivers) {
+                Log::info("Cycling drivers for ride {$ride->id} after " . count($excludedDriverIds) . " rejections");
+                
+                // Use all drivers for cycling (ignore previous rejections)
+                $eligibleDrivers = $allDrivers;
+                
+                // Find nearest driver by ETA from all available drivers
+                $nearestDriver = $this->findNearestDriverByETA(
+                    $ride->pickup_lat,
+                    $ride->pickup_lng,
+                    $eligibleDrivers
+                );
+            } else {
+                // Normal flow - exclude rejected drivers
+                $eligibleDrivers = array_filter($allDrivers, function($driver) use ($excludedDriverIds) {
+                    return !in_array($driver['id'], $excludedDriverIds);
+                });
+
+                if (empty($eligibleDrivers)) {
+                    Log::info("All available drivers rejected ride {$ride->id}, starting to cycle");
+                    
+                    // Start cycling - use all drivers
+                    $eligibleDrivers = $allDrivers;
+                    $shouldCycleDrivers = true;
+                }
+
+                // Find nearest driver by ETA
+                $nearestDriver = $this->findNearestDriverByETA(
+                    $ride->pickup_lat,
+                    $ride->pickup_lng,
+                    $eligibleDrivers
+                );
+            }
 
             if (!$nearestDriver) {
                 Log::info("No driver found with valid ETA for ride {$ride->id}");
                 return null;
             }
 
-            Log::info("Found nearest driver {$nearestDriver['id']} for ride {$ride->id}");
+            Log::info("Found driver {$nearestDriver['id']} for ride {$ride->id}" . 
+                     ($shouldCycleDrivers ? " (cycling after " . count($excludedDriverIds) . " rejections)" : ""));
 
             // Update ride with new driver
             $ride->update([
@@ -501,16 +531,17 @@ class RideEstimateController extends Controller
                 'status' => 'pending',
                 'reassigned_at' => now()->toIso8601String(),
                 'previous_rejections' => count($excludedDriverIds),
+                'is_cycling' => $shouldCycleDrivers,
             ]);
 
             // ✅ Send push notification to new driver
             $driver = User::find($nearestDriver['id']);
             if ($driver && $driver->fcm_token) {
                 $data = [
-                    'title'    => 'Ride Started',
-                    'body'     => 'The Ride just Started, Enjoy your trip!',
+                    'title'    => 'New Ride Request',
+                    'body'     => 'You have a new ride request!',
                     'msg_type' => 'ride_request',
-                    'ride_id'  => (string) $ride->id, // عشان الاب يعرف الرحلة
+                    'ride_id'  => (string) $ride->id,
                 ];
 
                 $response = FcmHelper::sendPushNotification(

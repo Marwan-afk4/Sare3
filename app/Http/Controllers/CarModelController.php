@@ -17,31 +17,18 @@ class CarModelController extends Controller
     {
         $sortField = $request->get('sort', 'id');
         $sortOrder = $request->get('order', 'ASC');
-        $carModels = CarModel::with(['carCategories'])->orderBy($sortField, $sortOrder)->paginate(30);
+        $carModels = CarModel::orderBy($sortField, $sortOrder)->paginate(30);
         return view('car-models.index', compact('carModels', 'sortField', 'sortOrder'));
     }
 
     public function create()
     {
-        $carCategories = CarCategory::orderBy('name')->pluck('name', 'id')->toArray();
-        return view('car-models.create', compact('carCategories'));
+        return view('car-models.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreCarModelRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string',
-            'car_categories' => 'required|array',
-            'car_categories.*' => 'exists:car_categories,id',
-        ]);
-
-        foreach ($validated['car_categories'] as $categoryId) {
-        CarModel::create([
-            'name' => $validated['name'],
-            'car_categories_id' => $categoryId,
-        ]);
-    }
-
+        CarModel::create($request->validated());
         return redirect()->route('car-models.index')->with('success', __('Created successfully.'));
     }
 
@@ -52,8 +39,7 @@ class CarModelController extends Controller
 
     public function edit(CarModel $carModel)
     {
-        $carCategories = CarCategory::orderBy('name')->pluck('name', 'id')->toArray();
-        return view('car-models.edit', compact('carModel', 'carCategories'));
+        return view('car-models.edit', compact('carModel'));
     }
 
     public function update(UpdateCarModelRequest $request, CarModel $carModel)

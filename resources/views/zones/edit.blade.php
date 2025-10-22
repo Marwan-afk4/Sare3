@@ -97,8 +97,34 @@ let drawingManager;
 let currentPolygon = null;
 let polygonCoordinates = [];
 
-// Existing polygon data from server
+// Existing polygon data from server - with proper parsing
 let existingPolygonData = @json($zone->polygon_coordinates ?? []);
+
+// Debug logging
+console.log('Zone ID:', {{ $zone->id ?? 'null' }});
+console.log('Raw polygon data type:', typeof existingPolygonData);
+console.log('Raw polygon data:', existingPolygonData);
+
+// Ensure existingPolygonData is always an array
+if (typeof existingPolygonData === 'string') {
+    console.log('Polygon data is a string, attempting to parse...');
+    try {
+        existingPolygonData = JSON.parse(existingPolygonData);
+        console.log('Successfully parsed polygon data:', existingPolygonData);
+    } catch (e) {
+        console.error('Error parsing polygon coordinates:', e);
+        existingPolygonData = [];
+    }
+}
+
+// Additional safety check - ensure it's an array
+if (!Array.isArray(existingPolygonData)) {
+    console.warn('Polygon coordinates is not an array (type: ' + typeof existingPolygonData + '), converting to empty array');
+    console.log('Non-array polygon data value:', existingPolygonData);
+    existingPolygonData = [];
+} else {
+    console.log('Polygon data is an array with', existingPolygonData.length, 'points');
+}
 
 // If no polygon data but we have rectangle coordinates, convert to polygon
 const hasRectangleCoords = {{ $zone->from_lat ?? 'null' }} !== null && {{ $zone->from_lng ?? 'null' }} !== null;
@@ -122,7 +148,7 @@ function initMap() {
     let defaultCenter = { lat: 24.7136, lng: 46.6753 }; // Riyadh, Saudi Arabia
 
     // Calculate center from existing data
-    if (existingPolygonData.length > 0) {
+    if (Array.isArray(existingPolygonData) && existingPolygonData.length > 0) {
         const bounds = new google.maps.LatLngBounds();
         existingPolygonData.forEach(coord => {
             bounds.extend(new google.maps.LatLng(coord.lat, coord.lng));
@@ -157,7 +183,7 @@ function initMap() {
     drawingManager.setMap(map);
 
     // Load existing polygon if available
-    if (existingPolygonData.length > 0) {
+    if (Array.isArray(existingPolygonData) && existingPolygonData.length > 0) {
         loadExistingPolygon();
     }
 
@@ -181,7 +207,7 @@ function initMap() {
 }
 
 function loadExistingPolygon() {
-    if (existingPolygonData.length > 0) {
+    if (Array.isArray(existingPolygonData) && existingPolygonData.length > 0) {
         const polygonPath = existingPolygonData.map(coord =>
             new google.maps.LatLng(coord.lat, coord.lng)
         );
@@ -325,12 +351,31 @@ document.getElementById('zoneEditForm').addEventListener('submit', function(e) {
 </script>
 
 @if(env('GOOGLE_MAPS_API_KEY'))
-<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=drawing&callback=initMap"></script>
+<script>
+    // Load Google Maps API dynamically with proper async loading
+    (function() {
+        const script = document.createElement('script');
+        script.src = 'https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=drawing&loading=async&callback=initMap';
+        script.async = true;
+        script.defer = true;
+        script.onerror = function() {
+            console.error('Failed to load Google Maps API');
+            const mapEl = document.getElementById('map');
+            if (mapEl) {
+                mapEl.innerHTML = '<div class="alert alert-danger m-3" style="margin: 20px !important;"><strong>{{ __('Failed to load Google Maps') }}</strong><br>{{ __('Please check your internet connection and API key.') }}</div>';
+            }
+        };
+        document.head.appendChild(script);
+    })();
+</script>
 @else
 <script>
     // Show error message in map container if API key is missing
     function initMap() {
-        document.getElementById('map').innerHTML = '<div class="alert alert-danger m-3" style="margin: 20px !important;"><strong>{{ __('Google Maps API Key Required') }}</strong><br>{{ __('Please add GOOGLE_MAPS_API_KEY to your .env file to enable map editing.') }}<br><small class="text-muted">Contact your system administrator to configure the Google Maps API.</small></div>';
+        const mapEl = document.getElementById('map');
+        if (mapEl) {
+            mapEl.innerHTML = '<div class="alert alert-danger m-3" style="margin: 20px !important;"><strong>{{ __('Google Maps API Key Required') }}</strong><br>{{ __('Please add GOOGLE_MAPS_API_KEY to your .env file to enable map editing.') }}<br><small class="text-muted">Contact your system administrator to configure the Google Maps API.</small></div>';
+        }
     }
     window.addEventListener('load', initMap);
 </script>

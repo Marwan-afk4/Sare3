@@ -381,7 +381,8 @@ class AuthController extends Controller
         $validation = Validator::make($request->all(), [
             'phone' => 'required|string|exists:users,phone',
             'car_type_id' => 'required|exists:car_types,id',
-            'car_categories_id' => 'required|exists:car_categories,id',
+            'car_category_ids' => 'required|array|min:1',
+            'car_category_ids.*' => 'integer|exists:car_categories,id',
             'car_image' => 'required|string',
             'car_color' => 'required|string',
             'car_license' => 'required|string',
@@ -403,19 +404,34 @@ class AuthController extends Controller
             ], 404);
         }
 
+        // Ensure provided categories are compatible with the selected car type
+        $carType = CarType::with('carCategories')->find($request->car_type_id);
+        $allowedCategoryIds = $carType->carCategories->pluck('id')->toArray();
+        $providedCategoryIds = $request->input('car_category_ids');
+
+        foreach ($providedCategoryIds as $categoryId) {
+            if (!in_array($categoryId, $allowedCategoryIds, true)) {
+                return response()->json([
+                    'message' => 'Selected car type is not available for one or more provided categories.'
+                ], 422);
+            }
+        }
+
         $carImagePath = $this->storeBase64Image($request->car_image, 'driver/cars');
         $car_licensePath = $this->storeBase64Image($request->car_license, 'driver/car_licenses');
 
-        DriverCar::create([
+        $driverCar = DriverCar::create([
             'driver_id' => $driver->id,
             'car_type_id' => $request->car_type_id,
-            'car_categories_id' => $request->car_categories_id,
             'car_image' => $carImagePath,
             'car_color' => $request->car_color,
             'car_license' => $car_licensePath,
             'car_number' => $request->car_number,
             'car_model_id' => $request->car_model_id
         ]);
+
+        // Attach all provided categories to the driver car via pivot
+        $driverCar->carCategories()->sync($providedCategoryIds);
 
         return response()->json([
             'message' => 'Waiting for admin approval, your car details have been submitted successfully'
@@ -426,7 +442,7 @@ class AuthController extends Controller
     {
         $carModels = CarModel::all();
 
-        $carTypes = CarType::with('carModel')->get();
+        $carTypes = CarType::with('carCategories')->get();
 
         $carCategories = CarCategory::all();
 

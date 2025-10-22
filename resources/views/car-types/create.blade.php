@@ -3,6 +3,11 @@
 	$currentPage = 'car-types';
 @endphp
 @section('title', __('Create Car Type'))
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/car-type-categories.css') }}">
+@endpush
+
 @section('content')
 <div class="container">
 	<h1>{{ __('Create Car Type') }}</h1>
@@ -13,14 +18,33 @@
 		<div class="card-body">
 			<form method='POST' action='{{ route('car-types.store') }}' class="needs-validation" novalidate>
 				@csrf
+				
 				<x-form-select
 					name="car_model_id"
 					type="select"
-					label="{{__('Car Model')}}"
-					:selected="$car_type->car_model_id ?? ''"
+					label="{{__('Car Model/Brand')}}"
+					:selected="old('car_model_id', '')"
 					required
 					:options="$carModels"
 				/>
+
+				<div class="form-floating mb-3 required">
+					<select name="car_category_ids[]" id="car_category_ids_select" 
+						class="form-select @error('car_category_ids') is-invalid @enderror" 
+						multiple required>
+						@foreach($carCategories as $key => $value)
+							<option value="{{ $key }}">{{ $value }}</option>
+						@endforeach
+					</select>
+					<label for="car_category_ids_select">
+						<i class="fas fa-tags me-1"></i>{{ __('Car Categories') }} <span class="text-danger">*</span>
+					</label>
+					@error('car_category_ids')
+						<span class="text-danger small">{{ $message }}</span>
+					@enderror
+					<small class="form-text text-muted">{{ __('Select one or more categories for this car type') }}</small>
+				</div>
+
 				<x-form-input
 					name="type_name"
 					type="text"
@@ -36,4 +60,9 @@
 			</form>
 		</div>
 	</div>
-</div>@endsection
+</div>
+@endsection
+
+@push('scripts')
+<script src="{{ asset('js/car-type-categories.js') }}"></script>
+@endpush

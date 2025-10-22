@@ -46,7 +46,8 @@ class CarCategory extends Model
 
     public function carTypes()
     {
-        return $this->hasMany(CarType::class, 'car_category_id');
+        return $this->belongsToMany(CarType::class, 'car_category_car_type', 'car_category_id', 'car_type_id')
+                    ->withTimestamps();
     }
 
     public function driverCars()
