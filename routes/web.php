@@ -65,6 +65,10 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
 
         Route::patch('/rides/{ride}/status', [RideController::class, 'updateStatus'])->name('rides.updateStatus');
 
+        // Wallet Request additional routes
+        Route::post('/wallet-requests/{walletRequest}/send-notification', [WalletRequestController::class, 'sendAcceptanceNotification'])->name('wallet-requests.send-notification');
+        Route::post('/wallet-requests/{walletRequest}/add-message', [WalletRequestController::class, 'addMessage'])->name('wallet-requests.add-message');
+
         // Additional ride routes
         Route::get('/rides/{ride}/track', [RideController::class, 'track'])->name('rides.track');
 

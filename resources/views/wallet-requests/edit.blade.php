@@ -23,11 +23,17 @@
                     :selected="$walletRequest->status->value ?? ''"
 					required
 				/>
+                <x-form-textarea
+                    name="admin_message"
+                    type="text"
+                    label="{{__('Admin Message to Driver')}}"
+                    :value="''"
+                />
 				<x-form-input
 					name="note"
 					type="text"
 					label="{{__('Note')}}"
-					:value="$walletRequest->note ?? ''"
+					:value="''"
 				/>
 				<button type='submit' class="btn btn-warning btn-sm me-1">{{ __('Save') }}</button>
 			</form>

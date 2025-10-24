@@ -19,7 +19,8 @@ class UpdateWalletRequestRequest extends FormRequest
             'amount' => 'nullable|numeric|min:1',
             'type' => 'nullable|in:withdraw,deposit',
             'status' => 'nullable|in:pending,approved,rejected',
-            'note' => 'nullable|string'
+            'note' => 'nullable|string',
+            'admin_message' => 'nullable|string',
         ];
     }
 

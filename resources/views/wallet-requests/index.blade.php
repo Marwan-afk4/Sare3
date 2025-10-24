@@ -109,8 +109,8 @@
                                     class="btn btn-subtle-primary btn-sm me-1">{{ __('Details') }} <i
                                         class="fa fa-eye"></i></a>
                                 <a href='{{ route('wallet-requests.edit', $walletRequest) }}'
-                                    class="btn btn-subtle-success btn-sm me-1">
-                                    <i class="fa fa-check"></i> {{ __('Accept') }}
+                                    class="btn btn-subtle-warning btn-sm me-1">
+                                    <i class="fa fa-edit"></i> {{ __('Action') }}
                                 </a>
                             </td>
                         </tr>
