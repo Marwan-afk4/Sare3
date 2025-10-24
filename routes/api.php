@@ -143,6 +143,8 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 //Wallet Request
     Route::post('/wallet/request', [WalletRequestController::class, 'requestWallet']);
     Route::get('/wallet/requests', [WalletRequestController::class, 'getWalletRequests']);
+    Route::get('/wallet/request-messages/{id}', [WalletRequestController::class, 'getWalletRequestMessages']);
+    Route::post('/wallet/send-request-message/{id}', [WalletRequestController::class, 'sendWalletRequestMessage']);
 
 //Ride Setting
     Route::post('/ride-setting', [RideSettingCOntroller::class, 'addRideSetting']);
