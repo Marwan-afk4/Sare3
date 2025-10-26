@@ -397,7 +397,7 @@ class RideHelper
 
         return [
             'total_rides' => $normalized->count(),
-            'completed_rides' => $completedRides->count(),
+            'completed_rides' => $completedRides->count() + $finshedRides->count(),
             'finshed_rides' => $finshedRides->count(),
             'successful_rides' => $successfulRides->count(),
             'cancelled_rides' => $cancelledRides->count(),
@@ -446,7 +446,7 @@ class RideHelper
 
         return [
             'total_rides' => $normalized->count(),
-            'completed_rides' => $completedRides->count(),
+            'completed_rides' => $completedRides->count() + $finshedRides->count(),
             'finshed_rides' => $finshedRides->count(),
             'successful_rides' => $successfulRides->count(),
             'cancelled_rides' => $cancelledRides->count(),
