@@ -110,6 +110,7 @@ class RideEstimateController extends Controller
             'dropoff_address' => 'nullable|string',
             'pickup_address' => 'nullable|string',
             'payment_method_id' => 'nullable|exists:paymenent_methods,id',
+            'driver_eta_minutes' => 'nullable|numeric|min:0',
         ]);
 
         if ($validation->fails()) {
@@ -234,6 +235,7 @@ class RideEstimateController extends Controller
                 'estimated_time' => $request->estimated_time,
                 'estimated_km' => $request->estimated_km,
                 'initial_price' => (float)($price + 0.01),
+                'driver_eta_minutes' => $request->driver_eta_minutes,
                 'status' => $ride->status,
                 'cancellation_policy' => $policyExists,
                 'created_at' => now()->toIso8601String(),
