@@ -9,6 +9,7 @@ use App\Http\Requests\StoreDriverRequest;
 use App\Http\Requests\UpdateDriverRequest;
 use App\Models\User;
 use App\Models\Rating;
+use App\Models\Zone;
 use App\Helpers\RideHelper;
 use App\trait\ImageUpload;
 use Illuminate\Http\Request;
@@ -23,6 +24,7 @@ class DriverController extends Controller
         $sortOrder = $request->get('order', 'ASC');
         $keyword = $request->get('keyword');
         $activity = $request->get('activity'); // 👈 Get the selected activity from the request
+        $zoneId = $request->get('zone'); // 👈 Get the selected zone from the request
 
         $driverActivityCounts = User::where('role', 'driver')
             ->selectRaw('activity, COUNT(*) as count')
@@ -30,9 +32,27 @@ class DriverController extends Controller
             ->pluck('count', 'activity')
             ->toArray();
 
+        // Get zone counts (including drivers with no zone)
+        $zones = Zone::withCount(['users as driver_count' => function ($query) {
+            $query->where('role', 'driver');
+        }])->get();
+
+        // Count drivers with no zone
+        $driversWithNoZoneCount = User::where('role', 'driver')
+            ->whereNull('zone_id')
+            ->count();
+
         $drivers = User::where('role', 'driver')
+            ->with('zone') // 👈 Load zone relationship
             ->when($activity, function ($query, $activity) {
                 $query->where('activity', $activity); // 👈 Filter by activity
+            })
+            ->when($zoneId !== null, function ($query) use ($zoneId) {
+                if ($zoneId === 'no_zone') {
+                    $query->whereNull('zone_id'); // 👈 Filter drivers with no zone
+                } else {
+                    $query->where('zone_id', $zoneId); // 👈 Filter by zone
+                }
             })
             ->when($keyword, function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
@@ -46,7 +66,7 @@ class DriverController extends Controller
 
         $driverActivtyStatus = ActivtyType::cases();
 
-        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts'));
+        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'zones', 'driversWithNoZoneCount'));
     }
 
     public function documents(User $driver)

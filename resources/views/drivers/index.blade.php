@@ -7,9 +7,9 @@
     <div class="container-fluid">
         <h1 class="mb-4">{{ __('Drivers') }}</h1>
 
-        <div
-            class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-3">
-            {{-- Filter Buttons --}}
+        {{-- Activity Filter Buttons --}}
+        <div class="mb-3">
+            <label class="form-label fw-bold">{{ __('Filter by Activity') }}</label>
             <div class="d-flex flex-wrap gap-2">
                 <a href="{{ route('drivers.index') }}" class="btn btn-outline-primary btn-sm">
                     {{ __('All') }}
@@ -21,8 +21,30 @@
                     </a>
                 @endforeach
             </div>
+        </div>
 
-            {{-- Search Form --}}
+        {{-- Zone Filter Buttons --}}
+        <div class="mb-3">
+            <label class="form-label fw-bold">{{ __('Filter by Zone') }}</label>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ route('drivers.index') }}" class="btn btn-outline-info btn-sm">
+                    {{ __('All Zones') }}
+                </a>
+                @foreach ($zones as $zone)
+                    <a href="{{ route('drivers.index', ['zone' => $zone->id]) }}" 
+                        class="btn btn-sm {{ request('zone') == $zone->id ? 'btn-info' : 'btn-outline-info' }}">
+                        {{ $zone->name }} ({{ $zone->driver_count }})
+                    </a>
+                @endforeach
+                <a href="{{ route('drivers.index', ['zone' => 'no_zone']) }}" 
+                    class="btn btn-sm {{ request('zone') === 'no_zone' ? 'btn-warning' : 'btn-outline-warning' }}">
+                    {{ __('No Zone') }} ({{ $driversWithNoZoneCount }})
+                </a>
+            </div>
+        </div>
+
+        {{-- Search Form --}}
+        <div class="d-flex justify-content-end">
             <form action="{{ route(Route::currentRouteName(), [], false) }}" method="GET" class="d-flex"
                 style="max-width: 300px;">
                 @if (request('keyword'))
@@ -95,6 +117,7 @@
                             @endif
                         </a>
                     </th>
+                    <th>{{ __('Zone') }}</th>
                     <th>
 						<a href="{{ route('drivers.index', ['sort' => 'activity', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
 							{{ __("Activity") }}
@@ -133,6 +156,13 @@
                                 <span style="color: red;">{{ $driver->wallet }} 🔴</span>
                             @else
                                 {{ $driver->wallet ?? '-' }}
+                            @endif
+                        </td>
+                        <td>
+                            @if($driver->zone)
+                                <span class="badge bg-info">{{ $driver->zone->name }}</span>
+                            @else
+                                <span class="text-muted">{{ __('No Zone') }}</span>
                             @endif
                         </td>
                         <td>{!! $driver->activity->badge() !!} </td>
