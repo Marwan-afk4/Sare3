@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\RideProfit;
+use App\Models\Zone;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,21 +14,56 @@ class ProfitStatisticsWebController extends Controller
     public function index(Request $request)
     {
         $period = $request->get('period', 'month');
+        $zoneId = $request->get('zone');
+        
+        // Get all zones with their profit counts for the current period
+        $zones = Zone::withCount(['rides as profit_rides_count' => function ($query) use ($period) {
+            $query->whereHas('profit', function ($profitQuery) use ($period) {
+                switch ($period) {
+                    case 'day':
+                        $profitQuery->whereDate('processed_at', Carbon::today());
+                        break;
+                    case 'week':
+                        $profitQuery->whereBetween('processed_at', [
+                            Carbon::now()->startOfWeek(),
+                            Carbon::now()->endOfWeek()
+                        ]);
+                        break;
+                    case 'month':
+                        $profitQuery->whereMonth('processed_at', Carbon::now()->month)
+                                   ->whereYear('processed_at', Carbon::now()->year);
+                        break;
+                    case 'year':
+                        $profitQuery->whereYear('processed_at', Carbon::now()->year);
+                        break;
+                }
+            });
+        }])->get();
+        
+        // Count rides with no zone
+        $profitsWithNoZoneCount = RideProfit::whereHas('ride', function ($query) {
+            $query->whereNull('zone_id');
+        });
+        $this->applyPeriodFilterToProfit($profitsWithNoZoneCount, $period);
+        $profitsWithNoZoneCount = $profitsWithNoZoneCount->count();
         
         // Get current period statistics
-        $currentStats = $this->getPeriodStatistics($period);
+        $currentStats = $this->getPeriodStatistics($period, $zoneId);
         
         // Get daily breakdown for charts
-        $dailyBreakdown = $this->getDailyBreakdown($period);
+        $dailyBreakdown = $this->getDailyBreakdown($period, $zoneId);
         
         // Get top drivers
-        $topDrivers = $this->getTopDrivers($period, 5);
+        $topDrivers = $this->getTopDrivers($period, 5, $zoneId);
         
         return view('admin.profit-statistics.index', compact(
             'currentStats', 
             'dailyBreakdown', 
             'topDrivers', 
-            'period'
+            'period',
+            'zones',
+            'profitsWithNoZoneCount',
+            'zoneId'
         ));
     }
 
@@ -40,9 +76,20 @@ class ProfitStatisticsWebController extends Controller
         return view('admin.profit-statistics.history', compact('profits'));
     }
 
-    private function getPeriodStatistics($period)
+    private function getPeriodStatistics($period, $zoneId = null)
     {
         $query = RideProfit::query();
+
+        // Apply zone filter
+        if ($zoneId !== null) {
+            $query->whereHas('ride', function ($q) use ($zoneId) {
+                if ($zoneId === 'no_zone') {
+                    $q->whereNull('zone_id');
+                } else {
+                    $q->where('zone_id', $zoneId);
+                }
+            });
+        }
 
         switch ($period) {
             case 'day':
@@ -72,13 +119,24 @@ class ProfitStatisticsWebController extends Controller
         ')->first();
     }
 
-    private function getDailyBreakdown($period)
+    private function getDailyBreakdown($period, $zoneId = null)
     {
         $query = RideProfit::selectRaw('
             DATE(processed_at) as date,
             COUNT(*) as rides_count,
             SUM(admin_profit_amount) as daily_profit
         ');
+
+        // Apply zone filter
+        if ($zoneId !== null) {
+            $query->whereHas('ride', function ($q) use ($zoneId) {
+                if ($zoneId === 'no_zone') {
+                    $q->whereNull('zone_id');
+                } else {
+                    $q->where('zone_id', $zoneId);
+                }
+            });
+        }
 
         switch ($period) {
             case 'week':
@@ -106,7 +164,7 @@ class ProfitStatisticsWebController extends Controller
             ->get();
     }
 
-    private function getTopDrivers($period, $limit = 10)
+    private function getTopDrivers($period, $limit = 10, $zoneId = null)
     {
         $query = RideProfit::with('driver:id,name,phone')
             ->selectRaw('
@@ -117,6 +175,17 @@ class ProfitStatisticsWebController extends Controller
                 SUM(driver_amount) as total_driver_earnings
             ')
             ->groupBy('driver_id');
+
+        // Apply zone filter
+        if ($zoneId !== null) {
+            $query->whereHas('ride', function ($q) use ($zoneId) {
+                if ($zoneId === 'no_zone') {
+                    $q->whereNull('zone_id');
+                } else {
+                    $q->where('zone_id', $zoneId);
+                }
+            });
+        }
 
         switch ($period) {
             case 'week':
@@ -137,5 +206,27 @@ class ProfitStatisticsWebController extends Controller
         return $query->orderByDesc('total_driver_earnings')
             ->limit($limit)
             ->get();
+    }
+
+    private function applyPeriodFilterToProfit($query, $period)
+    {
+        switch ($period) {
+            case 'day':
+                $query->whereDate('processed_at', Carbon::today());
+                break;
+            case 'week':
+                $query->whereBetween('processed_at', [
+                    Carbon::now()->startOfWeek(),
+                    Carbon::now()->endOfWeek()
+                ]);
+                break;
+            case 'month':
+                $query->whereMonth('processed_at', Carbon::now()->month)
+                      ->whereYear('processed_at', Carbon::now()->year);
+                break;
+            case 'year':
+                $query->whereYear('processed_at', Carbon::now()->year);
+                break;
+        }
     }
 }

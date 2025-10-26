@@ -8,14 +8,35 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>{{ __('Profit Statistics') }}</h1>
             <div class="btn-group" role="group">
-                <a href="{{ route('profit-statistics.index', ['period' => 'day']) }}"
+                <a href="{{ route('profit-statistics.index', array_merge(['period' => 'day'], request()->only('zone'))) }}"
                    class="btn btn-outline-primary {{ $period === 'day' ? 'active' : '' }}">{{ __('Today') }}</a>
-                <a href="{{ route('profit-statistics.index', ['period' => 'week']) }}"
+                <a href="{{ route('profit-statistics.index', array_merge(['period' => 'week'], request()->only('zone'))) }}"
                    class="btn btn-outline-primary {{ $period === 'week' ? 'active' : '' }}">{{ __('This Week') }}</a>
-                <a href="{{ route('profit-statistics.index', ['period' => 'month']) }}"
+                <a href="{{ route('profit-statistics.index', array_merge(['period' => 'month'], request()->only('zone'))) }}"
                    class="btn btn-outline-primary {{ $period === 'month' ? 'active' : '' }}">{{ __('This Month') }}</a>
-                <a href="{{ route('profit-statistics.index', ['period' => 'year']) }}"
+                <a href="{{ route('profit-statistics.index', array_merge(['period' => 'year'], request()->only('zone'))) }}"
                    class="btn btn-outline-primary {{ $period === 'year' ? 'active' : '' }}">{{ __('This Year') }}</a>
+            </div>
+        </div>
+
+        {{-- Zone Filter Buttons --}}
+        <div class="mb-3">
+            <label class="form-label fw-bold">{{ __('Filter by Zone') }}</label>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ route('profit-statistics.index', array_merge(['period' => $period])) }}" 
+                   class="btn btn-outline-info btn-sm {{ !request('zone') ? 'active' : '' }}">
+                    {{ __('All Zones') }}
+                </a>
+                @foreach ($zones as $zone)
+                    <a href="{{ route('profit-statistics.index', array_merge(['period' => $period], ['zone' => $zone->id])) }}" 
+                        class="btn btn-sm {{ request('zone') == $zone->id ? 'btn-info' : 'btn-outline-info' }}">
+                        {{ $zone->name }} ({{ $zone->profit_rides_count }})
+                    </a>
+                @endforeach
+                <a href="{{ route('profit-statistics.index', array_merge(['period' => $period], ['zone' => 'no_zone'])) }}" 
+                    class="btn btn-sm {{ request('zone') === 'no_zone' ? 'btn-warning' : 'btn-outline-warning' }}">
+                    {{ __('No Zone') }} ({{ $profitsWithNoZoneCount }})
+                </a>
             </div>
         </div>
 
