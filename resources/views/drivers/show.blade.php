@@ -49,6 +49,13 @@
                                     {{ $driver->wallet ?? '-' }}
                                 @endif
                             </li>
+                            <li class="list-group-item"><strong>{{ __('Zone') }}:</strong>
+                                @if($driver->zone)
+                                    <span class="badge bg-info">{{ $driver->zone->name }}</span>
+                                @else
+                                    <span class="text-muted">{{ __('We do not know yet') }}</span>
+                                @endif
+                            </li>
                             <li class="list-group-item"><strong>{{ __('Driver Rating') }}:</strong>
                                 @if ($driverRating)
                                     <span class="badge bg-warning">{{ number_format($driverRating, 1) }} ⭐</span>

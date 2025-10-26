@@ -24,6 +24,7 @@ class DriverProfileController extends Controller
         'driverCars.carCategory',
         'driverCars.carCategories',
         'driverCars.carType',
+        'zone',
     ]);
 
         $requestLimit = RideRequestTimeLimit::first();
@@ -47,6 +48,8 @@ class DriverProfileController extends Controller
             'driver_rating' => $driverRating,
             'rejected_reason' => $user->rejected_reason ?? 'your account is not rejected',
             'wallet' => $user->wallet,
+            'zone' => $user->zone ? $user->zone->name : 'We do not know yet',
+            'zone_id' => $user->zone_id,
             'ride_request_time_limit' => $requestLimit->time_limit_seconds ?? null,
             'car' => (function() use ($firstCar) {
                 if (!$firstCar) {

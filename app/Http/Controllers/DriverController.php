@@ -85,7 +85,8 @@ class DriverController extends Controller
             'driverRides' => function ($query) {
                 $query->with(['user', 'carCategory'])
                     ->orderBy('created_at', 'desc');
-            }
+            },
+            'zone'
         ]);
 
         // Get driver rating
