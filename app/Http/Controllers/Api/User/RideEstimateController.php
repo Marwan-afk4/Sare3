@@ -343,7 +343,7 @@ class RideEstimateController extends Controller
     /**
      * Find nearest driver by ETA using Google Distance Matrix API
      */
-    private function findNearestDriverByETA($userPickupLat, $userPickupLng, $eligibleDrivers)
+    private function findNearestDriverByETA($userPickupLat, $userPickupLng, $eligibleDrivers, $rideId = null)
     {
         if (empty($eligibleDrivers)) {
             return null;
@@ -351,11 +351,6 @@ class RideEstimateController extends Controller
 
         $googleApiKey = config('services.google.maps_api_key');
         Log::info('Google API Key loaded', ['key' => $googleApiKey]);
-
-        if (!$googleApiKey) {
-            Log::error('Google Maps API key not configured');
-            return null;
-        }
 
         if (!$googleApiKey) {
             Log::error('Google Maps API key not configured');
@@ -401,8 +396,30 @@ class RideEstimateController extends Controller
                     return $a['eta_time'] <=> $b['eta_time'];
                 });
 
+                $nearestDriver = !empty($eligibleDrivers) ? $eligibleDrivers[0] : null;
 
-                return !empty($eligibleDrivers) ? $eligibleDrivers[0] : null;
+                // Update Firebase with ETA if ride ID is provided and driver is found
+                if ($nearestDriver && $rideId) {
+                    try {
+                        $firebase = (new Factory)
+                            ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                            ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                            ->createDatabase();
+
+                        $firebaseRideId = 'ride_' . $rideId;
+
+                        $firebase->getReference("rides/$firebaseRideId")->update([
+                            'driver_eta_seconds' => $nearestDriver['eta_time'],
+                            'driver_eta_minutes' => round($nearestDriver['eta_time'] / 60, 1),
+                        ]);
+
+                        Log::info("Updated Firebase with ETA for ride {$rideId}: {$nearestDriver['eta_time']} seconds");
+                    } catch (\Exception $e) {
+                        Log::error("Failed to update Firebase with ETA for ride {$rideId}: " . $e->getMessage());
+                    }
+                }
+
+                return $nearestDriver;
             } else {
                 Log::error('Error from Google API: ' . $response->body());
                 return null;
@@ -432,7 +449,7 @@ class RideEstimateController extends Controller
 
             // Check if we need to cycle back to first drivers (after 12 rejections)
             $shouldCycleDrivers = count($excludedDriverIds) > 12;
-            
+
             // Get all available drivers
             $allDrivers = $this->getEligibleDrivers(
                 $ride->pickup_lat,
@@ -442,7 +459,7 @@ class RideEstimateController extends Controller
 
             if (empty($allDrivers)) {
                 Log::info("No drivers available at all for ride {$ride->id}");
-                
+
                 $ride->update([
                     'driver_id' => null,
                     'status' => 'pending',
@@ -466,15 +483,16 @@ class RideEstimateController extends Controller
 
             if ($shouldCycleDrivers) {
                 Log::info("Cycling drivers for ride {$ride->id} after " . count($excludedDriverIds) . " rejections");
-                
+
                 // Use all drivers for cycling (ignore previous rejections)
                 $eligibleDrivers = $allDrivers;
-                
+
                 // Find nearest driver by ETA from all available drivers
                 $nearestDriver = $this->findNearestDriverByETA(
                     $ride->pickup_lat,
                     $ride->pickup_lng,
-                    $eligibleDrivers
+                    $eligibleDrivers,
+                    $ride->id
                 );
             } else {
                 // Normal flow - exclude rejected drivers
@@ -484,7 +502,7 @@ class RideEstimateController extends Controller
 
                 if (empty($eligibleDrivers)) {
                     Log::info("All available drivers rejected ride {$ride->id}, starting to cycle");
-                    
+
                     // Start cycling - use all drivers
                     $eligibleDrivers = $allDrivers;
                     $shouldCycleDrivers = true;
@@ -494,7 +512,8 @@ class RideEstimateController extends Controller
                 $nearestDriver = $this->findNearestDriverByETA(
                     $ride->pickup_lat,
                     $ride->pickup_lng,
-                    $eligibleDrivers
+                    $eligibleDrivers,
+                    $ride->id
                 );
             }
 
@@ -503,7 +522,7 @@ class RideEstimateController extends Controller
                 return null;
             }
 
-            Log::info("Found driver {$nearestDriver['id']} for ride {$ride->id}" . 
+            Log::info("Found driver {$nearestDriver['id']} for ride {$ride->id}" .
                      ($shouldCycleDrivers ? " (cycling after " . count($excludedDriverIds) . " rejections)" : ""));
 
             // Update ride with new driver
