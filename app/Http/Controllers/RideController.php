@@ -40,6 +40,8 @@ class RideController extends Controller
         $sortField = $request->get('sort', 'id');
         $sortOrder = $request->get('order', 'desc');
         $keyword   = $request->get('keyword');
+        $minKm     = $request->get('min_km');
+        $maxKm     = $request->get('max_km');
 
         $ridesQuery = Ride::with(['user', 'driver', 'carCategory'])
             ->when($keyword, function ($query, $keyword) {
@@ -60,6 +62,12 @@ class RideController extends Controller
             })
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->status);
+            })
+            ->when($minKm !== null && $minKm !== '', function ($query) use ($minKm) {
+                $query->where('total_distance_in_km', '>=', $minKm);
+            })
+            ->when($maxKm !== null && $maxKm !== '', function ($query) use ($maxKm) {
+                $query->where('total_distance_in_km', '<=', $maxKm);
             })
             ->orderBy($sortField, $sortOrder);
 

@@ -5,43 +5,81 @@
 @section('title', __('Rides'))
 @section('content')
     <div class="container-fluid">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1 class="mb-0">{{ __('Rides') }}</h1>
+        <h1 class="mb-3">{{ __('Rides') }}</h1>
 
-            <div class="search-wrapper">
-                <form action="{{ route(Route::currentRouteName(), [], false) }}" method="GET" class="d-inline-block">
-                    <div class="input-group">
-                        @if (request('keyword'))
-                            <div class="input-group-append">
-                                <a class="btn btn-secondary" href="{{ route(Route::currentRouteName(), [], false) }}">
-                                    <i class="fa fa-times"></i>
-                                </a>
+        {{-- Filters Section --}}
+        <div class="card mb-3">
+            <div class="card-body">
+                <form action="{{ route('rides.index') }}" method="GET" id="filterForm">
+                    <div class="row g-3 align-items-end">
+                        {{-- Keyword Search --}}
+                        <div class="col-md-4">
+                            <label class="form-label">{{ __('Search') }}</label>
+                            <div class="input-group">
+                                <input type="text" name="keyword" class="form-control" autocomplete="off"
+                                    placeholder="{{ __('Keyword') }}..." value="{{ request('keyword') }}">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa fa-search"></i>
+                                </button>
                             </div>
-                        @endif
-                        <input type="text" name="keyword" class="form-control" autocomplete="off"
-                            placeholder="{{ __('Keyword') }}..." value="{{ request('keyword') }}">
-                        <div class="input-group-append">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fa fa-search"></i>
+                        </div>
+
+                        {{-- Min KM Filter --}}
+                        <div class="col-md-2">
+                            <label class="form-label">{{ __('Min KM') }}</label>
+                            <input type="number" name="min_km" class="form-control" step="0.1" min="0"
+                                placeholder="{{ __('Min') }}" value="{{ request('min_km') }}">
+                        </div>
+
+                        {{-- Max KM Filter --}}
+                        <div class="col-md-2">
+                            <label class="form-label">{{ __('Max KM') }}</label>
+                            <input type="number" name="max_km" class="form-control" step="0.1" min="0"
+                                placeholder="{{ __('Max') }}" value="{{ request('max_km') }}">
+                        </div>
+
+                        {{-- Apply Filter Button --}}
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fa fa-filter"></i> {{ __('Apply Filter') }}
                             </button>
                         </div>
+
+                        {{-- Clear Filter Button --}}
+                        <div class="col-md-2">
+                            @if (request('keyword') || request('min_km') || request('max_km') || request('status'))
+                                <a href="{{ route('rides.index') }}" class="btn btn-secondary w-100">
+                                    <i class="fa fa-times"></i> {{ __('Clear All') }}
+                                </a>
+                            @endif
+                        </div>
                     </div>
+
+                    {{-- Preserve Status Filter --}}
+                    @if(request('status'))
+                        <input type="hidden" name="status" value="{{ request('status') }}">
+                    @endif
                 </form>
             </div>
         </div>
 
         <!-- Status Filters -->
         <div class="mb-3">
-            <a href="{{ route('rides.index') }}" class="btn btn-primary btn-sm me-1">
-                {{ __('All') }}
-            </a>
-            @foreach ($rideStatuses as $status)
-                <a href="{{ route('rides.index', ['status' => $status->value]) }}" class="btn btn-sm me-1"
-                    style="background-color: #{{ $status->color() }}; color: #{{ $status->textColor() }}">
-                    {{ $status->label() }}
-                    ({{ $ridesStatusCounts[$status->value] ?? '0' }})
+            <label class="form-label fw-bold">{{ __('Filter by Status') }}</label>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ route('rides.index', request()->except('status')) }}" 
+                   class="btn btn-primary btn-sm {{ !request('status') ? 'active' : '' }}">
+                    {{ __('All') }}
                 </a>
-            @endforeach
+                @foreach ($rideStatuses as $status)
+                    <a href="{{ route('rides.index', array_merge(request()->except('status'), ['status' => $status->value])) }}" 
+                       class="btn btn-sm {{ request('status') === $status->value ? 'active' : '' }}"
+                        style="background-color: #{{ $status->color() }}; color: #{{ $status->textColor() }}">
+                        {{ $status->label() }}
+                        ({{ $ridesStatusCounts[$status->value] ?? '0' }})
+                    </a>
+                @endforeach
+            </div>
         </div>
 
         <!-- Rides Table -->
