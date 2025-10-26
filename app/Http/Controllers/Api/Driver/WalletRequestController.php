@@ -58,7 +58,8 @@ class WalletRequestController extends Controller
     {
         $driver = $request->user();
 
-        $walletRequestsMessages = WalletRequestsMessage::where('driver_id', $driver->id)
+        $walletRequestsMessages = WalletRequestsMessage::where('wallet_request_id', $id)
+            ->where('driver_id', $driver->id)
             ->with([
                 'admin:id,name,email',
                 'walletRequest:id,amount,type,status',
