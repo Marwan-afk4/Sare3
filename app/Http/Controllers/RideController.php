@@ -64,10 +64,10 @@ class RideController extends Controller
                 $query->where('status', $request->status);
             })
             ->when($minKm !== null && $minKm !== '', function ($query) use ($minKm) {
-                $query->where('total_distance_in_km', '>=', $minKm);
+                $query->whereRaw('CAST(total_distance_in_km AS DECIMAL(10,2)) >= ?', [$minKm]);
             })
             ->when($maxKm !== null && $maxKm !== '', function ($query) use ($maxKm) {
-                $query->where('total_distance_in_km', '<=', $maxKm);
+                $query->whereRaw('CAST(total_distance_in_km AS DECIMAL(10,2)) <= ?', [$maxKm]);
             })
             ->orderBy($sortField, $sortOrder);
 
