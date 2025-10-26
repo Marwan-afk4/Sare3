@@ -1,10 +1,14 @@
 <?php
 
+use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Api\Admin\AdminSettingsController;
+use App\Http\Controllers\Api\Admin\AdminSupportChatController;
 use App\Http\Controllers\Api\Admin\ProfitStatisticsController;
 use App\Http\Controllers\Api\Admin\ReferralController as AdminReferralController;
 use App\Http\Controllers\Api\AppSettingsController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CouponController;
+use App\Http\Controllers\Api\DeleteAccountController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
 use App\Http\Controllers\Api\Driver\CancelationReasonController as DriverCancelationReasonController;
 use App\Http\Controllers\Api\Driver\DriverActivtyController;
@@ -191,6 +195,9 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 //Driver car presence
     Route::get('/has-car', [DriverProfileController::class, 'hasCarData']);
 
+//Delete Account
+    Route::delete('/delete-account', [DeleteAccountController::class, 'deleteAccount']);
+
 });
 
 
@@ -252,16 +259,19 @@ Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function
     Route::post('/referrals/apply', [ReferralController::class, 'applyCode']);
 
 //Coupons
-    Route::get('/coupons/available', [\App\Http\Controllers\Api\CouponController::class, 'getUserCoupons']);
-    Route::post('/coupons/validate', [\App\Http\Controllers\Api\CouponController::class, 'validateCoupon']);
-    Route::post('/coupons/apply', [\App\Http\Controllers\Api\CouponController::class, 'applyCoupon']);
-    Route::post('/coupons/remove', [\App\Http\Controllers\Api\CouponController::class, 'removeCoupon']);
+    Route::get('/coupons/available', [CouponController::class, 'getUserCoupons']);
+    Route::post('/coupons/validate', [CouponController::class, 'validateCoupon']);
+    Route::post('/coupons/apply', [CouponController::class, 'applyCoupon']);
+    Route::post('/coupons/remove', [CouponController::class, 'removeCoupon']);
 
 //Cancelation Reasons
     Route::get('/cancelation-reasons', [CancelationReasonController::class, 'getUserCancelationReason']);
 
 //User Transactions
     Route::get('/transactions', [UserTransactionController::class, 'getTransactions']);
+
+//Delete Account
+    Route::delete('/delete-account', [DeleteAccountController::class, 'deleteAccount']);
 
 });
 
@@ -302,20 +312,20 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/referrals/list', [AdminReferralController::class, 'getReferralList']);
 
     // Coupon Management
-    Route::get('/coupons', [\App\Http\Controllers\Admin\CouponController::class, 'index']);
-    Route::post('/coupons', [\App\Http\Controllers\Admin\CouponController::class, 'store']);
-    Route::get('/coupons/{coupon}', [\App\Http\Controllers\Admin\CouponController::class, 'show']);
-    Route::put('/coupons/{coupon}', [\App\Http\Controllers\Admin\CouponController::class, 'update']);
-    Route::delete('/coupons/{coupon}', [\App\Http\Controllers\Admin\CouponController::class, 'destroy']);
-    Route::patch('/coupons/{coupon}/toggle-status', [\App\Http\Controllers\Admin\CouponController::class, 'toggleStatus']);
-    Route::get('/coupons-statistics', [\App\Http\Controllers\Admin\CouponController::class, 'statistics']);
+    Route::get('/coupons', [AdminCouponController::class, 'index']);
+    Route::post('/coupons', [AdminCouponController::class, 'store']);
+    Route::get('/coupons/{coupon}', [AdminCouponController::class, 'show']);
+    Route::put('/coupons/{coupon}', [AdminCouponController::class, 'update']);
+    Route::delete('/coupons/{coupon}', [AdminCouponController::class, 'destroy']);
+    Route::patch('/coupons/{coupon}/toggle-status', [AdminCouponController::class, 'toggleStatus']);
+    Route::get('/coupons-statistics', [AdminCouponController::class, 'statistics']);
 
     // Support Chat Management
-    Route::get('/support/active-requests', [\App\Http\Controllers\Api\Admin\AdminSupportChatController::class, 'getActiveSupportRequests']);
-    Route::get('/support/chat/{target_id}/{target_type}', [\App\Http\Controllers\Api\Admin\AdminSupportChatController::class, 'getChatMessages']);
-    Route::post('/support/reply', [\App\Http\Controllers\Api\Admin\AdminSupportChatController::class, 'sendReply']);
-    Route::patch('/support/requests/{support_request}/status', [\App\Http\Controllers\Api\Admin\AdminSupportChatController::class, 'updateSupportRequestStatus']);
-    Route::get('/support/statistics', [\App\Http\Controllers\Api\Admin\AdminSupportChatController::class, 'getSupportStatistics']);
+    Route::get('/support/active-requests', [AdminSupportChatController::class, 'getActiveSupportRequests']);
+    Route::get('/support/chat/{target_id}/{target_type}', [AdminSupportChatController::class, 'getChatMessages']);
+    Route::post('/support/reply', [AdminSupportChatController::class, 'sendReply']);
+    Route::patch('/support/requests/{support_request}/status', [AdminSupportChatController::class, 'updateSupportRequestStatus']);
+    Route::get('/support/statistics', [AdminSupportChatController::class, 'getSupportStatistics']);
 
 
 });
