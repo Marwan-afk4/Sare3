@@ -18,6 +18,8 @@ class StoreUserRequest extends FormRequest
             'role' => $this->defaultRole,
             'activity' => 'active',
             'wallet' => 0,
+            'email_verified' => 'verified',
+            'status' => 'approved',
         ]);
     }
 
@@ -31,6 +33,7 @@ class StoreUserRequest extends FormRequest
             'activity' => 'required|in:active,inactive',
             'wallet' => 'nullable|numeric',
             'role' => 'required|in:admin,driver,user',
+            'password' => 'nullable|string|min:6',
         ];
     }
 
@@ -43,7 +46,8 @@ class StoreUserRequest extends FormRequest
             'email.unique' => __('The Email has already been taken.'),
             'phone.unique' => __('The Phone has already been taken.'),
             'phone.required' => __('The Phone field is required.'),
-            'role.required' => __('The Role field is required.')
+            'role.required' => __('The Role field is required.'),
+            'password.min' => __('The Password must be at least 6 characters.'),
         ];
     }
 
