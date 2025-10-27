@@ -55,7 +55,7 @@ class AutoRejectRides extends Command
             $rejected[] = $ride->driver_id;
 
             $ride->update([
-                'status' => 'rejected',
+                'status' => 'pending',
                 'auto_rejected_at' => now(),
                 'rejected_drivers' => $rejected,
             ]);
