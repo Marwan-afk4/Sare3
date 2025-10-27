@@ -199,6 +199,7 @@ class RideEstimateController extends Controller
             'pickup_address' => $request->pickup_address,
             'dropoff_address' => $request->dropoff_address,
             'payment_method_id' => $request->payment_method_id,
+            'driver_assigned_at' => now(),
         ]);
 
         $firebaseRideId = 'ride_' . $ride->id;
