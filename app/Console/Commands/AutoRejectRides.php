@@ -50,20 +50,7 @@ class AutoRejectRides extends Command
             } catch (\Exception $e) {
                 Log::error("Failed to update Firebase for auto-rejected ride {$ride->id}: " . $e->getMessage());
             }
-
-            $rejected = $ride->rejected_drivers ?? [];
-
-            if ($ride->driver_id) { // ✅ تأكد إن فيه driver_id فعلاً
-                $rejected[] = (int) $ride->driver_id;
-            }
-
-            $ride->update([
-                'status' => 'pending',
-                'auto_rejected_at' => now(),
-                'rejected_drivers' => array_unique(array_filter($rejected)), // ✅ إزالة null وتكرار
-            ]);
-
-
+            
 
             // ✅ Search for alternative driver using existing controller method
             $rideEstimateController = new RideEstimateController();
