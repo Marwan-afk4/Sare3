@@ -532,6 +532,7 @@ class RideEstimateController extends Controller
                 'driver_id' => $nearestDriver['id'],
                 'status' => 'pending',
                 'reassigned_at' => now(),
+                'driver_assigned_at' => now(),
             ]);
 
             // Update Firebase with new driver info
@@ -576,14 +577,6 @@ class RideEstimateController extends Controller
             } else {
                 Log::warning("No FCM token found for driver {$nearestDriver['id']}");
             }
-
-            // Schedule auto-reject job
-            $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
-            AutoRejectRideJob::dispatch(
-                $ride->id,
-                $nearestDriver['id'],
-                $ride->updated_at->format('Y-m-d H:i:s')
-            )->delay(now()->addSeconds($timeoutSeconds));
 
             return $nearestDriver;
         } catch (\Exception $e) {

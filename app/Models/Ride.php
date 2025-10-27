@@ -43,7 +43,7 @@ class Ride extends Model
         'cancellation_reason_id',
         'zone_id',
         'reassigned_at',
-        'auto_rejected_at'
+        'driver_assigned_at'
     ];
 
     public $timestamps = true;
