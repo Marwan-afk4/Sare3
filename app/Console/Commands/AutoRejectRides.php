@@ -52,13 +52,17 @@ class AutoRejectRides extends Command
             }
 
             $rejected = $ride->rejected_drivers ?? [];
-            $rejected[] = $ride->driver_id;
+
+            if ($ride->driver_id) { // ✅ تأكد إن فيه driver_id فعلاً
+                $rejected[] = (int) $ride->driver_id;
+            }
 
             $ride->update([
                 'status' => 'pending',
                 'auto_rejected_at' => now(),
-                'rejected_drivers' => $rejected,
+                'rejected_drivers' => array_unique(array_filter($rejected)), // ✅ إزالة null وتكرار
             ]);
+
 
 
             // ✅ Search for alternative driver using existing controller method

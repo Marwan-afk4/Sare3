@@ -289,8 +289,6 @@ class RideEstimateController extends Controller
     private function getEligibleDrivers($userPickupLat, $userPickupLng, $excludedDriverIds = [])
     {
         try {
-            $excludedDriverIds = array_map('intval', $excludedDriverIds); //new
-
             $firebase = (new Factory)
                 ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
                 ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
@@ -307,19 +305,10 @@ class RideEstimateController extends Controller
 
             foreach ($driversData as $driverId => $driverData) {
                 try {
-                    // // Skip excluded drivers
-                    // if (in_array($driverData['id'] ?? null, $excludedDriverIds)) {
-                    //     continue;
-                    // }
-
-                    //new
-                    $driverIdInt = (int)($driverData['id'] ?? 0);
-
-                    // ✅ Skip excluded drivers using normalized integer comparison
-                    if (in_array($driverIdInt, $excludedDriverIds)) {
+                    // Skip excluded drivers
+                    if (in_array($driverData['id'] ?? null, $excludedDriverIds)) {
                         continue;
                     }
-                    //end of new
 
                     // Parse driver data similar to Flutter model
                     $settings = $driverData['settings'] ?? [];
