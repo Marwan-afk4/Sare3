@@ -11,12 +11,12 @@ use Illuminate\Support\Facades\Log;
 class AutoRejectRides extends Command
 {
     protected $signature = 'rides:auto-reject';
-    protected $description = 'Automatically reject rides if driver takes no action within 30 seconds';
+    protected $description = 'Automatically reject rides if driver takes no action within 15 seconds';
 
     public function handle()
     {
         Log::info('🚀 Auto reject command started at ' . now());
-        $expiredTime = Carbon::now()->subSeconds(30);
+        $expiredTime = Carbon::now()->subSeconds(15);
 
         // Find all rides that have been pending too long
         $rides = Ride::where('status', 'pending')
