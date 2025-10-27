@@ -7,6 +7,7 @@ use App\Models\Ride;
 use Carbon\Carbon;
 use Kreait\Firebase\Factory;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Api\User\RideEstimateController;
 
 class AutoRejectRides extends Command
 {
@@ -49,6 +50,10 @@ class AutoRejectRides extends Command
             } catch (\Exception $e) {
                 Log::error("Failed to update Firebase for auto-rejected ride {$ride->id}: " . $e->getMessage());
             }
+
+            // ✅ Search for alternative driver using existing controller method
+            $rideEstimateController = new RideEstimateController();
+            $rideEstimateController->searchAlternativeDriver($ride);
         }
 
         $this->info('Auto reject process complete. Total rejected: ' . $rides->count());
