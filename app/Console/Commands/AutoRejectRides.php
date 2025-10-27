@@ -15,6 +15,7 @@ class AutoRejectRides extends Command
 
     public function handle()
     {
+        Log::info('🚀 Auto reject command started at ' . now());
         $expiredTime = Carbon::now()->subSeconds(30);
 
         // Find all rides that have been pending too long
@@ -51,5 +52,6 @@ class AutoRejectRides extends Command
         }
 
         $this->info('Auto reject process complete. Total rejected: ' . $rides->count());
+        Log::info('✅ Auto reject command finished at ' . now());
     }
 }
