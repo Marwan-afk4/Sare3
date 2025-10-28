@@ -8,4 +8,8 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('rides:auto-reject')->everyFifteenSeconds();
+// Laravel scheduler minimum interval is 1 minute
+// For sub-minute intervals, you need to keep the scheduler running with:
+// php artisan schedule:work
+// Or use a different approach like queued jobs
+Schedule::command('rides:auto-reject')->everyMinute();

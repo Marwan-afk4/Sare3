@@ -19,12 +19,14 @@ class AutoRejectRides extends Command
         Log::info('🚀 Auto reject command started at ' . now());
         $expiredTime = Carbon::now()->subSeconds(15);
 
-        // Find all rides that have been pending too long
+        // Find all rides that have been pending too long with an assigned driver
         $rides = Ride::where('status', 'pending')
-            ->whereNotNull('driver_id') // ✅ Must have a driver assigned
+            ->whereNotNull('driver_id') // Only process rides with a driver assigned
             ->whereNotNull('driver_assigned_at')
             ->where('driver_assigned_at', '<=', $expiredTime)
             ->get();
+        
+        Log::info("📊 Found {$rides->count()} rides to process for auto-rejection");
 
         foreach ($rides as $ride) {
             $currentDriverId = $ride->driver_id;
@@ -83,35 +85,47 @@ class AutoRejectRides extends Command
             // ✅ Reload the ride to get fresh data after update
             $ride->refresh();
 
-            // ✅ Search for alternative driver using existing controller method
-            $rideEstimateController = new RideEstimateController();
-            $newDriver = $rideEstimateController->searchAlternativeDriver($ride);
-            
-            if ($newDriver) {
-                Log::info("✅ Found alternative driver {$newDriver['id']} for ride {$ride->id} (previous driver: {$currentDriverId})");
-                // Note: searchAlternativeDriver already updated the ride with new driver_id and sent notification
-            } else {
-                Log::warning("❌ No alternative driver found for ride {$ride->id} (previous driver: {$currentDriverId})");
-                // If no alternative driver found, mark ride as truly rejected
-                $ride->update([
-                    'status' => 'rejected',
-                ]);
-                
-                // Update Firebase to reflect rejection
-                try {
-                    $firebase = (new Factory)
-                        ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                        ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                        ->createDatabase();
+            Log::info("🔎 About to search for alternative driver for ride {$ride->id}. Current state: driver_id={$ride->driver_id}, status={$ride->status->value}, rejected_drivers=" . json_encode($ride->rejected_drivers));
 
-                    $firebaseRideId = 'ride_' . $ride->id;
-                    $firebase->getReference("rides/$firebaseRideId")->update([
+            try {
+                // ✅ Search for alternative driver using existing controller method
+                $rideEstimateController = new RideEstimateController();
+                Log::info("🎯 RideEstimateController instantiated: " . get_class($rideEstimateController));
+                
+                $newDriver = $rideEstimateController->searchAlternativeDriver($ride);
+                
+                Log::info("🔍 searchAlternativeDriver returned: " . ($newDriver ? json_encode(['id' => $newDriver['id'], 'name' => $newDriver['name'] ?? 'N/A']) : 'null'));
+                
+                if ($newDriver) {
+                    Log::info("✅ Found alternative driver {$newDriver['id']} for ride {$ride->id} (previous driver: {$currentDriverId})");
+                    // Note: searchAlternativeDriver already updated the ride with new driver_id and sent notification
+                } else {
+                    Log::warning("❌ No alternative driver found for ride {$ride->id} (previous driver: {$currentDriverId})");
+                    // If no alternative driver found, mark ride as truly rejected
+                    $ride->update([
                         'status' => 'rejected',
-                        'rejection_reason' => 'no_drivers_available',
                     ]);
-                } catch (\Exception $e) {
-                    Log::error("Failed to update Firebase for fully rejected ride {$ride->id}: " . $e->getMessage());
+                    
+                    // Update Firebase to reflect rejection
+                    try {
+                        $firebase = (new Factory)
+                            ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                            ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                            ->createDatabase();
+
+                        $firebaseRideId = 'ride_' . $ride->id;
+                        $firebase->getReference("rides/$firebaseRideId")->update([
+                            'status' => 'rejected',
+                            'rejection_reason' => 'no_drivers_available',
+                        ]);
+                    } catch (\Exception $e) {
+                        Log::error("Failed to update Firebase for fully rejected ride {$ride->id}: " . $e->getMessage());
+                    }
                 }
+            } catch (\Exception $e) {
+                Log::error("❌ Exception when searching for alternative driver for ride {$ride->id}: " . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString()
+                ]);
             }
         }
 
