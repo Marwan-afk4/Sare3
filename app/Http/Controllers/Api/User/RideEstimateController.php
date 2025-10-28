@@ -289,6 +289,8 @@ class RideEstimateController extends Controller
     private function getEligibleDrivers($userPickupLat, $userPickupLng, $excludedDriverIds = [])
     {
         try {
+            Log::info("📡 Fetching drivers from Firebase. Excluded IDs: " . json_encode($excludedDriverIds));
+            
             $firebase = (new Factory)
                 ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
                 ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
@@ -297,6 +299,7 @@ class RideEstimateController extends Controller
             $driversSnapshot = $firebase->getReference('drivers')->getSnapshot();
 
             if (!$driversSnapshot->exists()) {
+                Log::warning("⚠️ No drivers found in Firebase");
                 return [];
             }
 
@@ -305,8 +308,14 @@ class RideEstimateController extends Controller
 
             foreach ($driversData as $driverId => $driverData) {
                 try {
+                    $firebaseDriverId = $driverData['id'] ?? null;
+                    
+                    // ⚠️ Important: Convert both to same type for comparison (Firebase might return strings)
+                    $firebaseDriverId = is_numeric($firebaseDriverId) ? (int)$firebaseDriverId : $firebaseDriverId;
+                    
                     // Skip excluded drivers
-                    if (in_array($driverData['id'] ?? null, $excludedDriverIds)) {
+                    if (in_array($firebaseDriverId, $excludedDriverIds)) {
+                        Log::info("⏭️ Skipping excluded driver: {$firebaseDriverId}");
                         continue;
                     }
 
@@ -314,7 +323,7 @@ class RideEstimateController extends Controller
                     $settings = $driverData['settings'] ?? [];
 
                     $driver = [
-                        'id' => $driverData['id'],
+                        'id' => $firebaseDriverId,
                         'name' => $driverData['name'] ?? '',
                         'phone_number' => $driverData['phone_number'] ?? '',
                         'photo' => $driverData['photo'] ?? '',
@@ -332,13 +341,15 @@ class RideEstimateController extends Controller
 
                     $eligibleDrivers[] = $driver;
                 } catch (\Exception $e) {
-                    Log::warning("Invalid driver entry ($driverId): " . $e->getMessage());
+                    Log::warning("⚠️ Invalid driver entry ($driverId): " . $e->getMessage());
                 }
             }
+            
+            Log::info("✅ Fetched " . count($eligibleDrivers) . " eligible drivers from Firebase");
 
             return $eligibleDrivers;
         } catch (\Exception $e) {
-            Log::error('Error fetching drivers: ' . $e->getMessage());
+            Log::error('❌ Error fetching drivers: ' . $e->getMessage());
             return [];
         }
     }
@@ -441,13 +452,23 @@ class RideEstimateController extends Controller
         try {
             // Get excluded driver IDs (drivers who already rejected this ride)
             $excludedDriverIds = $ride->rejected_drivers ?? [];
+            
+            // ⚠️ Ensure all driver IDs are integers for consistent comparison
+            $excludedDriverIds = array_map(function($id) {
+                return is_numeric($id) ? (int)$id : $id;
+            }, $excludedDriverIds);
+            
+            $currentDriverId = $ride->driver_id;
+            
+            Log::info("🔍 Searching alternative driver for ride {$ride->id}. Current driver: {$currentDriverId}, Already excluded: " . json_encode($excludedDriverIds));
 
             // ✅ Add current driver to rejected list if not already
-            if ($ride->driver_id && !in_array($ride->driver_id, $excludedDriverIds)) {
-                $excludedDriverIds[] = $ride->driver_id;
+            if ($currentDriverId && !in_array($currentDriverId, $excludedDriverIds)) {
+                $excludedDriverIds[] = (int)$currentDriverId;
                 $ride->update([
                     'rejected_drivers' => $excludedDriverIds
                 ]);
+                Log::info("➕ Added driver {$currentDriverId} to excluded list for ride {$ride->id}");
             }
 
             // Check if we need to cycle back to first drivers (after 12 rejections)
@@ -461,7 +482,7 @@ class RideEstimateController extends Controller
             );
 
             if (empty($allDrivers)) {
-                Log::info("No drivers available at all for ride {$ride->id}");
+                Log::info("❌ No drivers available at all for ride {$ride->id}");
 
                 $ride->update([
                     'driver_id' => null,
@@ -484,8 +505,11 @@ class RideEstimateController extends Controller
                 return null;
             }
 
+            $allDriverIds = array_map(function($d) { return $d['id']; }, $allDrivers);
+            Log::info("📋 Total drivers available: " . count($allDrivers) . " - IDs: " . json_encode($allDriverIds));
+
             if ($shouldCycleDrivers) {
-                Log::info("Cycling drivers for ride {$ride->id} after " . count($excludedDriverIds) . " rejections");
+                Log::info("🔄 Cycling drivers for ride {$ride->id} after " . count($excludedDriverIds) . " rejections");
 
                 // Use all drivers for cycling (ignore previous rejections)
                 $eligibleDrivers = $allDrivers;
@@ -502,9 +526,12 @@ class RideEstimateController extends Controller
                 $eligibleDrivers = array_filter($allDrivers, function($driver) use ($excludedDriverIds) {
                     return !in_array($driver['id'], $excludedDriverIds);
                 });
+                
+                $eligibleDriverIds = array_map(function($d) { return $d['id']; }, $eligibleDrivers);
+                Log::info("✅ Eligible drivers after filtering: " . count($eligibleDrivers) . " - IDs: " . json_encode($eligibleDriverIds));
 
                 if (empty($eligibleDrivers)) {
-                    Log::info("All available drivers rejected ride {$ride->id}, starting to cycle");
+                    Log::info("⚠️ All available drivers rejected ride {$ride->id}, starting to cycle");
 
                     // Start cycling - use all drivers
                     $eligibleDrivers = $allDrivers;
@@ -521,12 +548,40 @@ class RideEstimateController extends Controller
             }
 
             if (!$nearestDriver) {
-                Log::info("No driver found with valid ETA for ride {$ride->id}");
+                Log::info("❌ No driver found with valid ETA for ride {$ride->id}");
                 return null;
             }
 
-            Log::info("Found driver {$nearestDriver['id']} for ride {$ride->id}" .
-                     ($shouldCycleDrivers ? " (cycling after " . count($excludedDriverIds) . " rejections)" : ""));
+            Log::info("✨ Found driver {$nearestDriver['id']} for ride {$ride->id}" .
+                     ($shouldCycleDrivers ? " (cycling after " . count($excludedDriverIds) . " rejections)" : "") .
+                     " | Previous driver was: {$currentDriverId} | Excluded: " . json_encode($excludedDriverIds));
+            
+            // ⚠️ Safety check: Make sure we're not assigning to the same driver
+            if ($nearestDriver['id'] == $currentDriverId && !$shouldCycleDrivers) {
+                Log::error("🚨 ALERT: Trying to assign ride {$ride->id} to the same driver {$currentDriverId}! This should not happen!");
+                // Try to find another driver
+                $eligibleDrivers = array_filter($eligibleDrivers, function($driver) use ($currentDriverId) {
+                    return $driver['id'] != $currentDriverId;
+                });
+                
+                if (!empty($eligibleDrivers)) {
+                    $nearestDriver = $this->findNearestDriverByETA(
+                        $ride->pickup_lat,
+                        $ride->pickup_lng,
+                        $eligibleDrivers,
+                        $ride->id
+                    );
+                    if ($nearestDriver) {
+                        Log::info("✅ Found alternative driver {$nearestDriver['id']} instead");
+                    } else {
+                        Log::error("❌ No other driver available");
+                        return null;
+                    }
+                } else {
+                    Log::error("❌ No other driver available after filtering");
+                    return null;
+                }
+            }
 
             // Update ride with new driver
             $ride->update([
