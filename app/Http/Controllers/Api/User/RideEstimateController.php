@@ -186,6 +186,7 @@ class RideEstimateController extends Controller
 
         $ride = Ride::create([
             'user_id' => $user->id,
+            'driver_id' => $request->driver_id, // ✅ Save driver_id to database
             'zone_id' => $request->zone_id,
             'car_category_id' => $request->car_category_id,
             'pickup_lat' => $request->pickup_lat,

@@ -21,12 +21,19 @@ class AutoRejectRides extends Command
 
         // Find all rides that have been pending too long
         $rides = Ride::where('status', 'pending')
+            ->whereNotNull('driver_id') // ✅ Must have a driver assigned
             ->whereNotNull('driver_assigned_at')
             ->where('driver_assigned_at', '<=', $expiredTime)
             ->get();
 
         foreach ($rides as $ride) {
             $currentDriverId = $ride->driver_id;
+            
+            // ⚠️ Safety check: Skip if no driver_id (shouldn't happen with query above)
+            if (!$currentDriverId) {
+                Log::warning("⚠️ Skipping ride {$ride->id} - no driver_id found");
+                continue;
+            }
             
             // ✅ Add current driver to rejected list
             $rejectedDrivers = $ride->rejected_drivers ?? [];
@@ -40,9 +47,13 @@ class AutoRejectRides extends Command
                 $rejectedDrivers[] = (int)$currentDriverId;
             }
             
+            // ⚠️ IMPORTANT: Keep status as 'pending' (not 'rejected') so we can search for alternative driver
+            // Set driver_id to null temporarily
             $ride->update([
-                'status' => 'rejected',
+                'driver_id' => null,
+                'status' => 'pending',
                 'rejected_drivers' => $rejectedDrivers,
+                'auto_rejected_at' => now(),
             ]);
 
             Log::info("Auto-rejected ride ID {$ride->id} (driver ID: {$currentDriverId}). Rejected drivers list: " . json_encode($rejectedDrivers));
@@ -57,8 +68,11 @@ class AutoRejectRides extends Command
                 $firebaseRideId = 'ride_' . $ride->id;
 
                 $firebase->getReference("rides/$firebaseRideId")->update([
-                    'status' => 'rejected',
+                    'driver_id' => null,
+                    'status' => 'pending',
+                    'rejected_drivers' => $rejectedDrivers,
                     'auto_rejected_at' => now()->toIso8601String(),
+                    'rejection_reason' => 'auto_timeout'
                 ]);
 
                 Log::info("Firebase updated for auto-rejected ride {$ride->id}");
@@ -75,8 +89,29 @@ class AutoRejectRides extends Command
             
             if ($newDriver) {
                 Log::info("✅ Found alternative driver {$newDriver['id']} for ride {$ride->id} (previous driver: {$currentDriverId})");
+                // Note: searchAlternativeDriver already updated the ride with new driver_id and sent notification
             } else {
                 Log::warning("❌ No alternative driver found for ride {$ride->id} (previous driver: {$currentDriverId})");
+                // If no alternative driver found, mark ride as truly rejected
+                $ride->update([
+                    'status' => 'rejected',
+                ]);
+                
+                // Update Firebase to reflect rejection
+                try {
+                    $firebase = (new Factory)
+                        ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                        ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                        ->createDatabase();
+
+                    $firebaseRideId = 'ride_' . $ride->id;
+                    $firebase->getReference("rides/$firebaseRideId")->update([
+                        'status' => 'rejected',
+                        'rejection_reason' => 'no_drivers_available',
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error("Failed to update Firebase for fully rejected ride {$ride->id}: " . $e->getMessage());
+                }
             }
         }
 

@@ -58,8 +58,14 @@ class AutoRejectRideJob implements ShouldQueue
         try {
             // Add current driver to rejected drivers list
             $rejectedDrivers = $ride->rejected_drivers ?? [];
-            if (!in_array($this->driverId, $rejectedDrivers)) {
-                $rejectedDrivers[] = $this->driverId;
+            
+            // ⚠️ Ensure all driver IDs are integers for consistent comparison
+            $rejectedDrivers = array_map(function($id) {
+                return is_numeric($id) ? (int)$id : $id;
+            }, $rejectedDrivers);
+            
+            if (!in_array((int)$this->driverId, $rejectedDrivers)) {
+                $rejectedDrivers[] = (int)$this->driverId;
             }
 
             // Reset ride and mark as auto-rejected
@@ -69,6 +75,8 @@ class AutoRejectRideJob implements ShouldQueue
                 'status' => 'pending',
                 'auto_rejected_at' => now(),
             ]);
+
+            Log::info("AutoRejectRideJob: Reset ride {$this->rideId}, driver {$this->driverId} added to rejected list: " . json_encode($rejectedDrivers));
 
             // Update Firebase
             $firebase = $this->getFirebaseDatabase();
@@ -82,19 +90,19 @@ class AutoRejectRideJob implements ShouldQueue
                 'rejection_reason' => 'auto_timeout'
             ]);
 
+            // Reload the ride to get fresh data
+            $ride->refresh();
+
             // Search for alternative driver
             $rideEstimateController = new UserRideEstimateController();
             $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
 
             if ($alternativeDriver) {
-                $ride->update([
-                    'driver_id' => $alternativeDriver['id'],
-                    'reassigned_at' => now(),
-                ]);
-
+                // Note: searchAlternativeDriver already updates the ride with the new driver_id
+                // Just need to reload and update Firebase with additional info
+                $ride->refresh();
+                
                 $firebase->getReference("rides/$firebaseRideId")->update([
-                    'driver_id' => $alternativeDriver['id'],
-                    'reassigned_at' => now()->toIso8601String(),
                     'previous_rejections' => count($rejectedDrivers),
                 ]);
 
@@ -105,16 +113,25 @@ class AutoRejectRideJob implements ShouldQueue
                     $ride->updated_at->format('Y-m-d H:i:s')
                 )->delay(now()->addSeconds(15));
 
-                Log::info("AutoRejectRideJob: Ride {$this->rideId} reassigned to driver {$alternativeDriver['id']}");
+                Log::info("✅ AutoRejectRideJob: Ride {$this->rideId} reassigned to driver {$alternativeDriver['id']} (previous driver: {$this->driverId})");
             } else {
-                Log::info("AutoRejectRideJob: No alternative drivers found for ride {$this->rideId}");
+                Log::warning("❌ AutoRejectRideJob: No alternative drivers found for ride {$this->rideId}, marking as rejected");
+                
+                // Mark ride as truly rejected if no alternative driver found
+                $ride->update([
+                    'status' => 'rejected',
+                ]);
+                
+                $firebase->getReference("rides/$firebaseRideId")->update([
+                    'status' => 'rejected',
+                ]);
             }
 
             DB::commit();
 
         } catch (\Exception $e) {
             DB::rollback();
-            Log::error("AutoRejectRideJob failed for ride {$this->rideId}: " . $e->getMessage());
+            Log::error("❌ AutoRejectRideJob failed for ride {$this->rideId}: " . $e->getMessage());
             throw $e;
         }
     }
