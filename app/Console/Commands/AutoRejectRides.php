@@ -133,10 +133,10 @@ class AutoRejectRides extends Command
                 ]);
 
                 // Step 8: Update Firebase
-                $this->updateFirebaseRideStatus($ride, 'pending', $nearestDriver['id']);
+                $this->updateFirebaseRideStatus($ride, 'pending', $driverId);
 
                 // ✅ Step 9: Send notification in your format
-                $driver = User::find($nearestDriver['id']);
+                $driver = User::find($driverId);
                 if ($driver && $driver->fcm_token) {
                     $data = [
                         'title'    => 'New Ride Request',
