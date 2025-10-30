@@ -89,8 +89,14 @@ class AutoRejectRides extends Command
                 }
 
                 // Step 7: Assign new driver
+                $driver = User::find($nearestDriver['id']);
+
+                if (! $driver) {
+                    Log::warning("❌ Driver {$nearestDriver['id']} not found in users table. Skipping ride {$ride->id}.");
+                    continue; // Skip to next ride
+                }
                 $ride->update([
-                    'driver_id' => $nearestDriver['id'],
+                    'driver_id' => $driver->id,
                     'status' => 'pending',
                     'driver_assigned_at' => now(),
                     'reassigned_at' => now(),
