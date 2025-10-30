@@ -106,33 +106,25 @@ class AutoRejectRides extends Command
                     continue;
                 }
 
-                // if it's an object, convert to array
-                if (is_object($nearestDriver) && property_exists($nearestDriver, 'id')) {
-                    $nearestDriver = ['id' => $nearestDriver->id];
-                }
-
-                if (!is_array($nearestDriver) || !array_key_exists('id', $nearestDriver)) {
+                // ✅ Normalize structure if it's nested
+                if (isset($nearestDriver['driver_id'])) {
+                    $driverId = $nearestDriver['driver_id'];
+                } elseif (isset($nearestDriver['driver']['id'])) {
+                    $driverId = $nearestDriver['driver']['id'];
+                } elseif (isset($nearestDriver['id'])) {
+                    $driverId = $nearestDriver['id'];
+                } else {
                     Log::warning("⚠️ Invalid nearest driver structure for ride {$ride->id}: " . json_encode($nearestDriver));
                     continue;
                 }
 
-
-                if (
-                    empty($nearestDriver) ||
-                    !is_array($nearestDriver) ||
-                    !array_key_exists('id', $nearestDriver)
-                ) {
-                    Log::warning("⚠️ Invalid nearest driver data for ride {$ride->id}: " . json_encode($nearestDriver));
+                // ✅ Fetch driver and validate
+                $driver = User::find($driverId);
+                if (!$driver) {
+                    Log::warning("⚠️ Driver ID {$driverId} not found in database for ride {$ride->id}");
                     continue;
                 }
 
-                // Step 7: Assign new driver
-                $driver = User::find($nearestDriver['id']);
-
-                if (! $driver) {
-                    Log::warning("❌ Driver {$nearestDriver['id']} not found in users table. Skipping ride {$ride->id}.");
-                    continue; // Skip to next ride
-                }
                 $ride->update([
                     'driver_id' => $driver->id,
                     'status' => 'pending',
