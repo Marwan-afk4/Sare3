@@ -38,12 +38,28 @@ class AutoRejectRides extends Command
             try {
                 Log::info("Processing ride ID {$ride->id}...");
 
-                // Step 1: Reject the current driver
-                $ride->update(['status' => 'rejected', 'driver_id' => null]);
-                Log::info("Auto-rejected ride ID {$ride->id} (driver ID: {$ride->driver_id})");
+                // // Step 1: Reject the current driver
+                // $ride->update(['status' => 'rejected', 'driver_id' => null]);
+                // Log::info("Auto-rejected ride ID {$ride->id} (driver ID: {$ride->driver_id})");
+
+                // Step 1: Mark the current driver as rejected
+                $previousDriverId = $ride->driver_id; // store before nulling
+                $excludedDriverIds = $ride->rejected_drivers ?? [];
+
+                if ($previousDriverId && !in_array($previousDriverId, $excludedDriverIds)) {
+                    $excludedDriverIds[] = $previousDriverId;
+                }
+
+                $ride->update([
+                    'status' => 'pending',
+                    'driver_id' => null,
+                    'rejected_drivers' => $excludedDriverIds,
+                ]);
+                Log::info("Auto-rejected driver {$previousDriverId} for ride {$ride->id}, ride reset to pending.");
+
 
                 // Step 2: Update Firebase
-                $this->updateFirebaseRideStatus($ride, 'rejected');
+                $this->updateFirebaseRideStatus($ride, 'pending');
 
                 // Step 3: Add current driver to rejected list
                 $excludedDriverIds = $ride->rejected_drivers ?? [];
@@ -82,6 +98,24 @@ class AutoRejectRides extends Command
                     $eligibleDrivers,
                     $ride->id
                 );
+
+                Log::info("Nearest driver raw data for ride {$ride->id}: " . print_r($nearestDriver, true));
+
+                if (empty($nearestDriver)) {
+                    Log::warning("⚠️ No nearest driver found for ride {$ride->id}");
+                    continue;
+                }
+
+                // if it's an object, convert to array
+                if (is_object($nearestDriver) && property_exists($nearestDriver, 'id')) {
+                    $nearestDriver = ['id' => $nearestDriver->id];
+                }
+
+                if (!is_array($nearestDriver) || !array_key_exists('id', $nearestDriver)) {
+                    Log::warning("⚠️ Invalid nearest driver structure for ride {$ride->id}: " . json_encode($nearestDriver));
+                    continue;
+                }
+
 
                 if (
                     empty($nearestDriver) ||
