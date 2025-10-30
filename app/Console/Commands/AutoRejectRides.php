@@ -19,46 +19,18 @@ class AutoRejectRides extends Command
         Log::info('🚀 Auto reject command started at ' . now());
         $expiredTime = Carbon::now()->subSeconds(15);
 
-        // Find all rides that have been pending too long with an assigned driver
+        // Find all rides that have been pending too long
         $rides = Ride::where('status', 'pending')
-            ->whereNotNull('driver_id') // Only process rides with a driver assigned
             ->whereNotNull('driver_assigned_at')
             ->where('driver_assigned_at', '<=', $expiredTime)
             ->get();
-        
-        Log::info("📊 Found {$rides->count()} rides to process for auto-rejection");
 
         foreach ($rides as $ride) {
-            $currentDriverId = $ride->driver_id;
-            
-            // ⚠️ Safety check: Skip if no driver_id (shouldn't happen with query above)
-            if (!$currentDriverId) {
-                Log::warning("⚠️ Skipping ride {$ride->id} - no driver_id found");
-                continue;
-            }
-            
-            // ✅ Add current driver to rejected list
-            $rejectedDrivers = $ride->rejected_drivers ?? [];
-            
-            // ⚠️ Ensure all driver IDs are integers for consistent comparison
-            $rejectedDrivers = array_map(function($id) {
-                return is_numeric($id) ? (int)$id : $id;
-            }, $rejectedDrivers);
-            
-            if ($currentDriverId && !in_array((int)$currentDriverId, $rejectedDrivers)) {
-                $rejectedDrivers[] = (int)$currentDriverId;
-            }
-            
-            // ⚠️ IMPORTANT: Keep status as 'pending' (not 'rejected') so we can search for alternative driver
-            // Set driver_id to null temporarily
             $ride->update([
-                'driver_id' => null,
-                'status' => 'pending',
-                'rejected_drivers' => $rejectedDrivers,
-                'auto_rejected_at' => now(),
+                'status' => 'rejected',
             ]);
 
-            Log::info("Auto-rejected ride ID {$ride->id} (driver ID: {$currentDriverId}). Rejected drivers list: " . json_encode($rejectedDrivers));
+            Log::info("Auto-rejected ride ID {$ride->id} (driver ID: {$ride->driver_id})");
 
             try {
                 // ✅ Update Firebase for real-time UI sync
@@ -70,11 +42,8 @@ class AutoRejectRides extends Command
                 $firebaseRideId = 'ride_' . $ride->id;
 
                 $firebase->getReference("rides/$firebaseRideId")->update([
-                    'driver_id' => null,
-                    'status' => 'pending',
-                    'rejected_drivers' => $rejectedDrivers,
+                    'status' => 'rejected',
                     'auto_rejected_at' => now()->toIso8601String(),
-                    'rejection_reason' => 'auto_timeout'
                 ]);
 
                 Log::info("Firebase updated for auto-rejected ride {$ride->id}");
@@ -82,51 +51,10 @@ class AutoRejectRides extends Command
                 Log::error("Failed to update Firebase for auto-rejected ride {$ride->id}: " . $e->getMessage());
             }
             
-            // ✅ Reload the ride to get fresh data after update
-            $ride->refresh();
 
-            Log::info("🔎 About to search for alternative driver for ride {$ride->id}. Current state: driver_id={$ride->driver_id}, status={$ride->status->value}, rejected_drivers=" . json_encode($ride->rejected_drivers));
-
-            try {
-                // ✅ Search for alternative driver using existing controller method
-                $rideEstimateController = new RideEstimateController();
-                Log::info("🎯 RideEstimateController instantiated: " . get_class($rideEstimateController));
-                
-                $newDriver = $rideEstimateController->searchAlternativeDriver($ride);
-                
-                Log::info("🔍 searchAlternativeDriver returned: " . ($newDriver ? json_encode(['id' => $newDriver['id'], 'name' => $newDriver['name'] ?? 'N/A']) : 'null'));
-                
-                if ($newDriver) {
-                    Log::info("✅ Found alternative driver {$newDriver['id']} for ride {$ride->id} (previous driver: {$currentDriverId})");
-                    // Note: searchAlternativeDriver already updated the ride with new driver_id and sent notification
-                } else {
-                    Log::warning("❌ No alternative driver found for ride {$ride->id} (previous driver: {$currentDriverId})");
-                    // If no alternative driver found, mark ride as truly rejected
-                    $ride->update([
-                        'status' => 'rejected',
-                    ]);
-                    
-                    // Update Firebase to reflect rejection
-                    try {
-                        $firebase = (new Factory)
-                            ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                            ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                            ->createDatabase();
-
-                        $firebaseRideId = 'ride_' . $ride->id;
-                        $firebase->getReference("rides/$firebaseRideId")->update([
-                            'status' => 'rejected',
-                            'rejection_reason' => 'no_drivers_available',
-                        ]);
-                    } catch (\Exception $e) {
-                        Log::error("Failed to update Firebase for fully rejected ride {$ride->id}: " . $e->getMessage());
-                    }
-                }
-            } catch (\Exception $e) {
-                Log::error("❌ Exception when searching for alternative driver for ride {$ride->id}: " . $e->getMessage(), [
-                    'trace' => $e->getTraceAsString()
-                ]);
-            }
+            // ✅ Search for alternative driver using existing controller method
+            $rideEstimateController = new RideEstimateController();
+            $rideEstimateController->searchAlternativeDriver($ride);
         }
 
         $this->info('Auto reject process complete. Total rejected: ' . $rides->count());
