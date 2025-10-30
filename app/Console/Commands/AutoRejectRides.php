@@ -39,7 +39,7 @@ class AutoRejectRides extends Command
                 Log::info("Processing ride ID {$ride->id}...");
 
                 // Step 1: Reject the current driver
-                $ride->update(['status' => 'rejected']);
+                $ride->update(['status' => 'rejected', 'driver_id' => null]);
                 Log::info("Auto-rejected ride ID {$ride->id} (driver ID: {$ride->driver_id})");
 
                 // Step 2: Update Firebase
@@ -83,8 +83,12 @@ class AutoRejectRides extends Command
                     $ride->id
                 );
 
-                if (!$nearestDriver) {
-                    Log::info("No nearest driver found for ride {$ride->id}");
+                if (
+                    empty($nearestDriver) ||
+                    !is_array($nearestDriver) ||
+                    !array_key_exists('id', $nearestDriver)
+                ) {
+                    Log::warning("⚠️ Invalid nearest driver data for ride {$ride->id}: " . json_encode($nearestDriver));
                     continue;
                 }
 
