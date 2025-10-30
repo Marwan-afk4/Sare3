@@ -20,7 +20,7 @@ class AutoRejectRides extends Command
     public function handle()
     {
         Log::info('🚀 Auto reject command started at ' . now());
-        $expiredTime = Carbon::now()->subSeconds(30);
+        $expiredTime = Carbon::now()->subSeconds(15);
 
         $rides = Ride::where('status', 'pending')
             ->whereNotNull('driver_assigned_at')
