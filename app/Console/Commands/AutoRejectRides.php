@@ -14,7 +14,7 @@ use Exception;
 
 class AutoRejectRides extends Command
 {
-    protected $signature = 'auto:reject-rides';
+    protected $signature = 'rides:auto-reject';
     protected $description = 'Automatically reject rides if the driver does not respond within 30 seconds';
 
     public function handle()
