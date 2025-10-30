@@ -91,8 +91,7 @@ class AutoRejectRides extends Command
                     $eligibleDrivers = $allDrivers; // cycle back to all drivers
                 }
 
-                Log::info("Eligible drivers for ride {$ride->id}: " . count($eligibleDrivers));
-
+                Log::debug("Eligible drivers details for ride {$ride->id}:", $eligibleDrivers);
 
                 // Step 6: Find nearest driver by ETA
                 $nearestDriver = $rideEstimateController->findNearestDriverByETA(
