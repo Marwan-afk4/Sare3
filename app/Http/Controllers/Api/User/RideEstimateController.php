@@ -361,10 +361,11 @@ class RideEstimateController extends Controller
             return null;
         }
 
-        // Build origins from drivers
-        $origins = collect($eligibleDrivers)->map(function ($driver) {
-            return $driver['latitude'] . ',' . $driver['longitude'];
-        })->join('|');
+        // Build origins (drivers' coordinates)
+        $origins = collect($eligibleDrivers)->map(
+            fn($driver) =>
+            $driver['latitude'] . ',' . $driver['longitude']
+        )->join('|');
 
         $destination = $userPickupLat . ',' . $userPickupLng;
 
@@ -375,59 +376,65 @@ class RideEstimateController extends Controller
                 'key' => $googleApiKey,
             ]);
 
-            if ($response->successful()) {
-                $data = $response->json();
-                $rows = $data['rows'] ?? [];
-
-                // Update drivers with ETA times
-                for ($i = 0; $i < count($rows) && $i < count($eligibleDrivers); $i++) {
-                    $elements = $rows[$i]['elements'] ?? [];
-                    if (!empty($elements) && $elements[0]['status'] === 'OK') {
-                        $durationInSec = $elements[0]['duration']['value'];
-                        $eligibleDrivers[$i]['eta_time'] = $durationInSec;
-                    } else {
-                        $eligibleDrivers[$i]['eta_time'] = null;
-                    }
-                }
-
-                // Filter out drivers without valid ETA
-                $eligibleDrivers = array_filter($eligibleDrivers, function ($driver) {
-                    return $driver['eta_time'] !== null;
-                });
-
-                // Sort by ETA
-                usort($eligibleDrivers, function ($a, $b) {
-                    return $a['eta_time'] <=> $b['eta_time'];
-                });
-
-                $nearestDriver = !empty($eligibleDrivers) ? $eligibleDrivers[0] : null;
-
-                // Update Firebase with ETA if ride ID is provided and driver is found
-                if ($nearestDriver && $rideId) {
-                    try {
-                        $firebase = (new Factory)
-                            ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                            ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                            ->createDatabase();
-
-                        $firebaseRideId = 'ride_' . $rideId;
-
-                        $firebase->getReference("rides/$firebaseRideId")->update([
-                            'driver_eta_seconds' => $nearestDriver['eta_time'],
-                            'driver_eta_minutes' => round($nearestDriver['eta_time'] / 60, 1),
-                        ]);
-
-                        Log::info("Updated Firebase with ETA for ride {$rideId}: {$nearestDriver['eta_time']} seconds");
-                    } catch (\Exception $e) {
-                        Log::error("Failed to update Firebase with ETA for ride {$rideId}: " . $e->getMessage());
-                    }
-                }
-
-                return $nearestDriver;
-            } else {
+            if (!$response->successful()) {
                 Log::error('Error from Google API: ' . $response->body());
                 return null;
             }
+
+            $data = $response->json();
+            $rows = $data['rows'] ?? [];
+
+            // Attach ETA to each driver
+            foreach ($eligibleDrivers as $i => &$driver) {
+                $elements = $rows[$i]['elements'] ?? [];
+                if (!empty($elements) && ($elements[0]['status'] ?? '') === 'OK') {
+                    $driver['eta_time'] = $elements[0]['duration']['value']; // seconds
+                } else {
+                    $driver['eta_time'] = null;
+                }
+            }
+
+            // Filter out invalid ETAs
+            $eligibleDrivers = array_filter($eligibleDrivers, fn($driver) => $driver['eta_time'] !== null);
+
+            // Sort by ETA ascending
+            usort($eligibleDrivers, fn($a, $b) => $a['eta_time'] <=> $b['eta_time']);
+
+            $nearestDriver = $eligibleDrivers[0] ?? null;
+
+            if (!$nearestDriver) {
+                return null;
+            }
+
+            // ✅ Update Firebase if ride ID exists
+            if ($rideId) {
+                try {
+                    $firebase = (new Factory)
+                        ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                        ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                        ->createDatabase();
+
+                    $firebaseRideId = 'ride_' . $rideId;
+
+                    $firebase->getReference("rides/$firebaseRideId")->update([
+                        'driver_eta_seconds' => $nearestDriver['eta_time'],
+                        'driver_eta_minutes' => round($nearestDriver['eta_time'] / 60, 1),
+                        'driver_id' => $nearestDriver['id'] ?? null,
+                    ]);
+
+                    Log::info("Updated Firebase with ETA for ride {$rideId}: {$nearestDriver['eta_time']} seconds");
+                } catch (\Exception $e) {
+                    Log::error("Failed to update Firebase for ride {$rideId}: " . $e->getMessage());
+                }
+            }
+
+            // ✅ Return both driver ID and ETA
+            return [
+                'driver_id' => $nearestDriver['id'] ?? null,
+                'eta_seconds' => $nearestDriver['eta_time'],
+                'eta_minutes' => round($nearestDriver['eta_time'] / 60, 1),
+                'driver' => $nearestDriver, // optional full driver info
+            ];
         } catch (\Exception $e) {
             Log::error('Error calling Google Distance Matrix API: ' . $e->getMessage());
             return null;
@@ -500,7 +507,7 @@ class RideEstimateController extends Controller
                 );
             } else {
                 // Normal flow - exclude rejected drivers
-                $eligibleDrivers = array_filter($allDrivers, function($driver) use ($excludedDriverIds) {
+                $eligibleDrivers = array_filter($allDrivers, function ($driver) use ($excludedDriverIds) {
                     return !in_array($driver['id'], $excludedDriverIds);
                 });
 
@@ -527,7 +534,7 @@ class RideEstimateController extends Controller
             }
 
             Log::info("Found driver {$nearestDriver['id']} for ride {$ride->id}" .
-                     ($shouldCycleDrivers ? " (cycling after " . count($excludedDriverIds) . " rejections)" : ""));
+                ($shouldCycleDrivers ? " (cycling after " . count($excludedDriverIds) . " rejections)" : ""));
 
             // Update ride with new driver
             $ride->update([
