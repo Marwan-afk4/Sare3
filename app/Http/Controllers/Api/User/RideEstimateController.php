@@ -286,7 +286,7 @@ class RideEstimateController extends Controller
     // }
 
 
-    private function getEligibleDrivers($userPickupLat, $userPickupLng, $excludedDriverIds = [])
+    public function getEligibleDrivers($userPickupLat, $userPickupLng, $excludedDriverIds = [])
     {
         try {
             $firebase = (new Factory)
@@ -346,7 +346,7 @@ class RideEstimateController extends Controller
     /**
      * Find nearest driver by ETA using Google Distance Matrix API
      */
-    private function findNearestDriverByETA($userPickupLat, $userPickupLng, $eligibleDrivers, $rideId = null)
+    public function findNearestDriverByETA($userPickupLat, $userPickupLng, $eligibleDrivers, $rideId = null)
     {
         if (empty($eligibleDrivers)) {
             return null;
