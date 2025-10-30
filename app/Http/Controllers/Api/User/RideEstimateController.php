@@ -200,6 +200,7 @@ class RideEstimateController extends Controller
             'dropoff_address' => $request->dropoff_address,
             'payment_method_id' => $request->payment_method_id,
             'driver_assigned_at' => now(),
+            'driver_id' => $request->driver_id,
         ]);
 
         $firebaseRideId = 'ride_' . $ride->id;
@@ -251,13 +252,13 @@ class RideEstimateController extends Controller
             return response()->json(['message' => 'Ride created, but failed to sync with Firebase', 'error' => $e->getMessage()], 500);
         }
 
-        // // Schedule auto-reject job
-        $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
-        AutoRejectRideJob::dispatch(
-            $ride->id,
-            $request->driver_id,
-            $ride->updated_at->format('Y-m-d H:i:s')
-        )->delay(now()->addSeconds($timeoutSeconds));
+        // // // Schedule auto-reject job
+        // $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
+        // AutoRejectRideJob::dispatch(
+        //     $ride->id,
+        //     $request->driver_id,
+        //     $ride->updated_at->format('Y-m-d H:i:s')
+        // )->delay(now()->addSeconds($timeoutSeconds));
 
         return response()->json([
             'message' => 'Ride created successfully',
