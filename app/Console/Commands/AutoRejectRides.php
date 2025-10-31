@@ -61,14 +61,7 @@ class AutoRejectRides extends Command
                 // Step 2: Update Firebase
                 $this->updateFirebaseRideStatus($ride, 'pending');
 
-                // Step 3: Add current driver to rejected list
-                $excludedDriverIds = $ride->rejected_drivers ?? [];
-                if ($ride->driver_id && !in_array($ride->driver_id, $excludedDriverIds)) {
-                    $excludedDriverIds[] = $ride->driver_id;
-                    $ride->update(['rejected_drivers' => $excludedDriverIds]);
-                }
-
-                // Step 4: Get eligible drivers
+                // Step 3: Get all available drivers
                 $allDrivers = $rideEstimateController->getEligibleDrivers(
                     $ride->pickup_lat,
                     $ride->pickup_lng,
@@ -82,25 +75,24 @@ class AutoRejectRides extends Command
                     continue;
                 }
 
-                // 🧠 Log ALL available drivers with their ETA and distance if available
-                Log::info("📋 All available drivers for ride {$ride->id}:");
+                // 🧠 Log ALL available drivers (ETA will be calculated in next step)
+                Log::info("📋 Found {count} available drivers for ride {$ride->id} (ETA calculation pending):", ['count' => count($allDrivers)]);
                 foreach ($allDrivers as $d) {
                     $driverName = $d['name'] ?? 'Unknown';
-                    $eta = $d['eta_seconds'] ?? 'N/A';
-                    $distance = $d['distance_km'] ?? 'N/A';
-                    Log::info("   - Driver ID: {$d['id']} | Name: {$driverName} | ETA: {$eta}s | Distance: {$distance}km");
+                    Log::info("   - Driver ID: {$d['id']} | Name: {$driverName}");
                 }
 
-                // Step 5: Filter out excluded drivers
+                // Step 4: Filter out excluded (rejected) drivers
                 $eligibleDrivers = array_filter($allDrivers, function ($d) use ($excludedDriverIds) {
                     return !in_array($d['id'], $excludedDriverIds);
                 });
 
                 if (empty($eligibleDrivers)) {
+                    Log::info("All drivers already rejected ride {$ride->id}, cycling back to all drivers");
                     $eligibleDrivers = $allDrivers; // cycle back to all drivers
                 }
 
-                // Step 6: Find nearest driver by ETA
+                // Step 5: Find nearest driver by ETA (Google Distance Matrix API)
                 $nearestDriver = $rideEstimateController->findNearestDriverByETA(
                     $ride->pickup_lat,
                     $ride->pickup_lng,
@@ -146,10 +138,10 @@ class AutoRejectRides extends Command
                     'reassigned_at' => now(),
                 ]);
 
-                // Step 8: Update Firebase
+                // Step 6: Update Firebase with new driver
                 $this->updateFirebaseRideStatus($ride, 'pending', $driverId);
 
-                // ✅ Step 9: Send notification in your format
+                // Step 7: Send notification to new driver
                 $driver = User::find($driverId);
                 if ($driver && $driver->fcm_token) {
                     $data = [
@@ -168,10 +160,10 @@ class AutoRejectRides extends Command
 
                     Log::info("📩 Notification sent to driver {$driver->id}", ['response' => $response]);
                 } else {
-                    Log::warning("No FCM token found for driver {$nearestDriver['id']}");
+                    Log::warning("No FCM token found for driver {$driver->id}");
                 }
 
-                Log::info("✅ Reassigned ride {$ride->id} to driver {$nearestDriver['id']}");
+                Log::info("✅ Reassigned ride {$ride->id} to driver {$driver->id}");
             } catch (Exception $e) {
                 Log::error("❌ Error processing ride {$ride->id}: " . $e->getMessage());
             }
