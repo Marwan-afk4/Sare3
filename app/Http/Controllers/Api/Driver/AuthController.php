@@ -385,7 +385,7 @@ class AuthController extends Controller
             'car_category_ids.*' => 'integer|exists:car_categories,id',
             'car_image' => 'required|string',
             'car_color' => 'required|string',
-            'car_license' => 'required|string',
+            'car_license' => 'nullable|string',
             'car_number' => 'required|string',
             'car_model_id' => 'required|exists:car_models,id'
         ]);
@@ -425,7 +425,7 @@ class AuthController extends Controller
             'car_type_id' => $request->car_type_id,
             'car_image' => $carImagePath,
             'car_color' => $request->car_color,
-            'car_license' => $car_licensePath,
+            'car_license' => $car_licensePath??null,
             'car_number' => $request->car_number,
             'car_model_id' => $request->car_model_id
         ]);
