@@ -388,9 +388,9 @@ class RideEstimateController extends Controller
             foreach ($eligibleDrivers as $i => &$driver) {
                 $elements = $rows[$i]['elements'] ?? [];
                 if (!empty($elements) && ($elements[0]['status'] ?? '') === 'OK') {
-                    $driver['eta_time'] = $elements[0]['duration']['value'];
+                    $driver['eta_time'] = $elements[0]['duration']['value']; // seconds
                 } else {
-                    $driver['eta_time'] = 9999999;
+                    $driver['eta_time'] = null;
                 }
             }
 
