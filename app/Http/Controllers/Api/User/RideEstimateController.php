@@ -390,7 +390,7 @@ class RideEstimateController extends Controller
                 if (!empty($elements) && ($elements[0]['status'] ?? '') === 'OK') {
                     $driver['eta_time'] = $elements[0]['duration']['value']; // seconds
                 } else {
-                    $driver['eta_time'] = 999999;
+                    $driver['eta_time'] = null;
                 }
             }
 
