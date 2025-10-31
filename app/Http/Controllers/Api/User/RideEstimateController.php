@@ -306,25 +306,34 @@ class RideEstimateController extends Controller
 
             foreach ($driversData as $driverId => $driverData) {
                 try {
-                    // Skip excluded drivers
-                    if (in_array($driverData['id'] ?? null, $excludedDriverIds)) {
+                    $driverIdValue = $driverData['id'] ?? null;
+                    $lat = $driverData['latitude'] ?? null;
+                    $lng = $driverData['longitude'] ?? null;
+
+                    // ❌ Skip invalid or missing data
+                    if (!$driverIdValue || !$lat || !$lng) {
+                        Log::warning("Skipping invalid driver record", ['driverId' => $driverId, 'data' => $driverData]);
                         continue;
                     }
 
-                    // Parse driver data similar to Flutter model
+                    // ❌ Skip excluded drivers
+                    if (in_array($driverIdValue, $excludedDriverIds)) {
+                        continue;
+                    }
+
                     $settings = $driverData['settings'] ?? [];
 
                     $driver = [
-                        'id' => $driverData['id'],
+                        'id' => $driverIdValue,
                         'name' => $driverData['name'] ?? '',
                         'phone_number' => $driverData['phone_number'] ?? '',
                         'photo' => $driverData['photo'] ?? '',
                         'car_color' => $driverData['car_color'] ?? '',
                         'car_model' => $driverData['car_model'] ?? '',
                         'car_photo' => $driverData['car_photo'] ?? '',
-                        'plate_number' => $driverData['palete_number'] ?? '', // Note: keeping original typo from Flutter
-                        'latitude' => (float)$driverData['latitude'],
-                        'longitude' => (float)$driverData['longitude'],
+                        'plate_number' => $driverData['palete_number'] ?? '',
+                        'latitude' => (float)$lat,
+                        'longitude' => (float)$lng,
                         'gender' => $settings['gender'] ?? null,
                         'pickup_radius' => (float)($settings['pickup_radius'] ?? 0.0),
                         'preferred_destination' => $settings['preferred_destination'] ?? '',
