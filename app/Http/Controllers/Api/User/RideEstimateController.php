@@ -587,6 +587,10 @@ class RideEstimateController extends Controller
                     $shouldCycleDrivers = true;
                 }
 
+                // ✅ CRITICAL: Re-index array to have sequential keys [0,1,2...] instead of [0,2,4...]
+                // This is necessary because Google API returns rows in sequential order
+                $eligibleDrivers = array_values($eligibleDrivers);
+
                 // Find nearest driver by ETA
                 $nearestDriver = $this->findNearestDriverByETA(
                     $ride->pickup_lat,
