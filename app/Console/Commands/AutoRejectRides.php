@@ -87,9 +87,21 @@ class AutoRejectRides extends Command
                     return !in_array($d['id'], $excludedDriverIds);
                 });
 
+                // 📝 Log filtering results
+                $filteredOutCount = count($allDrivers) - count($eligibleDrivers);
+                if ($filteredOutCount > 0) {
+                    Log::info("🚫 Filtered out {$filteredOutCount} rejected driver(s). Rejected IDs: " . json_encode($excludedDriverIds));
+                }
+
                 if (empty($eligibleDrivers)) {
                     Log::info("All drivers already rejected ride {$ride->id}, cycling back to all drivers");
                     $eligibleDrivers = $allDrivers; // cycle back to all drivers
+                }
+
+                // 📋 Log eligible drivers being sent to ETA calculation
+                Log::info("✅ Sending " . count($eligibleDrivers) . " eligible driver(s) to ETA calculation:");
+                foreach ($eligibleDrivers as $d) {
+                    Log::info("   → Driver ID: {$d['id']} | Name: {$d['name']}");
                 }
 
                 // Step 5: Find nearest driver by ETA (Google Distance Matrix API)

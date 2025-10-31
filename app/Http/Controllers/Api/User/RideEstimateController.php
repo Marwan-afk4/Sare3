@@ -398,16 +398,41 @@ class RideEstimateController extends Controller
                 $elements = $rows[$i]['elements'] ?? [];
                 if (!empty($elements) && ($elements[0]['status'] ?? '') === 'OK') {
                     $driver['eta_time'] = $elements[0]['duration']['value']; // seconds
+                    $driver['distance_text'] = $elements[0]['distance']['text'] ?? 'N/A';
+                    $driver['distance_value'] = $elements[0]['distance']['value'] ?? 0; // meters
                 } else {
                     $driver['eta_time'] = null;
+                    $driver['distance_text'] = 'N/A';
+                    $driver['distance_value'] = 0;
                 }
             }
 
+            // 🔍 Log all drivers with their calculated ETAs
+            Log::info("📊 ETA calculation results for " . count($eligibleDrivers) . " drivers:");
+            foreach ($eligibleDrivers as $driver) {
+                $etaMinutes = $driver['eta_time'] ? round($driver['eta_time'] / 60, 1) : 'FAILED';
+                $status = $driver['eta_time'] ? '✅' : '❌';
+                Log::info("   {$status} Driver ID: {$driver['id']} | Name: {$driver['name']} | ETA: {$etaMinutes} min ({$driver['eta_time']} sec) | Distance: {$driver['distance_text']}");
+            }
+
             // Filter out invalid ETAs
-            $eligibleDrivers = array_filter($eligibleDrivers, fn($driver) => $driver['eta_time'] !== null);
+            $validDrivers = array_filter($eligibleDrivers, fn($driver) => $driver['eta_time'] !== null);
+            
+            if (count($validDrivers) < count($eligibleDrivers)) {
+                Log::warning("⚠️ Filtered out " . (count($eligibleDrivers) - count($validDrivers)) . " drivers with invalid ETAs");
+            }
 
             // Sort by ETA ascending
-            usort($eligibleDrivers, fn($a, $b) => $a['eta_time'] <=> $b['eta_time']);
+            usort($validDrivers, fn($a, $b) => $a['eta_time'] <=> $b['eta_time']);
+
+            // 🏆 Log sorted drivers (best to worst)
+            Log::info("🏆 Drivers sorted by ETA (best first):");
+            foreach ($validDrivers as $index => $driver) {
+                $etaMinutes = round($driver['eta_time'] / 60, 1);
+                Log::info("   #" . ($index + 1) . " Driver ID: {$driver['id']} | Name: {$driver['name']} | ETA: {$etaMinutes} min | Distance: {$driver['distance_text']}");
+            }
+            
+            $eligibleDrivers = $validDrivers;
 
             $nearestDriver = $eligibleDrivers[0] ?? null;
 
