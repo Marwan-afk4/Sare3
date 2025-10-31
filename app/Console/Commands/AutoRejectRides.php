@@ -93,28 +93,75 @@ class AutoRejectRides extends Command
                     Log::info("🚫 Filtered out {$filteredOutCount} rejected driver(s). Rejected IDs: " . json_encode($excludedDriverIds));
                 }
 
+                $isCycling = false;
                 if (empty($eligibleDrivers)) {
-                    Log::info("All drivers already rejected ride {$ride->id}, cycling back to all drivers");
-                    $eligibleDrivers = $allDrivers; // cycle back to all drivers
+                    Log::info("🔄 All drivers rejected ride {$ride->id}, starting cycling mode");
+                    $isCycling = true;
+                    
+                    // When cycling: sort all drivers by ETA and pick the NEXT one, not the first
+                    // First, get all drivers with their ETAs
+                    $allDriversWithETA = $rideEstimateController->getAllDriversSortedByETA(
+                        $ride->pickup_lat,
+                        $ride->pickup_lng,
+                        $allDrivers,
+                        $ride->id
+                    );
+                    
+                    if (empty($allDriversWithETA)) {
+                        Log::error("No drivers available with valid ETA for ride {$ride->id}");
+                        continue;
+                    }
+                    
+                    // Find the next driver to assign (round-robin through sorted list)
+                    // Get the last assigned driver from rejected list to determine position
+                    $lastDriverId = end($excludedDriverIds);
+                    $lastDriverIndex = -1;
+                    
+                    foreach ($allDriversWithETA as $index => $driver) {
+                        if ($driver['id'] === $lastDriverId) {
+                            $lastDriverIndex = $index;
+                            break;
+                        }
+                    }
+                    
+                    // Pick next driver in cycle (wrap around if at end)
+                    $nextIndex = ($lastDriverIndex + 1) % count($allDriversWithETA);
+                    $selectedDriver = $allDriversWithETA[$nextIndex];
+                    
+                    Log::info("🔄 Cycling: Last driver was at index {$lastDriverIndex}, selecting driver at index {$nextIndex} (ID: {$selectedDriver['id']})");
+                    
+                    // Format the driver data to match expected structure
+                    $nearestDriver = [
+                        'driver_id' => $selectedDriver['id'],
+                        'eta_seconds' => $selectedDriver['eta_seconds'] ?? $selectedDriver['eta_time'],
+                        'eta_minutes' => $selectedDriver['eta_minutes'] ?? round($selectedDriver['eta_time'] / 60, 1),
+                        'driver' => $selectedDriver,
+                    ];
+                    
+                    // Clear rejected list if we've completed a full cycle
+                    if ($nextIndex === 0 && $lastDriverIndex >= 0) {
+                        Log::info("🔄 Full cycle completed, clearing rejected drivers list");
+                        $ride->update(['rejected_drivers' => []]);
+                    }
+                } else {
+                    // ✅ CRITICAL: Re-index array to have sequential keys [0,1,2...] instead of [0,2,4...]
+                    // This is necessary because Google API returns rows in sequential order
+                    $eligibleDrivers = array_values($eligibleDrivers);
+
+                    // 📋 Log eligible drivers being sent to ETA calculation
+                    Log::info("✅ Sending " . count($eligibleDrivers) . " eligible driver(s) to ETA calculation:");
+                    foreach ($eligibleDrivers as $d) {
+                        Log::info("   → Driver ID: {$d['id']} | Name: {$d['name']}");
+                    }
+
+                    // Step 5: Find nearest driver by ETA (Google Distance Matrix API)
+                    $nearestDriver = $rideEstimateController->findNearestDriverByETA(
+                        $ride->pickup_lat,
+                        $ride->pickup_lng,
+                        $eligibleDrivers,
+                        $ride->id
+                    );
                 }
-
-                // ✅ CRITICAL: Re-index array to have sequential keys [0,1,2...] instead of [0,2,4...]
-                // This is necessary because Google API returns rows in sequential order
-                $eligibleDrivers = array_values($eligibleDrivers);
-
-                // 📋 Log eligible drivers being sent to ETA calculation
-                Log::info("✅ Sending " . count($eligibleDrivers) . " eligible driver(s) to ETA calculation:");
-                foreach ($eligibleDrivers as $d) {
-                    Log::info("   → Driver ID: {$d['id']} | Name: {$d['name']}");
-                }
-
-                // Step 5: Find nearest driver by ETA (Google Distance Matrix API)
-                $nearestDriver = $rideEstimateController->findNearestDriverByETA(
-                    $ride->pickup_lat,
-                    $ride->pickup_lng,
-                    $eligibleDrivers,
-                    $ride->id
-                );
 
                 // 🧭 Log nearest driver selection details
                 if (!empty($nearestDriver)) {

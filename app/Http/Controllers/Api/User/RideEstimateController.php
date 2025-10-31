@@ -354,6 +354,74 @@ class RideEstimateController extends Controller
     }
 
     /**
+     * Get all drivers sorted by ETA (used for cycling)
+     */
+    public function getAllDriversSortedByETA($userPickupLat, $userPickupLng, $eligibleDrivers, $rideId = null)
+    {
+        if (empty($eligibleDrivers)) {
+            return [];
+        }
+
+        $googleApiKey = config('services.google.maps_api_key');
+
+        if (!$googleApiKey) {
+            Log::error('Google Maps API key not configured');
+            return [];
+        }
+
+        // Build origins (drivers' coordinates)
+        $originsArray = collect($eligibleDrivers)->map(
+            fn($driver) => $driver['latitude'] . ',' . $driver['longitude']
+        )->toArray();
+        
+        $origins = implode('|', $originsArray);
+        $destination = $userPickupLat . ',' . $userPickupLng;
+
+        try {
+            $response = Http::get('https://maps.googleapis.com/maps/api/distancematrix/json', [
+                'origins' => $origins,
+                'destinations' => $destination,
+                'key' => $googleApiKey,
+            ]);
+
+            if (!$response->successful()) {
+                Log::error('Error from Google API: ' . $response->body());
+                return [];
+            }
+
+            $data = $response->json();
+            $rows = $data['rows'] ?? [];
+
+            // Attach ETA to each driver
+            foreach ($eligibleDrivers as $i => &$driver) {
+                $elements = $rows[$i]['elements'] ?? [];
+                if (!empty($elements) && ($elements[0]['status'] ?? '') === 'OK') {
+                    $driver['eta_time'] = $elements[0]['duration']['value']; // seconds
+                    $driver['eta_seconds'] = $elements[0]['duration']['value'];
+                    $driver['eta_minutes'] = round($elements[0]['duration']['value'] / 60, 1);
+                    $driver['distance_text'] = $elements[0]['distance']['text'] ?? 'N/A';
+                } else {
+                    $driver['eta_time'] = null;
+                }
+            }
+            unset($driver); // Break reference
+
+            // Filter out invalid ETAs
+            $validDrivers = array_filter($eligibleDrivers, fn($driver) => $driver['eta_time'] !== null);
+
+            // Sort by ETA ascending
+            usort($validDrivers, fn($a, $b) => $a['eta_time'] <=> $b['eta_time']);
+
+            Log::info("🔄 Sorted all " . count($validDrivers) . " drivers by ETA for cycling");
+
+            return array_values($validDrivers);
+        } catch (\Exception $e) {
+            Log::error('Error calling Google Distance Matrix API for cycling: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
      * Find nearest driver by ETA using Google Distance Matrix API
      */
     public function findNearestDriverByETA($userPickupLat, $userPickupLng, $eligibleDrivers, $rideId = null)
@@ -561,33 +629,58 @@ class RideEstimateController extends Controller
                 return null;
             }
 
-            if ($shouldCycleDrivers) {
-                Log::info("Cycling drivers for ride {$ride->id} after " . count($excludedDriverIds) . " rejections");
+            // Normal flow - exclude rejected drivers
+            $eligibleDrivers = array_filter($allDrivers, function ($driver) use ($excludedDriverIds) {
+                return !in_array($driver['id'], $excludedDriverIds);
+            });
 
-                // Use all drivers for cycling (ignore previous rejections)
-                $eligibleDrivers = $allDrivers;
-
-                // Find nearest driver by ETA from all available drivers
-                $nearestDriver = $this->findNearestDriverByETA(
+            if (empty($eligibleDrivers) || $shouldCycleDrivers) {
+                Log::info("🔄 All drivers rejected ride {$ride->id}, using round-robin cycling");
+                
+                // When cycling: sort all drivers by ETA and pick the NEXT one, not the first
+                $allDriversWithETA = $this->getAllDriversSortedByETA(
                     $ride->pickup_lat,
                     $ride->pickup_lng,
-                    $eligibleDrivers,
+                    $allDrivers,
                     $ride->id
                 );
-            } else {
-                // Normal flow - exclude rejected drivers
-                $eligibleDrivers = array_filter($allDrivers, function ($driver) use ($excludedDriverIds) {
-                    return !in_array($driver['id'], $excludedDriverIds);
-                });
-
-                if (empty($eligibleDrivers)) {
-                    Log::info("All available drivers rejected ride {$ride->id}, starting to cycle");
-
-                    // Start cycling - use all drivers
-                    $eligibleDrivers = $allDrivers;
-                    $shouldCycleDrivers = true;
+                
+                if (empty($allDriversWithETA)) {
+                    Log::error("No drivers available with valid ETA for ride {$ride->id}");
+                    return null;
                 }
-
+                
+                // Find the next driver to assign (round-robin through sorted list)
+                $lastDriverId = end($excludedDriverIds);
+                $lastDriverIndex = -1;
+                
+                foreach ($allDriversWithETA as $index => $driver) {
+                    if ($driver['id'] === $lastDriverId) {
+                        $lastDriverIndex = $index;
+                        break;
+                    }
+                }
+                
+                // Pick next driver in cycle (wrap around if at end)
+                $nextIndex = ($lastDriverIndex + 1) % count($allDriversWithETA);
+                $selectedDriver = $allDriversWithETA[$nextIndex];
+                
+                Log::info("🔄 Cycling: Last driver was at index {$lastDriverIndex}, selecting driver at index {$nextIndex} (ID: {$selectedDriver['id']})");
+                
+                // Format the driver data to match expected structure
+                $nearestDriver = [
+                    'driver_id' => $selectedDriver['id'],
+                    'eta_seconds' => $selectedDriver['eta_seconds'] ?? $selectedDriver['eta_time'],
+                    'eta_minutes' => $selectedDriver['eta_minutes'] ?? round($selectedDriver['eta_time'] / 60, 1),
+                    'driver' => $selectedDriver,
+                ];
+                
+                // Clear rejected list if we've completed a full cycle
+                if ($nextIndex === 0 && $lastDriverIndex >= 0) {
+                    Log::info("🔄 Full cycle completed, clearing rejected drivers list");
+                    $ride->update(['rejected_drivers' => []]);
+                }
+            } else {
                 // ✅ CRITICAL: Re-index array to have sequential keys [0,1,2...] instead of [0,2,4...]
                 // This is necessary because Google API returns rows in sequential order
                 $eligibleDrivers = array_values($eligibleDrivers);
