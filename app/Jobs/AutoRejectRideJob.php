@@ -102,18 +102,22 @@ class AutoRejectRideJob implements ShouldQueue
                 // Just need to reload and update Firebase with additional info
                 $ride->refresh();
                 
+                $driverId = $alternativeDriver['driver_id'] ?? $alternativeDriver['id'] ?? null;
+                
                 $firebase->getReference("rides/$firebaseRideId")->update([
                     'previous_rejections' => count($rejectedDrivers),
                 ]);
 
                 // Schedule another auto-reject job for the new driver
-                AutoRejectRideJob::dispatch(
-                    $ride->id,
-                    $alternativeDriver['id'],
-                    $ride->updated_at->format('Y-m-d H:i:s')
-                )->delay(now()->addSeconds(15));
+                if ($driverId) {
+                    AutoRejectRideJob::dispatch(
+                        $ride->id,
+                        $driverId,
+                        $ride->updated_at->format('Y-m-d H:i:s')
+                    )->delay(now()->addSeconds(15));
+                }
 
-                Log::info("✅ AutoRejectRideJob: Ride {$this->rideId} reassigned to driver {$alternativeDriver['id']} (previous driver: {$this->driverId})");
+                Log::info("✅ AutoRejectRideJob: Ride {$this->rideId} reassigned to driver {$driverId} (previous driver: {$this->driverId})");
             } else {
                 Log::warning("❌ AutoRejectRideJob: No alternative drivers found for ride {$this->rideId}, marking as rejected");
                 

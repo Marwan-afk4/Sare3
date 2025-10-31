@@ -450,15 +450,22 @@ class RideActionsController extends Controller
             DB::commit();
 
             if ($alternativeDriver) {
+                $driverId = $alternativeDriver['driver_id'] ?? $alternativeDriver['id'] ?? null;
+                
+                if (!$driverId) {
+                    Log::error("Invalid alternative driver structure in cancelRide", ['alternative_driver' => $alternativeDriver]);
+                    return response()->json(['message' => 'Failed to find alternative driver'], 500);
+                }
+                
                 $ride->update([
-                    'driver_id' => $alternativeDriver['id'],
+                    'driver_id' => $driverId,
                     'status' => 'pending',
                     'cancellation_reason_id' => $request->reason ?? null,
                     'reassigned_at' => now(),
                 ]);
 
                 $this->updateFirebase($ride, [
-                    'driver_id' => $alternativeDriver['id'],
+                    'driver_id' => $driverId,
                     'status' => 'pending',
                     'reassigned_at' => now()->toIso8601String(),
                     'previous_rejections' => count($rejectedDrivers),
@@ -468,7 +475,7 @@ class RideActionsController extends Controller
                 $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
                 AutoRejectRideJob::dispatch(
                     $ride->id,
-                    $alternativeDriver['id'],
+                    $driverId,
                     $ride->updated_at->format('Y-m-d H:i:s')
                 )->delay(now()->addSeconds($timeoutSeconds));
             } else {
