@@ -371,12 +371,21 @@ class RideEstimateController extends Controller
         }
 
         // Build origins (drivers' coordinates)
-        $origins = collect($eligibleDrivers)->map(
+        $originsArray = collect($eligibleDrivers)->map(
             fn($driver) =>
             $driver['latitude'] . ',' . $driver['longitude']
-        )->join('|');
-
+        )->toArray();
+        
+        $origins = implode('|', $originsArray);
         $destination = $userPickupLat . ',' . $userPickupLng;
+
+        // 🔍 Log request details
+        Log::info("📡 Sending request to Google Distance Matrix API:");
+        Log::info("   Destination (pickup): {$destination}");
+        Log::info("   Origins (" . count($originsArray) . " drivers):");
+        foreach ($eligibleDrivers as $index => $driver) {
+            Log::info("      [{$index}] Driver {$driver['id']} ({$driver['name']}): {$originsArray[$index]}");
+        }
 
         try {
             $response = Http::get('https://maps.googleapis.com/maps/api/distancematrix/json', [
@@ -393,17 +402,42 @@ class RideEstimateController extends Controller
             $data = $response->json();
             $rows = $data['rows'] ?? [];
 
+            // 🔍 Log raw Google API response for debugging
+            Log::info("🌐 Google Distance Matrix API Response:", [
+                'status' => $data['status'] ?? 'UNKNOWN',
+                'origin_addresses' => $data['origin_addresses'] ?? [],
+                'destination_addresses' => $data['destination_addresses'] ?? [],
+                'rows_count' => count($rows)
+            ]);
+
+            // Log each row result
+            foreach ($rows as $index => $row) {
+                $elements = $row['elements'] ?? [];
+                foreach ($elements as $elemIndex => $element) {
+                    Log::info("   Row {$index}, Element {$elemIndex}: Status=" . ($element['status'] ?? 'UNKNOWN') . 
+                              ", Duration=" . ($element['duration']['value'] ?? 'N/A') . 
+                              ", Distance=" . ($element['distance']['text'] ?? 'N/A'));
+                }
+            }
+
             // Attach ETA to each driver
+            Log::info("🔗 Mapping Google API rows to drivers:");
             foreach ($eligibleDrivers as $i => &$driver) {
                 $elements = $rows[$i]['elements'] ?? [];
+                $elementStatus = $elements[0]['status'] ?? 'MISSING';
+                
+                Log::info("   Index {$i}: Driver ID {$driver['id']} ({$driver['name']}) → Row {$i} Status: {$elementStatus}");
+                
                 if (!empty($elements) && ($elements[0]['status'] ?? '') === 'OK') {
                     $driver['eta_time'] = $elements[0]['duration']['value']; // seconds
                     $driver['distance_text'] = $elements[0]['distance']['text'] ?? 'N/A';
                     $driver['distance_value'] = $elements[0]['distance']['value'] ?? 0; // meters
+                    Log::info("      ✅ Assigned ETA: {$driver['eta_time']} sec, Distance: {$driver['distance_text']}");
                 } else {
                     $driver['eta_time'] = null;
                     $driver['distance_text'] = 'N/A';
                     $driver['distance_value'] = 0;
+                    Log::warning("      ❌ Failed to get ETA - Status: {$elementStatus}");
                 }
             }
 
