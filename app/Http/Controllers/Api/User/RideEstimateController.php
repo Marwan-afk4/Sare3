@@ -527,6 +527,9 @@ class RideEstimateController extends Controller
                 ]);
             }
 
+            // Check if we need to cycle back to first drivers (after 12 rejections)
+            $shouldCycleDrivers = count($excludedDriverIds) > 12;
+
             // Get all available drivers
             $allDrivers = $this->getEligibleDrivers(
                 $ride->pickup_lat,
@@ -558,54 +561,45 @@ class RideEstimateController extends Controller
                 return null;
             }
 
-            // Filter out rejected drivers
-            $eligibleDrivers = array_filter($allDrivers, function ($driver) use ($excludedDriverIds) {
-                return !in_array($driver['id'], $excludedDriverIds);
-            });
+            if ($shouldCycleDrivers) {
+                Log::info("Cycling drivers for ride {$ride->id} after " . count($excludedDriverIds) . " rejections");
 
-            // 🚫 If all drivers have rejected, stop trying
-            if (empty($eligibleDrivers)) {
-                Log::warning("⚠️ All available drivers ({count}) have rejected ride {$ride->id}. No more drivers to try.", ['count' => count($allDrivers)]);
+                // Use all drivers for cycling (ignore previous rejections)
+                $eligibleDrivers = $allDrivers;
 
-                $ride->update([
-                    'driver_id' => null,
-                    'status' => 'pending',
-                ]);
+                // Find nearest driver by ETA from all available drivers
+                $nearestDriver = $this->findNearestDriverByETA(
+                    $ride->pickup_lat,
+                    $ride->pickup_lng,
+                    $eligibleDrivers,
+                    $ride->id
+                );
+            } else {
+                // Normal flow - exclude rejected drivers
+                $eligibleDrivers = array_filter($allDrivers, function ($driver) use ($excludedDriverIds) {
+                    return !in_array($driver['id'], $excludedDriverIds);
+                });
 
-                // Firebase update
-                $firebase = (new Factory)
-                    ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                    ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                    ->createDatabase();
+                if (empty($eligibleDrivers)) {
+                    Log::info("All available drivers rejected ride {$ride->id}, starting to cycle");
 
-                $firebaseRideId = 'ride_' . $ride->id;
+                    // Start cycling - use all drivers
+                    $eligibleDrivers = $allDrivers;
+                    $shouldCycleDrivers = true;
+                }
 
-                $firebase->getReference("rides/$firebaseRideId")->update([
-                    'driver_id' => null,
-                    'status' => 'pending',
-                    'all_drivers_rejected' => true,
-                    'total_rejections' => count($excludedDriverIds),
-                ]);
+                // ✅ CRITICAL: Re-index array to have sequential keys [0,1,2...] instead of [0,2,4...]
+                // This is necessary because Google API returns rows in sequential order
+                $eligibleDrivers = array_values($eligibleDrivers);
 
-                return null;
+                // Find nearest driver by ETA
+                $nearestDriver = $this->findNearestDriverByETA(
+                    $ride->pickup_lat,
+                    $ride->pickup_lng,
+                    $eligibleDrivers,
+                    $ride->id
+                );
             }
-
-            // ✅ CRITICAL: Re-index array to have sequential keys [0,1,2...] instead of [0,2,4...]
-            // This is necessary because Google API returns rows in sequential order
-            $eligibleDrivers = array_values($eligibleDrivers);
-
-            Log::info("🔍 Searching for alternative driver among {count} eligible drivers (excluded {rejected})", [
-                'count' => count($eligibleDrivers),
-                'rejected' => count($excludedDriverIds)
-            ]);
-
-            // Find nearest driver by ETA
-            $nearestDriver = $this->findNearestDriverByETA(
-                $ride->pickup_lat,
-                $ride->pickup_lng,
-                $eligibleDrivers,
-                $ride->id
-            );
 
             if (!$nearestDriver) {
                 Log::info("No driver found with valid ETA for ride {$ride->id}");
@@ -619,9 +613,8 @@ class RideEstimateController extends Controller
                 return null;
             }
 
-            Log::info("✅ Found alternative driver {$driverId} for ride {$ride->id} (attempt #{attempt})", [
-                'attempt' => count($excludedDriverIds) + 1
-            ]);
+            Log::info("Found driver {$driverId} for ride {$ride->id}" .
+                ($shouldCycleDrivers ? " (cycling after " . count($excludedDriverIds) . " rejections)" : ""));
 
             // Update ride with new driver
             $ride->update([
@@ -649,6 +642,7 @@ class RideEstimateController extends Controller
                 'status' => 'pending',
                 'reassigned_at' => now()->toIso8601String(),
                 'previous_rejections' => count($excludedDriverIds),
+                'is_cycling' => $shouldCycleDrivers,
             ]);
 
             // ✅ Send push notification to new driver
