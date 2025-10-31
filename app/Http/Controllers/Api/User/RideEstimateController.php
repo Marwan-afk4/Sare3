@@ -440,6 +440,7 @@ class RideEstimateController extends Controller
                     Log::warning("      ❌ Failed to get ETA - Status: {$elementStatus}");
                 }
             }
+            unset($driver); // ✅ CRITICAL: Break the reference to prevent array corruption
 
             // 🔍 Log all drivers with their calculated ETAs
             Log::info("📊 ETA calculation results for " . count($eligibleDrivers) . " drivers:");
