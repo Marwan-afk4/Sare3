@@ -86,7 +86,7 @@ class ProfileController extends Controller
         $userRide = Ride::whereNotIn('status',['finshed', 'cancelled'])
             ->where('user_id', $user->id)
             ->select('id', 'status')
-            ->first();
+            ->get();
 
         return response()->json([
             'is_in_ride' => $userRide
