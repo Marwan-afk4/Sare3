@@ -82,6 +82,15 @@ class AutoRejectRides extends Command
                     continue;
                 }
 
+                // 🧠 Log ALL available drivers with their ETA and distance if available
+                Log::info("📋 All available drivers for ride {$ride->id}:");
+                foreach ($allDrivers as $d) {
+                    $driverName = $d['name'] ?? 'Unknown';
+                    $eta = $d['eta_seconds'] ?? 'N/A';
+                    $distance = $d['distance_km'] ?? 'N/A';
+                    Log::info("   - Driver ID: {$d['id']} | Name: {$driverName} | ETA: {$eta}s | Distance: {$distance}km");
+                }
+
                 // Step 5: Filter out excluded drivers
                 $eligibleDrivers = array_filter($allDrivers, function ($d) use ($excludedDriverIds) {
                     return !in_array($d['id'], $excludedDriverIds);
@@ -91,8 +100,6 @@ class AutoRejectRides extends Command
                     $eligibleDrivers = $allDrivers; // cycle back to all drivers
                 }
 
-                // Log::debug("Eligible drivers details for ride {$ride->id}:", $eligibleDrivers);
-
                 // Step 6: Find nearest driver by ETA
                 $nearestDriver = $rideEstimateController->findNearestDriverByETA(
                     $ride->pickup_lat,
@@ -101,11 +108,16 @@ class AutoRejectRides extends Command
                     $ride->id
                 );
 
-                Log::info("Nearest driver raw data for ride {$ride->id}: " . print_r($nearestDriver, true));
-
-                if (empty($nearestDriver)) {
+                // 🧭 Log nearest driver selection details
+                if (!empty($nearestDriver)) {
+                    Log::info("🏁 Nearest driver selected for ride {$ride->id}: " . json_encode([
+                        'id' => $nearestDriver['driver_id'] ?? $nearestDriver['id'] ?? null,
+                        'eta_seconds' => $nearestDriver['eta_seconds'] ?? 'N/A',
+                        'distance_km' => $nearestDriver['distance_km'] ?? 'N/A',
+                        'name' => $nearestDriver['driver']['name'] ?? $nearestDriver['name'] ?? 'Unknown'
+                    ]));
+                } else {
                     Log::warning("⚠️ No nearest driver found for ride {$ride->id}");
-                    continue;
                 }
 
                 // ✅ Normalize structure if it's nested
