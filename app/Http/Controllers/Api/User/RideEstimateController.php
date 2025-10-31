@@ -606,12 +606,19 @@ class RideEstimateController extends Controller
                 return null;
             }
 
-            Log::info("Found driver {$nearestDriver['id']} for ride {$ride->id}" .
+            $driverId = $nearestDriver['driver_id'] ?? $nearestDriver['id'] ?? null;
+            
+            if (!$driverId) {
+                Log::error("Invalid nearest driver structure for ride {$ride->id}: " . json_encode($nearestDriver));
+                return null;
+            }
+
+            Log::info("Found driver {$driverId} for ride {$ride->id}" .
                 ($shouldCycleDrivers ? " (cycling after " . count($excludedDriverIds) . " rejections)" : ""));
 
             // Update ride with new driver
             $ride->update([
-                'driver_id' => $nearestDriver['id'],
+                'driver_id' => $driverId,
                 'status' => 'pending',
                 'reassigned_at' => now(),
                 'driver_assigned_at' => now(),
@@ -625,12 +632,12 @@ class RideEstimateController extends Controller
 
             $firebaseRideId = 'ride_' . $ride->id;
 
-            $driverRating = Rating::where('ratee_id', $nearestDriver['id'])
+            $driverRating = Rating::where('ratee_id', $driverId)
                 ->where('ratee_type', 'driver')
                 ->avg('rate');
 
             $firebase->getReference("rides/$firebaseRideId")->update([
-                'driver_id' => $nearestDriver['id'],
+                'driver_id' => $driverId,
                 'driver_rating' => round($driverRating ?? 0, 1),
                 'status' => 'pending',
                 'reassigned_at' => now()->toIso8601String(),
@@ -639,7 +646,7 @@ class RideEstimateController extends Controller
             ]);
 
             // ✅ Send push notification to new driver
-            $driver = User::find($nearestDriver['id']);
+            $driver = User::find($driverId);
             if ($driver && $driver->fcm_token) {
                 $data = [
                     'title'    => 'New Ride Request',
@@ -657,7 +664,7 @@ class RideEstimateController extends Controller
 
                 Log::info("Notification sent to driver {$driver->id}", ['response' => $response]);
             } else {
-                Log::warning("No FCM token found for driver {$nearestDriver['id']}");
+                Log::warning("No FCM token found for driver {$driverId}");
             }
 
             return $nearestDriver;
