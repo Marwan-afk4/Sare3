@@ -93,9 +93,21 @@ class AutoRejectRides extends Command
                     Log::info("🚫 Filtered out {$filteredOutCount} rejected driver(s). Rejected IDs: " . json_encode($excludedDriverIds));
                 }
 
+                // 🔄 Handle cycling: if all drivers rejected, keep rejected list and mark as cycling
                 if (empty($eligibleDrivers)) {
-                    Log::info("All drivers already rejected ride {$ride->id}, cycling back to all drivers");
-                    $eligibleDrivers = $allDrivers; // cycle back to all drivers
+                    $cycleCount = count($excludedDriverIds);
+                    Log::warning("⚠️ All {$cycleCount} drivers have rejected ride {$ride->id}. No more drivers available.");
+                    
+                    // Mark ride as failed/no drivers available
+                    $ride->update([
+                        'driver_id' => null,
+                        'status' => 'pending', // or 'no_drivers_available' if you have that status
+                    ]);
+                    
+                    $this->updateFirebaseRideStatus($ride, 'pending');
+                    
+                    Log::info("🚫 Ride {$ride->id} marked as pending - all available drivers have rejected");
+                    continue;
                 }
 
                 // ✅ CRITICAL: Re-index array to have sequential keys [0,1,2...] instead of [0,2,4...]
