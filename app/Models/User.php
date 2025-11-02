@@ -46,7 +46,8 @@ class User extends Authenticatable
         'referrer_id',
         'is_referrer',
         'referral_code',
-        'zone_id'
+        'zone_id',
+        'pending_coupon_id'
     ];
 
     protected $casts = [
@@ -78,6 +79,11 @@ class User extends Authenticatable
         return $this->hasOne(Referral::class, 'referred_user_id')
                     ->where('is_active', true)
                     ->whereColumn('used_rides_count', '<', 'discount_rides_count');
+    }
+
+    public function pendingCoupon()
+    {
+        return $this->belongsTo(Coupon::class, 'pending_coupon_id');
     }
 
     /**

@@ -203,6 +203,21 @@ class RideEstimateController extends Controller
             'driver_id' => $request->driver_id,
         ]);
 
+        // Check if user has a pending coupon and apply it
+        if ($user->pending_coupon_id) {
+            $pendingCoupon = \App\Models\Coupon::find($user->pending_coupon_id);
+            if ($pendingCoupon && $pendingCoupon->isValid() && $pendingCoupon->canBeUsedByUser($user)) {
+                $pendingCoupon->applyToRide($ride);
+                // Clear the pending coupon from user
+                $user->update(['pending_coupon_id' => null]);
+                // Refresh ride to get updated data
+                $ride->refresh();
+            } else {
+                // Clear invalid pending coupon
+                $user->update(['pending_coupon_id' => null]);
+            }
+        }
+
         $firebaseRideId = 'ride_' . $ride->id;
 
         try {
@@ -236,7 +251,9 @@ class RideEstimateController extends Controller
                 ],
                 'estimated_time' => $request->estimated_time,
                 'estimated_km' => $request->estimated_km,
-                'initial_price' => (float)($price + 0.01),
+                'initial_price' => (float)($ride->calculated_initial_price ?? $price),
+                'coupon_discount' => (float)($ride->coupon_discount ?? 0),
+                'final_price' => (float)($ride->calculated_final_price ?? $ride->calculated_initial_price ?? $price),
                 'driver_eta_minutes' => $request->driver_eta_minutes,
                 'status' => $ride->status,
                 'cancellation_policy' => $policyExists,

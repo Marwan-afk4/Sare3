@@ -87,38 +87,21 @@ class CouponController extends Controller
     }
 
     /**
-     * Apply coupon to a ride
+     * Apply coupon to user (for next ride)
      */
     public function applyCoupon(Request $request)
     {
         $request->validate([
             'code' => 'required|string',
-            'ride_id' => 'required|exists:rides,id'
         ]);
 
-        $ride = Ride::findOrFail($request->ride_id);
+        $user = Auth::user();
 
-        // Check if user owns the ride
-        if ($ride->user_id !== Auth::id()) {
+        // Check if user already has a pending coupon
+        if ($user->pending_coupon_id) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized access to ride'
-            ], 403);
-        }
-
-        // Check if ride already has a coupon applied
-        if ($ride->coupon_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'A coupon is already applied to this ride'
-            ], 422);
-        }
-
-        // Check if ride is in a state where coupon can be applied
-        if (!in_array($ride->status->value, ['pending', 'accepted'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Coupon can only be applied to pending or accepted rides'
+                'message' => 'You already have a coupon selected. Remove it first to apply a new one.'
             ], 422);
         }
 
@@ -131,104 +114,71 @@ class CouponController extends Controller
             ], 404);
         }
 
-        if (!$coupon->canBeUsedByUser(Auth::user())) {
+        if (!$coupon->isValid()) {
+            $message = 'Coupon is not valid';
+            if (!$coupon->is_active) {
+                $message = 'Coupon is inactive';
+            } elseif ($coupon->starts_at > now()) {
+                $message = 'Coupon is not yet active';
+            } elseif ($coupon->expires_at < now()) {
+                $message = 'Coupon has expired';
+            } elseif ($coupon->usage_limit && $coupon->usage_count >= $coupon->usage_limit) {
+                $message = 'Coupon usage limit reached';
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'You cannot use this coupon'
+                'message' => $message
             ], 422);
         }
 
-        $success = $coupon->applyToRide($ride);
-
-        if (!$success) {
+        if (!$coupon->canBeUsedByUser($user)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to apply coupon to ride'
+                'message' => 'You have already used this coupon the maximum number of times'
             ], 422);
         }
 
-        $ride->refresh();
+        // Store the coupon as pending for the user
+        $user->update(['pending_coupon_id' => $coupon->id]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Coupon applied successfully',
+            'message' => 'Coupon will be applied to your next ride',
             'data' => [
-                'ride' => [
-                    'id' => $ride->id,
-                    'calculated_initial_price' => $ride->calculated_initial_price,
-                    'coupon_discount' => $ride->coupon_discount,
-                    'calculated_final_price' => $ride->calculated_final_price,
-                ],
                 'coupon' => [
+                    'id' => $coupon->id,
                     'code' => $coupon->code,
                     'name' => $coupon->name,
-                    'discount_amount' => $ride->coupon_discount
+                    'description' => $coupon->description,
+                    'type' => $coupon->type,
+                    'value' => $coupon->value,
                 ]
             ]
         ]);
     }
 
     /**
-     * Remove coupon from a ride
+     * Remove pending coupon from user
      */
     public function removeCoupon(Request $request)
     {
-        $request->validate([
-            'ride_id' => 'required|exists:rides,id'
-        ]);
+        $user = Auth::user();
 
-        $ride = Ride::findOrFail($request->ride_id);
-
-        // Check if user owns the ride
-        if ($ride->user_id !== Auth::id()) {
+        // Check if user has a pending coupon
+        if (!$user->pending_coupon_id) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized access to ride'
-            ], 403);
-        }
-
-        // Check if ride has a coupon applied
-        if (!$ride->coupon_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No coupon applied to this ride'
+                'message' => 'No coupon selected'
             ], 422);
         }
 
-        // Check if ride is in a state where coupon can be removed
-        if (!in_array($ride->status->value, ['pending', 'accepted'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Coupon can only be removed from pending or accepted rides'
-            ], 422);
-        }
-
-        // Get the coupon before removing
-        $coupon = $ride->coupon;
-
-        // Remove coupon usage record
-        $ride->couponUsage()->delete();
-
-        // Decrement coupon usage count
-        $coupon->decrement('usage_count');
-
-        // Update ride
-        $ride->update([
-            'coupon_id' => null,
-            'coupon_discount' => 0,
-            'calculated_final_price' => $ride->calculated_initial_price
-        ]);
+        // Clear the pending coupon
+        $user->update(['pending_coupon_id' => null]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Coupon removed successfully',
-            'data' => [
-                'ride' => [
-                    'id' => $ride->id,
-                    'calculated_initial_price' => $ride->calculated_initial_price,
-                    'calculated_final_price' => $ride->calculated_final_price,
-                ]
-            ]
+            'message' => 'Coupon removed successfully'
         ]);
     }
 
