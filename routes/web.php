@@ -17,6 +17,7 @@ use App\Http\Controllers\{
     HomePageController,
     PrivacyPolicyController,
     RatingController,
+    SupportController,
     UserController,
     DriverController,
     NotificationController,
@@ -36,6 +37,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 // Public routes
 Route::get('/privacy-policy', [\App\Http\Controllers\PrivacyPolicyController::class, 'index'])->name('privacy-policy');
+Route::get('/support', [\App\Http\Controllers\SupportController::class, 'index'])->name('support');
 
 Route::controller(AuthController::class)->group(function () {
         Route::get('/login', 'showLoginForm')->name('login');
