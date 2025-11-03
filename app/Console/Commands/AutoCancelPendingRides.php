@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Helpers\FcmHelper;
 use Illuminate\Console\Command;
 use App\Models\Ride;
 use Carbon\Carbon;
@@ -50,6 +51,28 @@ class AutoCancelPendingRides extends Command
 
                 // ✅ 3. Remove ride from Firebase
                 $this->deleteFirebaseRide($ride);
+
+                // ✅ 4. Send notification to the user
+                $user = $ride->user; // assuming Ride has user() relationship
+                if ($user && $user->fcm_token) {
+                    $data = [
+                        'title'    => 'Ride Cancelled',
+                        'body'     => 'Your ride has been cancelled because no drivers were available.',
+                        'msg_type' => 'ride_cancelled',
+                        'ride_id'  => (string) $ride->id,
+                    ];
+
+                    $response = FcmHelper::sendPushNotification(
+                        $user->fcm_token,
+                        $data['title'],
+                        $data['body'],
+                        $data
+                    );
+
+                    Log::info("📩 Notification sent to user {$user->id} for cancelled ride {$ride->id}", ['response' => $response]);
+                } else {
+                    Log::warning("⚠️ No FCM token found for user of ride {$ride->id}");
+                }
 
                 Log::info("❌ Ride ID {$ride->id} cancelled and deleted from Firebase.");
             } catch (Exception $e) {
