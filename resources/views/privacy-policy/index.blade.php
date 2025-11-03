@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>سياسة الخصوصية - Sarea</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('public/logo/Layer_2_Image.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('public/logo/Layer_2_Image.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('public/logo/Layer_2_Image.png') }}">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
