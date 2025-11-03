@@ -248,11 +248,9 @@
                     <div class="row">
                         <div class="col-md-6">
                             <p><strong>مسؤول حماية البيانات</strong></p>
-                            <p>📧 البريد الإلكتروني: privacy@sarea.jo</p>
-                            <p>📞 الهاتف: +962-6-XXXXXXX</p>
+                            <p>📧 البريد الإلكتروني: Aom.sst25@gmail.com</p>
                         </div>
                         <div class="col-md-6">
-                            <p>📍 العنوان: عمان، الأردن</p>
                             <p>🕒 ساعات العمل: الأحد - الخميس، 9:00 ص - 5:00 م</p>
                         </div>
                     </div>
