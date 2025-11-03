@@ -15,6 +15,7 @@ use App\Http\Controllers\{
     DriverCarController,
     DriverDocumentController,
     HomePageController,
+    PrivacyPolicyController,
     RatingController,
     UserController,
     DriverController,
@@ -32,6 +33,9 @@ use App\Http\Controllers\Admin\SupportChatController as AdminSupportChatControll
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/', [HomePageController::class, 'index'])->name('home');
 });
+
+// Public routes
+Route::get('/privacy-policy', [\App\Http\Controllers\PrivacyPolicyController::class, 'index'])->name('privacy-policy');
 
 Route::controller(AuthController::class)->group(function () {
         Route::get('/login', 'showLoginForm')->name('login');
