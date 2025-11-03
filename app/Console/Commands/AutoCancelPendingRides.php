@@ -33,7 +33,7 @@ class AutoCancelPendingRides extends Command
 
         // ✅ 1. Get all rides still pending after 15 minutes
         $rides = Ride::where('status', 'pending')
-            ->where('updated_at', '<', Carbon::now()->subMinutes(15))
+            ->where('updated_at', '<', Carbon::now()->subMinutes(5))
             ->get();
 
         if ($rides->isEmpty()) {
