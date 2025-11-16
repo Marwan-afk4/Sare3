@@ -87,7 +87,8 @@ class DriverController extends Controller
 
     public function create()
     {
-        return view('drivers.create');
+        $driverStatus = DriverStatus::labels();
+        return view('drivers.create', compact('driverStatus'));
     }
 
     public function store(StoreDriverRequest $request)

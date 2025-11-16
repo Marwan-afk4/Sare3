@@ -5,7 +5,12 @@
 @section('title', __('Drivers'))
 @section('content')
     <div class="container-fluid">
-        <h1 class="mb-4">{{ __('Drivers') }}</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">{{ __('Drivers') }}</h1>
+            <a href="{{ route('drivers.create') }}" class="btn btn-primary">
+                <i class="fa fa-plus me-2"></i>{{ __('Create Driver') }}
+            </a>
+        </div>
 
         {{-- Activity Filter Buttons --}}
         <div class="mb-3">
@@ -31,12 +36,12 @@
                     {{ __('All Zones') }}
                 </a>
                 @foreach ($zones as $zone)
-                    <a href="{{ route('drivers.index', ['zone' => $zone->id]) }}" 
+                    <a href="{{ route('drivers.index', ['zone' => $zone->id]) }}"
                         class="btn btn-sm {{ request('zone') == $zone->id ? 'btn-info' : 'btn-outline-info' }}">
                         {{ $zone->name }} ({{ $zone->driver_count }})
                     </a>
                 @endforeach
-                <a href="{{ route('drivers.index', ['zone' => 'no_zone']) }}" 
+                <a href="{{ route('drivers.index', ['zone' => 'no_zone']) }}"
                     class="btn btn-sm {{ request('zone') === 'no_zone' ? 'btn-warning' : 'btn-outline-warning' }}">
                     {{ __('No Zone') }} ({{ $driversWithNoZoneCount }})
                 </a>

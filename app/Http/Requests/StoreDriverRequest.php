@@ -33,6 +33,7 @@ class StoreDriverRequest extends FormRequest
             'activity' => 'nullable|in:active,inactive',
             'wallet' => 'nullable|numeric',
             'role' => 'required|in:admin,driver,user',
+            'status' => 'nullable|in:approved,pending,rejected',
         ];
     }
 

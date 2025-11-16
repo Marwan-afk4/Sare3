@@ -24,18 +24,25 @@
 					type="text"
 					label="{{__('Email')}}"
 				/>
-                <x-form-input
-                    name="password"
-                    type="password"
-                    label="{{__('Password')}}"
-                    required
-                />
 				<x-form-input
 					name="phone"
 					type="text"
 					label="{{__('Phone')}}"
 					required
 				/>
+                <x-form-input
+                    name="password"
+                    type="password"
+                    label="{{__('Password')}}"
+                    required
+                />
+                <x-form-select
+                    name="status"
+                    type="select"
+                    :options="$driverStatus"
+                    label="{{__('Status')}}"
+                    required
+                />
 				<button type='submit' class="btn btn-primary btn-sm me-1">{{ __('Add') }}</button>
 			</form>
 		</div>
