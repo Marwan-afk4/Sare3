@@ -157,7 +157,8 @@ class DriverController extends Controller
     {
         $diverActivityStatus = ActivtyType::labels();
         $driverStatus = DriverStatus::labels();
-        return view('drivers.edit', compact('driver', 'diverActivityStatus', 'driverStatus'));
+        $zones = Zone::orderBy('name')->pluck('name', 'id')->toArray();
+        return view('drivers.edit', compact('driver', 'diverActivityStatus', 'driverStatus', 'zones'));
     }
 
 

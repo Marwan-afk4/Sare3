@@ -25,6 +25,7 @@ class UpdateDriverRequest extends FormRequest
             'status' => 'nullable|in:approved,rejected',
             'wallet' => 'nullable|numeric|min:0',
             'activity' => 'nullable|in:active,inactive',
+            'zone_id' => 'nullable|exists:zones,id',
             // 'role' => 'nullable'
         ];
     }
@@ -38,6 +39,7 @@ class UpdateDriverRequest extends FormRequest
             'password.min' => __('The Password must be at least 8 characters.'),
             'password.string' => __('The Password must be a string.'),
             'status.in' => __('The Status must be one of the following: approved, rejected.'),
+            'zone_id.exists' => __('The selected zone does not exist.'),
         ];
     }
 

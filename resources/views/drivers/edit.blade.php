@@ -56,6 +56,14 @@
                     :options="['active' => __('Active'), 'inactive' => __('Inactive')]"
                     required
                 />
+                <x-form-select
+                    name="zone_id"
+                    type="select"
+                    label="{{__('Zone')}}"
+                    :selected="$driver->zone_id ?? ''"
+                    :options="$zones"
+                    placeholder="{{__('Select Zone')}}"
+                />
 				<button type='submit' class="btn btn-warning btn-sm me-1">{{ __('Save') }}</button>
 			</form>
 		</div>
