@@ -288,23 +288,23 @@ class RideEstimateController extends Controller
         return $deg * (pi() / 180);
     }
 
-    // private function haversineDistance($lat1, $lon1, $lat2, $lon2)
-    // {
-    //     $R = 6371;
-    //     $dLat = $this->deg2rad($lat2 - $lat1);
-    //     $dLon = $this->deg2rad($lon2 - $lon1);
+    private function haversineDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $R = 6371;
+        $dLat = $this->deg2rad($lat2 - $lat1);
+        $dLon = $this->deg2rad($lon2 - $lon1);
 
-    //     $a = sin($dLat / 2) * sin($dLat / 2) +
-    //         cos($this->deg2rad($lat1)) * cos($this->deg2rad($lat2)) *
-    //         sin($dLon / 2) * sin($dLon / 2);
+        $a = sin($dLat / 2) * sin($dLat / 2) +
+            cos($this->deg2rad($lat1)) * cos($this->deg2rad($lat2)) *
+            sin($dLon / 2) * sin($dLon / 2);
 
-    //     $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
-    //     return $R * $c;
-    // }
+        return $R * $c;
+    }
 
 
-    public function getEligibleDrivers($userPickupLat, $userPickupLng, $excludedDriverIds = [])
+    public function getEligibleDrivers($userPickupLat, $userPickupLng, $excludedDriverIds = [], $carCategoryId = null)
     {
         try {
             $firebase = (new Factory)
@@ -339,6 +339,34 @@ class RideEstimateController extends Controller
                     }
 
                     $settings = $driverData['settings'] ?? [];
+                    $driverCarCategoryId = $driverData['car_category_id'] ?? null;
+                    $pickupRadius = (float)($settings['pickup_radius'] ?? 0.0);
+
+                    // Calculate distance using haversine
+                    $distance = $this->haversineDistance(
+                        $userPickupLat,
+                        $userPickupLng,
+                        (float)$lat,
+                        (float)$lng
+                    );
+
+                    // ❌ Skip if driver is outside pickup radius
+                    if ($distance > $pickupRadius) {
+                        Log::info("Driver {$driverIdValue} outside pickup radius", [
+                            'distance' => $distance,
+                            'pickup_radius' => $pickupRadius
+                        ]);
+                        continue;
+                    }
+
+                    // ❌ Skip if car category doesn't match (when category filter is provided)
+                    if ($carCategoryId !== null && $driverCarCategoryId != $carCategoryId) {
+                        Log::info("Driver {$driverIdValue} car category mismatch", [
+                            'driver_category' => $driverCarCategoryId,
+                            'requested_category' => $carCategoryId
+                        ]);
+                        continue;
+                    }
 
                     $driver = [
                         'id' => $driverIdValue,
@@ -349,11 +377,13 @@ class RideEstimateController extends Controller
                         'car_model' => $driverData['car_model'] ?? '',
                         'car_photo' => $driverData['car_photo'] ?? '',
                         'plate_number' => $driverData['palete_number'] ?? '',
+                        'car_category_id' => $driverCarCategoryId,
                         'latitude' => (float)$lat,
                         'longitude' => (float)$lng,
                         'gender' => $settings['gender'] ?? null,
-                        'pickup_radius' => (float)($settings['pickup_radius'] ?? 0.0),
+                        'pickup_radius' => $pickupRadius,
                         'preferred_destination' => $settings['preferred_destination'] ?? '',
+                        'distance_to_pickup' => round($distance, 2),
                         'eta_time' => null,
                     ];
 
@@ -362,6 +392,11 @@ class RideEstimateController extends Controller
                     Log::warning("Invalid driver entry ($driverId): " . $e->getMessage());
                 }
             }
+
+            Log::info("Found {count} eligible drivers", [
+                'count' => count($eligibleDrivers),
+                'car_category_id' => $carCategoryId
+            ]);
 
             return $eligibleDrivers;
         } catch (\Exception $e) {
@@ -619,7 +654,8 @@ class RideEstimateController extends Controller
             $allDrivers = $this->getEligibleDrivers(
                 $ride->pickup_lat,
                 $ride->pickup_lng,
-                [] // Get all drivers first
+                [], // Get all drivers first
+                $ride->car_category_id // Filter by car category
             );
 
             if (empty($allDrivers)) {
