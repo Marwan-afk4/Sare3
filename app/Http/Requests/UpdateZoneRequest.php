@@ -30,6 +30,17 @@ class UpdateZoneRequest extends FormRequest
             $hasCoordinates = $this->filled(['from_lat', 'from_lng', 'to_lat', 'to_lng']);
             $hasPolygon = $this->filled('polygon_coordinates') && $this->polygon_coordinates !== '[]';
             
+            // Debug logging
+            \Log::info('Zone Update Validation', [
+                'has_coordinates' => $hasCoordinates,
+                'has_polygon' => $hasPolygon,
+                'polygon_coordinates_value' => $this->polygon_coordinates,
+                'from_lat' => $this->from_lat,
+                'from_lng' => $this->from_lng,
+                'to_lat' => $this->to_lat,
+                'to_lng' => $this->to_lng,
+            ]);
+            
             if (!$hasCoordinates && !$hasPolygon) {
                 $validator->errors()->add('coordinates', __('Either provide manual coordinates or draw a polygon on the map.'));
             }

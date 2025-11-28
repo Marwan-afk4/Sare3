@@ -43,7 +43,23 @@ class ZoneController extends Controller
 
     public function update(UpdateZoneRequest $request, Zone $zone)
     {
-        $zone->update($request->validated());
+        $validatedData = $request->validated();
+        
+        // Debug logging
+        \Log::info('Zone Update Request', [
+            'zone_id' => $zone->id,
+            'validated_data' => $validatedData,
+            'all_request_data' => $request->all()
+        ]);
+        
+        $zone->update($validatedData);
+        
+        \Log::info('Zone Updated Successfully', [
+            'zone_id' => $zone->id,
+            'name' => $zone->name,
+            'polygon_coordinates_count' => is_array($zone->polygon_coordinates) ? count($zone->polygon_coordinates) : 0
+        ]);
+        
         return redirect()->route('zones.index')->with('success',  __('Updated successfully.'));
     }
 

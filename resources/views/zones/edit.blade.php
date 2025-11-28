@@ -10,6 +10,18 @@
 		<a href="{{ route('zones.index') }}" class="btn btn-secondary btn-sm me-1"> <i class="fa fa-arrow-right"></i> {{__('Back to')}} {{__('Zones')}}</a>
 		{{-- <a href='{{ route('zones.show', $zone) }}' class="btn btn-primary btn-sm me-1">{{ __("Details") }} <i class="fa fa-eye"></i></a> --}}
 	</div>
+
+	@if ($errors->any())
+		<div class="alert alert-danger">
+			<strong>{{ __('Validation Errors:') }}</strong>
+			<ul class="mb-0">
+				@foreach ($errors->all() as $error)
+					<li>{{ $error }}</li>
+				@endforeach
+			</ul>
+		</div>
+	@endif
+
 	<div class="main-card mb-3 card">
 		<div class="card-body">
 			<form method='POST' action='{{ route('zones.update', $zone->id) }}' class="needs-validation" novalidate id="zoneEditForm">
@@ -208,6 +220,8 @@ function initMap() {
 
 function loadExistingPolygon() {
     if (Array.isArray(existingPolygonData) && existingPolygonData.length > 0) {
+        console.log('Loading existing polygon with', existingPolygonData.length, 'points');
+        
         const polygonPath = existingPolygonData.map(coord =>
             new google.maps.LatLng(coord.lat, coord.lng)
         );
@@ -234,6 +248,11 @@ function loadExistingPolygon() {
         const bounds = new google.maps.LatLngBounds();
         polygonPath.forEach(point => bounds.extend(point));
         map.fitBounds(bounds);
+        
+        // Initial update to populate the hidden field
+        updatePolygonCoordinates();
+    } else {
+        console.log('No existing polygon data to load');
     }
 }
 
@@ -250,7 +269,11 @@ function updatePolygonCoordinates() {
             });
         }
 
-        document.getElementById('polygon_coordinates').value = JSON.stringify(polygonCoordinates);
+        const jsonString = JSON.stringify(polygonCoordinates);
+        document.getElementById('polygon_coordinates').value = jsonString;
+        
+        console.log('Polygon coordinates updated:', polygonCoordinates.length, 'points');
+        console.log('JSON string:', jsonString);
 
         // Update bounding box coordinates for backward compatibility
         if (polygonCoordinates.length > 0) {
@@ -266,7 +289,11 @@ function updatePolygonCoordinates() {
             document.querySelector('input[name="from_lng"]').value = sw.lng();
             document.querySelector('input[name="to_lat"]').value = ne.lat();
             document.querySelector('input[name="to_lng"]').value = ne.lng();
+            
+            console.log('Bounding box updated: SW(' + sw.lat() + ', ' + sw.lng() + '), NE(' + ne.lat() + ', ' + ne.lng() + ')');
         }
+    } else {
+        console.warn('No polygon to update');
     }
 }
 
@@ -342,11 +369,23 @@ document.getElementById('zoneEditForm').addEventListener('submit', function(e) {
     const toLng = document.querySelector('input[name="to_lng"]').value;
     const hasManualCoords = fromLat && fromLng && toLat && toLng;
 
+    // Debug logging
+    console.log('Form submission:');
+    console.log('- Polygon data:', polygonData);
+    console.log('- Has polygon:', hasPolygon);
+    console.log('- Has manual coords:', hasManualCoords);
+    console.log('- From Lat:', fromLat);
+    console.log('- From Lng:', fromLng);
+    console.log('- To Lat:', toLat);
+    console.log('- To Lng:', toLng);
+
     if (!hasPolygon && !hasManualCoords) {
         e.preventDefault();
         alert('{{ __("Please draw a polygon on the map to define the zone area.") }}');
         return false;
     }
+    
+    console.log('Form validation passed, submitting...');
 });
 </script>
 
