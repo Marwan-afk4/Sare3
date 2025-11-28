@@ -87,9 +87,9 @@ document.addEventListener('DOMContentLoaded', function () {
         userLinkRTL.setAttribute('disabled', true);
       }
     </script> --}}
-    <link href="/phoenix/vendors/leaflet/leaflet.css" rel="stylesheet">
+    {{-- <link href="/phoenix/vendors/leaflet/leaflet.css" rel="stylesheet">
     <link href="/phoenix/vendors/leaflet.markercluster/MarkerCluster.css" rel="stylesheet">
-    <link href="/phoenix/vendors/leaflet.markercluster/MarkerCluster.Default.css" rel="stylesheet">
+    <link href="/phoenix/vendors/leaflet.markercluster/MarkerCluster.Default.css" rel="stylesheet"> --}}
 
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 
@@ -1602,9 +1602,9 @@ document.addEventListener('DOMContentLoaded', function () {
     <script src="/phoenix/vendors/list.js/list.min.js"></script>
     <script src="/phoenix/vendors/feather-icons/feather.min.js"></script>
     <script src="/phoenix/vendors/dayjs/dayjs.min.js"></script>
-    <script src="/phoenix/vendors/leaflet/leaflet.js"></script>
+    {{-- <script src="/phoenix/vendors/leaflet/leaflet.js"></script>
     <script src="/phoenix/vendors/leaflet.markercluster/leaflet.markercluster.js"></script>
-    <script src="/phoenix/vendors/leaflet.tilelayer.colorfilter/leaflet-tilelayer-colorfilter.min.js"></script>
+    <script src="/phoenix/vendors/leaflet.tilelayer.colorfilter/leaflet-tilelayer-colorfilter.min.js"></script> --}}
     <script src="/phoenix/assets/js/phoenix.js"></script>
     <script src="/phoenix/vendors/echarts/echarts.min.js"></script>
     <script src="/phoenix/assets/js/dashboards/ecommerce-dashboard.js"></script>
