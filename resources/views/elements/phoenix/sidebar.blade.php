@@ -17,6 +17,7 @@
                             </div>
                         </a>
                     </div>
+                    @can('manage users')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'users' ? 'active' : '' }}" href="{{ route('users.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
@@ -29,6 +30,8 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
+                    @can('manage drivers')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'drivers' ? 'active' : '' }}" href="{{ route('drivers.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
                             <div class="d-flex align-items-center">
@@ -41,7 +44,9 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
                     {{-- wallet-requests --}}
+                    @can('manage wallet requests')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'wallet-requests' ? 'active' : '' }}"
 
@@ -53,7 +58,9 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
                     {{-- document-types --}}
+                    @can('manage document types')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'document-types' ? 'active' : '' }}"
 
@@ -65,7 +72,9 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
                     {{-- carCategories --}}
+                    @can('manage car categories')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'car-categories' ? 'active' : '' }}"
 
@@ -77,7 +86,9 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
                     {{-- carModels --}}
+                    @can('manage car models')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'car-models' ? 'active' : '' }}"
 
@@ -89,7 +100,9 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
                     {{-- carTypes --}}
+                    @can('manage car types')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'car-types' ? 'active' : '' }}"
 
@@ -101,7 +114,9 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
                     {{-- rides --}}
+                    @can('manage rides')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'rides' ? 'active' : '' }}"
 
@@ -113,8 +128,10 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
 
                     {{-- paymenent-methods --}}
+                    @can('manage payment methods')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'paymenent-methods' ? 'active' : '' }}"
 
@@ -126,8 +143,10 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
 
                     {{-- cancelationPolicy --}}
+                    @can('manage cancellation policies')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'cancellation-policies' ? 'active' : '' }}"
 
@@ -139,8 +158,10 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
 
                     {{-- cancellation-reasons --}}
+                    @can('manage cancellation reasons')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'cancellation-reasons' ? 'active' : '' }}"
                             href="{{ route('cancellation-reasons.index') }}">
@@ -151,8 +172,10 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
 
                     {{-- cancelation-rides --}}
+                    @can('manage cancellation rides')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'cancelation-rides' ? 'active' : '' }}"
 
@@ -164,8 +187,10 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
 
                     {{-- ride-request-time-limits --}}
+                    @can('manage ride request time limits')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'ride-request-time-limits' ? 'active' : '' }}"
 
@@ -177,8 +202,10 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
 
                     {{-- otp-limits --}}
+                    @can('manage otp limits')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'otp-limits' ? 'active' : '' }}"
                             href="{{ route('otp-limits.index') }}">
@@ -189,8 +216,10 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
 
                     {{-- notifications --}}
+                    @can('manage notifications')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'notifications' ? 'active' : '' }}"
                             href="{{ route('notifications.index') }}">
@@ -201,8 +230,10 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
 
                     {{-- zones --}}
+                    @can('manage zones')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'zones' ? 'active' : '' }}"
                             href="{{ route('zones.index') }}">
@@ -213,6 +244,7 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
 
                     {{-- settings --}}
                     {{-- <div class="nav-item-wrapper">
@@ -227,6 +259,7 @@
                     </div> --}}
 
                     {{-- profit-statistics --}}
+                    @can('manage profit statistics')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && in_array($currentPage, ['profit-statistics', 'profit-history']) ? 'active' : '' }}"
                             href="{{ route('profit-statistics.index') }}">
@@ -237,8 +270,10 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
 
                     {{-- referrals --}}
+                    @can('manage referrals')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'referrals' ? 'active' : '' }}"
                             href="{{ route('referrals.index') }}">
@@ -249,8 +284,10 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
 
                     {{-- coupons --}}
+                    @can('manage coupons')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'coupons' ? 'active' : '' }}"
                             href="{{ route('coupons.index') }}">
@@ -261,8 +298,11 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
 
                     {{-- settings --}}
+                    {{-- settings --}}
+                    @can('manage settings')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'settings' ? 'active' : '' }}"
                             href="{{ route('settings.index') }}">
@@ -273,8 +313,36 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
+
+                    @can('manage roles')
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'roles' ? 'active' : '' }}"
+                            href="{{ route('roles.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="shield"></span></span>
+                                <span class="nav-link-text-wrapper"><span
+                                        class="nav-link-text">{{ __('Roles') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+                    @endcan
+
+                    @can('manage admins')
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'admins' ? 'active' : '' }}"
+                            href="{{ route('admins.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="user-check"></span></span>
+                                <span class="nav-link-text-wrapper"><span
+                                        class="nav-link-text">{{ __('Admins') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+                    @endcan
 
                     {{-- support-chat --}}
+                    @can('manage support chat')
                     <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'support-chat' ? 'active' : '' }}"
                             href="{{ route('support-chat.index') }}">
@@ -287,6 +355,7 @@
                             </div>
                         </a>
                     </div>
+                    @endcan
 
                     {{-- <div class="nav-item-wrapper">
                         <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'employees' ? 'active' : '' }}" href="{{ route('employees.index') }}" role="button" data-bs-toggle="" aria-expanded="false">
