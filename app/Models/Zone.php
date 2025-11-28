@@ -21,10 +21,6 @@ class Zone extends Model
         'polygon_coordinates'
     ];
 
-    protected $casts = [
-        'polygon_coordinates' => 'array'
-    ];
-
     public $timestamps = true;
 
     /**
