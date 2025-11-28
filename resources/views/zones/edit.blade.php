@@ -108,6 +108,7 @@ let map;
 let drawingManager;
 let currentPolygon = null;
 let polygonCoordinates = [];
+let isSubmitting = false;
 
 // Existing polygon data from server - with proper parsing
 let existingPolygonData = @json($zone->polygon_coordinates ?? []);
@@ -357,8 +358,28 @@ if (selectionMethodRadios.length > 0) {
     });
 }
 
-// Form validation
+// Form validation and submission handler
 document.getElementById('zoneEditForm').addEventListener('submit', function(e) {
+    // If already submitting, let it go through
+    if (isSubmitting) {
+        console.log('Form already processed, allowing submission...');
+        return true;
+    }
+    
+    e.preventDefault(); // Prevent default submission temporarily
+    console.log('Form submit intercepted for processing...');
+    
+    // Update polygon coordinates one final time before submission
+    if (currentPolygon) {
+        updatePolygonCoordinates();
+        currentPolygon.setEditable(false);
+    }
+    
+    // Disable drawing manager
+    if (drawingManager) {
+        drawingManager.setDrawingMode(null);
+    }
+    
     const polygonData = document.getElementById('polygon_coordinates').value;
     const hasPolygon = polygonData && polygonData !== '[]' && polygonData !== '';
     
@@ -370,7 +391,7 @@ document.getElementById('zoneEditForm').addEventListener('submit', function(e) {
     const hasManualCoords = fromLat && fromLng && toLat && toLng;
 
     // Debug logging
-    console.log('Form submission:');
+    console.log('Form submission data:');
     console.log('- Polygon data:', polygonData);
     console.log('- Has polygon:', hasPolygon);
     console.log('- Has manual coords:', hasManualCoords);
@@ -380,12 +401,15 @@ document.getElementById('zoneEditForm').addEventListener('submit', function(e) {
     console.log('- To Lng:', toLng);
 
     if (!hasPolygon && !hasManualCoords) {
-        e.preventDefault();
         alert('{{ __("Please draw a polygon on the map to define the zone area.") }}');
         return false;
     }
     
-    console.log('Form validation passed, submitting...');
+    console.log('Form validation passed, submitting now...');
+    
+    // Mark as submitting and actually submit
+    isSubmitting = true;
+    this.submit();
 });
 </script>
 
