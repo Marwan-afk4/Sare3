@@ -113,7 +113,13 @@ class FirebaseService
         }
 
         try {
+            // Try both formats: just the ID and "driver {ID}"
             $driverData = $this->database->getReference("drivers/{$driverId}")->getValue();
+            
+            // If not found, try with "driver " prefix
+            if (!$driverData) {
+                $driverData = $this->database->getReference("drivers/driver {$driverId}")->getValue();
+            }
             
             if (!$driverData || !isset($driverData['latitude']) || !isset($driverData['longitude'])) {
                 return null;
@@ -125,7 +131,7 @@ class FirebaseService
                 'bearing' => isset($driverData['bearing']) ? (float) $driverData['bearing'] : 0,
                 'timestamp' => $driverData['timestamp'] ?? null,
                 'is_available' => true,
-                'driver_id' => $driverId,
+                'driver_id' => (int) $driverId,
             ];
         } catch (\Exception $e) {
             Log::error("Failed to get driver location for driver {$driverId}: " . $e->getMessage());
@@ -146,7 +152,14 @@ class FirebaseService
         }
 
         try {
+            // Try both formats: just the ID and "driver {ID}"
             $driverData = $this->database->getReference("drivers/{$driverId}")->getValue();
+            
+            // If not found, try with "driver " prefix
+            if (!$driverData) {
+                $driverData = $this->database->getReference("drivers/driver {$driverId}")->getValue();
+            }
+            
             return !empty($driverData);
         } catch (\Exception $e) {
             Log::error("Failed to check driver availability for driver {$driverId}: " . $e->getMessage());
@@ -214,8 +227,16 @@ class FirebaseService
             $availableDrivers = [];
             foreach ($allDrivers as $driverId => $driverData) {
                 if (isset($driverData['latitude']) && isset($driverData['longitude'])) {
-                    $availableDrivers[$driverId] = [
-                        'driver_id' => $driverId,
+                    // Normalize driver ID: handle both "24" and "driver 24" formats
+                    $normalizedId = $this->normalizeDriverId($driverId);
+                    
+                    // Log if normalization changed the ID (for debugging)
+                    if ((string) $driverId !== (string) $normalizedId) {
+                        Log::info("Driver ID normalized: '{$driverId}' -> {$normalizedId}");
+                    }
+                    
+                    $availableDrivers[$normalizedId] = [
+                        'driver_id' => $normalizedId,
                         'latitude' => (float) $driverData['latitude'],
                         'longitude' => (float) $driverData['longitude'],
                         'bearing' => isset($driverData['bearing']) ? (float) $driverData['bearing'] : 0,
@@ -223,6 +244,11 @@ class FirebaseService
                         'is_available' => true,
                     ];
                 }
+            }
+            
+            // Log available driver IDs for debugging
+            if (!empty($availableDrivers)) {
+                Log::debug('Available drivers from Firebase: ' . implode(', ', array_keys($availableDrivers)));
             }
             
             // Cache the result for 10 seconds
@@ -235,5 +261,33 @@ class FirebaseService
             Cache::put($cacheKey, [], 5);
             return [];
         }
+    }
+
+    /**
+     * Normalize driver ID from Firebase
+     * Handles both "24" and "driver 24" formats, returns integer ID
+     * 
+     * @param string|int $driverId
+     * @return int
+     */
+    private function normalizeDriverId($driverId)
+    {
+        // If it's already a number, convert to int
+        if (is_numeric($driverId)) {
+            return (int) $driverId;
+        }
+        
+        // If it's in format "driver 24", extract the number
+        if (preg_match('/driver\s*(\d+)/i', $driverId, $matches)) {
+            return (int) $matches[1];
+        }
+        
+        // Try to extract any number from the string
+        if (preg_match('/(\d+)/', $driverId, $matches)) {
+            return (int) $matches[1];
+        }
+        
+        // Fallback: try to cast to int
+        return (int) $driverId;
     }
 }

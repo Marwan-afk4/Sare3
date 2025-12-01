@@ -78,11 +78,12 @@ class DriverController extends Controller
         $driverAvailability = [];
         try {
             $allAvailableDrivers = $this->firebaseService->getAllAvailableDrivers();
-            $availableDriverIds = array_keys($allAvailableDrivers);
+            $availableDriverIds = array_map('intval', array_keys($allAvailableDrivers)); // Normalize to integers
             
             // Create availability map for quick lookup
             foreach ($drivers as $driver) {
-                $driverAvailability[$driver->id] = in_array($driver->id, $availableDriverIds);
+                // Use strict comparison with normalized integer IDs
+                $driverAvailability[$driver->id] = in_array((int) $driver->id, $availableDriverIds, true);
             }
         } catch (\Exception $e) {
             // If Firebase fails, set all drivers as unavailable (offline)
