@@ -87,7 +87,7 @@
                     <h5 class="mb-3">{{ __('Current Location') }}</h5>
                     <div id="driver-location-map" style="height: 400px; border-radius: 8px;"></div>
                     <div class="mt-2 text-muted small">
-                        <i class="fa fa-info-circle"></i> {{ __('Location updates automatically every 5 seconds') }}
+                        <i class="fa fa-info-circle"></i> {{ __('Location updates in real-time via Firebase') }}
                     </div>
                 </div>
             @endif
@@ -247,9 +247,24 @@
 
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Firebase SDK for real-time updates -->
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     @if ($isAvailable && $driverLocation)
+    // Initialize Firebase for real-time tracking
+    const firebaseConfig = {
+        databaseURL: 'https://sarea-adce3-default-rtdb.firebaseio.com'
+    };
+    
+    let firebaseApp = null;
+    let firebaseRef = null;
+    
+    if (typeof firebase !== 'undefined') {
+        firebaseApp = firebase.initializeApp(firebaseConfig);
+    }
+    
     // Initialize the map
     const initialLat = {{ $driverLocation['latitude'] ?? 24.7136 }};
     const initialLng = {{ $driverLocation['longitude'] ?? 46.6753 }};
@@ -276,6 +291,55 @@ document.addEventListener('DOMContentLoaded', function() {
         title: '{{ $driver->name }}'
     }).addTo(map);
     
+    // Function to format timestamp
+    function formatLastUpdated(timestamp) {
+        if (!timestamp) return '{{ __('Just now') }}';
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffSeconds < 10) return '{{ __('Just now') }}';
+        if (diffSeconds < 60) return diffSeconds + ' {{ __('seconds ago') }}';
+        if (diffSeconds < 3600) return Math.floor(diffSeconds / 60) + ' {{ __('minutes ago') }}';
+        return date.toLocaleTimeString();
+    }
+    
+    // Function to update marker position
+    function updateMarkerPosition(lat, lng, timestamp) {
+        const newLat = parseFloat(lat);
+        const newLng = parseFloat(lng);
+        
+        // Update marker position with smooth animation
+        driverMarker.setLatLng([newLat, newLng]);
+        
+        // Smoothly pan map to new location (only if significant movement)
+        const currentCenter = map.getCenter();
+        const distance = map.distance(currentCenter, [newLat, newLng]);
+        if (distance > 100) { // Only pan if moved more than 100 meters
+            map.panTo([newLat, newLng], { animate: true, duration: 1.0 });
+        }
+        
+        // Update popup content
+        const lastUpdated = formatLastUpdated(timestamp);
+        driverMarker.getPopup().setContent(`
+            <div style="text-align: center;">
+                <strong>{{ $driver->name }}</strong><br>
+                <span class="badge bg-success">{{ __('Online') }}</span><br>
+                <small>{{ __('Last updated') }}: <span id="last-updated">${lastUpdated}</span></small>
+            </div>
+        `);
+        
+        // Update availability badge
+        document.getElementById('driver-availability-badge').innerHTML = 
+            '<span class="badge bg-success">{{ __('Online & Available') }} 🟢</span>';
+    }
+    
+    // Function to handle driver going offline
+    function handleDriverOffline() {
+        document.getElementById('driver-availability-badge').innerHTML = 
+            '<span class="badge bg-danger">{{ __('Offline') }} 🔴</span>';
+    }
+    
     // Add popup to marker
     driverMarker.bindPopup(`
         <div style="text-align: center;">
@@ -285,46 +349,124 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     `).openPopup();
     
-    // Function to update driver location
-    function updateDriverLocation() {
-        fetch('{{ route('drivers.location', $driver->id) }}')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.location) {
-                    const newLat = data.location.latitude;
-                    const newLng = data.location.longitude;
-                    
-                    // Update marker position with smooth animation
-                    driverMarker.setLatLng([newLat, newLng]);
-                    
-                    // Center map on new location
-                    map.panTo([newLat, newLng]);
-                    
-                    // Update popup content
-                    driverMarker.getPopup().setContent(`
-                        <div style="text-align: center;">
-                            <strong>{{ $driver->name }}</strong><br>
-                            <span class="badge bg-success">{{ __('Online') }}</span><br>
-                            <small>{{ __('Last updated') }}: <span id="last-updated">{{ __('Just now') }}</span></small>
-                        </div>
-                    `);
-                    
-                    // Update availability badge
-                    document.getElementById('driver-availability-badge').innerHTML = 
-                        '<span class="badge bg-success">{{ __('Online & Available') }} 🟢</span>';
-                } else {
-                    // Driver went offline
-                    document.getElementById('driver-availability-badge').innerHTML = 
-                        '<span class="badge bg-danger">{{ __('Offline') }} 🔴</span>';
+    // Try to use Firebase real-time listener
+    if (firebaseApp && firebase.database) {
+        const driverId = {{ $driver->id }};
+        
+        // Try both formats: "drivers/{id}" and "drivers/driver {id}"
+        const ref1 = firebase.database().ref(`drivers/${driverId}`);
+        const ref2 = firebase.database().ref(`drivers/driver ${driverId}`);
+        
+        let activeRef = null;
+        let isConnected = false;
+        let ref2Listener = null;
+        
+        // Try first format
+        const ref1Listener = ref1.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.latitude && data.longitude) {
+                if (!isConnected) {
+                    console.log('Connected to Firebase real-time tracking (format: drivers/{id})');
+                    isConnected = true;
+                    activeRef = ref1;
+                    // Unsubscribe from the other ref if it was set
+                    if (ref2Listener) {
+                        ref2.off('value', ref2Listener);
+                    }
                 }
-            })
-            .catch(error => {
-                console.error('Error fetching driver location:', error);
-            });
+                updateMarkerPosition(data.latitude, data.longitude, data.timestamp);
+            } else if (snapshot.exists() === false && !isConnected) {
+                // Try second format only if first one doesn't exist
+                if (!ref2Listener) {
+                    ref2Listener = ref2.on('value', (snapshot2) => {
+                        const data2 = snapshot2.val();
+                        if (data2 && data2.latitude && data2.longitude) {
+                            if (!isConnected) {
+                                console.log('Connected to Firebase real-time tracking (format: drivers/driver {id})');
+                                isConnected = true;
+                                activeRef = ref2;
+                                ref1.off('value', ref1Listener);
+                            }
+                            updateMarkerPosition(data2.latitude, data2.longitude, data2.timestamp);
+                        } else if (!snapshot2.exists()) {
+                            handleDriverOffline();
+                        }
+                    });
+                }
+            } else if (!snapshot.exists() && !ref2Listener) {
+                // If first format doesn't exist and we haven't tried second format yet
+                ref2Listener = ref2.on('value', (snapshot2) => {
+                    const data2 = snapshot2.val();
+                    if (data2 && data2.latitude && data2.longitude) {
+                        if (!isConnected) {
+                            console.log('Connected to Firebase real-time tracking (format: drivers/driver {id})');
+                            isConnected = true;
+                            activeRef = ref2;
+                            ref1.off('value', ref1Listener);
+                        }
+                        updateMarkerPosition(data2.latitude, data2.longitude, data2.timestamp);
+                    } else if (!snapshot2.exists()) {
+                        handleDriverOffline();
+                    }
+                });
+            }
+        }, (error) => {
+            console.error('Firebase error:', error);
+            // Fallback to API polling
+            startApiPolling();
+        });
+        
+        // Store ref1 listener for cleanup
+        firebaseRef = ref1;
+        
+        // Listen for disconnection
+        firebase.database().ref('.info/connected').on('value', (snapshot) => {
+            if (snapshot.val() === false) {
+                console.log('Firebase disconnected, falling back to API polling');
+                startApiPolling();
+            }
+        });
+        
+    } else {
+        console.log('Firebase not available, using API polling');
+        startApiPolling();
     }
     
-    // Update location every 5 seconds
-    setInterval(updateDriverLocation, 5000);
+    // Fallback: API polling function (if Firebase fails)
+    let pollingInterval = null;
+    function startApiPolling() {
+        if (pollingInterval) return; // Already polling
+        
+        console.log('Starting API polling fallback');
+        pollingInterval = setInterval(() => {
+            fetch('{{ route('drivers.location', $driver->id) }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.location) {
+                        updateMarkerPosition(
+                            data.location.latitude, 
+                            data.location.longitude,
+                            data.location.timestamp
+                        );
+                    } else {
+                        handleDriverOffline();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching driver location:', error);
+                });
+        }, 5000); // Poll every 5 seconds
+    }
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        if (firebaseRef) {
+            firebaseRef.off('value');
+        }
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+        }
+    });
     @endif
 });
 </script>
