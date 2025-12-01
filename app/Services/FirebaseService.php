@@ -264,6 +264,73 @@ class FirebaseService
     }
 
     /**
+     * Get all unavailable drivers from Firebase with caching
+     * Cache for 10 seconds to prevent excessive Firebase calls
+     * 
+     * @param bool $forceRefresh Force refresh cache
+     * @return array Array of all unavailable drivers with their locations
+     */
+    public function getAllUnavailableDrivers($forceRefresh = false)
+    {
+        if (!$this->database) {
+            return [];
+        }
+
+        $cacheKey = 'firebase_unavailable_drivers';
+        
+        // Return cached data if available and not forcing refresh
+        if (!$forceRefresh && Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
+
+        try {
+            $allDrivers = $this->database->getReference('unavailable_drivers')->getValue();
+            
+            if (!$allDrivers) {
+                Cache::put($cacheKey, [], 10); // Cache empty result for 10 seconds
+                return [];
+            }
+
+            $unavailableDrivers = [];
+            foreach ($allDrivers as $driverId => $driverData) {
+                if (isset($driverData['latitude']) && isset($driverData['longitude'])) {
+                    // Normalize driver ID: handle both "24" and "driver 24" formats
+                    $normalizedId = $this->normalizeDriverId($driverId);
+                    
+                    // Log if normalization changed the ID (for debugging)
+                    if ((string) $driverId !== (string) $normalizedId) {
+                        Log::info("Unavailable Driver ID normalized: '{$driverId}' -> {$normalizedId}");
+                    }
+                    
+                    $unavailableDrivers[$normalizedId] = [
+                        'driver_id' => $normalizedId,
+                        'latitude' => (float) $driverData['latitude'],
+                        'longitude' => (float) $driverData['longitude'],
+                        'bearing' => isset($driverData['bearing']) ? (float) $driverData['bearing'] : 0,
+                        'timestamp' => $driverData['timestamp'] ?? null,
+                        'is_available' => false,
+                    ];
+                }
+            }
+            
+            // Log unavailable driver IDs for debugging
+            if (!empty($unavailableDrivers)) {
+                Log::debug('Unavailable drivers from Firebase: ' . implode(', ', array_keys($unavailableDrivers)));
+            }
+            
+            // Cache the result for 10 seconds
+            Cache::put($cacheKey, $unavailableDrivers, 10);
+            
+            return $unavailableDrivers;
+        } catch (\Exception $e) {
+            Log::error("Failed to get all unavailable drivers: " . $e->getMessage());
+            // Cache empty result to prevent hammering Firebase on repeated errors
+            Cache::put($cacheKey, [], 5);
+            return [];
+        }
+    }
+
+    /**
      * Normalize driver ID from Firebase
      * Handles both "24" and "driver 24" formats, returns integer ID
      * 

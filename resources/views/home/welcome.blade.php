@@ -63,7 +63,7 @@
                 </div>
                 <div class="text-end">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-success" style="font-size: 1.2rem; padding: 0.5rem 1rem;">
+                        <span class="badge bg-success" id="available-drivers-badge" style="font-size: 1.2rem; padding: 0.5rem 1rem;">
                             <i class="fa fa-circle text-success me-1" style="font-size: 0.5rem;"></i>
                             {{ $availableDriversCount }} / {{ $driverCount }}
                         </span>
@@ -88,6 +88,42 @@
             @endif
         </div>
     </div>
+
+    <!-- Unavailable Drivers Map Section -->
+    <div class="main-card mb-3 card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ __('Unavailable Drivers') }}</h4>
+                    <p class="text-body-tertiary mb-0 mt-1">{{ __('Real-time location of offline drivers') }}</p>
+                </div>
+                <div class="text-end">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-danger" id="unavailable-drivers-badge" style="font-size: 1.2rem; padding: 0.5rem 1rem;">
+                            <i class="fa fa-circle text-danger me-1" style="font-size: 0.5rem;"></i>
+                            {{ $unavailableDriversCount }} / {{ $driverCount }}
+                        </span>
+                    </div>
+                    <small class="text-muted">{{ __('Offline Drivers') }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            @if($unavailableDriversCount > 0)
+                <div id="unavailable-drivers-map" style="height: 500px; border-radius: 8px; border: 1px solid #e0e0e0;"></div>
+                <div class="mt-3 text-center">
+                    <small class="text-muted">
+                        <i class="fa fa-info-circle"></i> {{ __('Map updates in real-time via Firebase') }}
+                    </small>
+                </div>
+            @else
+                <div class="text-center py-5">
+                    <i class="fa fa-car text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-3">{{ __('No unavailable drivers at the moment') }}</p>
+                </div>
+            @endif
+        </div>
+    </div>
 @endsection
 
 @push('styles')
@@ -105,6 +141,21 @@
     }
     .driver-cluster {
         background-color: #4CAF50;
+        color: white;
+        border-radius: 50%;
+        text-align: center;
+        font-weight: bold;
+    }
+    .unavailable-driver-marker {
+        background-color: #f44336;
+        border: 3px solid white;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    .unavailable-driver-cluster {
+        background-color: #f44336;
         color: white;
         border-radius: 50%;
         text-align: center;
@@ -429,7 +480,7 @@
         // Function to update driver count badge
         function updateDriverCount() {
             const count = Object.keys(driverMarkers).length;
-            const badge = document.querySelector('.badge.bg-success');
+            const badge = document.getElementById('available-drivers-badge');
             if (badge) {
                 badge.innerHTML = `<i class="fa fa-circle text-success me-1" style="font-size: 0.5rem;"></i>${count} / {{ $driverCount }}`;
             }
@@ -439,6 +490,189 @@
         window.addEventListener('beforeunload', () => {
             if (firebase.database) {
                 firebase.database().ref('drivers').off();
+            }
+        });
+    })();
+    </script>
+    @endif
+
+    <!-- Unavailable Drivers Map Script -->
+    @if($unavailableDriversCount > 0)
+    <script>
+    (function() {
+        // Use existing Firebase app instance
+        let firebaseApp = null;
+        if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+            firebaseApp = firebase.apps[0];
+        }
+
+        // Initial unavailable drivers data from server
+        const initialUnavailableDrivers = @json($unavailableDrivers);
+        
+        // Initialize map
+        const mapElement = document.getElementById('unavailable-drivers-map');
+        if (!mapElement) return;
+
+        // Calculate center point from unavailable drivers
+        let centerLat = 24.7136; // Default: Riyadh
+        let centerLng = 46.6753;
+        
+        if (Object.keys(initialUnavailableDrivers).length > 0) {
+            const drivers = Object.values(initialUnavailableDrivers);
+            centerLat = drivers.reduce((sum, d) => sum + d.latitude, 0) / drivers.length;
+            centerLng = drivers.reduce((sum, d) => sum + d.longitude, 0) / drivers.length;
+        }
+
+        const map = L.map('unavailable-drivers-map').setView([centerLat, centerLng], 12);
+        
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19,
+        }).addTo(map);
+
+        // Create marker cluster group
+        const markers = L.markerClusterGroup({
+            iconCreateFunction: function(cluster) {
+                const count = cluster.getChildCount();
+                return L.divIcon({
+                    html: '<div style="background-color: #f44336; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); font-weight: bold;">' + count + '</div>',
+                    className: 'unavailable-driver-cluster',
+                    iconSize: L.point(40, 40)
+                });
+            },
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true
+        });
+
+        // Custom unavailable driver icon
+        const unavailableDriverIcon = L.divIcon({
+            className: 'unavailable-driver-marker',
+            html: '<div style="background-color: #f44336; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+            iconSize: [22, 22],
+            iconAnchor: [11, 11]
+        });
+
+        // Store markers by driver ID
+        const unavailableDriverMarkers = {};
+
+        // Function to add or update an unavailable driver marker
+        function updateUnavailableDriverMarker(driverId, driverData) {
+            const lat = parseFloat(driverData.latitude);
+            const lng = parseFloat(driverData.longitude);
+            
+            if (isNaN(lat) || isNaN(lng)) return;
+
+            // If marker exists, update its position
+            if (unavailableDriverMarkers[driverId]) {
+                unavailableDriverMarkers[driverId].setLatLng([lat, lng]);
+            } else {
+                // Create new marker
+                const marker = L.marker([lat, lng], {
+                    icon: unavailableDriverIcon,
+                    title: `Driver #${driverId}`
+                });
+                
+                marker.bindPopup(`
+                    <div style="text-align: center; min-width: 120px;">
+                        <strong>{{ __('Driver') }} #${driverId}</strong><br>
+                        <span class="badge bg-danger mt-1">{{ __('Offline') }} 🔴</span><br>
+                        <small class="text-muted">Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}</small>
+                    </div>
+                `);
+                
+                markers.addLayer(marker);
+                unavailableDriverMarkers[driverId] = marker;
+            }
+        }
+
+        // Function to remove an unavailable driver marker
+        function removeUnavailableDriverMarker(driverId) {
+            if (unavailableDriverMarkers[driverId]) {
+                markers.removeLayer(unavailableDriverMarkers[driverId]);
+                delete unavailableDriverMarkers[driverId];
+            }
+        }
+
+        // Add initial markers
+        Object.entries(initialUnavailableDrivers).forEach(([driverId, driverData]) => {
+            updateUnavailableDriverMarker(driverId, driverData);
+        });
+
+        // Add marker cluster to map
+        map.addLayer(markers);
+
+        // Set up Firebase real-time listeners
+        if (firebaseApp && firebase.database) {
+            const unavailableDriversRef = firebase.database().ref('unavailable_drivers');
+            
+            // Listen for new unavailable drivers
+            unavailableDriversRef.on('child_added', (snapshot) => {
+                const driverId = snapshot.key;
+                const driverData = snapshot.val();
+                
+                if (driverData && driverData.latitude && driverData.longitude) {
+                    // Normalize driver ID
+                    let normalizedId = driverId;
+                    if (isNaN(driverId)) {
+                        const match = driverId.match(/(\d+)/);
+                        if (match) normalizedId = match[1];
+                    }
+                    
+                    updateUnavailableDriverMarker(normalizedId, driverData);
+                    
+                    // Update badge count
+                    updateUnavailableDriverCount();
+                }
+            });
+
+            // Listen for unavailable driver updates
+            unavailableDriversRef.on('child_changed', (snapshot) => {
+                const driverId = snapshot.key;
+                const driverData = snapshot.val();
+                
+                if (driverData && driverData.latitude && driverData.longitude) {
+                    let normalizedId = driverId;
+                    if (isNaN(driverId)) {
+                        const match = driverId.match(/(\d+)/);
+                        if (match) normalizedId = match[1];
+                    }
+                    
+                    updateUnavailableDriverMarker(normalizedId, driverData);
+                }
+            });
+
+            // Listen for unavailable driver removal (went online)
+            unavailableDriversRef.on('child_removed', (snapshot) => {
+                const driverId = snapshot.key;
+                
+                let normalizedId = driverId;
+                if (isNaN(driverId)) {
+                    const match = driverId.match(/(\d+)/);
+                    if (match) normalizedId = match[1];
+                }
+                
+                removeUnavailableDriverMarker(normalizedId);
+                
+                // Update badge count
+                updateUnavailableDriverCount();
+            });
+        }
+
+        // Function to update unavailable driver count badge
+        function updateUnavailableDriverCount() {
+            const count = Object.keys(unavailableDriverMarkers).length;
+            const badge = document.getElementById('unavailable-drivers-badge');
+            if (badge) {
+                badge.innerHTML = `<i class="fa fa-circle text-danger me-1" style="font-size: 0.5rem;"></i>${count} / {{ $driverCount }}`;
+            }
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (firebase.database) {
+                firebase.database().ref('unavailable_drivers').off();
             }
         });
     })();

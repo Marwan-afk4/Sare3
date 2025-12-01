@@ -41,6 +41,16 @@ class HomePageController extends Controller
             \Log::warning('Failed to fetch available drivers from Firebase: ' . $e->getMessage());
         }
 
+        // Get unavailable drivers from Firebase
+        $unavailableDrivers = [];
+        $unavailableDriversCount = 0;
+        try {
+            $unavailableDrivers = $this->firebaseService->getAllUnavailableDrivers();
+            $unavailableDriversCount = count($unavailableDrivers);
+        } catch (\Exception $e) {
+            \Log::warning('Failed to fetch unavailable drivers from Firebase: ' . $e->getMessage());
+        }
+
         return view('home.welcome', compact(
             'userCount',
             'driverCount',
@@ -48,7 +58,9 @@ class HomePageController extends Controller
             'driverMonthlyCounts',
             'activeRides',
             'availableDrivers',
-            'availableDriversCount'
+            'availableDriversCount',
+            'unavailableDrivers',
+            'unavailableDriversCount'
         ));
     }
 
