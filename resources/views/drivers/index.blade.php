@@ -123,6 +123,7 @@
                         </a>
                     </th>
                     <th>{{ __('Zone') }}</th>
+                    <th>{{ __('Availability') }}</th>
                     <th>
 						<a href="{{ route('drivers.index', ['sort' => 'activity', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
 							{{ __("Activity") }}
@@ -168,6 +169,13 @@
                                 <span class="badge bg-info">{{ $driver->zone->name }}</span>
                             @else
                                 <span class="text-muted">{{ __('No Zone') }}</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if(isset($driverAvailability[$driver->id]) && $driverAvailability[$driver->id])
+                                <span class="badge bg-success">{{ __('Online') }} 🟢</span>
+                            @else
+                                <span class="badge bg-secondary">{{ __('Offline') }} ⚫</span>
                             @endif
                         </td>
                         <td>{!! $driver->activity->badge() !!} </td>

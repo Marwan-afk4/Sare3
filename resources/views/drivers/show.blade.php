@@ -63,6 +63,15 @@
                                     <span class="text-muted">{{ __('No ratings yet') }}</span>
                                 @endif
                             </li>
+                            <li class="list-group-item"><strong>{{ __('Availability') }}:</strong>
+                                <span id="driver-availability-badge">
+                                    @if ($isAvailable)
+                                        <span class="badge bg-success">{{ __('Online & Available') }} 🟢</span>
+                                    @else
+                                        <span class="badge bg-danger">{{ __('Offline') }} 🔴</span>
+                                    @endif
+                                </span>
+                            </li>
                             <li class="list-group-item"><strong>{{ __('Created At') }}:</strong>
                                 {{ $driver->created_at?->diffForHumans() }}</li>
                             <li class="list-group-item"><strong>{{ __('Updated At') }}:</strong>
@@ -71,6 +80,17 @@
                     </div>
                 </div>
             </div>
+            
+            {{-- Driver Location Map --}}
+            @if ($isAvailable && $driverLocation)
+                <div class="card-body border-top">
+                    <h5 class="mb-3">{{ __('Current Location') }}</h5>
+                    <div id="driver-location-map" style="height: 400px; border-radius: 8px;"></div>
+                    <div class="mt-2 text-muted small">
+                        <i class="fa fa-info-circle"></i> {{ __('Location updates automatically every 5 seconds') }}
+                    </div>
+                </div>
+            @endif
             <div class="card-footer">
                 <a href='{{ route('drivers.edit', $driver) }}'
                     class="btn btn-subtle-warning btn-sm me-1">{{ __('Edit') }} <i class="fa fa-edit"></i></a>
@@ -210,3 +230,102 @@
         @endif
     </div>
 @endsection
+
+@push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    .driver-marker {
+        background-color: #4CAF50;
+        border: 3px solid white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    @if ($isAvailable && $driverLocation)
+    // Initialize the map
+    const initialLat = {{ $driverLocation['latitude'] ?? 24.7136 }};
+    const initialLng = {{ $driverLocation['longitude'] ?? 46.6753 }};
+    
+    const map = L.map('driver-location-map').setView([initialLat, initialLng], 15);
+    
+    // Add tile layer (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19,
+    }).addTo(map);
+    
+    // Custom driver icon
+    const driverIcon = L.divIcon({
+        className: 'driver-marker',
+        html: '<div style="background-color: #4CAF50; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
+    });
+    
+    // Add driver marker
+    let driverMarker = L.marker([initialLat, initialLng], {
+        icon: driverIcon,
+        title: '{{ $driver->name }}'
+    }).addTo(map);
+    
+    // Add popup to marker
+    driverMarker.bindPopup(`
+        <div style="text-align: center;">
+            <strong>{{ $driver->name }}</strong><br>
+            <span class="badge bg-success">{{ __('Online') }}</span><br>
+            <small>{{ __('Last updated') }}: <span id="last-updated">{{ __('Just now') }}</span></small>
+        </div>
+    `).openPopup();
+    
+    // Function to update driver location
+    function updateDriverLocation() {
+        fetch('{{ route('drivers.location', $driver->id) }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.location) {
+                    const newLat = data.location.latitude;
+                    const newLng = data.location.longitude;
+                    
+                    // Update marker position with smooth animation
+                    driverMarker.setLatLng([newLat, newLng]);
+                    
+                    // Center map on new location
+                    map.panTo([newLat, newLng]);
+                    
+                    // Update popup content
+                    driverMarker.getPopup().setContent(`
+                        <div style="text-align: center;">
+                            <strong>{{ $driver->name }}</strong><br>
+                            <span class="badge bg-success">{{ __('Online') }}</span><br>
+                            <small>{{ __('Last updated') }}: <span id="last-updated">{{ __('Just now') }}</span></small>
+                        </div>
+                    `);
+                    
+                    // Update availability badge
+                    document.getElementById('driver-availability-badge').innerHTML = 
+                        '<span class="badge bg-success">{{ __('Online & Available') }} 🟢</span>';
+                } else {
+                    // Driver went offline
+                    document.getElementById('driver-availability-badge').innerHTML = 
+                        '<span class="badge bg-danger">{{ __('Offline') }} 🔴</span>';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching driver location:', error);
+            });
+    }
+    
+    // Update location every 5 seconds
+    setInterval(updateDriverLocation, 5000);
+    @endif
+});
+</script>
+@endpush

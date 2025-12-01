@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Rating;
 use App\Models\Zone;
 use App\Helpers\RideHelper;
+use App\Services\FirebaseService;
 use App\trait\ImageUpload;
 use Illuminate\Http\Request;
 use Kreait\Firebase\Factory;
@@ -18,6 +19,14 @@ use Kreait\Firebase\Factory;
 class DriverController extends Controller
 {
     use ImageUpload;
+    
+    protected $firebaseService;
+
+    public function __construct(FirebaseService $firebaseService)
+    {
+        $this->firebaseService = $firebaseService;
+    }
+
     public function index(Request $request)
     {
         $sortField = $request->get('sort', 'id');
@@ -64,9 +73,28 @@ class DriverController extends Controller
             ->orderBy($sortField, $sortOrder)
             ->paginate(30);
 
+        // OPTIMIZED: Get ALL available drivers from Firebase at once (single call)
+        // With error handling to prevent timeouts
+        $driverAvailability = [];
+        try {
+            $allAvailableDrivers = $this->firebaseService->getAllAvailableDrivers();
+            $availableDriverIds = array_keys($allAvailableDrivers);
+            
+            // Create availability map for quick lookup
+            foreach ($drivers as $driver) {
+                $driverAvailability[$driver->id] = in_array($driver->id, $availableDriverIds);
+            }
+        } catch (\Exception $e) {
+            // If Firebase fails, set all drivers as unavailable (offline)
+            \Log::warning('Failed to fetch driver availability from Firebase: ' . $e->getMessage());
+            foreach ($drivers as $driver) {
+                $driverAvailability[$driver->id] = false;
+            }
+        }
+
         $driverActivtyStatus = ActivtyType::cases();
 
-        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'zones', 'driversWithNoZoneCount'));
+        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'zones', 'driversWithNoZoneCount', 'driverAvailability'));
     }
 
     public function documents(User $driver)
@@ -121,7 +149,11 @@ class DriverController extends Controller
         // Get recent rides (last 10)
         $recentRides = RideHelper::formatDriverRideHistory($driver->driverRides->take(10));
 
-        return view('drivers.show', compact('driver', 'driverRating', 'rideStatistics', 'recentRides'));
+        // Get driver location from Firebase
+        $driverLocation = $this->firebaseService->getDriverLocation($driver->id);
+        $isAvailable = $driverLocation !== null;
+
+        return view('drivers.show', compact('driver', 'driverRating', 'rideStatistics', 'recentRides', 'driverLocation', 'isAvailable'));
     }
 
     public function rideHistory(User $driver, Request $request)
@@ -186,5 +218,27 @@ class DriverController extends Controller
         $driver->update($data);
 
         return redirect()->route('drivers.index')->with('success', __('Driver updated successfully.'));
+    }
+
+    /**
+     * Get driver location from Firebase (AJAX endpoint)
+     */
+    public function getLocation(User $driver)
+    {
+        $location = $this->firebaseService->getDriverLocation($driver->id);
+        
+        if ($location) {
+            return response()->json([
+                'success' => true,
+                'location' => $location,
+                'is_available' => true
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Driver location not available',
+            'is_available' => false
+        ], 404);
     }
 }

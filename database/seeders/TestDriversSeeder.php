@@ -42,7 +42,7 @@ class TestDriversSeeder extends Seeder
             return;
         }
 
-        // Create test drivers
+        // Create test drivers with various locations around Riyadh
         $testDrivers = [
             [
                 'name' => 'Ahmed Al-Rashid',
@@ -122,6 +122,54 @@ class TestDriversSeeder extends Seeder
                     'car_number' => 'JKL-7890',
                     'car_color' => 'Red',
                     'car_license' => 'DL321654987'
+                ]
+            ],
+            [
+                'name' => 'Abdullah Al-Shammari',
+                'email' => 'abdullah.driver@test.com',
+                'phone' => '+966501234572',
+                'password' => 'password123',
+                'role' => 'driver',
+                'activity' => 'active',
+                'wallet' => 180.00,
+                'status' => 'approved',
+                'zone_id' => $zone->id,
+                'car_data' => [
+                    'car_number' => 'MNO-2345',
+                    'car_color' => 'Gray',
+                    'car_license' => 'DL654987321'
+                ]
+            ],
+            [
+                'name' => 'Saeed Al-Dosari',
+                'email' => 'saeed.driver@test.com',
+                'phone' => '+966501234573',
+                'password' => 'password123',
+                'role' => 'driver',
+                'activity' => 'active',
+                'wallet' => 90.00,
+                'status' => 'approved',
+                'zone_id' => $zone->id,
+                'car_data' => [
+                    'car_number' => 'PQR-6789',
+                    'car_color' => 'White',
+                    'car_license' => 'DL987321654'
+                ]
+            ],
+            [
+                'name' => 'Yasser Al-Ghamdi',
+                'email' => 'yasser.driver@test.com',
+                'phone' => '+966501234574',
+                'password' => 'password123',
+                'role' => 'driver',
+                'activity' => 'active',
+                'wallet' => 250.00,
+                'status' => 'approved',
+                'zone_id' => $zone->id,
+                'car_data' => [
+                    'car_number' => 'STU-1357',
+                    'car_color' => 'Black',
+                    'car_license' => 'DL321987654'
                 ]
             ]
         ];

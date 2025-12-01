@@ -138,6 +138,7 @@ Route::middleware(['auth:sanctum','role:admin'])->prefix('admin')
         Route::get('/drivers/{driver}/documents', [DriverController::class, 'documents'])->name('drivers.documents');
         Route::get('/drivers/{driver}/cars', [DriverController::class, 'cars'])->name('drivers.cars');
         Route::get('/drivers/{driver}/ride-history', [DriverController::class, 'rideHistory'])->name('drivers.ride-history');
+        Route::get('/drivers/{driver}/location', [DriverController::class, 'getLocation'])->name('drivers.location');
 
         Route::get('/users/{user}/ride-history', [UserController::class, 'rideHistory'])->name('users.ride-history');
 
