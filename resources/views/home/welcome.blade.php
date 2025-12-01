@@ -76,9 +76,9 @@
             @if($availableDriversCount > 0)
                 <div id="available-drivers-map" style="height: 500px; border-radius: 8px; border: 1px solid #e0e0e0;"></div>
                 <div class="mt-3 text-center">
-                    <small class="text-muted">
+                    <!-- <small class="text-muted">
                         <i class="fa fa-info-circle"></i> {{ __('Map updates in real-time via Firebase') }}
-                    </small>
+                    </small> -->
                 </div>
             @else
                 <div class="text-center py-5">
@@ -112,9 +112,9 @@
             @if($unavailableDriversCount > 0)
                 <div id="unavailable-drivers-map" style="height: 500px; border-radius: 8px; border: 1px solid #e0e0e0;"></div>
                 <div class="mt-3 text-center">
-                    <small class="text-muted">
+                    <!-- <small class="text-muted">
                         <i class="fa fa-info-circle"></i> {{ __('Map updates in real-time via Firebase') }}
-                    </small>
+                    </small> -->
                 </div>
             @else
                 <div class="text-center py-5">
@@ -325,6 +325,7 @@
 
         // Initial drivers data from server
         const initialDrivers = @json($availableDrivers);
+        const driverNames = @json($driverNames ?? []);
         
         // Initialize map
         const mapElement = document.getElementById('available-drivers-map');
@@ -378,6 +379,7 @@
         function updateDriverMarker(driverId, driverData) {
             const lat = parseFloat(driverData.latitude);
             const lng = parseFloat(driverData.longitude);
+            const driverName = driverData.name || driverNames[driverId] || '{{ __('Driver') }} #' + driverId;
             
             if (isNaN(lat) || isNaN(lng)) return;
 
@@ -388,12 +390,12 @@
                 // Create new marker
                 const marker = L.marker([lat, lng], {
                     icon: driverIcon,
-                    title: `Driver #${driverId}`
+                    title: driverName
                 });
                 
                 marker.bindPopup(`
                     <div style="text-align: center; min-width: 120px;">
-                        <strong>{{ __('Driver') }} #${driverId}</strong><br>
+                        <strong>${driverName}</strong><br>
                         <span class="badge bg-success mt-1">{{ __('Online') }} 🟢</span><br>
                         <small class="text-muted">Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}</small>
                     </div>
@@ -436,7 +438,11 @@
                         const match = driverId.match(/(\d+)/);
                         if (match) normalizedId = match[1];
                     }
-                    
+                    // Attach name if we have it
+                    if (!driverData.name && driverNames[normalizedId]) {
+                        driverData.name = driverNames[normalizedId];
+                    }
+
                     updateDriverMarker(normalizedId, driverData);
                     
                     // Update badge count
@@ -508,6 +514,7 @@
 
         // Initial unavailable drivers data from server
         const initialUnavailableDrivers = @json($unavailableDrivers);
+        const unavailableDriverNames = @json($driverNames ?? []);
         
         // Initialize map
         const mapElement = document.getElementById('unavailable-drivers-map');
@@ -561,6 +568,7 @@
         function updateUnavailableDriverMarker(driverId, driverData) {
             const lat = parseFloat(driverData.latitude);
             const lng = parseFloat(driverData.longitude);
+            const driverName = driverData.name || unavailableDriverNames[driverId] || '{{ __('Driver') }} #' + driverId;
             
             if (isNaN(lat) || isNaN(lng)) return;
 
@@ -571,12 +579,12 @@
                 // Create new marker
                 const marker = L.marker([lat, lng], {
                     icon: unavailableDriverIcon,
-                    title: `Driver #${driverId}`
+                    title: driverName
                 });
                 
                 marker.bindPopup(`
                     <div style="text-align: center; min-width: 120px;">
-                        <strong>{{ __('Driver') }} #${driverId}</strong><br>
+                        <strong>${driverName}</strong><br>
                         <span class="badge bg-danger mt-1">{{ __('Offline') }} 🔴</span><br>
                         <small class="text-muted">Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}</small>
                     </div>
@@ -619,7 +627,11 @@
                         const match = driverId.match(/(\d+)/);
                         if (match) normalizedId = match[1];
                     }
-                    
+                    // Attach name if we have it
+                    if (!driverData.name && unavailableDriverNames[normalizedId]) {
+                        driverData.name = unavailableDriverNames[normalizedId];
+                    }
+
                     updateUnavailableDriverMarker(normalizedId, driverData);
                     
                     // Update badge count

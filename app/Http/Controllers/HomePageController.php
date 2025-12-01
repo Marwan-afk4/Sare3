@@ -51,6 +51,25 @@ class HomePageController extends Controller
             \Log::warning('Failed to fetch unavailable drivers from Firebase: ' . $e->getMessage());
         }
 
+        // Map driver IDs to names so we can show names on the map instead of IDs
+        $driverNames = [];
+        $driverIds = array_unique(array_merge(array_keys($availableDrivers), array_keys($unavailableDrivers)));
+
+        if (!empty($driverIds)) {
+            $driverNames = User::whereIn('id', $driverIds)->pluck('name', 'id')->toArray();
+        }
+
+        // Attach driver name into the driver arrays (used by JS)
+        foreach ($availableDrivers as $id => &$driver) {
+            $driver['name'] = $driverNames[$id] ?? "Driver #{$id}";
+        }
+        unset($driver);
+
+        foreach ($unavailableDrivers as $id => &$driver) {
+            $driver['name'] = $driverNames[$id] ?? "Driver #{$id}";
+        }
+        unset($driver);
+
         return view('home.welcome', compact(
             'userCount',
             'driverCount',
@@ -60,7 +79,8 @@ class HomePageController extends Controller
             'availableDrivers',
             'availableDriversCount',
             'unavailableDrivers',
-            'unavailableDriversCount'
+            'unavailableDriversCount',
+            'driverNames'
         ));
     }
 
