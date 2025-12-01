@@ -4,10 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Ride;
+use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 
 class HomePageController extends Controller
 {
+    protected $firebaseService;
+
+    public function __construct(FirebaseService $firebaseService)
+    {
+        $this->firebaseService = $firebaseService;
+    }
+
     public function index()
     {
         $userCount = User::where('role', 'user')->count();
@@ -23,12 +31,24 @@ class HomePageController extends Controller
             ->limit(5)
             ->get();
 
+        // Get available drivers from Firebase
+        $availableDrivers = [];
+        $availableDriversCount = 0;
+        try {
+            $availableDrivers = $this->firebaseService->getAllAvailableDrivers();
+            $availableDriversCount = count($availableDrivers);
+        } catch (\Exception $e) {
+            \Log::warning('Failed to fetch available drivers from Firebase: ' . $e->getMessage());
+        }
+
         return view('home.welcome', compact(
             'userCount',
             'driverCount',
             'userMonthlyCounts',
             'driverMonthlyCounts',
-            'activeRides'
+            'activeRides',
+            'availableDrivers',
+            'availableDriversCount'
         ));
     }
 
