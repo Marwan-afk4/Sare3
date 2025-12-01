@@ -10,12 +10,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 
 class User extends Authenticatable
 {
     use HasFactory;
-    use HasApiTokens, Notifiable;
+    use HasApiTokens, Notifiable, HasRoles;
 
     protected $table = 'users';
 
@@ -57,7 +58,7 @@ class User extends Authenticatable
 
     public $timestamps = true;
 
-    protected $appends =['image_link'];
+    protected $appends = ['image_link'];
 
     public function referrer()
     {
@@ -77,8 +78,8 @@ class User extends Authenticatable
     public function activeReferral()
     {
         return $this->hasOne(Referral::class, 'referred_user_id')
-                    ->where('is_active', true)
-                    ->whereColumn('used_rides_count', '<', 'discount_rides_count');
+            ->where('is_active', true)
+            ->whereColumn('used_rides_count', '<', 'discount_rides_count');
     }
 
     public function pendingCoupon()
@@ -134,7 +135,7 @@ class User extends Authenticatable
 
     public function driverCars()
     {
-        return $this->hasMany(DriverCar::class,'driver_id');
+        return $this->hasMany(DriverCar::class, 'driver_id');
     }
 
     public function userRides()
@@ -167,7 +168,7 @@ class User extends Authenticatable
         return $this->hasOne(DriverRideSetting::class, 'driver_id');
     }
 
-     /**
+    /**
      * Get the chat conversation ID for this user with admin
      * Format: admin_{user_id}
      */
@@ -268,5 +269,4 @@ class User extends Authenticatable
             'balance_deficit' => $canGoOnline ? 0 : ($minimumBalance - $currentBalance)
         ];
     }
-
 }

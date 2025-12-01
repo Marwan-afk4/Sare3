@@ -15,18 +15,17 @@
     <!-- ===============================================-->
     <!--    Favicons-->
     <!-- ===============================================-->
-    <link rel="apple-touch-icon" sizes="180x180" href="/phoenix/assets/img/favicons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/phoenix/assets/img/favicons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/phoenix/assets/img/favicons/favicon-16x16.png">
-    <link rel="shortcut icon" type="image/x-icon" href="/phoenix/assets/img/favicons/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('logo/Layer_2_Image.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('logo/Layer_2_Image.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('logo/Layer_2_Image.png') }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('logo/Layer_2_Image.png') }}">
     <link rel="manifest" href="/phoenix/assets/img/favicons/manifest.json">
-    <meta name="msapplication-TileImage" content="assets/img/favicons/mstile-150x150.png">
+    <meta name="msapplication-TileImage" content="{{ asset('logo/Layer_2_Image.png') }}">
     <meta name="theme-color" content="#ffffff">
     <script src="/phoenix/vendors/simplebar/simplebar.min.js"></script>
     <script src="/phoenix/assets/js/config.js"></script>
     <!-- In your layouts/app.blade.php inside <head> -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Bootstrap JS (with Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -191,8 +190,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     <a class="navbar-brand me-1 me-sm-3" href="{{ route('home') }}">
                         <div class="d-flex align-items-center">
                             <div class="d-flex align-items-center">
-                                {{-- <img src="/phoenix/assets/img/icons/logo.png" alt="phoenix" width="27" /> --}}
-                                <h5 class="logo-text ms-2 d-none d-sm-block">{{ config('app.name') }}</h5>
+                                <img src="{{ asset('logo/Layer_2_Image.png') }}" alt="{{ config('app.name') }}" width="63" />
+                                {{-- <h5 class="logo-text ms-2 d-none d-sm-block">{{ config('app.name') }}</h5> --}}
                             </div>
                         </div>
                     </a>
@@ -1316,13 +1315,13 @@ document.addEventListener('DOMContentLoaded', function () {
                             <span class="d-none d-sm-inline-block mx-1">|</span>
                             <br class="d-sm-none" />
                             {{ date('Y') }} &copy;
-                            <a class="mx-1" href="https://connecttocode.vercel.app/" target="_blank" rel="noopener noreferrer">
+                            <a class="mx-1" href="https://connectcode.darory.net/" target="_blank" rel="noopener noreferrer">
                                 ConnectCode
                             </a>
                         </p>
                     </div>
                     <div class="col-12 col-sm-auto text-center">
-                        <p class="mb-0 text-body-tertiary text-opacity-85">v1.22.0</p>
+                        <p class="mb-0 text-body-tertiary text-opacity-85">v1.11.0</p>
                     </div>
                 </div>
             </footer>
