@@ -283,6 +283,11 @@
                     : 'text-muted' }}"></i>
                             <strong>{{ __('Ride Accepted') }}</strong>
                             <div class="small text-muted">{{ __('Driver accepted ride request') }}</div>
+                            @if($ride->accepted_at)
+                                <div class="small text-info mt-1">
+                                    <i class="fa fa-clock"></i> {{ $ride->accepted_at->format('M d, Y h:i A') }}
+                                </div>
+                            @endif
                         </li>
 
                         {{-- Driver En Route --}}
@@ -296,6 +301,11 @@
                         : 'text-muted') }}"></i>
                             <strong>{{ __('Driver En Route') }}</strong>
                             <div class="small text-muted">{{ __('Driver is heading to pickup location') }}</div>
+                            @if($ride->accepted_at)
+                                <div class="small text-info mt-1">
+                                    <i class="fa fa-clock"></i> {{ $ride->accepted_at->format('M d, Y h:i A') }}
+                                </div>
+                            @endif
                         </li>
 
                         {{-- Driver Arrived --}}
@@ -309,6 +319,11 @@
                         : 'text-muted') }}"></i>
                             <strong>{{ __('Driver Arrived') }}</strong>
                             <div class="small text-muted">{{ __('Driver has arrived at pickup location') }}</div>
+                            @if($ride->arrived_at)
+                                <div class="small text-info mt-1">
+                                    <i class="fa fa-clock"></i> {{ $ride->arrived_at->format('M d, Y h:i A') }}
+                                </div>
+                            @endif
                         </li>
 
                         {{-- Trip Started --}}
@@ -322,6 +337,11 @@
                         : 'text-muted') }}"></i>
                             <strong>{{ __('Trip Started') }}</strong>
                             <div class="small text-muted">{{ __('Trip is in progress') }}</div>
+                            @if($ride->trip_started_at)
+                                <div class="small text-info mt-1">
+                                    <i class="fa fa-clock"></i> {{ $ride->trip_started_at->format('M d, Y h:i A') }}
+                                </div>
+                            @endif
                         </li>
 
                         {{-- Trip Completed --}}
@@ -331,6 +351,11 @@
                 {{ in_array($ride->status->value, ['completed', 'finshed']) ? 'text-success' : 'text-muted' }}"></i>
                             <strong>{{ __('Trip Completed') }}</strong>
                             <div class="small text-muted">{{ __('You have reached your destination') }}</div>
+                            @if($ride->completed_at)
+                                <div class="small text-info mt-1">
+                                    <i class="fa fa-clock"></i> {{ $ride->completed_at->format('M d, Y h:i A') }}
+                                </div>
+                            @endif
                         </li>
 
                     </ul>

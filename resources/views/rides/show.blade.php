@@ -171,6 +171,66 @@
                 </div>
             </div>
         @endif
+
+        <!-- Trip Timeline -->
+        @if($ride->accepted_at || $ride->arrived_at || $ride->trip_started_at || $ride->completed_at)
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fa fa-clock"></i> {{ __('Trip Timeline') }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @if($ride->accepted_at)
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="fa fa-check-circle text-success me-2"></i>
+                                    <div>
+                                        <strong>{{ __('Ride Accepted') }}</strong>
+                                        <div class="small text-muted">{{ $ride->accepted_at->format('M d, Y h:i A') }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($ride->arrived_at)
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="fa fa-map-marker-alt text-info me-2"></i>
+                                    <div>
+                                        <strong>{{ __('Driver Arrived') }}</strong>
+                                        <div class="small text-muted">{{ $ride->arrived_at->format('M d, Y h:i A') }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($ride->trip_started_at)
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="fa fa-play-circle text-primary me-2"></i>
+                                    <div>
+                                        <strong>{{ __('Trip Started') }}</strong>
+                                        <div class="small text-muted">{{ $ride->trip_started_at->format('M d, Y h:i A') }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($ride->completed_at)
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="fa fa-flag-checkered text-success me-2"></i>
+                                    <div>
+                                        <strong>{{ __('Trip Completed') }}</strong>
+                                        <div class="small text-muted">{{ $ride->completed_at->format('M d, Y h:i A') }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 
 @push('scripts')

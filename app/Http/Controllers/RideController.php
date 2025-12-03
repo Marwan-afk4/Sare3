@@ -47,17 +47,17 @@ class RideController extends Controller
             ->when($keyword, function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->where('id', 'LIKE', "%{$keyword}%")
-                    ->orWhere('pickup_address', 'LIKE', "%{$keyword}%")
-                    ->orWhere('dropoff_address', 'LIKE', "%{$keyword}%")
-                    ->orWhereHas('user', function ($userQuery) use ($keyword) {
-                        $userQuery->where('name', 'LIKE', "%{$keyword}%")
-                                    ->orWhere('phone', 'LIKE', "%{$keyword}%")
-                                    ->orWhere('email', 'LIKE', "%{$keyword}%");
-                    })
-                    ->orWhereHas('driver', function ($driverQuery) use ($keyword) {
-                        $driverQuery->where('name', 'LIKE', "%{$keyword}%")
-                                    ->orWhere('phone', 'LIKE', "%{$keyword}%");
-                    });
+                        ->orWhere('pickup_address', 'LIKE', "%{$keyword}%")
+                        ->orWhere('dropoff_address', 'LIKE', "%{$keyword}%")
+                        ->orWhereHas('user', function ($userQuery) use ($keyword) {
+                            $userQuery->where('name', 'LIKE', "%{$keyword}%")
+                                ->orWhere('phone', 'LIKE', "%{$keyword}%")
+                                ->orWhere('email', 'LIKE', "%{$keyword}%");
+                        })
+                        ->orWhereHas('driver', function ($driverQuery) use ($keyword) {
+                            $driverQuery->where('name', 'LIKE', "%{$keyword}%")
+                                ->orWhere('phone', 'LIKE', "%{$keyword}%");
+                        });
                 });
             })
             ->when($request->filled('status'), function ($query) use ($request) {
@@ -97,7 +97,7 @@ class RideController extends Controller
     {
         $users = User::orderBy('name')->pluck('name', 'id')->toArray();
         $drivers = User::where('role', 'driver')
-        ->orderBy('name')->pluck('name', 'id')->toArray();
+            ->orderBy('name')->pluck('name', 'id')->toArray();
         $carCategories = CarCategory::orderBy('name')->pluck('name', 'id')->toArray();
         return view('rides.create', compact('users', 'drivers', 'carCategories'));
     }
@@ -123,7 +123,27 @@ class RideController extends Controller
         $oldStatus = $ride->status;
         $newStatus = $request->status;
 
-        $ride->update(['status' => $newStatus]);
+        // Prepare update data with status
+        $updateData = ['status' => $newStatus];
+
+        // Add appropriate timestamp based on new status
+        switch ($newStatus) {
+            case 'accepted':
+                $updateData['accepted_at'] = now();
+                break;
+            case 'waiting_user':
+                $updateData['arrived_at'] = now();
+                break;
+            case 'in_progress':
+                $updateData['trip_started_at'] = now();
+                break;
+            case 'completed':
+            case 'finshed':
+                $updateData['completed_at'] = now();
+                break;
+        }
+
+        $ride->update($updateData);
 
         try {
             $this->updateFirebase($ride, [
@@ -146,7 +166,7 @@ class RideController extends Controller
     {
         $users = User::orderBy('name')->pluck('name', 'id')->toArray();
         $drivers = User::where('role', 'driver')
-        ->orderBy('name')->pluck('name', 'id')->toArray();
+            ->orderBy('name')->pluck('name', 'id')->toArray();
         $carCategories = CarCategory::orderBy('name')->pluck('name', 'id')->toArray();
         return view('rides.edit', compact('ride', 'users', 'drivers', 'carCategories'));
     }

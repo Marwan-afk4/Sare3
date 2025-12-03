@@ -43,7 +43,11 @@ class Ride extends Model
         'cancellation_reason_id',
         'zone_id',
         'reassigned_at',
-        'driver_assigned_at'
+        'driver_assigned_at',
+        'accepted_at',
+        'arrived_at',
+        'trip_started_at',
+        'completed_at'
     ];
 
     public $timestamps = true;
@@ -56,6 +60,10 @@ class Ride extends Model
         'verification_code_verified' => 'boolean',
         'reassigned_at' => 'datetime',
         'auto_rejected_at' => 'datetime',
+        'accepted_at' => 'datetime',
+        'arrived_at' => 'datetime',
+        'trip_started_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     public function zone()
@@ -139,8 +147,8 @@ class Ride extends Model
     {
         try {
             return \App\Models\AppSetting::isRideVerificationEnabled() &&
-                   $this->status->value === 'accepted' &&
-                   !empty($this->verification_code);
+                $this->status->value === 'accepted' &&
+                !empty($this->verification_code);
         } catch (\Exception $e) {
             // If database is not available, return false (feature disabled)
             return false;
@@ -163,6 +171,4 @@ class Ride extends Model
             return true;
         }
     }
-
-
 }

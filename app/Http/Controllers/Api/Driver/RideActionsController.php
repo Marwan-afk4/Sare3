@@ -86,6 +86,7 @@ class RideActionsController extends Controller
             'driver_id' => $driver->id,
             'started_at' => $startTime,
             'status' => 'accepted',
+            'accepted_at' => $startTime,
         ]);
 
         $firebaseData = [
@@ -127,7 +128,10 @@ class RideActionsController extends Controller
     {
         $ride = $this->validateRide($request);
 
-        $ride->update(['status' => 'waiting_user']);
+        $ride->update([
+            'status' => 'waiting_user',
+            'arrived_at' => now(),
+        ]);
 
         try {
             $this->updateFirebase($ride, [
@@ -154,7 +158,10 @@ class RideActionsController extends Controller
             ], 422);
         }
 
-        $ride->update(['status' => 'in_progress']);
+        $ride->update([
+            'status' => 'in_progress',
+            'trip_started_at' => now(),
+        ]);
 
         try {
             $this->updateFirebase($ride, [
@@ -337,6 +344,7 @@ class RideActionsController extends Controller
             'ended_at' => $endTime,
             'time_taken' => $durationMinutes,
             'total_distance_in_km' => round($distanceKm, 1),
+            'completed_at' => $endTime,
         ]);
 
         // 🔟 Push to Firebase
@@ -451,12 +459,12 @@ class RideActionsController extends Controller
 
             if ($alternativeDriver) {
                 $driverId = $alternativeDriver['driver_id'] ?? $alternativeDriver['id'] ?? null;
-                
+
                 if (!$driverId) {
                     Log::error("Invalid alternative driver structure in cancelRide", ['alternative_driver' => $alternativeDriver]);
                     return response()->json(['message' => 'Failed to find alternative driver'], 500);
                 }
-                
+
                 $ride->update([
                     'driver_id' => $driverId,
                     'status' => 'pending',
