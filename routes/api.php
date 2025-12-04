@@ -105,7 +105,7 @@ Route::post('/driver/login', [DriverAuthController::class, 'login']);
 
 
 //======= DRIVER ========
-Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(function () {
+Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
 
 //Zones
     Route::get('/zones', [RideEstimateController::class, 'zones']);
@@ -202,7 +202,7 @@ Route::middleware(['auth:sanctum', 'role:driver'])->prefix('driver')->group(func
 
 
 //======= USER ========
-Route::middleware(['auth:sanctum', 'role:user'])->prefix('user')->group(function () {
+Route::middleware(['auth:sanctum'])->prefix('user')->group(function () {
 
     Route::post('/point/pickup-drop', [PointController::class, 'storePointPickupandDrop']);
 
@@ -375,7 +375,3 @@ Route::middleware(['auth:sanctum', 'role:admin'])->get('/debug/admin-auth', func
         'message' => 'Admin authentication working'
     ]);
 });
-
-
-
-
