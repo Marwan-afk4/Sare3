@@ -31,6 +31,16 @@
                                 <span>{{ $zone->name }}</span>
                             </li>
                             <li class="list-group-item d-flex justify-content-between">
+                                <strong>{{ __('Admin Profit') }}:</strong>
+                                <span>
+                                    @if($zone->admin_profit_percentage !== null)
+                                        <span class="badge bg-primary">{{ number_format($zone->admin_profit_percentage, 2) }}%</span>
+                                    @else
+                                        <span class="badge bg-secondary" title="{{ __('Using global setting') }}">{{ __('Global Setting') }}</span>
+                                    @endif
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
                                 <strong>{{ __('Zone Type') }}:</strong>
                                 <span>
                                     @if (is_array($zone->polygon_coordinates))

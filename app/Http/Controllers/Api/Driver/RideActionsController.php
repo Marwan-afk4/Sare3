@@ -321,7 +321,8 @@ class RideActionsController extends Controller
         $fare = $discountResult['final_fare'];
 
         // 6️⃣ Admin Profit Calculation (on discounted fare)
-        $adminProfitPercentage = AppSetting::getAdminProfitPercentage();
+        // Use zone-specific profit percentage if available, otherwise fall back to global setting
+        $adminProfitPercentage = $zone->admin_profit_percentage ?? AppSetting::getAdminProfitPercentage();
         $profitAmounts = RideProfit::calculateProfit($fare, $adminProfitPercentage);
 
         // 7️⃣ Update Driver Wallet (deduct admin profit)

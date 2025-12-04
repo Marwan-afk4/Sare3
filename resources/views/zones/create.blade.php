@@ -20,6 +20,16 @@
 					required
 				/>
 
+				<x-form-input
+					name="admin_profit_percentage"
+					type="number"
+					step="0.01"
+					min="0"
+					max="100"
+					label="{{__('Admin Profit Percentage')}} (%)"
+					placeholder="{{__('Leave empty to use global setting')}}"
+				/>
+
 				{{-- <div class="mb-3">
 					<label class="form-label">{{ __('Zone Area Selection') }}</label>
 					<div class="btn-group mb-3" role="group">

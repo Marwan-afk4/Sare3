@@ -26,6 +26,12 @@
 						</a>
 					</th>
 					<th>
+						<a href="{{ route('zones.index', ['sort' => 'admin_profit_percentage', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+							{{ __("Admin Profit") }} %
+							@if($sortField === 'admin_profit_percentage')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
+						</a>
+					</th>
+					<th>
 						<a href="{{ route('zones.index', ['sort' => 'from_lat', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
 							{{ __("From Lat") }}
 							@if($sortField === 'from_lat')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
@@ -62,6 +68,13 @@
 				<tr>
 					<td>{{ $zone->id }}</td>
 					<td>{{ $zone->name }}</td>
+					<td>
+						@if($zone->admin_profit_percentage !== null)
+							<span class="badge bg-primary">{{ number_format($zone->admin_profit_percentage, 2) }}%</span>
+						@else
+							<span class="badge bg-secondary" title="{{ __('Using global setting') }}">{{ __('Global') }}</span>
+						@endif
+					</td>
 					<td>{{ $zone->from_lat }}</td>
 					<td>{{ $zone->from_lng }}</td>
 					<td>{{ $zone->to_lat }}</td>

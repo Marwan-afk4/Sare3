@@ -13,6 +13,7 @@ class Zone extends Model
 
     protected $fillable = [
         'name',
+        'admin_profit_percentage',
         'from_lat',
         'from_lng',
         'to_lat',
@@ -26,6 +27,7 @@ class Zone extends Model
         'from_lng' => 'decimal:7',
         'to_lat' => 'decimal:7',
         'to_lng' => 'decimal:7',
+        'admin_profit_percentage' => 'decimal:2',
     ];
 
     public $timestamps = true;
