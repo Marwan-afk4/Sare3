@@ -48,6 +48,22 @@
             </div>
         </div>
 
+    {{-- Car Year Filter Buttons --}}
+    <div class="mb-3">
+        <label class="form-label fw-bold">{{ __('Filter by Car Year') }}</label>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('drivers.index') }}" class="btn btn-outline-success btn-sm">
+                {{ __('All Years') }}
+            </a>
+            @foreach ($carYears as $year)
+                <a href="{{ route('drivers.index', ['car_year' => $year]) }}"
+                    class="btn btn-sm {{ request('car_year') == $year ? 'btn-success' : 'btn-outline-success' }}">
+                    {{ $year }} ({{ $carYearCounts[$year] ?? 0 }})
+                </a>
+            @endforeach
+        </div>
+    </div>
+
         {{-- Search Form --}}
         <div class="d-flex justify-content-end">
             <form action="{{ route(Route::currentRouteName(), [], false) }}" method="GET" class="d-flex"

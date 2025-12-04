@@ -136,7 +136,7 @@
     "Create Car Type": "إنشاء نوع سيارة",
     "Car Types": "طرازات السيارات",
     "Car Model": "طراز السيارة",
-    "Type Name": "اسم النوع",
+    "Type Name": "اسم الطراز",
     "Edit Car Type": "تعديل نوع السيارة",
     "Car Category": "فئة السيارة",
     "Cars for ": "سيارات لـ ",
@@ -770,5 +770,8 @@
     "The Car License may not be greater than 2MB.": "يجب اختيار صورة",
     "The Password must be at least 6 characters.": "يجب اختيار كلمة مرور لا تقل عن 6",
     "The selected zone does not exist.": "المنطقة غير موجودة",
-    "Type Year": "طراز (سنة)"
+    "Type Year": "طراز (سنة)",
+    "Search by name, email, phone, or car year": "البحث بالاسم أو البريد الإلكتروني أو الهاتف أو سنة السيارة",
+    "Filter by Car Year": "تصفية حسب سنة السيارة",
+    "All Years": "جميع السنوات"
 }

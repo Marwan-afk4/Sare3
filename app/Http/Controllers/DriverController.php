@@ -19,7 +19,7 @@ use Kreait\Firebase\Factory;
 class DriverController extends Controller
 {
     use ImageUpload;
-    
+
     protected $firebaseService;
 
     public function __construct(FirebaseService $firebaseService)
@@ -34,6 +34,7 @@ class DriverController extends Controller
         $keyword = $request->get('keyword');
         $activity = $request->get('activity'); // 👈 Get the selected activity from the request
         $zoneId = $request->get('zone'); // 👈 Get the selected zone from the request
+        $carYear = $request->get('car_year'); // 👈 Get the selected car year from the request
 
         $driverActivityCounts = User::where('role', 'driver')
             ->selectRaw('activity, COUNT(*) as count')
@@ -51,8 +52,27 @@ class DriverController extends Controller
             ->whereNull('zone_id')
             ->count();
 
+        // 👇 Get all distinct car years from car types that have drivers
+        $carYears = \App\Models\CarType::whereHas('driverCars')
+            ->distinct()
+            ->orderBy('type_year', 'desc')
+            ->pluck('type_year')
+            ->filter() // Remove null values
+            ->unique()
+            ->values();
+
+        // 👇 Count drivers per car year
+        $carYearCounts = [];
+        foreach ($carYears as $year) {
+            $carYearCounts[$year] = User::where('role', 'driver')
+                ->whereHas('driverCars.carType', function ($query) use ($year) {
+                    $query->where('type_year', $year);
+                })
+                ->count();
+        }
+
         $drivers = User::where('role', 'driver')
-            ->with('zone') // 👈 Load zone relationship
+            ->with(['zone', 'driverCars.carType']) // 👈 Load car relationships
             ->when($activity, function ($query, $activity) {
                 $query->where('activity', $activity); // 👈 Filter by activity
             })
@@ -62,6 +82,12 @@ class DriverController extends Controller
                 } else {
                     $query->where('zone_id', $zoneId); // 👈 Filter by zone
                 }
+            })
+            ->when($carYear, function ($query, $carYear) {
+                // 👇 Filter by car type year
+                $query->whereHas('driverCars.carType', function ($carQuery) use ($carYear) {
+                    $carQuery->where('type_year', $carYear);
+                });
             })
             ->when($keyword, function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
@@ -79,7 +105,7 @@ class DriverController extends Controller
         try {
             $allAvailableDrivers = $this->firebaseService->getAllAvailableDrivers();
             $availableDriverIds = array_map('intval', array_keys($allAvailableDrivers)); // Normalize to integers
-            
+
             // Create availability map for quick lookup
             foreach ($drivers as $driver) {
                 // Use strict comparison with normalized integer IDs
@@ -95,7 +121,7 @@ class DriverController extends Controller
 
         $driverActivtyStatus = ActivtyType::cases();
 
-        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'zones', 'driversWithNoZoneCount', 'driverAvailability'));
+        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'zones', 'driversWithNoZoneCount', 'driverAvailability', 'carYears', 'carYearCounts'));
     }
 
     public function documents(User $driver)
@@ -210,7 +236,6 @@ class DriverController extends Controller
                 $firebaseRef = $firebase->getReference("drivers/driver {$driver->id}");
 
                 $firebaseRef->remove();
-
             } catch (\Exception $e) {
                 return redirect()->route('drivers.index')->with('error', 'Driver updated, but failed to update Firebase: ' . $e->getMessage());
             }
@@ -227,7 +252,7 @@ class DriverController extends Controller
     public function getLocation(User $driver)
     {
         $location = $this->firebaseService->getDriverLocation($driver->id);
-        
+
         if ($location) {
             return response()->json([
                 'success' => true,
@@ -235,7 +260,7 @@ class DriverController extends Controller
                 'is_available' => true
             ]);
         }
-        
+
         return response()->json([
             'success' => false,
             'message' => 'Driver location not available',
