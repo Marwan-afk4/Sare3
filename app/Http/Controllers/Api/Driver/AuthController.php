@@ -433,6 +433,11 @@ class AuthController extends Controller
         // Attach all provided categories to the driver car via pivot
         $driverCar->carCategories()->sync($providedCategoryIds);
 
+        $driver->update([
+            'activity' => 'active',
+            'role' => 'driver'
+        ]);
+
         return response()->json([
             'message' => 'Waiting for admin approval, your car details have been submitted successfully'
         ]);
