@@ -30,6 +30,10 @@ class CancelationRide extends Controller
         $user = $request->user(); // المستخدم الحالي
         $now = now();
 
+        // ✅ Determine who is canceling based on the ride relationship (not user's role column)
+        $isPassenger = $ride->user_id === $user->id;
+        $isDriver = $ride->driver_id === $user->id;
+
         // التأكد من أن الرحلة لم تُلغَ مسبقًا
         if ($ride->status === 'cancelled') {
             return response()->json(['message' => 'Ride already canceled'], 400);
@@ -51,9 +55,9 @@ class CancelationRide extends Controller
         if (!$selectedPolicy) {
             ModelsCancelationRide::create([
                 'ride_id' => $ride->id,
-                'user_id' => $user->role === 'user' ? $user->id : null,
-                'driver_id' => $user->role === 'driver' ? $user->id : null,
-                'canceled_by' => $user->role ?? 'unknown',
+                'user_id' => $isPassenger ? $user->id : null,
+                'driver_id' => $isDriver ? $user->id : null,
+                'canceled_by' => $isPassenger ? 'user' : ($isDriver ? 'driver' : 'unknown'),
                 'canceled_at' => $now,
                 'reason' => $request->input('reason'),
             ]);
@@ -70,11 +74,16 @@ class CancelationRide extends Controller
 
                 $firebaseRef = $firebase->getReference("rides/{$ride->firebase_ride_id}");
 
-                if ($user->role === 'driver') {
+                // ✅ Firebase logic based on who canceled
+                if ($isDriver) {
+                    // Driver canceled - update status
                     $firebaseRef->update([
                         'status' => 'canceled',
+                        'canceled_by' => 'driver',
+                        'canceled_at' => $now->toIso8601String(),
                     ]);
-                } elseif ($user->role === 'user') {
+                } elseif ($isPassenger) {
+                    // Passenger canceled - remove from Firebase
                     $firebaseRef->remove();
                 }
             } catch (\Exception $e) {
@@ -110,10 +119,10 @@ class CancelationRide extends Controller
         // حفظ سجل الإلغاء
         ModelsCancelationRide::create([
             'ride_id' => $ride->id,
-            'user_id' => $user->role === 'user' ? $user->id : null,
-            'driver_id' => $user->role === 'driver' ? $user->id : null,
+            'user_id' => $isPassenger ? $user->id : null,
+            'driver_id' => $isDriver ? $user->id : null,
             'cancelation_policy_id' => $selectedPolicy->id,
-            'canceled_by' => $user->role ?? 'unknown',
+            'canceled_by' => $isPassenger ? 'user' : ($isDriver ? 'driver' : 'unknown'),
             'canceled_at' => $now,
             'penalty_applied' => $penaltyAmount > 0,
             'penalty_amount' => round($penaltyAmount, 2),
@@ -128,13 +137,17 @@ class CancelationRide extends Controller
 
             $firebaseRef = $firebase->getReference("rides/{$ride->firebase_ride_id}");
 
-            if ($user->role === 'driver') {
-                // السائق يحدّث الحالة فقط
+            // ✅ Firebase logic based on who canceled
+            if ($isDriver) {
+                // Driver canceled - update status
                 $firebaseRef->update([
                     'status' => 'canceled',
+                    'canceled_by' => 'driver',
+                    'canceled_at' => $now->toIso8601String(),
+                    'penalty_amount' => round($penaltyAmount, 2),
                 ]);
-            } elseif ($user->role === 'user') {
-                // المستخدم يحذف الرحلة من Firebase
+            } elseif ($isPassenger) {
+                // Passenger canceled - remove from Firebase
                 $firebaseRef->remove();
             }
         } catch (\Exception $e) {
