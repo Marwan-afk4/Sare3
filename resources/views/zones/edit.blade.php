@@ -35,6 +35,17 @@
 					required
 				/>
 
+				<x-form-input
+					name="admin_profit_percentage"
+					type="number"
+					step="0.01"
+					min="0"
+					max="100"
+					label="{{__('Admin Profit Percentage')}} (%)"
+					:value="$zone->admin_profit_percentage ?? ''"
+					placeholder="{{__('Leave empty to use global setting')}}"
+				/>
+
 			<!-- Google Maps Container - Always Visible -->
 			<div id="polygon_section" class="mb-3">
 				<label class="form-label">{{ __('Edit Zone Area on Map') }}</label>

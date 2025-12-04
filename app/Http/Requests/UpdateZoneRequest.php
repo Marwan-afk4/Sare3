@@ -16,6 +16,7 @@ class UpdateZoneRequest extends FormRequest
     {
         return [
             'name' => 'nullable|unique:zones,name,'.$this->route('zone')->id,
+            'admin_profit_percentage' => 'nullable|numeric|min:0|max:100',
             'from_lat' => 'nullable|numeric|between:-90,90',
             'from_lng' => 'nullable|numeric|between:-180,180',
             'to_lat' => 'nullable|numeric|between:-90,90',
@@ -51,6 +52,9 @@ class UpdateZoneRequest extends FormRequest
     {
         return [
             'name.unique' => __('The Name has already been taken.'),
+            'admin_profit_percentage.numeric' => __('The Admin Profit Percentage must be a valid number.'),
+            'admin_profit_percentage.min' => __('The Admin Profit Percentage must be at least 0.'),
+            'admin_profit_percentage.max' => __('The Admin Profit Percentage cannot exceed 100.'),
             'from_lat.numeric' => __('The From Lat must be a valid number.'),
             'from_lng.numeric' => __('The From Lng must be a valid number.'),
             'to_lat.numeric' => __('The To Lat must be a valid number.'),
