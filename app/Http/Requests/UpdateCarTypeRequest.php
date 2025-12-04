@@ -19,6 +19,7 @@ class UpdateCarTypeRequest extends FormRequest
             'car_category_ids' => 'required|array|min:1',
             'car_category_ids.*' => 'exists:car_categories,id',
             'type_name' => 'nullable|string|max:255|unique:car_types,type_name,' . $this->route('car_type')->id,
+            'type_year' => 'nullable|integer',
             'description' => 'nullable'
         ];
     }
@@ -33,6 +34,8 @@ class UpdateCarTypeRequest extends FormRequest
             'car_category_ids.min' => __('At least one Car Category must be selected.'),
             'car_category_ids.*.exists' => __('One or more selected Car Categories are invalid.'),
             'type_name.unique' => __('The Type Name has already been taken.'),
+            'type_year.required' => __('The Type Year field is required.'),
+            'type_year.integer' => __('The Type Year must be an integer.'),
         ];
     }
 

@@ -769,5 +769,6 @@
     "The Car License must be a file of type: jpeg, png, jpg, gif.": "يجب اختيار صورة",
     "The Car License may not be greater than 2MB.": "يجب اختيار صورة",
     "The Password must be at least 6 characters.": "يجب اختيار كلمة مرور لا تقل عن 6",
-    "The selected zone does not exist.": "المنطقة غير موجودة"
+    "The selected zone does not exist.": "المنطقة غير موجودة",
+    "Type Year": "طراز (سنة)"
 }

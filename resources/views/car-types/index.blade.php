@@ -28,11 +28,17 @@
 						</a>
 					</th>
 					<th>
+						<a href="{{ route('car-types.index', ['sort' => 'type_year', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+							{{ __("Type Year") }}
+							@if($sortField === 'type_year')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
+						</a>
+					</th>
+					{{-- <th>
 						<a href="{{ route('car-types.index', ['sort' => 'description', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
 							{{ __("Description") }}
 							@if($sortField === 'description')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
 						</a>
-					</th>
+					</th> --}}
 					<th>
 						<a href="{{ route('car-types.index', ['sort' => 'created_at', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
 							{{ __("Created At") }}
@@ -61,7 +67,8 @@
                         @endif
                     </td>
 					<td>{{ $carType->type_name }}</td>
-					<td>{{ $carType->description }}</td>
+					<td><strong>{{ $carType->type_year ?? '-' }}</strong></td>
+					{{-- <td>{{ $carType->description }}</td> --}}
 					<td>{{ $carType->created_at?->diffForHumans() ?? '-' }}</td>
 					<td class="text-center">
 						<a href='{{ route('car-types.show', $carType) }}' class="btn btn-subtle-primary btn-sm me-1">{{ __("Details") }} <i class="fa fa-eye"></i></a>

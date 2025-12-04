@@ -14,6 +14,7 @@ class CarType extends Model
     protected $fillable = [
         'car_model_id',
         'type_name',
+        'type_year',
         'description'
     ];
 

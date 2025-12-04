@@ -19,6 +19,7 @@ class StoreCarTypeRequest extends FormRequest
             'car_category_ids' => 'required|array|min:1',
             'car_category_ids.*' => 'exists:car_categories,id',
             'type_name' => 'required|string|max:255|unique:car_types,type_name',
+            'type_year' => 'required|integer',
             'description' => 'nullable'
         ];
     }
@@ -34,6 +35,8 @@ class StoreCarTypeRequest extends FormRequest
             'car_category_ids.*.exists' => __('One or more selected Car Categories are invalid.'),
             'type_name.required' => __('The Type Name field is required.'),
             'type_name.unique' => __('The Type Name has already been taken.'),
+            'type_year.required' => __('The Type Year field is required.'),
+            'type_year.integer' => __('The Type Year must be an integer.'),
         ];
     }
 

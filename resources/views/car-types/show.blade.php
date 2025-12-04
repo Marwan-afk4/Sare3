@@ -38,6 +38,9 @@
 					<strong>{{ __("Type Name") }}:</strong> {{ $carType->type_name }}
 				</li>
 				<li class="list-group-item">
+					<strong>{{ __("Type Year") }}:</strong> {{ $carType->type_year ?? '-' }}
+				</li>
+				<li class="list-group-item">
 					<strong>{{ __("Description") }}:</strong> {{ $carType->description }}
 				</li>
 				<li class="list-group-item">

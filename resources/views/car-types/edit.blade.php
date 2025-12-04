@@ -58,6 +58,12 @@
 					required
 				/>
 				<x-form-input
+					name="type_year"
+					type="number"
+					label="{{__('Type Year')}}"
+					:value="$carType->type_year ?? ''"
+				/>
+				<x-form-input
 					name="description"
 					type="text"
 					label="{{__('Description')}}"
