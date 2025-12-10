@@ -240,13 +240,13 @@ class RideEstimateController extends Controller
                 'driver_rating' => round($driverRating ?? 0, 1),
                 'car_category_id' => $ride->car_category_id,
                 'pickup' => [
-                    'lat' => $ride->pickup_lat,
-                    'lng' => $ride->pickup_lng,
+                    'lat' => (float) $ride->pickup_lat,
+                    'lng' => (float) $ride->pickup_lng,
                     'address' => $request->pickup_address,
                 ],
                 'dropoff' => [
-                    'lat' => $ride->dropoff_lat,
-                    'lng' => $ride->dropoff_lng,
+                    'lat' => (float) $ride->dropoff_lat,
+                    'lng' => (float) $ride->dropoff_lng,
                     'address' => $request->dropoff_address,
                 ],
                 'estimated_time' => $request->estimated_time,

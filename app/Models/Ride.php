@@ -64,6 +64,10 @@ class Ride extends Model
         'arrived_at' => 'datetime',
         'trip_started_at' => 'datetime',
         'completed_at' => 'datetime',
+        'pickup_lat' => 'float',
+        'pickup_lng' => 'float',
+        'dropoff_lat' => 'float',
+        'dropoff_lng' => 'float',
     ];
 
     public function zone()

@@ -25,6 +25,13 @@ class RideEstimate extends Model
     
     public $timestamps = true;
 
+    protected $casts = [
+        'pickup_lat' => 'float',
+        'pickup_lng' => 'float',
+        'dropoff_lat' => 'float',
+        'dropoff_lng' => 'float',
+    ];
+
     
     public function user()
     {
