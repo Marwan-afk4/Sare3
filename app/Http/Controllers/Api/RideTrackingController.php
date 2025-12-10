@@ -92,18 +92,24 @@ class RideTrackingController extends Controller
         $snap = in_array($status, ['completed', 'finshed']);
         $displayPoints = \App\Helpers\RideHelper::makeDisplayPath($routePoints, $snap);
 
+        $rideData = [
+            'id' => $ride->id,
+            'status' => $status,
+            'driver_id' => $ride->driver_id,
+            'pickup_lat' => (float) $ride->pickup_lat,
+            'pickup_lng' => (float) $ride->pickup_lng,
+            'pickup_address' => $ride->pickup_address,
+        ];
+
+        // Only include dropoff if coordinates exist
+        if ($ride->dropoff_lat && $ride->dropoff_lng) {
+            $rideData['dropoff_lat'] = (float) $ride->dropoff_lat;
+            $rideData['dropoff_lng'] = (float) $ride->dropoff_lng;
+            $rideData['dropoff_address'] = $ride->dropoff_address;
+        }
+
         return response()->json([
-            'ride' => [
-                'id' => $ride->id,
-                'status' => $status,
-                'driver_id' => $ride->driver_id,
-                'pickup_lat' => $ride->pickup_lat,
-                'pickup_lng' => $ride->pickup_lng,
-                'dropoff_lat' => $ride->dropoff_lat,
-                'dropoff_lng' => $ride->dropoff_lng,
-                'pickup_address' => $ride->pickup_address,
-                'dropoff_address' => $ride->dropoff_address,
-            ],
+            'ride' => $rideData,
             'route_points' => $displayPoints,
             'total_points' => count($routePoints),
             'filtered_points' => count($displayPoints),
@@ -134,31 +140,37 @@ class RideTrackingController extends Controller
         $snap = in_array($status, ['completed', 'finshed']);
         $displayPoints = \App\Helpers\RideHelper::makeDisplayPath($routePoints, $snap);
 
-        return response()->json([
-            'ride' => [
-                'id' => $ride->id,
-                'status' => $status,
-                'user' => $ride->user?->name,
-                'driver' => $ride->driver?->name,
-                'car_category' => $ride->carCategory?->name,
-                'pickup' => [
-                    'lat' => $ride->pickup_lat,
-                    'lng' => $ride->pickup_lng,
-                    'address' => $ride->pickup_address
-                ],
-                'dropoff' => [
-                    'lat' => $ride->dropoff_lat,
-                    'lng' => $ride->dropoff_lng,
-                    'address' => $ride->dropoff_address
-                ],
-                'estimated_km' => $ride->estimated_km,
-                'total_distance_in_km' => $ride->total_distance_in_km,
-                'estimated_time' => $ride->estimated_time,
-                'time_taken' => $ride->time_taken,
-                'created_at' => $ride->created_at,
-                'started_at' => $ride->started_at,
-                'ended_at' => $ride->ended_at
+        $rideData = [
+            'id' => $ride->id,
+            'status' => $status,
+            'user' => $ride->user?->name,
+            'driver' => $ride->driver?->name,
+            'car_category' => $ride->carCategory?->name,
+            'pickup' => [
+                'lat' => (float) $ride->pickup_lat,
+                'lng' => (float) $ride->pickup_lng,
+                'address' => $ride->pickup_address
             ],
+            'estimated_km' => $ride->estimated_km,
+            'total_distance_in_km' => $ride->total_distance_in_km,
+            'estimated_time' => $ride->estimated_time,
+            'time_taken' => $ride->time_taken,
+            'created_at' => $ride->created_at,
+            'started_at' => $ride->started_at,
+            'ended_at' => $ride->ended_at
+        ];
+
+        // Only include dropoff if coordinates exist
+        if ($ride->dropoff_lat && $ride->dropoff_lng) {
+            $rideData['dropoff'] = [
+                'lat' => (float) $ride->dropoff_lat,
+                'lng' => (float) $ride->dropoff_lng,
+                'address' => $ride->dropoff_address
+            ];
+        }
+
+        return response()->json([
+            'ride' => $rideData,
             'route_points' => $displayPoints, // Use filtered points
             'total_points' => count($routePoints),
             'filtered_points' => count($displayPoints),

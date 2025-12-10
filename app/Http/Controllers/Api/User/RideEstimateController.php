@@ -244,11 +244,6 @@ class RideEstimateController extends Controller
                     'lng' => (float) $ride->pickup_lng,
                     'address' => $request->pickup_address,
                 ],
-                'dropoff' => [
-                    'lat' => (float) $ride->dropoff_lat,
-                    'lng' => (float) $ride->dropoff_lng,
-                    'address' => $request->dropoff_address,
-                ],
                 'estimated_time' => $request->estimated_time,
                 'estimated_km' => $request->estimated_km,
                 'initial_price' => (float)($ride->calculated_initial_price ?? $price),
@@ -259,6 +254,15 @@ class RideEstimateController extends Controller
                 'cancellation_policy' => $policyExists,
                 'created_at' => now()->toIso8601String(),
             ];
+
+            // Only include dropoff if coordinates exist (not null and not 0)
+            if ($ride->dropoff_lat && $ride->dropoff_lng) {
+                $firebaseData['dropoff'] = [
+                    'lat' => (float) $ride->dropoff_lat,
+                    'lng' => (float) $ride->dropoff_lng,
+                    'address' => $request->dropoff_address,
+                ];
+            }
 
             $firebase->getReference("rides/$firebaseRideId")->set($firebaseData);
 
