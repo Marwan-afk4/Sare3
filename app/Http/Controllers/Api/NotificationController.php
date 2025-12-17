@@ -14,6 +14,8 @@ class NotificationController extends Controller
 
     public function broadcastNotification(Request $request)
     {
+        $startTime = microtime(true);
+        
         $validation = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
             'data' => 'required|array',
@@ -25,13 +27,25 @@ class NotificationController extends Controller
             return response()->json($validation->errors(), 400);
         }
 
-        $tokens = User::where('id', $request->user_id)
+        $driverId = $request->user_id;
+        $msgType = $request->data['msg_type'] ?? 'unknown';
+        $rideId = $request->data['ride_id'] ?? null;
+        
+        \Illuminate\Support\Facades\Log::info("📲 Notification API called", [
+            'driver_id' => $driverId,
+            'msg_type' => $msgType,
+            'ride_id' => $rideId,
+            'caller_user_id' => $request->user()->id ?? null,
+        ]);
+
+        $tokens = User::where('id', $driverId)
             ->whereNotNull('fcm_token')
             ->where('fcm_token', '!=', '')
             ->pluck('fcm_token')
             ->toArray();
 
         if (empty($tokens)) {
+            \Illuminate\Support\Facades\Log::warning("No FCM token found for driver {$driverId}");
             return response()->json(['error' => 'No FCM tokens found'], 404);
         }
 
@@ -39,7 +53,7 @@ class NotificationController extends Controller
 
         foreach ($tokens as $token) {
             $responses[] = [
-                'token' => $token,
+                'token' => substr($token, 0, 20) . '...', // Don't expose full token
                 'response' => FcmHelper::sendPushNotification(
                     $token,
                     $request->data['title'], // ✅ العنوان من جوه data
@@ -49,9 +63,17 @@ class NotificationController extends Controller
             ];
         }
 
+        $duration = round((microtime(true) - $startTime) * 1000, 2);
+        
+        \Illuminate\Support\Facades\Log::info("✅ Notification API completed in {$duration}ms", [
+            'driver_id' => $driverId,
+            'tokens_count' => count($tokens),
+        ]);
+
         return response()->json([
             'message' => 'Broadcast sent to ' . count($tokens) . ' users',
             'responses' => $responses,
+            'processing_time_ms' => $duration,
         ]);
     }
 
