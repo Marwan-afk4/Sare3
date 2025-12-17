@@ -273,6 +273,31 @@ class RideEstimateController extends Controller
             return response()->json(['message' => 'Ride created, but failed to sync with Firebase', 'error' => $e->getMessage()], 500);
         }
 
+        // Send immediate push notification to the assigned driver
+        if ($driver && $driver->fcm_token) {
+            $notificationData = [
+                'title'    => 'New Ride Request',
+                'body'     => 'You have a new ride request!',
+                'msg_type' => 'ride_request',
+                'ride_id'  => (string) $ride->id,
+            ];
+
+            try {
+                $response = FcmHelper::sendPushNotification(
+                    $driver->fcm_token,
+                    $notificationData['title'],
+                    $notificationData['body'],
+                    $notificationData
+                );
+
+                Log::info("Notification sent to driver {$driver->id} for new ride {$ride->id}", ['response' => $response]);
+            } catch (\Exception $e) {
+                Log::error("Failed to send notification to driver {$driver->id}: " . $e->getMessage());
+            }
+        } else {
+            Log::warning("No FCM token found for driver {$driver->id}, cannot send notification for ride {$ride->id}");
+        }
+
         // // // Schedule auto-reject job
         // $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
         // AutoRejectRideJob::dispatch(

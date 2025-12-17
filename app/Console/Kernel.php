@@ -12,6 +12,12 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+        // Auto-reject rides if driver doesn't respond within 30 seconds
+        $schedule->command('rides:auto-reject')
+                 ->everyMinute()
+                 ->withoutOverlapping()
+                 ->runInBackground();
+
         // Keep queue worker alive - check every minute
         $schedule->exec('pgrep -f "queue:work" || nohup php artisan queue:work --sleep=3 --tries=3 --max-time=3600 > storage/logs/queue.log 2>&1 &')
                  ->everyMinute()
