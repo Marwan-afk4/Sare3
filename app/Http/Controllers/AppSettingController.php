@@ -11,7 +11,7 @@ class AppSettingController extends Controller
     {
         // Ensure admin profit percentage setting exists
         $this->ensureDefaultSettings();
-        
+
         $settings = AppSetting::orderBy('key')->get()->map(function ($setting) {
             // Cast the value properly for display
             $setting->cast_value = AppSetting::get($setting->key);
@@ -28,6 +28,16 @@ class AppSettingController extends Controller
         // Ensure admin profit percentage setting exists
         if (!AppSetting::where('key', 'admin_profit_percentage')->exists()) {
             AppSetting::set('admin_profit_percentage', 10, 'string', 'Admin profit percentage from rides (0-100%)');
+        }
+
+        // Ensure wallet settings exist
+        if (!AppSetting::where('key', 'minimum_driver_wallet_balance')->exists()) {
+            AppSetting::set('minimum_driver_wallet_balance', 0, 'string', 'Minimum wallet balance required for drivers to go online');
+        }
+
+        // Ensure ride verification setting exists
+        if (!AppSetting::where('key', 'ride_verification_enabled')->exists()) {
+            AppSetting::set('ride_verification_enabled', false, 'boolean', 'Enable 6-digit verification code for starting rides');
         }
 
         // Ensure referral settings exist
@@ -74,6 +84,8 @@ class AppSettingController extends Controller
         $request->validate([
             'settings' => 'array',
             'settings.admin_profit_percentage' => 'nullable|numeric|min:0|max:100',
+            'settings.minimum_driver_wallet_balance' => 'nullable|numeric|min:0',
+            'settings.ride_verification_enabled' => 'nullable|in:0,1,on',
             'settings.referral_discount_percentage' => 'nullable|numeric|min:0|max:100',
             'settings.referral_discount_rides' => 'nullable|integer|min:1|max:50',
             'settings.referrer_reward_percentage' => 'nullable|numeric|min:0|max:100',
@@ -82,7 +94,7 @@ class AppSettingController extends Controller
 
         foreach ($request->settings as $key => $value) {
             $setting = AppSetting::where('key', $key)->first();
-            
+
             if ($setting) {
                 $processedValue = $this->processValue($value, $setting->type);
                 AppSetting::set($key, $processedValue, $setting->type, $setting->description);
