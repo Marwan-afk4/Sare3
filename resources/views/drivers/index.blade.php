@@ -194,7 +194,13 @@
                                 <span class="badge bg-secondary">{{ __('Offline') }} ⚫</span>
                             @endif
                         </td>
-                        <td>{!! $driver->activity->badge() !!} </td>
+                        <td>
+                            @if($driver->activity)
+                                {!! $driver->activity->badge() !!}
+                            @else
+                                -
+                            @endif
+                        </td>
                         <td>{!! $driver->status->badge() !!} </td>
                         {{-- <td>{{ $user->role }}</td> --}}
                         <td>{{ $driver->created_at ? $driver->created_at->diffForHumans() : '-' }}</td>

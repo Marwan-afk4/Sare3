@@ -40,7 +40,11 @@
                                 {!! $driver->status->badge() !!}
                             </li>
                             <li class="list-group-item"><strong>{{ __('Activity') }}:</strong>
-                                {!! $driver->activity->badge() !!}
+                                @if($driver->activity)
+                                    {!! $driver->activity->badge() !!}
+                                @else
+                                    -
+                                @endif
                             </li>
                             <li class="list-group-item"><strong>{{ __('Wallet') }}:</strong>
                                 @if($driver->wallet < 0)

@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
-
+use Illuminate\Validation\Rule;
 class UpdateDriverRequest extends FormRequest
 {
     public function authorize()
@@ -24,7 +24,7 @@ class UpdateDriverRequest extends FormRequest
             // 'activity' => 'nullable',
             'status' => 'nullable|in:approved,rejected',
             'wallet' => 'nullable|numeric|min:0',
-            'activity' => 'nullable|in:active,inactive',
+            'activity' => ['required', Rule::in('active', 'inactive')],
             'zone_id' => 'nullable|exists:zones,id',
             // 'role' => 'nullable'
         ];
@@ -40,6 +40,10 @@ class UpdateDriverRequest extends FormRequest
             'password.string' => __('The Password must be a string.'),
             'status.in' => __('The Status must be one of the following: approved, rejected.'),
             'zone_id.exists' => __('The selected zone does not exist.'),
+            'activity.in'=> __('The Activity must be one of the following: active, inactive.'),
+            'wallet.numeric'=> __('The Wallet must be a number.'),
+            'wallet.min'=> __('The Wallet must be at least 0.'),
+            'activity.required'=> __('The Activity field is required.'),
         ];
     }
 

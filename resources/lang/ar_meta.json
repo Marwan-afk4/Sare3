@@ -712,21 +712,22 @@
         "12": "resources\/views\/driver-documents\/edit.blade.php",
         "13": "resources\/views\/driver-documents\/index.blade.php",
         "14": "resources\/views\/driver-documents\/show.blade.php",
-        "15": "resources\/views\/notifications\/create.blade.php",
-        "16": "resources\/views\/notifications\/edit.blade.php",
-        "17": "resources\/views\/notifications\/index.blade.php",
-        "18": "resources\/views\/notifications\/show.blade.php",
-        "19": "resources\/views\/rides\/create.blade.php",
-        "20": "resources\/views\/rides\/edit.blade.php",
-        "21": "resources\/views\/rides\/index.blade.php",
-        "22": "resources\/views\/rides\/show.blade.php",
-        "23": "resources\/views\/rides\/track.blade.php",
-        "24": "resources\/views\/users\/ride-history.blade.php",
-        "25": "resources\/views\/users\/show.blade.php",
-        "26": "resources\/views\/wallet-requests\/create.blade.php",
-        "27": "resources\/views\/wallet-requests\/index.blade.php",
-        "28": "resources\/views\/wallet-requests\/show.blade.php",
-        "34": "app\/Enums\/OtpTypes.php"
+        "15": "resources\/views\/home\/welcome.blade.php",
+        "17": "resources\/views\/notifications\/create.blade.php",
+        "18": "resources\/views\/notifications\/edit.blade.php",
+        "19": "resources\/views\/notifications\/index.blade.php",
+        "20": "resources\/views\/notifications\/show.blade.php",
+        "21": "resources\/views\/rides\/create.blade.php",
+        "22": "resources\/views\/rides\/edit.blade.php",
+        "23": "resources\/views\/rides\/index.blade.php",
+        "24": "resources\/views\/rides\/show.blade.php",
+        "25": "resources\/views\/rides\/track.blade.php",
+        "26": "resources\/views\/users\/ride-history.blade.php",
+        "27": "resources\/views\/users\/show.blade.php",
+        "28": "resources\/views\/wallet-requests\/create.blade.php",
+        "29": "resources\/views\/wallet-requests\/index.blade.php",
+        "30": "resources\/views\/wallet-requests\/show.blade.php",
+        "36": "app\/Enums\/OtpTypes.php"
     },
     "Document Type": [
         "resources\/views\/driver-documents\/create.blade.php",
@@ -1970,6 +1971,7 @@
         "resources\/views\/rides\/track.blade.php"
     ],
     "Trip Completed": [
+        "resources\/views\/rides\/show.blade.php",
         "resources\/views\/rides\/track.blade.php"
     ],
     "Loading map...": [
@@ -2023,6 +2025,7 @@
         "resources\/views\/rides\/track.blade.php"
     ],
     "Ride Accepted": [
+        "resources\/views\/rides\/show.blade.php",
         "resources\/views\/rides\/track.blade.php"
     ],
     "Driver accepted your ride request": [
@@ -2035,12 +2038,14 @@
         "resources\/views\/rides\/track.blade.php"
     ],
     "Driver Arrived": [
+        "resources\/views\/rides\/show.blade.php",
         "resources\/views\/rides\/track.blade.php"
     ],
     "Driver has arrived at pickup location": [
         "resources\/views\/rides\/track.blade.php"
     ],
     "Trip Started": [
+        "resources\/views\/rides\/show.blade.php",
         "resources\/views\/rides\/track.blade.php"
     ],
     "Trip is in progress": [
@@ -2265,7 +2270,9 @@
     ],
     "Admin Profit": [
         "resources\/views\/admin\/profit-statistics\/history.blade.php",
-        "resources\/views\/admin\/profit-statistics\/index.blade.php"
+        "resources\/views\/admin\/profit-statistics\/index.blade.php",
+        "resources\/views\/zones\/index.blade.php",
+        "resources\/views\/zones\/show.blade.php"
     ],
     "Driver Amount": [
         "resources\/views\/admin\/profit-statistics\/history.blade.php"
@@ -2728,7 +2735,8 @@
     ],
     "Just now": [
         "resources\/views\/admin\/support-chat\/realtime.blade.php",
-        "resources\/views\/components\/support-chat-widget.blade.php"
+        "resources\/views\/components\/support-chat-widget.blade.php",
+        "resources\/views\/drivers\/show.blade.php"
     ],
     "m ago": [
         "resources\/views\/admin\/support-chat\/realtime.blade.php",
@@ -3386,6 +3394,136 @@
         "app\/Http\/Requests\/StoreUserRequest.php"
     ],
     "The selected zone does not exist.": [
+        "app\/Http\/Requests\/UpdateDriverRequest.php"
+    ],
+    "Type Year": [
+        "resources\/views\/car-types\/create.blade.php",
+        "resources\/views\/car-types\/edit.blade.php",
+        "resources\/views\/car-types\/index.blade.php",
+        "resources\/views\/car-types\/show.blade.php"
+    ],
+    "Filter by Car Year": [
+        "resources\/views\/drivers\/index.blade.php"
+    ],
+    "All Years": [
+        "resources\/views\/drivers\/index.blade.php"
+    ],
+    "Availability": [
+        "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/drivers\/show.blade.php"
+    ],
+    "Online": {
+        "0": "resources\/views\/drivers\/index.blade.php",
+        "1": "resources\/views\/drivers\/show.blade.php",
+        "3": "resources\/views\/home\/welcome.blade.php"
+    },
+    "Offline": {
+        "0": "resources\/views\/drivers\/index.blade.php",
+        "1": "resources\/views\/drivers\/show.blade.php",
+        "3": "resources\/views\/home\/welcome.blade.php"
+    },
+    "Online & Available": [
+        "resources\/views\/drivers\/show.blade.php"
+    ],
+    "Current Location": [
+        "resources\/views\/drivers\/show.blade.php"
+    ],
+    "Location updates in real-time via Firebase": [
+        "resources\/views\/drivers\/show.blade.php"
+    ],
+    "seconds ago": [
+        "resources\/views\/drivers\/show.blade.php"
+    ],
+    "minutes ago": [
+        "resources\/views\/drivers\/show.blade.php"
+    ],
+    "Last updated": [
+        "resources\/views\/drivers\/show.blade.php"
+    ],
+    "Available Drivers": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "Real-time location of online drivers": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "Online Drivers": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "Map updates in real-time via Firebase": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "No drivers are currently online": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "Unavailable Drivers": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "Real-time location of offline drivers": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "Offline Drivers": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "No unavailable drivers at the moment": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "Trip Timeline": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Admin Profit Percentage": [
+        "resources\/views\/zones\/create.blade.php",
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "Leave empty to use global setting": [
+        "resources\/views\/zones\/create.blade.php",
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "Using global setting": [
+        "resources\/views\/zones\/index.blade.php",
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "Global": [
+        "resources\/views\/zones\/index.blade.php"
+    ],
+    "Global Setting": [
+        "resources\/views\/zones\/show.blade.php"
+    ],
+    "The Type Year field is required.": [
+        "app\/Http\/Requests\/StoreCarTypeRequest.php",
+        "app\/Http\/Requests\/UpdateCarTypeRequest.php"
+    ],
+    "The Type Year must be an integer.": [
+        "app\/Http\/Requests\/StoreCarTypeRequest.php",
+        "app\/Http\/Requests\/UpdateCarTypeRequest.php"
+    ],
+    "The Activity must be one of the following: active, inactive.": [
+        "app\/Http\/Requests\/StoreDriverRequest.php",
+        "app\/Http\/Requests\/UpdateDriverRequest.php"
+    ],
+    "The Wallet must be a number.": [
+        "app\/Http\/Requests\/StoreDriverRequest.php",
+        "app\/Http\/Requests\/UpdateDriverRequest.php"
+    ],
+    "The Wallet must be at least 0.": [
+        "app\/Http\/Requests\/StoreDriverRequest.php",
+        "app\/Http\/Requests\/UpdateDriverRequest.php"
+    ],
+    "The Status must be one of the following: approved, pending, rejected.": [
+        "app\/Http\/Requests\/StoreDriverRequest.php"
+    ],
+    "The Admin Profit Percentage must be a valid number.": [
+        "app\/Http\/Requests\/StoreZoneRequest.php",
+        "app\/Http\/Requests\/UpdateZoneRequest.php"
+    ],
+    "The Admin Profit Percentage must be at least 0.": [
+        "app\/Http\/Requests\/StoreZoneRequest.php",
+        "app\/Http\/Requests\/UpdateZoneRequest.php"
+    ],
+    "The Admin Profit Percentage cannot exceed 100.": [
+        "app\/Http\/Requests\/StoreZoneRequest.php",
+        "app\/Http\/Requests\/UpdateZoneRequest.php"
+    ],
+    "The Activity field is required.": [
         "app\/Http\/Requests\/UpdateDriverRequest.php"
     ]
 }

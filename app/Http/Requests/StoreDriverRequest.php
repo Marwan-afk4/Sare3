@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
-
+use Illuminate\Validation\Rule;
 class StoreDriverRequest extends FormRequest
 {
     protected string $defaultRole = 'driver';
@@ -30,8 +30,8 @@ class StoreDriverRequest extends FormRequest
             'phone' => 'required|unique:users,phone',
             'password' => 'required|string|min:8',
             'image' => 'nullable',
-            'activity' => 'nullable|in:active,inactive',
-            'wallet' => 'nullable|numeric',
+            'activity' => ['nullable', Rule::in('active', 'inactive')],
+            'wallet' => 'nullable|numeric|min:0',
             'role' => 'required|in:admin,driver,user',
             'status' => 'nullable|in:approved,pending,rejected',
         ];
@@ -50,6 +50,10 @@ class StoreDriverRequest extends FormRequest
             'password.min' => __('The Password must be at least 8 characters.'),
             'phone.required' => __('The Phone field is required.'),
             'role.required' => __('The Role field is required.'),
+            'activity.in' => __('The Activity must be one of the following: active, inactive.'),
+            'wallet.numeric' => __('The Wallet must be a number.'),
+            'wallet.min' => __('The Wallet must be at least 0.'),
+            'status.in' => __('The Status must be one of the following: approved, pending, rejected.'),
         ];
     }
 
