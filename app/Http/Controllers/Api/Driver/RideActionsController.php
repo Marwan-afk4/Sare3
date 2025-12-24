@@ -374,26 +374,68 @@ class RideActionsController extends Controller
             'completed_at' => $endTime,
         ];
         
-        Log::info("Completing ride {$ride->id} with coupon", [
+        Log::info("Completing ride {$ride->id} with coupon - BEFORE UPDATE", [
             'ride_id' => $ride->id,
+            'current_status' => $ride->status->value,
             'coupon_id' => $ride->coupon_id,
             'coupon_discount' => round($couponDiscountAmount, 2),
             'original_fare' => round($originalFare, 1),
             'final_fare' => round($fare, 1),
             'total_discount' => round($discountResult['total_discount_amount'], 2),
-            'status' => 'completed'
+            'update_data' => $updateData
         ]);
         
-        $ride->update($updateData);
-        
-        // Verify status was set correctly
-        $ride->refresh();
-        if ($ride->status->value !== 'completed') {
-            Log::error("Ride status not set to completed!", [
+        // Use DB transaction to ensure atomic update
+        DB::beginTransaction();
+        try {
+            $updateResult = $ride->update($updateData);
+            
+            Log::info("Ride update result", [
                 'ride_id' => $ride->id,
-                'expected_status' => 'completed',
-                'actual_status' => $ride->status->value
+                'update_result' => $updateResult,
+                'updated_fields' => array_keys($updateData)
             ]);
+            
+            // Verify status was set correctly
+            $ride->refresh();
+            
+            Log::info("Ride status after update and refresh", [
+                'ride_id' => $ride->id,
+                'status_value' => $ride->status->value,
+                'status_raw' => $ride->getAttributes()['status'] ?? 'N/A',
+                'completed_at' => $ride->completed_at
+            ]);
+            
+            if ($ride->status->value !== 'completed') {
+                Log::error("CRITICAL: Ride status not set to completed!", [
+                    'ride_id' => $ride->id,
+                    'expected_status' => 'completed',
+                    'actual_status' => $ride->status->value,
+                    'actual_status_raw' => $ride->getAttributes()['status'] ?? 'N/A',
+                    'update_data_sent' => $updateData,
+                    'fillable_fields' => $ride->getFillable()
+                ]);
+                
+                // Try to force update status
+                $ride->status = 'completed';
+                $ride->save();
+                $ride->refresh();
+                
+                Log::warning("Attempted force update of status", [
+                    'ride_id' => $ride->id,
+                    'new_status' => $ride->status->value
+                ]);
+            }
+            
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error("Failed to update ride during completion", [
+                'ride_id' => $ride->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['message' => 'Failed to complete ride: ' . $e->getMessage()], 500);
         }
 
         // 🔟 Push to Firebase
