@@ -334,19 +334,6 @@
                         </div>
                     @endcan
 
-                    {{-- ads --}}
-                    @can('إدارة الإعلانات')
-                        <div class="nav-item-wrapper">
-                            <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'ads' ? 'active' : '' }}"
-                                href="{{ route('ads.index') }}">
-                                <div class="d-flex align-items-center">
-                                    <span class="nav-link-icon"><span data-feather="image"></span></span>
-                                    <span class="nav-link-text-wrapper"><span
-                                            class="nav-link-text">{{ __('Ads') }}</span></span>
-                                </div>
-                            </a>
-                        </div>
-                    @endcan
 
                     {{-- support-chat --}}
                     @can('إدارة الدردشة الدعمية')
@@ -359,6 +346,20 @@
                                         <span class="nav-link-text">{{ __('Support Chat') }}</span>
                                         <span class="badge bg-danger ms-2 d-none" id="support-chat-badge">0</span>
                                     </span>
+                                </div>
+                            </a>
+                        </div>
+                    @endcan
+
+                    {{-- ads --}}
+                    @can('إدارة الإعلانات')
+                        <div class="nav-item-wrapper">
+                            <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'ads' ? 'active' : '' }}"
+                                href="{{ route('ads.index') }}">
+                                <div class="d-flex align-items-center">
+                                    <span class="nav-link-icon"><span data-feather="image"></span></span>
+                                    <span class="nav-link-text-wrapper"><span
+                                            class="nav-link-text">{{ __('Ads') }}</span></span>
                                 </div>
                             </a>
                         </div>

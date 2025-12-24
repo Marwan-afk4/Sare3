@@ -807,5 +807,17 @@
     "The Admin Profit Percentage must be a valid number.": "يجب أن تكون نسبة ربح الإدارة رقمًا صحيحًا.",
     "The Admin Profit Percentage must be at least 0.": "يجب ألا تقل نسبة ربح الإدارة عن 0.",
     "The Admin Profit Percentage cannot exceed 100.": "لا يمكن أن تتجاوز نسبة ربح الإدارة 100.",
-    "The Activity field is required.": "حقل الحالة مطلوب."
+    "The Activity field is required.": "حقل الحالة مطلوب.",
+    "Create Ad": "إنشاء إعلان",
+    "Ads": "الإعلانات",
+    "Edit Ad": "تعديل الإعلان",
+    "Deleted successfully.": "تم الحذف بنجاح.",
+    "The Image field is required.": "حقل الصورة مطلوب.",
+    "The Title must be a string.": "يجب أن يكون العنوان نصًا.",
+    "The Title may not be greater than 255 characters.": "لا يجوز أن يزيد العنوان عن 255 حرفًا.",
+    "Current Image": "الصورة الحالية",
+    "Leave empty to keep current image": "اتركه فارغًا للاحتفاظ بالصورة الحالية",
+    "Are you sure you want to delete this ad?": "هل أنت متأكد من حذف هذا الإعلان؟",
+    "Ad deleted successfully.": "تم حذف الإعلان بنجاح.",
+    "Failed to delete ad. Please try again.": "فشل في حذف الإعلان. يرجى المحاولة مرة أخرى."
 }

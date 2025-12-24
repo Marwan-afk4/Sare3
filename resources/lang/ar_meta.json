@@ -40,6 +40,9 @@
         "2": "resources\/views\/drivers\/index.blade.php"
     },
     "Back to": [
+        "resources\/views\/ads\/create.blade.php",
+        "resources\/views\/ads\/edit.blade.php",
+        "resources\/views\/ads\/show.blade.php",
         "resources\/views\/cancelation-rides\/create.blade.php",
         "resources\/views\/cancelation-rides\/edit.blade.php",
         "resources\/views\/cancelation-rides\/show.blade.php",
@@ -157,6 +160,7 @@
         "resources\/views\/users\/show.blade.php"
     ],
     "Add": [
+        "resources\/views\/ads\/create.blade.php",
         "resources\/views\/cancelation-rides\/create.blade.php",
         "resources\/views\/cancellation-policies\/create.blade.php",
         "resources\/views\/cancellation-reasons\/create.blade.php",
@@ -183,6 +187,8 @@
         "resources\/views\/drivers\/edit.blade.php"
     ],
     "Details": [
+        "resources\/views\/ads\/edit.blade.php",
+        "resources\/views\/ads\/index.blade.php",
         "resources\/views\/cancelation-rides\/edit.blade.php",
         "resources\/views\/cancelation-rides\/index.blade.php",
         "resources\/views\/cancellation-policies\/edit.blade.php",
@@ -256,6 +262,7 @@
         "resources\/views\/users\/show.blade.php"
     ],
     "Save": [
+        "resources\/views\/ads\/edit.blade.php",
         "resources\/views\/cancelation-rides\/edit.blade.php",
         "resources\/views\/cancellation-policies\/edit.blade.php",
         "resources\/views\/cancellation-reasons\/edit.blade.php",
@@ -280,6 +287,8 @@
         "resources\/views\/users\/index.blade.php"
     ],
     "Id": [
+        "resources\/views\/ads\/index.blade.php",
+        "resources\/views\/ads\/show.blade.php",
         "resources\/views\/cancelation-rides\/index.blade.php",
         "resources\/views\/cancelation-rides\/show.blade.php",
         "resources\/views\/cancellation-policies\/index.blade.php",
@@ -313,6 +322,10 @@
         "resources\/views\/zones\/index.blade.php"
     ],
     "Image": [
+        "resources\/views\/ads\/create.blade.php",
+        "resources\/views\/ads\/edit.blade.php",
+        "resources\/views\/ads\/index.blade.php",
+        "resources\/views\/ads\/show.blade.php",
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/livewire\/chat.blade.php",
         "resources\/views\/users\/create.blade.php",
@@ -335,6 +348,8 @@
         "resources\/views\/users\/index.blade.php"
     ],
     "Created At": [
+        "resources\/views\/ads\/index.blade.php",
+        "resources\/views\/ads\/show.blade.php",
         "resources\/views\/cancelation-rides\/index.blade.php",
         "resources\/views\/cancelation-rides\/show.blade.php",
         "resources\/views\/cancellation-policies\/index.blade.php",
@@ -374,6 +389,7 @@
     "Actions": [
         "resources\/views\/admin\/admins\/index.blade.php",
         "resources\/views\/admin\/support-chat\/realtime.blade.php",
+        "resources\/views\/ads\/index.blade.php",
         "resources\/views\/cancelation-rides\/index.blade.php",
         "resources\/views\/cancellation-policies\/index.blade.php",
         "resources\/views\/cancellation-reasons\/index.blade.php",
@@ -398,61 +414,66 @@
     "Edit": {
         "0": "resources\/views\/admin\/admins\/index.blade.php",
         "1": "resources\/views\/admin\/roles\/index.blade.php",
-        "2": "resources\/views\/cancelation-rides\/index.blade.php",
-        "3": "resources\/views\/cancelation-rides\/show.blade.php",
-        "4": "resources\/views\/cancellation-policies\/show.blade.php",
-        "6": "resources\/views\/cancellation-reasons\/show.blade.php",
-        "8": "resources\/views\/car-categories\/index.blade.php",
-        "9": "resources\/views\/car-categories\/show.blade.php",
-        "11": "resources\/views\/car-models\/show.blade.php",
-        "13": "resources\/views\/car-types\/show.blade.php",
-        "15": "resources\/views\/document-types\/index.blade.php",
-        "16": "resources\/views\/driver-cars\/index.blade.php",
-        "17": "resources\/views\/driver-cars\/show.blade.php",
-        "18": "resources\/views\/driver-documents\/index.blade.php",
-        "19": "resources\/views\/driver-documents\/show.blade.php",
-        "20": "resources\/views\/drivers\/cars.blade.php",
-        "21": "resources\/views\/drivers\/index.blade.php",
-        "22": "resources\/views\/drivers\/show.blade.php",
-        "24": "resources\/views\/notifications\/show.blade.php",
-        "25": "resources\/views\/otp-limits\/show.blade.php",
-        "27": "resources\/views\/paymenent-methods\/index.blade.php",
-        "28": "resources\/views\/paymenent-methods\/show.blade.php",
-        "29": "resources\/views\/ride-request-time-limits\/show.blade.php",
-        "31": "resources\/views\/rides\/show.blade.php",
-        "32": "resources\/views\/users\/index.blade.php",
-        "33": "resources\/views\/users\/show.blade.php",
-        "35": "resources\/views\/wallet-requests\/show.blade.php",
-        "36": "resources\/views\/zones\/index.blade.php",
-        "37": "resources\/views\/zones\/show.blade.php"
+        "2": "resources\/views\/ads\/index.blade.php",
+        "3": "resources\/views\/ads\/show.blade.php",
+        "4": "resources\/views\/cancelation-rides\/index.blade.php",
+        "5": "resources\/views\/cancelation-rides\/show.blade.php",
+        "6": "resources\/views\/cancellation-policies\/show.blade.php",
+        "8": "resources\/views\/cancellation-reasons\/show.blade.php",
+        "10": "resources\/views\/car-categories\/index.blade.php",
+        "11": "resources\/views\/car-categories\/show.blade.php",
+        "13": "resources\/views\/car-models\/show.blade.php",
+        "15": "resources\/views\/car-types\/show.blade.php",
+        "17": "resources\/views\/document-types\/index.blade.php",
+        "18": "resources\/views\/driver-cars\/index.blade.php",
+        "19": "resources\/views\/driver-cars\/show.blade.php",
+        "20": "resources\/views\/driver-documents\/index.blade.php",
+        "21": "resources\/views\/driver-documents\/show.blade.php",
+        "22": "resources\/views\/drivers\/cars.blade.php",
+        "23": "resources\/views\/drivers\/index.blade.php",
+        "24": "resources\/views\/drivers\/show.blade.php",
+        "26": "resources\/views\/notifications\/show.blade.php",
+        "27": "resources\/views\/otp-limits\/show.blade.php",
+        "29": "resources\/views\/paymenent-methods\/index.blade.php",
+        "30": "resources\/views\/paymenent-methods\/show.blade.php",
+        "31": "resources\/views\/ride-request-time-limits\/show.blade.php",
+        "33": "resources\/views\/rides\/show.blade.php",
+        "34": "resources\/views\/users\/index.blade.php",
+        "35": "resources\/views\/users\/show.blade.php",
+        "37": "resources\/views\/wallet-requests\/show.blade.php",
+        "38": "resources\/views\/zones\/index.blade.php",
+        "39": "resources\/views\/zones\/show.blade.php"
     },
     "Delete": {
         "0": "resources\/views\/admin\/admins\/index.blade.php",
         "1": "resources\/views\/admin\/roles\/index.blade.php",
-        "2": "resources\/views\/cancelation-rides\/index.blade.php",
-        "3": "resources\/views\/cancelation-rides\/show.blade.php",
-        "4": "resources\/views\/cancellation-policies\/index.blade.php",
-        "5": "resources\/views\/cancellation-reasons\/index.blade.php",
-        "6": "resources\/views\/cancellation-reasons\/show.blade.php",
-        "7": "resources\/views\/car-categories\/index.blade.php",
-        "9": "resources\/views\/car-models\/index.blade.php",
-        "10": "resources\/views\/car-types\/index.blade.php",
-        "11": "resources\/views\/document-types\/index.blade.php",
-        "13": "resources\/views\/driver-cars\/index.blade.php",
-        "14": "resources\/views\/driver-documents\/index.blade.php",
-        "15": "resources\/views\/driver-documents\/show.blade.php",
-        "16": "resources\/views\/drivers\/index.blade.php",
-        "17": "resources\/views\/notifications\/index.blade.php",
-        "18": "resources\/views\/notifications\/show.blade.php",
-        "19": "resources\/views\/otp-limits\/index.blade.php",
-        "20": "resources\/views\/paymenent-methods\/index.blade.php",
-        "21": "resources\/views\/paymenent-methods\/show.blade.php",
-        "22": "resources\/views\/ride-request-time-limits\/index.blade.php",
-        "23": "resources\/views\/users\/index.blade.php",
-        "25": "resources\/views\/wallet-requests\/show.blade.php",
-        "26": "resources\/views\/zones\/index.blade.php"
+        "2": "resources\/views\/ads\/index.blade.php",
+        "3": "resources\/views\/ads\/show.blade.php",
+        "4": "resources\/views\/cancelation-rides\/index.blade.php",
+        "5": "resources\/views\/cancelation-rides\/show.blade.php",
+        "6": "resources\/views\/cancellation-policies\/index.blade.php",
+        "7": "resources\/views\/cancellation-reasons\/index.blade.php",
+        "8": "resources\/views\/cancellation-reasons\/show.blade.php",
+        "9": "resources\/views\/car-categories\/index.blade.php",
+        "11": "resources\/views\/car-models\/index.blade.php",
+        "12": "resources\/views\/car-types\/index.blade.php",
+        "13": "resources\/views\/document-types\/index.blade.php",
+        "15": "resources\/views\/driver-cars\/index.blade.php",
+        "16": "resources\/views\/driver-documents\/index.blade.php",
+        "17": "resources\/views\/driver-documents\/show.blade.php",
+        "18": "resources\/views\/drivers\/index.blade.php",
+        "19": "resources\/views\/notifications\/index.blade.php",
+        "20": "resources\/views\/notifications\/show.blade.php",
+        "21": "resources\/views\/otp-limits\/index.blade.php",
+        "22": "resources\/views\/paymenent-methods\/index.blade.php",
+        "23": "resources\/views\/paymenent-methods\/show.blade.php",
+        "24": "resources\/views\/ride-request-time-limits\/index.blade.php",
+        "25": "resources\/views\/users\/index.blade.php",
+        "27": "resources\/views\/wallet-requests\/show.blade.php",
+        "28": "resources\/views\/zones\/index.blade.php"
     },
     "Updated At": [
+        "resources\/views\/ads\/show.blade.php",
         "resources\/views\/cancelation-rides\/show.blade.php",
         "resources\/views\/cancellation-policies\/show.blade.php",
         "resources\/views\/cancellation-reasons\/show.blade.php",
@@ -883,6 +904,10 @@
         "9": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     },
     "Description": [
+        "resources\/views\/ads\/create.blade.php",
+        "resources\/views\/ads\/edit.blade.php",
+        "resources\/views\/ads\/index.blade.php",
+        "resources\/views\/ads\/show.blade.php",
         "resources\/views\/cancellation-policies\/create.blade.php",
         "resources\/views\/cancellation-policies\/edit.blade.php",
         "resources\/views\/cancellation-policies\/index.blade.php",
@@ -925,6 +950,7 @@
         "resources\/views\/car-categories\/edit.blade.php"
     ],
     "Created successfully": [
+        "app\/Http\/Controllers\/AdController.php",
         "app\/Http\/Controllers\/CancelationRideController.php",
         "app\/Http\/Controllers\/CancellationPolicyController.php",
         "app\/Http\/Controllers\/CancellationReasonController.php",
@@ -944,6 +970,7 @@
         "app\/Http\/Controllers\/ZoneController.php"
     ],
     "Updated successfully.": [
+        "app\/Http\/Controllers\/AdController.php",
         "app\/Http\/Controllers\/CancelationRideController.php",
         "app\/Http\/Controllers\/CancellationPolicyController.php",
         "app\/Http\/Controllers\/CancellationReasonController.php",
@@ -1655,7 +1682,9 @@
         "app\/Http\/Requests\/UpdateCancellationPolicyRequest.php"
     ],
     "The Description must be a string.": [
+        "app\/Http\/Requests\/StoreAdRequest.php",
         "app\/Http\/Requests\/StoreCancellationPolicyRequest.php",
+        "app\/Http\/Requests\/UpdateAdRequest.php",
         "app\/Http\/Requests\/UpdateCancellationPolicyRequest.php"
     ],
     "Email already exists": [
@@ -1796,6 +1825,10 @@
         "resources\/views\/notifications\/create.blade.php"
     ],
     "Title": [
+        "resources\/views\/ads\/create.blade.php",
+        "resources\/views\/ads\/edit.blade.php",
+        "resources\/views\/ads\/index.blade.php",
+        "resources\/views\/ads\/show.blade.php",
         "resources\/views\/notifications\/create.blade.php",
         "resources\/views\/notifications\/edit.blade.php",
         "resources\/views\/notifications\/index.blade.php",
@@ -3525,5 +3558,33 @@
     ],
     "The Activity field is required.": [
         "app\/Http\/Requests\/UpdateDriverRequest.php"
+    ],
+    "Create Ad": {
+        "0": "resources\/views\/ads\/create.blade.php",
+        "2": "resources\/views\/ads\/index.blade.php"
+    },
+    "Ads": {
+        "0": "resources\/views\/ads\/create.blade.php",
+        "1": "resources\/views\/ads\/edit.blade.php",
+        "2": "resources\/views\/ads\/index.blade.php",
+        "4": "resources\/views\/ads\/show.blade.php",
+        "5": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    },
+    "Edit Ad": [
+        "resources\/views\/ads\/edit.blade.php"
+    ],
+    "Deleted successfully.": [
+        "app\/Http\/Controllers\/AdController.php"
+    ],
+    "The Image field is required.": [
+        "app\/Http\/Requests\/StoreAdRequest.php"
+    ],
+    "The Title must be a string.": [
+        "app\/Http\/Requests\/StoreAdRequest.php",
+        "app\/Http\/Requests\/UpdateAdRequest.php"
+    ],
+    "The Title may not be greater than 255 characters.": [
+        "app\/Http\/Requests\/StoreAdRequest.php",
+        "app\/Http\/Requests\/UpdateAdRequest.php"
     ]
 }

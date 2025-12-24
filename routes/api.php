@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\Driver\TransactionController;
 use App\Http\Controllers\Api\Driver\WalletRequestController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Paytabs\PaymentController;
+use App\Http\Controllers\Api\User\AdsController;
 use App\Http\Controllers\Api\User\CancelationRide;
 use App\Http\Controllers\Api\User\LoggedUserController;
 use App\Http\Controllers\Api\User\PaymentMethodController;
@@ -66,6 +67,9 @@ Route::post('/google-auth', [AuthController::class, 'googleAuth']);
 
 //login
 Route::post('/login', [AuthController::class, 'login']);
+
+//Ads
+Route::get('/ads', [AdsController::class, 'getAds']);
 
 
 
