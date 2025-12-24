@@ -320,6 +320,31 @@ class RideActionsController extends Controller
         $discountResult = $referralDiscountService->applyDiscounts($ride, $originalFare);
         $fare = $discountResult['final_fare'];
 
+        // 5.5️⃣ Apply Coupon Discount (if coupon was used)
+        $couponDiscountAmount = 0;
+        if ($ride->coupon_id && $ride->coupon) {
+            $couponDiscountAmount = $ride->coupon->calculateDiscount($fare);
+            
+            if ($couponDiscountAmount > 0) {
+                $fare = max(0, $fare - $couponDiscountAmount);
+                
+                // Update coupon usage with actual discount amount
+                $ride->couponUsage()->updateOrCreate(
+                    ['ride_id' => $ride->id, 'coupon_id' => $ride->coupon_id],
+                    ['discount_amount' => $couponDiscountAmount]
+                );
+                
+                // Add coupon to applied discounts
+                $discountResult['applied_discounts'][] = [
+                    'type' => 'coupon',
+                    'code' => $ride->coupon->code,
+                    'amount' => round($couponDiscountAmount, 2)
+                ];
+                
+                $discountResult['total_discount_amount'] += $couponDiscountAmount;
+            }
+        }
+
         // 6️⃣ Admin Profit Calculation (on discounted fare)
         // Use zone-specific profit percentage if available, otherwise fall back to global setting
         $adminProfitPercentage = $zone->admin_profit_percentage ?? AppSetting::getAdminProfitPercentage();
@@ -337,16 +362,39 @@ class RideActionsController extends Controller
         }
 
         // 9️⃣ Update Ride
-        $ride->update([
+        $updateData = [
             'calculated_final_price' => round($fare, 1),
             'original_price' => round($originalFare, 1),
             'discount_amount' => round($discountResult['total_discount_amount'], 2),
+            'coupon_discount' => round($couponDiscountAmount, 2),
             'status' => 'completed',
             'ended_at' => $endTime,
             'time_taken' => $durationMinutes,
             'total_distance_in_km' => round($distanceKm, 1),
             'completed_at' => $endTime,
+        ];
+        
+        Log::info("Completing ride {$ride->id} with coupon", [
+            'ride_id' => $ride->id,
+            'coupon_id' => $ride->coupon_id,
+            'coupon_discount' => round($couponDiscountAmount, 2),
+            'original_fare' => round($originalFare, 1),
+            'final_fare' => round($fare, 1),
+            'total_discount' => round($discountResult['total_discount_amount'], 2),
+            'status' => 'completed'
         ]);
+        
+        $ride->update($updateData);
+        
+        // Verify status was set correctly
+        $ride->refresh();
+        if ($ride->status->value !== 'completed') {
+            Log::error("Ride status not set to completed!", [
+                'ride_id' => $ride->id,
+                'expected_status' => 'completed',
+                'actual_status' => $ride->status->value
+            ]);
+        }
 
         // 🔟 Push to Firebase
         try {
@@ -357,6 +405,7 @@ class RideActionsController extends Controller
                     'original_fare' => round($originalFare, 1),
                     'final_fare' => round($fare, 1),
                     'discount_amount' => round($discountResult['total_discount_amount'], 1),
+                    'coupon_discount' => round($couponDiscountAmount, 1),
                     'distance_km' => round($distanceKm, 1),
                     'duration_minutes' => $durationMinutes,
                 ],
@@ -377,6 +426,7 @@ class RideActionsController extends Controller
                 'original_fare' => round($originalFare, 1),
                 'final_fare' => round($fare, 1),
                 'discount_amount' => round($discountResult['total_discount_amount'], 1),
+                'coupon_discount' => round($couponDiscountAmount, 1),
                 'applied_discounts' => $discountResult['applied_discounts']
             ],
             'ride_details' => [
