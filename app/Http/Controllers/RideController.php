@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreRideRequest;
 use App\Http\Requests\UpdateRideRequest;
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Kreait\Firebase\Database;
 use Kreait\Firebase\Factory;
@@ -140,16 +141,39 @@ class RideController extends Controller
             case 'completed':
             case 'finshed':
                 $updateData['completed_at'] = now();
+                $updateData['ended_at'] = now();
+
+                // Calculate time_taken if started_at exists
+                if ($ride->started_at) {
+                    $startTime = Carbon::parse($ride->started_at);
+                    $endTime = now();
+                    $updateData['time_taken'] = (int) round($startTime->floatDiffInMinutes($endTime));
+                }
+                break;
+            case 'cancelled':
+                $updateData['ended_at'] = now();
+
+                // Calculate time_taken from started_at to ended_at
+                if ($ride->started_at) {
+                    $startTime = Carbon::parse($ride->started_at);
+                    $endTime = now();
+                    $timeTakenInMinutes = $startTime->floatDiffInMinutes($endTime);
+                    $updateData['time_taken'] = (int) round($timeTakenInMinutes);
+                }
                 break;
         }
 
         $ride->update($updateData);
 
         try {
-            $this->updateFirebase($ride, [
-                'status' => $newStatus,
-                $newStatus . '_at' => now()->toIso8601String(), // مثال: accepted_at, waiting_user_at
-            ]);
+            if ($newStatus === 'cancelled') {
+                $this->firebase->getReference('rides/ride_' . $ride->id)->remove();
+            } else {
+                $this->updateFirebase($ride, [
+                    'status' => $newStatus,
+                    $newStatus . '_at' => now()->toIso8601String(),
+                ]);
+            }
         } catch (\Exception $e) {
             return redirect()
                 ->route('rides.show', $ride)

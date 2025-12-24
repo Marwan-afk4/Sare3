@@ -37,7 +37,7 @@
     <div class="container-fluid">
         <h1>{{ __('Ride') }} #{{ $ride->id }}</h1>
         <div class="mb-3">
-            <a href="{{ route('rides.index') }}" class="btn btn-secondary btn-sm me-1"> <i class="fa fa-arrow-left"></i>
+            <a href="{{ route('rides.index') }}" class="btn btn-secondary btn-sm me-1"> <i class="fa fa-arrow-right"></i>
                 {{ __('Back to') }} {{ __('Rides') }}</a>
             @if($ride->pickup_lat && $ride->pickup_lng)
                 <a href="{{ route('rides.track', $ride) }}" class="btn btn-success btn-sm me-1">

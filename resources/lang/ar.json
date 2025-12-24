@@ -819,5 +819,9 @@
     "Leave empty to keep current image": "اتركه فارغًا للاحتفاظ بالصورة الحالية",
     "Are you sure you want to delete this ad?": "هل أنت متأكد من حذف هذا الإعلان؟",
     "Ad deleted successfully.": "تم حذف الإعلان بنجاح.",
-    "Failed to delete ad. Please try again.": "فشل في حذف الإعلان. يرجى المحاولة مرة أخرى."
+    "Failed to delete ad. Please try again.": "فشل في حذف الإعلان. يرجى المحاولة مرة أخرى.",
+    "Ride Started At": "بدأت الرحلة في",
+    "Ride Ended At": "انتهت الرحلة في",
+    "Total Time Taken": "إجمالي الوقت المستغرق",
+    "minutes": "دقيقة"
 }
