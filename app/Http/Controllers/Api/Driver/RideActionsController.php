@@ -320,19 +320,13 @@ class RideActionsController extends Controller
         $discountResult = $referralDiscountService->applyDiscounts($ride, $originalFare);
         $fare = $discountResult['final_fare'];
 
-        // 5.5️⃣ Apply Coupon Discount (if coupon was used)
+        // 5.5️⃣ Calculate Coupon Discount (if coupon was used)
         $couponDiscountAmount = 0;
         if ($ride->coupon_id && $ride->coupon) {
             $couponDiscountAmount = $ride->coupon->calculateDiscount($fare);
             
             if ($couponDiscountAmount > 0) {
                 $fare = max(0, $fare - $couponDiscountAmount);
-                
-                // Update coupon usage with actual discount amount
-                $ride->couponUsage()->updateOrCreate(
-                    ['ride_id' => $ride->id, 'coupon_id' => $ride->coupon_id],
-                    ['discount_amount' => $couponDiscountAmount]
-                );
                 
                 // Add coupon to applied discounts
                 $discountResult['applied_discounts'][] = [
@@ -350,16 +344,8 @@ class RideActionsController extends Controller
         $adminProfitPercentage = $zone->admin_profit_percentage ?? AppSetting::getAdminProfitPercentage();
         $profitAmounts = RideProfit::calculateProfit($fare, $adminProfitPercentage);
 
-        // 7️⃣ Update Driver Wallet (deduct admin profit)
+        // Get driver reference
         $driver = $ride->driver;
-        if ($driver && $profitAmounts['admin_profit_amount'] > 0) {
-            $driver->decrement('wallet', $profitAmounts['admin_profit_amount']);
-        }
-
-        // 8️⃣ Create Profit Record
-        if ($adminProfitPercentage > 0) {
-            RideProfit::createForRide($ride, $fare, $adminProfitPercentage);
-        }
 
         // 9️⃣ Update Ride
         $updateData = [
@@ -385,9 +371,10 @@ class RideActionsController extends Controller
             'update_data' => $updateData
         ]);
         
-        // Use DB transaction to ensure atomic update
+        // Use DB transaction to ensure atomic update of ALL operations
         DB::beginTransaction();
         try {
+            // Update ride status and details
             $updateResult = $ride->update($updateData);
             
             Log::info("Ride update result", [
@@ -395,6 +382,30 @@ class RideActionsController extends Controller
                 'update_result' => $updateResult,
                 'updated_fields' => array_keys($updateData)
             ]);
+            
+            // Update coupon usage inside transaction
+            if ($couponDiscountAmount > 0 && $ride->coupon_id) {
+                Log::info("Updating coupon usage for ride {$ride->id}");
+                $ride->couponUsage()->updateOrCreate(
+                    ['ride_id' => $ride->id, 'coupon_id' => $ride->coupon_id],
+                    [
+                        'user_id' => $ride->user_id,
+                        'discount_amount' => $couponDiscountAmount
+                    ]
+                );
+            }
+            
+            // Update driver wallet inside transaction
+            if ($driver && $profitAmounts['admin_profit_amount'] > 0) {
+                Log::info("Updating driver wallet for driver {$driver->id}, deducting {$profitAmounts['admin_profit_amount']}");
+                $driver->decrement('wallet', $profitAmounts['admin_profit_amount']);
+            }
+            
+            // Create profit record inside transaction
+            if ($adminProfitPercentage > 0) {
+                Log::info("Creating profit record for ride {$ride->id}");
+                RideProfit::createForRide($ride, $fare, $adminProfitPercentage);
+            }
             
             // Verify status was set correctly
             $ride->refresh();
@@ -515,6 +526,16 @@ class RideActionsController extends Controller
         }
 
         $ride = Ride::findOrFail($request->ride_id);
+        
+        // Prevent canceling completed rides
+        if (in_array($ride->status->value, ['completed', 'finshed'])) {
+            Log::warning("Attempt to cancel completed ride", [
+                'ride_id' => $ride->id,
+                'current_status' => $ride->status->value,
+                'driver_id' => $request->user()->id
+            ]);
+            return response()->json(['message' => 'Cannot cancel a completed ride'], 422);
+        }
 
         // 👇 خد نسخة من driver_id قبل ما نفضيه
         $currentDriverId = $request->user()->id;

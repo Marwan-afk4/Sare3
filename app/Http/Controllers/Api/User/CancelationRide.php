@@ -8,6 +8,7 @@ use App\Models\CancellationPolicy;
 use App\Models\Ride;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Kreait\Firebase\Factory;
 
@@ -35,8 +36,20 @@ class CancelationRide extends Controller
         $isDriver = $ride->driver_id === $user->id;
 
         // التأكد من أن الرحلة لم تُلغَ مسبقًا
-        if ($ride->status === 'cancelled') {
+        if ($ride->status->value === 'cancelled') {
             return response()->json(['message' => 'Ride already canceled'], 400);
+        }
+        
+        // Prevent canceling completed rides
+        if (in_array($ride->status->value, ['completed', 'finshed'])) {
+            Log::warning("Attempt to cancel completed ride", [
+                'ride_id' => $ride->id,
+                'current_status' => $ride->status->value,
+                'user_id' => $user->id,
+                'is_passenger' => $isPassenger,
+                'is_driver' => $isDriver
+            ]);
+            return response()->json(['message' => 'Cannot cancel a completed ride'], 422);
         }
 
         // حساب الوقت منذ بداية الحجز بالتقريب لأعلى دقيقة
