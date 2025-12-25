@@ -18,10 +18,22 @@ class WalletRequestController extends Controller
 {
     public function index(Request $request)
     {
-        $sortField = $request->get('sort', 'id');
+        $sortField = $request->get('sort', 'name');
         $sortOrder = $request->get('order', 'ASC');
-        $walletRequests = WalletRequest::with(['driver'])->orderBy($sortField, $sortOrder)->paginate(30);
-        return view('wallet-requests.index', compact('walletRequests', 'sortField', 'sortOrder'));
+        $keyword = $request->get('keyword');
+
+        $drivers = User::where('role', 'driver')
+            ->when($keyword, function ($query, $keyword) {
+                $query->where(function ($q) use ($keyword) {
+                    $q->where('name', 'LIKE', "%{$keyword}%")
+                        ->orWhere('phone', 'LIKE', "%{$keyword}%")
+                        ->orWhere('email', 'LIKE', "%{$keyword}%");
+                });
+            })
+            ->orderBy($sortField, $sortOrder)
+            ->paginate(30);
+
+        return view('wallet-requests.index', compact('drivers', 'sortField', 'sortOrder'));
     }
 
     public function create()
@@ -46,7 +58,7 @@ class WalletRequestController extends Controller
     {
         $drivers = User::orderBy('name')->pluck('name', 'id')->toArray();
         $statuses = DriverStatus::labels();
-        return view('wallet-requests.edit', compact('walletRequest', 'drivers','statuses'));
+        return view('wallet-requests.edit', compact('walletRequest', 'drivers', 'statuses'));
     }
 
     public function update(UpdateWalletRequestRequest $request, WalletRequest $walletRequest)
@@ -57,7 +69,7 @@ class WalletRequestController extends Controller
             'admin_id' => auth()->id(),
             'driver_id' => $walletRequest->driver_id,
             'wallet_request_id' => $walletRequest->id,
-            'admin_message' => $request->admin_message??null,
+            'admin_message' => $request->admin_message ?? null,
             // 'driver_message' => $request->driver_message??null,
         ]);
         return redirect()->route('wallet-requests.index')->with('success', __('Updated successfully.'));
@@ -149,10 +161,87 @@ class WalletRequestController extends Controller
 
             return redirect()->route('wallet-requests.show', $walletRequest)
                 ->with('success', __('Message sent successfully'));
-
         } catch (\Exception $e) {
             return redirect()->route('wallet-requests.show', $walletRequest)
                 ->with('error', __('Failed to send message: ') . $e->getMessage());
         }
+    }
+
+    public function addToWallet(Request $request, User $driver)
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'note' => 'nullable|string|max:500'
+        ]);
+
+        try {
+            // Add to wallet
+            $driver->increment('wallet', $validated['amount']);
+
+            // Create wallet request record for tracking
+            WalletRequest::create([
+                'driver_id' => $driver->id,
+                'amount' => $validated['amount'],
+                'type' => 'deposit',
+                'status' => 'approved',
+                'note' => $validated['note'] ?? 'Admin added to wallet',
+                'driver_wallet' => $driver->fresh()->wallet
+            ]);
+
+            return redirect()
+                ->route('wallet-requests.index')
+                ->with('success', __('Amount added successfully to driver wallet'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('wallet-requests.index')
+                ->with('error', __('Failed to add amount: ') . $e->getMessage());
+        }
+    }
+
+    public function subtractFromWallet(Request $request, User $driver)
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'note' => 'nullable|string|max:500'
+        ]);
+
+        try {
+            // Check if driver has sufficient balance
+            if ($driver->wallet < $validated['amount']) {
+                return redirect()
+                    ->route('wallet-requests.index')
+                    ->with('error', __('Insufficient wallet balance. Current balance: ') . $driver->wallet);
+            }
+
+            // Subtract from wallet
+            $driver->decrement('wallet', $validated['amount']);
+
+            // Create wallet request record for tracking
+            WalletRequest::create([
+                'driver_id' => $driver->id,
+                'amount' => $validated['amount'],
+                'type' => 'withdraw',
+                'status' => 'approved',
+                'note' => $validated['note'] ?? 'Admin deducted from wallet',
+                'driver_wallet' => $driver->fresh()->wallet
+            ]);
+
+            return redirect()
+                ->route('wallet-requests.index')
+                ->with('success', __('Amount deducted successfully from driver wallet'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('wallet-requests.index')
+                ->with('error', __('Failed to deduct amount: ') . $e->getMessage());
+        }
+    }
+
+    public function walletHistory(User $driver)
+    {
+        $walletHistory = WalletRequest::where('driver_id', $driver->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return view('wallet-requests.history', compact('driver', 'walletHistory'));
     }
 }

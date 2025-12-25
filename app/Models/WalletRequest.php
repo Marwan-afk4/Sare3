@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-#[ObservedBy(WalletRequestObserver::class)]
+// #[ObservedBy(WalletRequestObserver::class)]
 class WalletRequest extends Model
 {
     use HasFactory;

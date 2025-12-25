@@ -100,6 +100,9 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')
         // Wallet Request additional routes
         Route::post('/wallet-requests/{walletRequest}/send-notification', [WalletRequestController::class, 'sendAcceptanceNotification'])->name('wallet-requests.send-notification');
         Route::post('/wallet-requests/{walletRequest}/add-message', [WalletRequestController::class, 'addMessage'])->name('wallet-requests.add-message');
+        Route::post('/drivers/{driver}/add-to-wallet', [WalletRequestController::class, 'addToWallet'])->name('drivers.add-to-wallet');
+        Route::post('/drivers/{driver}/subtract-from-wallet', [WalletRequestController::class, 'subtractFromWallet'])->name('drivers.subtract-from-wallet');
+        Route::get('/drivers/{driver}/wallet-history', [WalletRequestController::class, 'walletHistory'])->name('drivers.wallet-history');
 
         // Additional ride routes
         Route::get('/rides/{ride}/track', [RideController::class, 'track'])->name('rides.track');
