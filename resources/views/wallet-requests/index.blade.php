@@ -7,6 +7,19 @@
     <div class="container-fluid">
         <h1 class="mb-3">{{ __('Driver Wallets Management') }}</h1>
 
+        @if (auth()->user()->can('إدارة طلبات المحفظة'))
+            <div
+                class="alert alert-{{ auth()->user()->wallet_limit > 0 ? 'success' : 'warning' }} d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <i class="fa fa-wallet"></i>
+                    <strong>{{ __('Your Wallet Limit') }}:</strong> ${{ number_format(auth()->user()->wallet_limit, 2) }}
+                </div>
+                @if (auth()->user()->wallet_limit <= 0)
+                    <small class="text-muted">{{ __('Contact super admin to increase your limit') }}</small>
+                @endif
+            </div>
+        @endif
+
         <!-- Search Form -->
         <div class="card mb-3">
             <div class="card-body">

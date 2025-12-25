@@ -36,6 +36,7 @@ class User extends Authenticatable
         'image',
         'activity',
         'wallet',
+        'wallet_limit',
         'role',
         'email_code',
         'email_verified',

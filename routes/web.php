@@ -88,6 +88,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')
         Route::middleware(['can:إدارة المناطق'])->resource('/zones', ZoneController::class);
 
         Route::middleware(['can:إدارة الدورات'])->resource('/roles', RoleController::class);
+        Route::post('/admins/{admin}/update-wallet-limit', [WalletRequestController::class, 'updateAdminLimit'])->name('admins.update-wallet-limit');
         Route::middleware(['can:إدارة المسؤولين'])->resource('/admins', AdminController::class);
         Route::middleware(['can:إدارة الإعلانات'])->resource('/ads', AdController::class);
 

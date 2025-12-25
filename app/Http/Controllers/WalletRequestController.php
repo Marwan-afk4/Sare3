@@ -175,7 +175,22 @@ class WalletRequestController extends Controller
         ]);
 
         try {
-            // Add to wallet
+            $admin = auth()->user();
+
+            // Check if admin has wallet management permission
+            if ($admin->can('إدارة طلبات المحفظة')) {
+                // Check if admin has sufficient limit
+                if ($admin->wallet_limit < $validated['amount']) {
+                    return redirect()
+                        ->route('wallet-requests.index')
+                        ->with('error', __('Insufficient wallet limit. Your current limit: ') . '$' . number_format($admin->wallet_limit, 2));
+                }
+
+                // Deduct from admin's limit
+                $admin->decrement('wallet_limit', $validated['amount']);
+            }
+
+            // Add to driver wallet
             $driver->increment('wallet', $validated['amount']);
 
             // Create wallet request record for tracking
@@ -185,7 +200,6 @@ class WalletRequestController extends Controller
                 'type' => 'deposit',
                 'status' => 'approved',
                 'note' => $validated['note'] ?? 'Admin added to wallet',
-                'driver_wallet' => $driver->fresh()->wallet
             ]);
 
             return redirect()
@@ -243,5 +257,49 @@ class WalletRequestController extends Controller
             ->paginate(20);
 
         return view('wallet-requests.history', compact('driver', 'walletHistory'));
+    }
+
+    public function adminLimits()
+    {
+        // Get all admins who have the wallet management permission
+        $admins = User::where('role', 'admin')
+            ->whereHas('roles.permissions', function ($query) {
+                $query->where('name', 'إدارة طلبات المحفظة');
+            })
+            ->orWhereHas('permissions', function ($query) {
+                $query->where('name', 'إدارة طلبات المحفظة');
+            })
+            ->orderBy('name')
+            ->get();
+
+        return view('wallet-requests.admin-limits', compact('admins'));
+    }
+
+    public function updateAdminLimit(Request $request, User $admin)
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'action' => 'required|in:set,add'
+        ]);
+
+        try {
+            if ($validated['action'] === 'set') {
+                // Set the limit to specific amount
+                $admin->update(['wallet_limit' => $validated['amount']]);
+                $message = __('Admin wallet limit set successfully to: ') . '$' . number_format($validated['amount'], 2);
+            } else {
+                // Add to existing limit
+                $admin->increment('wallet_limit', $validated['amount']);
+                $message = __('Added to admin wallet limit successfully. New limit: ') . '$' . number_format($admin->fresh()->wallet_limit, 2);
+            }
+
+            return redirect()
+                ->route('admins.index')
+                ->with('success', $message);
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('admins.index')
+                ->with('error', __('Failed to update limit: ') . $e->getMessage());
+        }
     }
 }
