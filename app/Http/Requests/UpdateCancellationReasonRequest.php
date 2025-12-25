@@ -1,10 +1,11 @@
 <?php
 
 namespace App\Http\Requests;
+
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Foundation\Http\FormRequest;
-
+use Illuminate\Validation\Rule;
 class UpdateCancellationReasonRequest extends FormRequest
 {
     public function authorize()
@@ -14,8 +15,20 @@ class UpdateCancellationReasonRequest extends FormRequest
 
     public function rules()
     {
+        $cancellationReasonId = $this->route('cancellation_reason')
+            ? $this->route('cancellation_reason')->id
+            : null;
+
         return [
-            'reason' => 'nullable|string|max:255|unique:cancellation_reasons,reason,' . $this->route('cancellation_reason')->id,
+            'reason' => [
+                'nullable',
+                'string',
+                'max:255',
+                // Make reason unique only within the same type, excluding current record
+                Rule::unique('cancellation_reasons', 'reason')
+                    ->where('type', $this->input('type'))
+                    ->ignore($cancellationReasonId)
+            ],
             'type' => 'nullable|in:user,driver',
             'is_active' => 'nullable|boolean'
         ];
@@ -24,7 +37,7 @@ class UpdateCancellationReasonRequest extends FormRequest
     public function messages()
     {
         return [
-            'reason.unique' => __('The reason is already exists.'),
+            'reason.unique' => __('This reason already exists for this type. You can use the same reason for a different type.'),
             'reason.string' => __('The Reason must be a string.'),
             'reason.max' => __('The Reason may not be greater than 255 characters.'),
             'type.in' => __('The selected type is invalid. It must be either user or driver.'),

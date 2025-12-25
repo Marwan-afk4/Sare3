@@ -1,9 +1,11 @@
 <?php
 
 namespace App\Http\Requests;
+
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCancellationReasonRequest extends FormRequest
 {
@@ -15,7 +17,14 @@ class StoreCancellationReasonRequest extends FormRequest
     public function rules()
     {
         return [
-            'reason' => 'required|string|max:255|unique:cancellation_reasons,reason',
+            'reason' => [
+                'required',
+                'string',
+                'max:255',
+                // Make reason unique only within the same type
+                Rule::unique('cancellation_reasons', 'reason')
+                    ->where('type', $this->input('type'))
+            ],
             'type' => 'required|in:user,driver',
             'is_active' => 'required|boolean'
         ];
@@ -24,7 +33,7 @@ class StoreCancellationReasonRequest extends FormRequest
     public function messages()
     {
         return [
-            'reason.unique' => __('The reason is already exists.'),
+            'reason.unique' => __('This reason already exists for this type. You can use the same reason for a different type.'),
             'reason.required' => __('The Reason field is required.'),
             'reason.string' => __('The Reason must be a string.'),
             'reason.max' => __('The Reason may not be greater than 255 characters.'),

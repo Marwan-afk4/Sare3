@@ -823,5 +823,6 @@
     "Ride Started At": "بدأت الرحلة في",
     "Ride Ended At": "انتهت الرحلة في",
     "Total Time Taken": "إجمالي الوقت المستغرق",
-    "minutes": "دقيقة"
+    "minutes": "دقيقة",
+    "This reason already exists for this type. You can use the same reason for a different type.": "هذا السبب موجود بالفعل لهذا النوع. يمكنك استخدام نفس السبب لنوع مختلف."
 }
