@@ -320,11 +320,13 @@ class RideActionsController extends Controller
         $referralDiscountService = new ReferralDiscountService();
         $discountResult = $referralDiscountService->applyDiscounts($ride, $originalFare);
         $fare = $discountResult['final_fare'];
+        $fareBeforeCoupon = $fare;
 
         // 5.5️⃣ Calculate Coupon Discount (if coupon was used)
         $couponDiscountAmount = 0;
         if ($ride->coupon_id && $ride->coupon) {
-            $couponDiscountAmount = $ride->coupon->calculateDiscount($fare);
+            // Coupon discount is calculated based on the fare BEFORE applying coupon
+            $couponDiscountAmount = $ride->coupon->calculateDiscount($fareBeforeCoupon);
             
             if ($couponDiscountAmount > 0) {
                 $fare = max(0, $fare - $couponDiscountAmount);
@@ -341,9 +343,10 @@ class RideActionsController extends Controller
         }
 
         // 6️⃣ Admin Profit Calculation (on discounted fare)
-        // Use zone-specific profit percentage if available, otherwise fall back to global setting
+        // Use zone-specific profit percentage if available, otherwise fall back to global setting.
+        // IMPORTANT: We calculate admin profit on fare BEFORE coupon, so coupon benefits both user and driver.
         $adminProfitPercentage = $zone->admin_profit_percentage ?? AppSetting::getAdminProfitPercentage();
-        $profitAmounts = RideProfit::calculateProfit($fare, $adminProfitPercentage);
+        $profitAmounts = RideProfit::calculateProfit($fareBeforeCoupon, $adminProfitPercentage);
 
         // Get driver reference
         $driver = $ride->driver;
@@ -410,19 +413,22 @@ class RideActionsController extends Controller
 
                     /**
                      * Coupon benefit for driver:
-                     * If a coupon discounted the user, we compensate the driver by covering the admin commission
-                     * so the driver's wallet will have no net deduction for this ride.
+                     * If a coupon discounted the user, we also credit the driver wallet by the coupon discount value
+                     * so coupon benefits both user and driver.
+                     *
+                     * Example: coupon 25% and admin profit 10% => net driver wallet change = +15% (25% - 10%).
                      */
                     if ($couponDiscountAmount > 0) {
-                        Log::info("Coupon applied; compensating driver {$driver->id} by {$adminProfitAmount} to offset admin profit deduction.");
-                        $driver->increment('wallet', $adminProfitAmount);
+                        $driverCouponCredit = round((float)$couponDiscountAmount, 2);
+                        Log::info("Coupon applied; crediting driver {$driver->id} by coupon discount {$driverCouponCredit}.");
+                        $driver->increment('wallet', $driverCouponCredit);
 
                         // Auditable record (nullable user_id/driver_id supported by migration)
                         Transaction::create([
                             'user_id' => $ride->user_id,
                             'driver_id' => $driver->id,
-                            'amount' => $adminProfitAmount,
-                            'description' => "Coupon compensation (commission covered) for ride #{$ride->id}",
+                            'amount' => $driverCouponCredit,
+                            'description' => "Coupon benefit credited to driver for ride #{$ride->id}",
                         ]);
                     }
                 }
@@ -430,7 +436,7 @@ class RideActionsController extends Controller
                 // Create profit record inside transaction
                 if ($adminProfitPercentage > 0) {
                     Log::info("Creating profit record for ride {$ride->id}");
-                    RideProfit::createForRide($ride, $fare, $adminProfitPercentage);
+                    RideProfit::createForRide($ride, $fareBeforeCoupon, $adminProfitPercentage);
                 }
             }
             
