@@ -10,6 +10,7 @@ use App\Models\AppSetting;
 use App\Models\CarCategory;
 use App\Models\Ride;
 use App\Models\RideProfit;
+use App\Models\Transaction;
 use App\Models\Zone;
 use App\Services\ReferralDiscountService;
 use App\Services\RideVerificationService;
@@ -394,17 +395,43 @@ class RideActionsController extends Controller
                     ]
                 );
             }
-            
-            // Update driver wallet inside transaction
-            if ($driver && $profitAmounts['admin_profit_amount'] > 0) {
-                Log::info("Updating driver wallet for driver {$driver->id}, deducting {$profitAmounts['admin_profit_amount']}");
-                $driver->decrement('wallet', $profitAmounts['admin_profit_amount']);
-            }
-            
-            // Create profit record inside transaction
-            if ($adminProfitPercentage > 0) {
-                Log::info("Creating profit record for ride {$ride->id}");
-                RideProfit::createForRide($ride, $fare, $adminProfitPercentage);
+
+            // Prevent double settlement (wallet/profit) if completeRide is called more than once
+            $settlementAlreadyProcessed = RideProfit::where('ride_id', $ride->id)->exists();
+            if ($settlementAlreadyProcessed) {
+                Log::warning("Settlement already processed for ride {$ride->id}; skipping wallet/profit settlement.");
+            } else {
+                // Update driver wallet inside transaction (admin commission)
+                if ($driver && $profitAmounts['admin_profit_amount'] > 0) {
+                    $adminProfitAmount = (float)$profitAmounts['admin_profit_amount'];
+
+                    Log::info("Updating driver wallet for driver {$driver->id}, deducting admin profit {$adminProfitAmount}");
+                    $driver->decrement('wallet', $adminProfitAmount);
+
+                    /**
+                     * Coupon benefit for driver:
+                     * If a coupon discounted the user, we compensate the driver by covering the admin commission
+                     * so the driver's wallet will have no net deduction for this ride.
+                     */
+                    if ($couponDiscountAmount > 0) {
+                        Log::info("Coupon applied; compensating driver {$driver->id} by {$adminProfitAmount} to offset admin profit deduction.");
+                        $driver->increment('wallet', $adminProfitAmount);
+
+                        // Auditable record (nullable user_id/driver_id supported by migration)
+                        Transaction::create([
+                            'user_id' => $ride->user_id,
+                            'driver_id' => $driver->id,
+                            'amount' => $adminProfitAmount,
+                            'description' => "Coupon compensation (commission covered) for ride #{$ride->id}",
+                        ]);
+                    }
+                }
+
+                // Create profit record inside transaction
+                if ($adminProfitPercentage > 0) {
+                    Log::info("Creating profit record for ride {$ride->id}");
+                    RideProfit::createForRide($ride, $fare, $adminProfitPercentage);
+                }
             }
             
             // Verify status was set correctly
