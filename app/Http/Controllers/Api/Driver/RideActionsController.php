@@ -10,7 +10,7 @@ use App\Models\AppSetting;
 use App\Models\CarCategory;
 use App\Models\Ride;
 use App\Models\RideProfit;
-use App\Models\Transaction;
+use App\Models\WalletRequest;
 use App\Models\Zone;
 use App\Services\ReferralDiscountService;
 use App\Services\RideVerificationService;
@@ -411,6 +411,15 @@ class RideActionsController extends Controller
                     Log::info("Updating driver wallet for driver {$driver->id}, deducting admin profit {$adminProfitAmount}");
                     $driver->decrement('wallet', $adminProfitAmount);
 
+                    // Wallet history entry for admin profit deduction (withdraw)
+                    WalletRequest::create([
+                        'driver_id' => $driver->id,
+                        'amount' => round($adminProfitAmount, 2),
+                        'type' => 'withdraw',
+                        'status' => 'approved',
+                        'note' => "Admin profit commission for ride #{$ride->id}",
+                    ]);
+
                     /**
                      * Coupon benefit for driver:
                      * If a coupon discounted the user, we also credit the driver wallet by the coupon discount value
@@ -423,12 +432,13 @@ class RideActionsController extends Controller
                         Log::info("Coupon applied; crediting driver {$driver->id} by coupon discount {$driverCouponCredit}.");
                         $driver->increment('wallet', $driverCouponCredit);
 
-                        // Auditable record (nullable user_id/driver_id supported by migration)
-                        Transaction::create([
-                            'user_id' => $ride->user_id,
+                        // Wallet history entry for coupon benefit (deposit)
+                        WalletRequest::create([
                             'driver_id' => $driver->id,
                             'amount' => $driverCouponCredit,
-                            'description' => "Coupon benefit credited to driver for ride #{$ride->id}",
+                            'type' => 'deposit',
+                            'status' => 'approved',
+                            'note' => "Coupon benefit for ride #{$ride->id}",
                         ]);
                     }
                 }
