@@ -13,6 +13,7 @@ class Zone extends Model
 
     protected $fillable = [
         'name',
+        'timezone',
         'admin_profit_percentage',
         'from_lat',
         'from_lng',

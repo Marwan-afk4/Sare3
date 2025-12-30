@@ -14,6 +14,7 @@ class TransactionController extends Controller
     {
         $user_id = $request->user()->id;
         $transactions = Transaction::where('user_id', $user_id)
+            ->with(['user.zone', 'driver.zone'])
             ->orderBy('created_at', 'desc')
             ->get();
 

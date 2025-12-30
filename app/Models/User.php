@@ -242,6 +242,19 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's timezone based on their zone
+     */
+    public function getTimezone(): string
+    {
+        if ($this->zone && $this->zone->timezone) {
+            return $this->zone->timezone;
+        }
+        
+        // Default to Egypt timezone if no zone is set
+        return config('app.timezone', 'Africa/Cairo');
+    }
+
+    /**
      * Check if driver can go online based on wallet balance
      */
     public function canGoOnline(): bool
