@@ -30,7 +30,7 @@ class WalletRequest extends Model
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',
     ];
-    
+
 
     public $timestamps = true;
 
@@ -45,4 +45,14 @@ class WalletRequest extends Model
         return $this->hasMany(WalletRequestsMessage::class)->orderBy('created_at', 'asc');
     }
 
+    /**
+     * Prepare a date for array / JSON serialization.
+     *
+     * @param  \DateTimeInterface  $date
+     * @return string
+     */
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        return $date->format('Y-m-d H:i:s');
+    }
 }
