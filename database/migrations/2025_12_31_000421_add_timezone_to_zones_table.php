@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('zones', function (Blueprint $table) {
-            $table->string('timezone', 50)->default('Africa/Cairo')->after('name');
+            //
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('zones', function (Blueprint $table) {
-            $table->dropColumn('timezone');
+            //
         });
     }
 };

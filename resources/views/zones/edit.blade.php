@@ -46,20 +46,6 @@
 					placeholder="{{__('Leave empty to use global setting')}}"
 				/>
 
-				<div class="mb-3">
-					<label for="timezone" class="form-label">{{__('Timezone')}} <span class="text-danger">*</span></label>
-					<select name="timezone" id="timezone" class="form-select" required>
-						<option value="">{{__('Select Timezone')}}</option>
-						<option value="Africa/Cairo" {{ ($zone->timezone ?? 'Africa/Cairo') == 'Africa/Cairo' ? 'selected' : '' }}>{{__('Egypt')}} (Africa/Cairo - UTC+2)</option>
-						<option value="Asia/Amman" {{ ($zone->timezone ?? '') == 'Asia/Amman' ? 'selected' : '' }}>{{__('Jordan')}} (Asia/Amman - UTC+3)</option>
-						<option value="Asia/Riyadh" {{ ($zone->timezone ?? '') == 'Asia/Riyadh' ? 'selected' : '' }}>{{__('Saudi Arabia')}} (Asia/Riyadh - UTC+3)</option>
-						<option value="Asia/Dubai" {{ ($zone->timezone ?? '') == 'Asia/Dubai' ? 'selected' : '' }}>{{__('UAE')}} (Asia/Dubai - UTC+4)</option>
-						<option value="Asia/Kuwait" {{ ($zone->timezone ?? '') == 'Asia/Kuwait' ? 'selected' : '' }}>{{__('Kuwait')}} (Asia/Kuwait - UTC+3)</option>
-						<option value="Asia/Beirut" {{ ($zone->timezone ?? '') == 'Asia/Beirut' ? 'selected' : '' }}>{{__('Lebanon')}} (Asia/Beirut - UTC+2)</option>
-					</select>
-					<small class="form-text text-muted">{{__('Select the timezone for this zone to display correct times to users')}}</small>
-				</div>
-
 			<!-- Google Maps Container - Always Visible -->
 			<div id="polygon_section" class="mb-3">
 				<label class="form-label">{{ __('Edit Zone Area on Map') }}</label>

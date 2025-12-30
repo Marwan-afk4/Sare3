@@ -43,19 +43,10 @@
                         <strong>{{ __('Note') }}:</strong> {{ $walletRequest->note ?? '-' }}
                     </li>
                     <li class="list-group-item">
-                        <strong>{{ __('Created At') }}:</strong> 
-                        @php
-                            $timezone = $walletRequest->driver->getTimezone();
-                            $createdAt = $walletRequest->created_at->timezone($timezone);
-                        @endphp
-                        {{ $createdAt->format('M d, Y h:i A') }} ({{ $createdAt->diffForHumans() }})
+                        <strong>{{ __('Created At') }}:</strong> {{ $walletRequest->created_at->diffForHumans() ?? '-' }}
                     </li>
                     <li class="list-group-item">
-                        <strong>{{ __('Updated At') }}:</strong> 
-                        @php
-                            $updatedAt = $walletRequest->updated_at->timezone($timezone);
-                        @endphp
-                        {{ $updatedAt->format('M d, Y h:i A') }} ({{ $updatedAt->diffForHumans() }})
+                        <strong>{{ __('Updated At') }}:</strong> {{ $walletRequest->updated_at->diffForHumans() ?? '-' }}
                     </li>
                 </ul>
             </div>
@@ -104,11 +95,7 @@
                                                 </div>
                                             </div>
                                             <div class="message-time">
-                                                @php
-                                                    $msgTimezone = $walletRequest->driver->getTimezone();
-                                                    $msgTime = $message->created_at->timezone($msgTimezone);
-                                                @endphp
-                                                {{ $msgTime->format('H:i') }}
+                                                {{ $message->created_at->format('H:i') }}
                                             </div>
                                         </div>
                                         <div class="message-content">
@@ -127,11 +114,7 @@
                                     <div class="message-bubble driver-bubble">
                                         <div class="message-header">
                                             <div class="message-time">
-                                                @php
-                                                    $msgTimezone = $walletRequest->driver->getTimezone();
-                                                    $msgTime = $message->created_at->timezone($msgTimezone);
-                                                @endphp
-                                                {{ $msgTime->format('H:i') }}
+                                                {{ $message->created_at->format('H:i') }}
                                             </div>
                                             <div class="sender-info">
                                                 <div class="sender-details">

@@ -78,12 +78,9 @@
                                     <tr>
                                         <td>#{{ $transaction->id }}</td>
                                         <td>
-                                            @php
-                                                $timezone = $driver->getTimezone();
-                                                $createdAt = $transaction->created_at->timezone($timezone);
-                                            @endphp
-                                            <div>{{ $createdAt->format('M d, Y') }}</div>
-                                            <small class="text-muted">{{ $createdAt->format('h:i A') }}</small>
+                                            <div>{{ $transaction->created_at->format('M d, Y') }}</div>
+                                            <small
+                                                class="text-muted">{{ $transaction->created_at->format('h:i A') }}</small>
                                         </td>
                                         <td>
                                             {!! $transaction->type->badge() !!}

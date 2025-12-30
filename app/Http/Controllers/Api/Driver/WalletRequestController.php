@@ -45,7 +45,7 @@ class WalletRequestController extends Controller
     {
         $driver = $request->user();
         $walletRequests = WalletRequest::where('driver_id', $driver->id)
-            ->with(['driver.zone']) // Load driver with zone for timezone
+            ->with('driver:id,name,email') // Assuming you want to include driver details
             ->orderBy('created_at', 'desc')
             ->get();
 

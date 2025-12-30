@@ -30,20 +30,6 @@
 					placeholder="{{__('Leave empty to use global setting')}}"
 				/>
 
-				<div class="mb-3">
-					<label for="timezone" class="form-label">{{__('Timezone')}} <span class="text-danger">*</span></label>
-					<select name="timezone" id="timezone" class="form-select" required>
-						<option value="">{{__('Select Timezone')}}</option>
-						<option value="Africa/Cairo">{{__('Egypt')}} (Africa/Cairo - UTC+2)</option>
-						<option value="Asia/Amman">{{__('Jordan')}} (Asia/Amman - UTC+3)</option>
-						<option value="Asia/Riyadh">{{__('Saudi Arabia')}} (Asia/Riyadh - UTC+3)</option>
-						<option value="Asia/Dubai">{{__('UAE')}} (Asia/Dubai - UTC+4)</option>
-						<option value="Asia/Kuwait">{{__('Kuwait')}} (Asia/Kuwait - UTC+3)</option>
-						<option value="Asia/Beirut">{{__('Lebanon')}} (Asia/Beirut - UTC+2)</option>
-					</select>
-					<small class="form-text text-muted">{{__('Select the timezone for this zone to display correct times to users')}}</small>
-				</div>
-
 				{{-- <div class="mb-3">
 					<label class="form-label">{{ __('Zone Area Selection') }}</label>
 					<div class="btn-group mb-3" role="group">
