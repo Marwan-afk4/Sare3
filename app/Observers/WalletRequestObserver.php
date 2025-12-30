@@ -56,13 +56,13 @@ class WalletRequestObserver
         if ($operation === 'add') {
             if ($walletRequest->type === WalletRequestType::Deposit) {
                 $driver->wallet += $amount;
-            } elseif ($walletRequest->type === WalletRequestType::Withdraw) {
+            } elseif (in_array($walletRequest->type, [WalletRequestType::Withdraw, WalletRequestType::Deduction], true)) {
                 $driver->wallet -= $amount;
             }
         } elseif ($operation === 'subtract') {
             if ($walletRequest->type === WalletRequestType::Deposit) {
                 $driver->wallet -= $amount;
-            } elseif ($walletRequest->type === WalletRequestType::Withdraw) {
+            } elseif (in_array($walletRequest->type, [WalletRequestType::Withdraw, WalletRequestType::Deduction], true)) {
                 $driver->wallet += $amount;
             }
         }

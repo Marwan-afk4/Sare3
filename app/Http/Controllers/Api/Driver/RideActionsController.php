@@ -415,7 +415,7 @@ class RideActionsController extends Controller
                     WalletRequest::create([
                         'driver_id' => $driver->id,
                         'amount' => round($adminProfitAmount, 2),
-                        'type' => 'withdraw',
+                        'type' => 'deduction',
                         'status' => 'approved',
                         'note' => "Admin profit commission for ride #{$ride->id}",
                     ]);

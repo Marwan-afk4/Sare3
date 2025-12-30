@@ -234,7 +234,7 @@ class WalletRequestController extends Controller
             WalletRequest::create([
                 'driver_id' => $driver->id,
                 'amount' => $validated['amount'],
-                'type' => 'withdraw',
+                'type' => 'deduction',
                 'status' => 'approved',
                 'note' => $validated['note'] ?? 'Admin deducted from wallet',
                 'driver_wallet' => $driver->fresh()->wallet

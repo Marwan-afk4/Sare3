@@ -6,12 +6,14 @@ enum WalletRequestType: string
 {
     case Withdraw = 'withdraw';
     case Deposit = 'deposit';
+    case Deduction = 'deduction';
 
     public static function labels(): array
     {
         return [
             self::Withdraw->value => __('Withdraw'),
             self::Deposit->value => __('Deposit'),
+            self::Deduction->value => __('Deduction'),
         ];
     }
 
@@ -30,6 +32,7 @@ enum WalletRequestType: string
         return match ($this) {
             self::Withdraw => '3B82F6', // blue
             self::Deposit => '8B5CF6', // purple
+            self::Deduction => 'EF4444', // red
         };
     }
 
@@ -38,6 +41,7 @@ enum WalletRequestType: string
         return match ($this) {
             self::Withdraw => 'FFFFFF', // white
             self::Deposit => 'FFFFFF', // white
+            self::Deduction => 'FFFFFF', // white
         };
     }
 
