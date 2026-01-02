@@ -10,6 +10,7 @@ use App\Models\AppSetting;
 use App\Models\CarCategory;
 use App\Models\Ride;
 use App\Models\RideProfit;
+use App\Models\Transaction;
 use App\Models\WalletRequest;
 use App\Models\Zone;
 use App\Services\ReferralDiscountService;
@@ -320,7 +321,8 @@ class RideActionsController extends Controller
         $referralDiscountService = new ReferralDiscountService();
         $discountResult = $referralDiscountService->applyDiscounts($ride, $originalFare);
         $fare = $discountResult['final_fare'];
-        $fareBeforeCoupon = $fare;
+        // Round fareBeforeCoupon to 2 decimals for consistent discount calculation
+        $fareBeforeCoupon = round($fare, 2);
 
         // 5.5️⃣ Calculate Coupon Discount (if coupon was used)
         $couponDiscountAmount = 0;
@@ -329,7 +331,8 @@ class RideActionsController extends Controller
             $couponDiscountAmount = $ride->coupon->calculateDiscount($fareBeforeCoupon);
             
             if ($couponDiscountAmount > 0) {
-                $fare = max(0, $fare - $couponDiscountAmount);
+                // Calculate final fare from rounded fareBeforeCoupon to ensure consistency
+                $fare = max(0, $fareBeforeCoupon - $couponDiscountAmount);
                 
                 // Add coupon to applied discounts
                 $discountResult['applied_discounts'][] = [
@@ -350,6 +353,11 @@ class RideActionsController extends Controller
 
         // Get driver reference
         $driver = $ride->driver;
+        $user = $ride->user;
+
+        // Initialize wallet payment tracking
+        $walletPaidAmount = 0;
+        $remainingAmount = round($fare, 2);
 
         // 9️⃣ Update Ride
         $updateData = [
@@ -363,6 +371,12 @@ class RideActionsController extends Controller
             'total_distance_in_km' => round($distanceKm, 1),
             'completed_at' => $endTime,
         ];
+        
+        // Update calculated_initial_price to fareBeforeCoupon when coupon is used
+        // This ensures the "Before" price in the view matches the price the coupon discount was calculated on
+        if ($ride->coupon_id && $couponDiscountAmount > 0) {
+            $updateData['calculated_initial_price'] = round($fareBeforeCoupon, 2);
+        }
         
         Log::info("Completing ride {$ride->id} with coupon - BEFORE UPDATE", [
             'ride_id' => $ride->id,
@@ -397,6 +411,32 @@ class RideActionsController extends Controller
                         'discount_amount' => $couponDiscountAmount
                     ]
                 );
+            }
+
+            // 7️⃣ Process wallet payment if user has wallet balance
+            if ($user && $user->wallet > 0 && $fare > 0) {
+                // Calculate how much can be paid from wallet (up to the fare amount)
+                $walletPaidAmount = min($user->wallet, $fare);
+                $remainingAmount = round($fare - $walletPaidAmount, 2);
+                
+                // Deduct from user wallet
+                $user->decrement('wallet', $walletPaidAmount);
+                
+                // Create transaction record for wallet payment
+                Transaction::create([
+                    'user_id' => $user->id,
+                    'driver_id' => $driver ? $driver->id : null,
+                    'amount' => -$walletPaidAmount, // Negative amount to indicate deduction
+                    'description' => "Ride payment - Ride #{$ride->id} (Wallet: {$walletPaidAmount}, Remaining: {$remainingAmount})",
+                ]);
+                
+                Log::info("Wallet payment processed for ride {$ride->id}", [
+                    'user_id' => $user->id,
+                    'wallet_paid' => $walletPaidAmount,
+                    'remaining_amount' => $remainingAmount,
+                    'final_fare' => $fare,
+                    'user_wallet_after' => $user->fresh()->wallet
+                ]);
             }
 
             // Prevent double settlement (wallet/profit) if completeRide is called more than once
@@ -516,6 +556,12 @@ class RideActionsController extends Controller
             return response()->json(['message' => 'Firebase error.', 'error' => $e->getMessage()], 500);
         }
 
+        // Prepare wallet payment info for response
+        $walletPaymentInfo = [
+            'wallet_paid' => round($walletPaidAmount, 2),
+            'remaining_amount' => round($remainingAmount, 2),
+        ];
+
         return response()->json([
             'message' => 'Ride completed.',
             'pricing' => [
@@ -523,7 +569,8 @@ class RideActionsController extends Controller
                 'final_fare' => round($fare, 1),
                 'discount_amount' => round($discountResult['total_discount_amount'], 1),
                 'coupon_discount' => round($couponDiscountAmount, 1),
-                'applied_discounts' => $discountResult['applied_discounts']
+                'applied_discounts' => $discountResult['applied_discounts'],
+                'wallet_payment' => $walletPaymentInfo
             ],
             'ride_details' => [
                 'distance_km' => round($distanceKm, 1),

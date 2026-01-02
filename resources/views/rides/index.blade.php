@@ -188,6 +188,15 @@
                         </th>
                         <th>
                             <a
+                                href="{{ route('rides.index', ['sort' => 'calculated_final_price', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                {{ __('Fare') }}
+                                @if ($sortField === 'calculated_final_price')
+                                    <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
+                                @endif
+                            </a>
+                        </th>
+                        <th>
+                            <a
                                 href="{{ route('rides.index', ['sort' => 'status', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
                                 {{ __('Status') }}
                                 @if ($sortField === 'status')
@@ -234,6 +243,26 @@
                                 {{-- <td>{{ $ride->calculated_initial_price }}</td>
                                 <td>{{ $ride->calculated_final_price }}</td> --}}
                                 <td>{{ $ride->time_taken }}</td>
+                                <td>
+                                    @if ($ride->coupon_id && $ride->calculated_initial_price && $ride->calculated_final_price)
+                                        <div>
+                                            <span class="text-muted">{{ __('Before') }}:</span>
+                                            <strong>${{ number_format($ride->calculated_initial_price, 2) }}</strong>
+                                            <span class="text-muted">→</span>
+                                            <span class="text-muted">{{ __('After') }}:</span>
+                                            <strong class="text-success">${{ number_format($ride->calculated_final_price, 2) }}</strong>
+                                            <br>
+                                            <small class="text-info">
+                                                <i class="fa fa-tag"></i> {{ $ride->coupon->code ?? __('Coupon Applied') }}
+                                                (${{ number_format($ride->coupon_discount ?? 0, 2) }})
+                                            </small>
+                                        </div>
+                                    @elseif ($ride->calculated_final_price)
+                                        <strong>${{ number_format($ride->calculated_final_price, 2) }}</strong>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                                 <td>{!! $ride->status->badge() !!}</td>
                                 <td>{{ $ride->created_at?->translatedFormat('l d F Y - h:i A') ?? '' }}</td>
                                 <td class="text-center">

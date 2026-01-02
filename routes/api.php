@@ -331,6 +331,9 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::patch('/support/requests/{support_request}/status', [AdminSupportChatController::class, 'updateSupportRequestStatus']);
     Route::get('/support/statistics', [AdminSupportChatController::class, 'getSupportStatistics']);
 
+    // Zone Notifications
+    Route::post('/notifications/zone', [NotificationController::class, 'broadcastNotificationToZone']);
+
 
 });
 
