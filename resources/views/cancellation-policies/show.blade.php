@@ -22,6 +22,9 @@
                         <strong>{{ __('Name') }}:</strong> {{ $cancellationPolicy->name }}
                     </li>
                     <li class="list-group-item">
+                        <strong>{{ __('User Type') }}:</strong> {{ $cancellationPolicy->user_type === 'rider' ? __('Rider') : __('Driver') }}
+                    </li>
+                    <li class="list-group-item">
                         <strong>{{ __('Penalty Amount') }}:</strong> {{ $cancellationPolicy->penalty_amount ?? '-' }}
                     </li>
                     <li class="list-group-item">

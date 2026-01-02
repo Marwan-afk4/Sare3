@@ -22,6 +22,14 @@
 					:value="$cancellationPolicy->name ?? ''"
 					required
 				/>
+				<x-form-select
+					name="user_type"
+					type="select"
+					:selected="$cancellationPolicy->user_type ?? ''"
+					:options="$userTypes"
+					label="{{__('User Type')}}"
+					required
+				/>
 				<x-form-input
 					name="penalty_amount"
 					type="number"

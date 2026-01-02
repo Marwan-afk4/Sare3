@@ -16,6 +16,7 @@ class StoreCancellationPolicyRequest extends FormRequest
     {
         return [
             'name' => 'required|string|unique:cancellation_policies,name',
+            'user_type' => 'required|in:rider,driver',
             'min_minutes' => 'required|integer',
             'max_minutes' => 'required|integer',
             'penalty_amount' => 'nullable|numeric',
@@ -31,6 +32,8 @@ class StoreCancellationPolicyRequest extends FormRequest
             'name.required' => __('The Name field is required.'),
             'name.string' => __('The Name must be a string.'),
             'name.unique' => __('The Name field must be unique.'),
+            'user_type.required' => __('The User Type field is required.'),
+            'user_type.in' => __('The selected User Type is invalid.'),
             'min_minutes.required' => __('The Min Minutes field is required.'),
             'min_minutes.integer' => __('The Min Minutes must be an integer.'),
             'max_minutes.required' => __('The Max Minutes field is required.'),

@@ -26,6 +26,12 @@
 						</a>
 					</th>
 					<th>
+						<a href="{{ route('cancellation-policies.index', ['sort' => 'user_type', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+							{{ __("User Type") }}
+							@if($sortField === 'user_type')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
+						</a>
+					</th>
+					<th>
 						<a href="{{ route('cancellation-policies.index', ['sort' => 'penalty_amount', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
 							{{ __("Penalty Amount") }}
 							@if($sortField === 'penalty_amount')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
@@ -73,6 +79,7 @@
 				<tr>
 					<td>{{ $cancellationPolicy->id }}</td>
 					<td>{{ $cancellationPolicy->name }}</td>
+					<td>{{ $cancellationPolicy->user_type === 'rider' ? __('Rider') : __('Driver') }}</td>
 					<td>{{ $cancellationPolicy->penalty_amount ?? '-' }}</td>
 					<td>{{ $cancellationPolicy->penalty_percent ?? '-' }}</td>
 					{{-- <td>{{ $cancellationPolicy->description }}</td> --}}

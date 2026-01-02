@@ -14,6 +14,7 @@ class CancellationPolicy extends Model
 
     protected $fillable = [
         'name',
+        'user_type',
         'min_minutes',
         'max_minutes',
         'penalty_amount',

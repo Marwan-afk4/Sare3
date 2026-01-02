@@ -16,6 +16,7 @@ class UpdateCancellationPolicyRequest extends FormRequest
     {
         return [
             'name' => 'nullable|string|unique:cancellation_policies,name,' . $this->route('cancellation_policy')->id,
+            'user_type' => 'nullable|in:rider,driver',
             'min_minutes' => 'nullable|integer',
             'max_minutes' => 'nullable|integer',
             'penalty_amount' => 'nullable|numeric',
@@ -29,6 +30,7 @@ class UpdateCancellationPolicyRequest extends FormRequest
     {
         return [
             'name.string' => __('The Name must be a string.'),
+            'user_type.in' => __('The selected User Type is invalid.'),
             'min_minutes.integer' => __('The Min Minutes must be an integer.'),
             'max_minutes.integer' => __('The Max Minutes must be an integer.'),
             'penalty_amount.numeric' => __('The Penalty Amount must be a number.'),

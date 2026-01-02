@@ -57,8 +57,18 @@ class CancelationRide extends Controller
         $rideCreatedAt = Carbon::parse($ride->created_at);
         $minutesSinceBooking = ceil($rideCreatedAt->floatDiffInMinutes($now));
 
-        // جلب كل السياسات النشطة
-        $policies = CancellationPolicy::where('status', true)->get();
+        // تحديد نوع المستخدم (rider أو driver)
+        $userType = $isPassenger ? 'rider' : ($isDriver ? 'driver' : null);
+
+        // إذا لم يتم تحديد نوع المستخدم، لا يمكن تطبيق سياسة
+        if (!$userType) {
+            return response()->json(['message' => 'Unable to determine user type for cancellation'], 400);
+        }
+
+        // جلب السياسات النشطة المخصصة لنوع المستخدم
+        $policies = CancellationPolicy::where('status', true)
+            ->where('user_type', $userType)
+            ->get();
 
         // تحديد السياسة المناسبة بناءً على المدة الزمنية
         $selectedPolicy = $policies->first(function ($policy) use ($minutesSinceBooking) {

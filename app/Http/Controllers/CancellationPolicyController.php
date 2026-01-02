@@ -24,7 +24,11 @@ class CancellationPolicyController extends Controller
     public function create()
     {
         $statuses = ActiveStatuses::labels();
-        return view('cancellation-policies.create', compact('statuses'));
+        $userTypes = [
+            'rider' => __('Rider'),
+            'driver' => __('Driver')
+        ];
+        return view('cancellation-policies.create', compact('statuses', 'userTypes'));
     }
 
     public function store(StoreCancellationPolicyRequest $request)
@@ -41,7 +45,11 @@ class CancellationPolicyController extends Controller
     public function edit(CancellationPolicy $cancellationPolicy)
     {
         $statuses = ActiveStatuses::labels();
-        return view('cancellation-policies.edit', compact('cancellationPolicy', 'statuses'));
+        $userTypes = [
+            'rider' => __('Rider'),
+            'driver' => __('Driver')
+        ];
+        return view('cancellation-policies.edit', compact('cancellationPolicy', 'statuses', 'userTypes'));
     }
 
     public function update(UpdateCancellationPolicyRequest $request, CancellationPolicy $cancellationPolicy)
