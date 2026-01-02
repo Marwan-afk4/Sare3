@@ -359,6 +359,7 @@ class RideActionsController extends Controller
 
         // 9️⃣ Update Ride
         $updateData = [
+            'calculated_initial_price' => round($fareBeforeCoupon, 1), // Fare before coupon discount (after referral discounts)
             'calculated_final_price' => round($fare, 1),
             'original_price' => round($originalFare, 1),
             'discount_amount' => round($discountResult['total_discount_amount'], 2),
