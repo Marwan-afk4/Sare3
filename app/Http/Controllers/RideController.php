@@ -44,7 +44,7 @@ class RideController extends Controller
         $minKm     = $request->get('min_km');
         $maxKm     = $request->get('max_km');
 
-        $ridesQuery = Ride::with(['user', 'driver', 'carCategory'])
+        $ridesQuery = Ride::with(['user', 'driver', 'carCategory', 'coupon'])
             ->when($keyword, function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->where('id', 'LIKE', "%{$keyword}%")
