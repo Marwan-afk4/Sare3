@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CancelationRide as ModelsCancelationRide;
 use App\Models\CancellationPolicy;
 use App\Models\Ride;
+use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -125,6 +126,15 @@ class CancelationRide extends Controller
         $user->wallet = $user->wallet - $penaltyAmount;
         $user->save();
 
+        // Create transaction record for wallet history if penalty is applied
+        if ($penaltyAmount > 0) {
+            Transaction::create([
+                'user_id' => $user->id,
+                'driver_id' => $isPassenger ? ($ride->driver_id ?? null) : null,
+                'amount' => -$penaltyAmount, // Negative amount to indicate deduction
+                'description' => "Cancellation penalty - Ride #{$ride->id} ({$selectedPolicy->name})",
+            ]);
+        }
 
         // تحديث حالة الرحلة
         $ride->update(['status' => 'cancelled']);
