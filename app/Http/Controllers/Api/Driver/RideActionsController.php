@@ -322,25 +322,35 @@ class RideActionsController extends Controller
         $discountResult = $referralDiscountService->applyDiscounts($ride, $originalFare);
         $fare = $discountResult['final_fare'];
         $fareBeforeCoupon = $fare;
+        
+        // Round fare before coupon to 1 decimal to match display precision
+        // This ensures the discount calculation matches what's displayed
+        $roundedFareBeforeCoupon = round($fareBeforeCoupon, 1);
 
         // 5.5️⃣ Calculate Coupon Discount (if coupon was used)
         $couponDiscountAmount = 0;
         if ($ride->coupon_id && $ride->coupon) {
-            // Coupon discount is calculated based on the fare BEFORE applying coupon
-            $couponDiscountAmount = $ride->coupon->calculateDiscount($fareBeforeCoupon);
+            // Coupon discount is calculated based on the rounded fare BEFORE applying coupon
+            $couponDiscountAmount = $ride->coupon->calculateDiscount($roundedFareBeforeCoupon);
+            // Round discount to 2 decimals for storage
+            $couponDiscountAmount = round($couponDiscountAmount, 2);
             
             if ($couponDiscountAmount > 0) {
-                $fare = max(0, $fare - $couponDiscountAmount);
+                // Calculate final fare from rounded values to ensure consistency
+                $fare = max(0, $roundedFareBeforeCoupon - $couponDiscountAmount);
                 
                 // Add coupon to applied discounts
                 $discountResult['applied_discounts'][] = [
                     'type' => 'coupon',
                     'code' => $ride->coupon->code,
-                    'amount' => round($couponDiscountAmount, 2)
+                    'amount' => $couponDiscountAmount
                 ];
                 
                 $discountResult['total_discount_amount'] += $couponDiscountAmount;
             }
+        } else {
+            // If no coupon, round the final fare to 1 decimal for consistency
+            $fare = round($fare, 1);
         }
 
         // 6️⃣ Admin Profit Calculation (on discounted fare)
@@ -359,11 +369,11 @@ class RideActionsController extends Controller
 
         // 9️⃣ Update Ride
         $updateData = [
-            'calculated_initial_price' => round($fareBeforeCoupon, 1), // Fare before coupon discount (after referral discounts)
+            'calculated_initial_price' => $roundedFareBeforeCoupon, // Fare before coupon discount (after referral discounts)
             'calculated_final_price' => round($fare, 1),
             'original_price' => round($originalFare, 1),
             'discount_amount' => round($discountResult['total_discount_amount'], 2),
-            'coupon_discount' => round($couponDiscountAmount, 2),
+            'coupon_discount' => $couponDiscountAmount, // Already rounded to 2 decimals above
             'status' => 'completed',
             'ended_at' => $endTime,
             'time_taken' => $durationMinutes,
