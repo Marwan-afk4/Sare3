@@ -22,7 +22,7 @@ class AutoCancelPendingRides extends Command
     /**
      * The console command description.
      */
-    protected $description = 'Automatically cancel and remove pending rides that have been searching for a driver for more than 15 minutes.';
+    protected $description = 'Automatically cancel and remove pending rides that have been searching for a driver for more than 5 minutes.';
 
     /**
      * Execute the console command.
@@ -32,9 +32,9 @@ class AutoCancelPendingRides extends Command
         $startTime = now()->format('Y-m-d H:i:s');
         Log::info("🚀 Auto cancel command started at {$startTime}");
 
-        // ✅ 1. Get all rides still pending after 15 minutes
+        // ✅ 1. Get all rides still pending after 5 minutes
         $rides = Ride::where('status', 'pending')
-            ->where('created_at', '<=', Carbon::now()->subMinutes(15))
+            ->where('created_at', '<=', Carbon::now()->subMinutes(5))
             ->get();
 
         if ($rides->isEmpty()) {
@@ -44,12 +44,12 @@ class AutoCancelPendingRides extends Command
 
         foreach ($rides as $ride) {
             try {
-                Log::info("⏰ Ride ID {$ride->id} pending for more than 15 mins — cancelling...");
+                Log::info("⏰ Ride ID {$ride->id} pending for more than 5 mins — cancelling...");
 
                 // ✅ 2. Update DB status to "cancelled"
                 $ride->update(['status' => 'cancelled']);
 
-                // ✅ 3. Remove ride from Firebase
+                // ✅ 5. Remove ride from Firebase
                 $this->deleteFirebaseRide($ride);
 
                 // ✅ 4. Send notification to the user
@@ -91,8 +91,8 @@ class AutoCancelPendingRides extends Command
     {
         try {
             $firebase = (new Factory)
-                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                ->withServiceAccount(storage_path('firebase/sarea-adce5-firebase-adminsdk-fbsvc-892a07f554.json'))
+                ->withDatabaseUri('https://sarea-adce5-default-rtdb.firebaseio.com')
                 ->createDatabase();
 
             $firebaseRideId = 'ride_' . $ride->id;
