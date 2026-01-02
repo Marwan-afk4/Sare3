@@ -34,11 +34,18 @@
                     required
                 />
 				<x-form-select
+					name="zone_id"
+					type="select"
+					label="{{__('Zone')}} ({{__('Optional')}})"
+					:selected="old('zone_id', '')"
+					:options="['' => __('All Zones')] + $zones"
+				/>
+				<x-form-select
 					name="driver_id"
 					type="select"
-					label="{{__('Driver')}}"
-					:selected="$notification->driver_id ?? ''"
-					:options="$drivers"
+					label="{{__('Driver')}} ({{__('Optional')}})"
+					:selected="old('driver_id', '')"
+					:options="['' => __('All Drivers')] + $drivers"
 				/>
 				<button type='submit' class="btn btn-primary btn-sm me-1">{{ __('Add') }}</button>
 			</form>

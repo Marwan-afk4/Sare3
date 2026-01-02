@@ -6,7 +6,7 @@ use App\Enums\OtpTypes;
 use App\Helpers\FcmHelper;
 use App\Models\Notification;
 use App\Models\Driver;
-
+use App\Models\Zone;
 
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreNotificationRequest;
@@ -29,7 +29,8 @@ class NotificationController extends Controller
         $drivers = User::where('role', 'driver')
             ->orderBy('name')->pluck('name', 'id')->toArray();
         $types = OtpTypes::labels();
-        return view('notifications.create', compact('drivers', 'types'));
+        $zones = Zone::orderBy('name')->pluck('name', 'id')->toArray();
+        return view('notifications.create', compact('drivers', 'types', 'zones'));
     }
 
     public function store(Request $request)
@@ -39,6 +40,7 @@ class NotificationController extends Controller
         $validated = $request->validate([
             'type'      => 'required|in:user,driver', // المرسل إليه: user أو driver
             'driver_id' => 'nullable|exists:users,id',
+            'zone_id'   => 'nullable|exists:zones,id',
             'data'      => 'required|array', // البيانات كلها جوا data
             'data.title'   => 'required|string|max:255',
             'data.body'    => 'required|string|max:5000',
@@ -57,10 +59,22 @@ class NotificationController extends Controller
         if ($validated['type'] === 'driver') {
             $query = User::where('role', 'driver');
             if (!empty($validated['driver_id'])) {
+                // If specific driver is selected, ignore zone filter
                 $query->where('id', $validated['driver_id']);
+            } elseif (!empty($validated['zone_id'])) {
+                // Filter by zone if no specific driver is selected
+                $query->where('zone_id', $validated['zone_id']);
             }
         } else {
-            $query = User::where('role', 'user');
+            $query = User::where(function($q) {
+                $q->where('role', 'user')
+                  ->orWhereNull('role');
+            });
+            
+            // Filter by zone if specified (only for users, not when driver_id is set)
+            if (!empty($validated['zone_id'])) {
+                $query->where('zone_id', $validated['zone_id']);
+            }
         }
 
         $tokens = $query
