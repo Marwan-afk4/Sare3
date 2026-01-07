@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\User\RideEstimateController;
+use App\Jobs\AutoRejectRideJob;
 use App\Models\CancelationRide as ModelsCancelationRide;
 use App\Models\CancellationPolicy;
 use App\Models\Ride;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Kreait\Firebase\Factory;
@@ -36,8 +39,8 @@ class CancelationRide extends Controller
         $isPassenger = $ride->user_id === $user->id;
         $isDriver = $ride->driver_id === $user->id;
 
-        // التأكد من أن الرحلة لم تُلغَ مسبقًا
-        if ($ride->status->value === 'cancelled') {
+        // التأكد من أن الرحلة لم تُلغَ مسبقًا (only check for user cancellation, not driver)
+        if ($isPassenger && $ride->status->value === 'cancelled') {
             return response()->json(['message' => 'Ride already canceled'], 400);
         }
         
@@ -53,21 +56,23 @@ class CancelationRide extends Controller
             return response()->json(['message' => 'Cannot cancel a completed ride'], 422);
         }
 
+        // Handle driver cancellation differently - set to pending and search for alternative driver
+        if ($isDriver) {
+            return $this->handleDriverCancellation($ride, $user, $request);
+        }
+
         // حساب الوقت منذ بداية الحجز بالتقريب لأعلى دقيقة
         $rideCreatedAt = Carbon::parse($ride->created_at);
         $minutesSinceBooking = ceil($rideCreatedAt->floatDiffInMinutes($now));
 
-        // تحديد نوع المستخدم (rider أو driver)
-        $userType = $isPassenger ? 'rider' : ($isDriver ? 'driver' : null);
-
-        // إذا لم يتم تحديد نوع المستخدم، لا يمكن تطبيق سياسة
-        if (!$userType) {
+        // At this point, only passenger cancellation is handled (driver cancellation returned early)
+        if (!$isPassenger) {
             return response()->json(['message' => 'Unable to determine user type for cancellation'], 400);
         }
 
-        // جلب السياسات النشطة المخصصة لنوع المستخدم
+        // جلب السياسات النشطة المخصصة للمسافر (rider)
         $policies = CancellationPolicy::where('status', true)
-            ->where('user_type', $userType)
+            ->where('user_type', 'rider')
             ->get();
 
         // تحديد السياسة المناسبة بناءً على المدة الزمنية
@@ -79,17 +84,17 @@ class CancelationRide extends Controller
         if (!$selectedPolicy) {
             ModelsCancelationRide::create([
                 'ride_id' => $ride->id,
-                'user_id' => $isPassenger ? $user->id : null,
-                'driver_id' => $isDriver ? $user->id : null,
-                'canceled_by' => $isPassenger ? 'user' : ($isDriver ? 'driver' : 'unknown'),
+                'user_id' => $user->id,
+                'driver_id' => null,
+                'canceled_by' => 'user',
                 'canceled_at' => $now,
                 'reason' => $request->input('reason'),
             ]);
 
-            // Update ride in DB
+            // Update ride in DB - passenger cancellation sets status to cancelled
             $ride->update(['status' => 'cancelled']);
 
-            // Update Firebase
+            // Update Firebase - remove ride when passenger cancels
             try {
                 $firebase = (new Factory)
                     ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
@@ -97,19 +102,8 @@ class CancelationRide extends Controller
                     ->createDatabase();
 
                 $firebaseRef = $firebase->getReference("rides/{$ride->firebase_ride_id}");
-
-                // ✅ Firebase logic based on who canceled
-                if ($isDriver) {
-                    // Driver canceled - update status
-                    $firebaseRef->update([
-                        'status' => 'canceled',
-                        'canceled_by' => 'driver',
-                        'canceled_at' => $now->toIso8601String(),
-                    ]);
-                } elseif ($isPassenger) {
-                    // Passenger canceled - remove from Firebase
-                    $firebaseRef->remove();
-                }
+                // Passenger canceled - remove from Firebase
+                $firebaseRef->remove();
             } catch (\Exception $e) {
                 return response()->json([
                     'message' => 'Ride canceled, but failed to update Firebase',
@@ -117,7 +111,6 @@ class CancelationRide extends Controller
                 ], 500);
             }
 
-            // ✅ Only now return response
             return response()->json([
                 'message' => 'Ride canceled successfully , No applicable cancellation policy found.',
             ], 200);
@@ -152,10 +145,10 @@ class CancelationRide extends Controller
         // حفظ سجل الإلغاء
         ModelsCancelationRide::create([
             'ride_id' => $ride->id,
-            'user_id' => $isPassenger ? $user->id : null,
-            'driver_id' => $isDriver ? $user->id : null,
+            'user_id' => $user->id,
+            'driver_id' => null,
             'cancelation_policy_id' => $selectedPolicy->id,
-            'canceled_by' => $isPassenger ? 'user' : ($isDriver ? 'driver' : 'unknown'),
+            'canceled_by' => 'user',
             'canceled_at' => $now,
             'penalty_applied' => $penaltyAmount > 0,
             'penalty_amount' => round($penaltyAmount, 2),
@@ -169,20 +162,8 @@ class CancelationRide extends Controller
                 ->createDatabase();
 
             $firebaseRef = $firebase->getReference("rides/{$ride->firebase_ride_id}");
-
-            // ✅ Firebase logic based on who canceled
-            if ($isDriver) {
-                // Driver canceled - update status
-                $firebaseRef->update([
-                    'status' => 'canceled',
-                    'canceled_by' => 'driver',
-                    'canceled_at' => $now->toIso8601String(),
-                    'penalty_amount' => round($penaltyAmount, 2),
-                ]);
-            } elseif ($isPassenger) {
-                // Passenger canceled - remove from Firebase
-                $firebaseRef->remove();
-            }
+            // Passenger canceled - remove from Firebase
+            $firebaseRef->remove();
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Ride canceled, but failed to update Firebase',
@@ -197,5 +178,116 @@ class CancelationRide extends Controller
             'penalty_applied' => $penaltyAmount > 0,
             'penalty_amount' => round($penaltyAmount, 2),
         ]);
+    }
+
+    /**
+     * Handle driver cancellation - set status to pending and search for alternative driver
+     */
+    private function handleDriverCancellation(Ride $ride, $driver, Request $request)
+    {
+        $currentDriverId = $driver->id;
+
+        // Add current driver to rejected drivers list
+        $rejectedDrivers = $ride->rejected_drivers ?? [];
+        if ($currentDriverId && !in_array($currentDriverId, $rejectedDrivers)) {
+            $rejectedDrivers[] = $currentDriverId;
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // Update ride: reset driver_id, add to rejected drivers, set status to pending
+            $ride->update([
+                'driver_id' => null,
+                'rejected_drivers' => $rejectedDrivers,
+                'canceled_at' => now()->toIso8601String(),
+                'status' => 'pending',
+            ]);
+
+            // Update Firebase
+            try {
+                $firebase = (new Factory)
+                    ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                    ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                    ->createDatabase();
+
+                $firebaseRef = $firebase->getReference("rides/{$ride->firebase_ride_id}");
+                $firebaseRef->update([
+                    'driver_id' => null,
+                    'rejected_drivers' => $rejectedDrivers,
+                    'status' => 'pending',
+                    'canceled_at' => now()->toIso8601String(),
+                ]);
+            } catch (\Exception $e) {
+                Log::error("Failed to update Firebase in driver cancellation: " . $e->getMessage());
+            }
+
+            // Search for alternative driver
+            $rideEstimateController = new RideEstimateController();
+            $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
+
+            DB::commit();
+
+            if ($alternativeDriver) {
+                $driverId = $alternativeDriver['driver_id'] ?? $alternativeDriver['id'] ?? null;
+
+                if (!$driverId) {
+                    Log::error("Invalid alternative driver structure in handleDriverCancellation", ['alternative_driver' => $alternativeDriver]);
+                    return response()->json([
+                        'message' => 'Ride rejected. Failed to find alternative driver.',
+                        'status' => 'pending'
+                    ]);
+                }
+
+                $ride->update([
+                    'driver_id' => $driverId,
+                    'status' => 'pending',
+                    'reassigned_at' => now(),
+                ]);
+
+                try {
+                    $firebase = (new Factory)
+                        ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                        ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                        ->createDatabase();
+
+                    $firebaseRef = $firebase->getReference("rides/{$ride->firebase_ride_id}");
+                    $firebaseRef->update([
+                        'driver_id' => $driverId,
+                        'status' => 'pending',
+                        'reassigned_at' => now()->toIso8601String(),
+                        'previous_rejections' => count($rejectedDrivers),
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error("Failed to update Firebase with alternative driver: " . $e->getMessage());
+                }
+
+                // Schedule auto-reject job for the new driver
+                $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
+                AutoRejectRideJob::dispatch(
+                    $ride->id,
+                    $driverId,
+                    $ride->updated_at->format('Y-m-d H:i:s')
+                )->delay(now()->addSeconds($timeoutSeconds));
+
+                return response()->json([
+                    'message' => 'Ride rejected. Alternative driver assigned.',
+                    'status' => 'pending'
+                ]);
+            } else {
+                return response()->json([
+                    'message' => 'Ride rejected. No alternative drivers available.',
+                    'status' => 'pending'
+                ]);
+            }
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Error in handleDriverCancellation: ' . $e->getMessage(), [
+                'ride_id' => $ride->id,
+                'driver_id' => $currentDriverId,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['message' => 'Failed to cancel ride'], 500);
+        }
     }
 }
