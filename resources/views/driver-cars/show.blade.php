@@ -29,7 +29,7 @@
                                     <strong>{{ __('ID') }}:</strong> {{ $driverCar->id }}
                                 </li>
                                 <li class="list-group-item">
-                                    <strong>{{ __('Car Number') }}:</strong> 
+                                    <strong>{{ __('Car Number') }}:</strong>
                                     <span class="badge bg-primary">{{ $driverCar->car_number }}</span>
                                 </li>
                                 <li class="list-group-item">
@@ -46,13 +46,16 @@
                                 </li>
                                 <li class="list-group-item">
                                     <strong>{{ __('Type') }}:</strong> {{ $driverCar->carType->type_name ?? 'N/A' }}
+                                    @if($driverCar->carType && ($driverCar->carType->year_from || $driverCar->carType->year_to))
+                                        ({{ $driverCar->carType->year_range }})
+                                    @endif
                                 </li>
                             </ul>
                         </div>
                         <div class="col-md-6">
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item">
-                                    <strong>{{ __('Driver') }}:</strong> 
+                                    <strong>{{ __('Driver') }}:</strong>
                                     @if($driverCar->driver)
                                         <a href="{{ route('drivers.show', $driverCar->driver) }}" class="text-decoration-none">
                                             {{ $driverCar->driver->name }}
@@ -85,7 +88,7 @@
                         <h6 class="card-title mb-0">{{ __('Car Image') }}</h6>
                     </div>
                     <div class="card-body text-center">
-                        <img src="{{ $driverCar->car_image_link }}" alt="Car Image" 
+                        <img src="{{ $driverCar->car_image_link }}" alt="Car Image"
                              class="img-fluid rounded" style="max-height: 300px;">
                         <div class="mt-2">
                             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#carImageModal">
@@ -103,7 +106,7 @@
                         <h6 class="card-title mb-0">{{ __('Car License') }}</h6>
                     </div>
                     <div class="card-body text-center">
-                        <img src="{{ $driverCar->car_license_link }}" alt="Car License" 
+                        <img src="{{ $driverCar->car_license_link }}" alt="Car License"
                              class="img-fluid rounded" style="max-height: 300px;">
                         <div class="mt-2">
                             <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#carLicenseModal">

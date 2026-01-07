@@ -19,7 +19,8 @@ class StoreCarTypeRequest extends FormRequest
             'car_category_ids' => 'required|array|min:1',
             'car_category_ids.*' => 'exists:car_categories,id',
             'type_name' => 'required|string|max:255|unique:car_types,type_name',
-            'type_year' => 'required|integer',
+            'year_from' => 'nullable|integer|min:1900|max:' . (date('Y') + 10),
+            'year_to' => 'nullable|integer|min:1900|max:' . (date('Y') + 10) . '|gte:year_from',
             'description' => 'nullable'
         ];
     }
@@ -35,8 +36,13 @@ class StoreCarTypeRequest extends FormRequest
             'car_category_ids.*.exists' => __('One or more selected Car Categories are invalid.'),
             'type_name.required' => __('The Type Name field is required.'),
             'type_name.unique' => __('The Type Name has already been taken.'),
-            'type_year.required' => __('The Type Year field is required.'),
-            'type_year.integer' => __('The Type Year must be an integer.'),
+            'year_from.integer' => __('The Year From must be an integer.'),
+            'year_from.min' => __('The Year From must be at least 1900.'),
+            'year_from.max' => __('The Year From cannot be more than :max.', ['max' => date('Y') + 10]),
+            'year_to.integer' => __('The Year To must be an integer.'),
+            'year_to.min' => __('The Year To must be at least 1900.'),
+            'year_to.max' => __('The Year To cannot be more than :max.', ['max' => date('Y') + 10]),
+            'year_to.gte' => __('The Year To must be greater than or equal to Year From.'),
         ];
     }
 

@@ -17,7 +17,7 @@
 					<strong>{{ __("Id") }}:</strong> {{ $carType->id }}
 				</li>
 				<li class="list-group-item">
-					<strong>{{ __("Car Model/Brand") }}:</strong> 
+					<strong>{{ __("Car Model/Brand") }}:</strong>
 					@if($carType->carModel)
 						<span class="badge bg-success">{{ $carType->carModel->name }}</span>
 					@else
@@ -25,7 +25,7 @@
 					@endif
 				</li>
 				<li class="list-group-item">
-					<strong>{{ __("Car Categories") }}:</strong> 
+					<strong>{{ __("Car Categories") }}:</strong>
 					@if($carType->carCategories->count() > 0)
 						@foreach($carType->carCategories as $category)
 							<span class="badge bg-primary">{{ $category->name }}</span>
@@ -38,7 +38,7 @@
 					<strong>{{ __("Type Name") }}:</strong> {{ $carType->type_name }}
 				</li>
 				<li class="list-group-item">
-					<strong>{{ __("Type Year") }}:</strong> {{ $carType->type_year ?? '-' }}
+					<strong>{{ __("Year Range") }}:</strong> {{ $carType->year_range }}
 				</li>
 				<li class="list-group-item">
 					<strong>{{ __("Description") }}:</strong> {{ $carType->description }}

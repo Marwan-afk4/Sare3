@@ -33,7 +33,10 @@
                         <h5 class="card-title">{{ __('Car Number:') }} {{ $car->car_number }}</h5>
                         <p class="card-text">
                             {{ __('Category:') }} {{ $car->carCategory->name ?? '-' }}<br>
-                            {{ __('Type:') }} {{ $car->carType->type_name ?? '-' }}<br>
+                            {{ __('Type:') }} {{ $car->carType->type_name ?? '-' }}
+                            @if($car->carType && ($car->carType->year_from || $car->carType->year_to))
+                                ({{ $car->carType->year_range }})
+                            @endif<br>
                             {{ __('Model:') }} {{ $car->carModel->name ?? '-' }}<br>
                             {{ __('Color:') }} {{ $car->car_color ?? '-' }}
                         </p>

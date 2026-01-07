@@ -20,7 +20,7 @@
 			<form method='POST' action='{{ route('car-types.update', $carType->id) }}' class="needs-validation" novalidate>
 				@csrf
 				@method('PUT')
-				
+
 				<x-form-select
 					name="car_model_id"
 					type="select"
@@ -31,11 +31,11 @@
 				/>
 
 				<div class="form-floating mb-3 required">
-					<select name="car_category_ids[]" id="car_category_ids_select" 
-						class="form-select @error('car_category_ids') is-invalid @enderror" 
+					<select name="car_category_ids[]" id="car_category_ids_select"
+						class="form-select @error('car_category_ids') is-invalid @enderror"
 						multiple required>
 						@foreach($carCategories as $key => $value)
-							<option value="{{ $key }}" 
+							<option value="{{ $key }}"
 								{{ in_array($key, $carType->carCategories->pluck('id')->toArray()) ? 'selected' : '' }}>
 								{{ $value }}
 							</option>
@@ -57,12 +57,31 @@
 					:value="$carType->type_name ?? ''"
 					required
 				/>
-				<x-form-input
-					name="type_year"
-					type="number"
-					label="{{__('Type Year')}}"
-					:value="$carType->type_year ?? ''"
-				/>
+
+				<div class="row">
+					<div class="col-md-6">
+						<x-form-input
+							name="year_from"
+							type="number"
+							label="{{__('Year From')}}"
+							:value="$carType->year_from ?? ''"
+							min="1900"
+							max="{{ date('Y') + 10 }}"
+						/>
+					</div>
+					<div class="col-md-6">
+						<x-form-input
+							name="year_to"
+							type="number"
+							label="{{__('Year To')}}"
+							:value="$carType->year_to ?? ''"
+							min="1900"
+							max="{{ date('Y') + 10 }}"
+						/>
+					</div>
+				</div>
+				<small class="form-text text-muted mb-3">{{ __('Leave empty for no year restriction. Year To must be greater than or equal to Year From.') }}</small>
+
 				<x-form-input
 					name="description"
 					type="text"
@@ -78,4 +97,5 @@
 
 @push('scripts')
 <script src="{{ asset('js/car-type-categories.js') }}"></script>
+<script src="{{ asset('js/car-type-year-validation.js') }}"></script>
 @endpush

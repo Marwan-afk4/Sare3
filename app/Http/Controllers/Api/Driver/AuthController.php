@@ -13,28 +13,27 @@ use App\Models\DriverDocument;
 use App\Models\User;
 use App\trait\ImageUpload;
 use App\trait\twilio;
-use Illuminate\Http\Request;
 use Google_Client;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-
-    use twilio ,
-    ImageUpload;
+    use ImageUpload ,
+        twilio;
 
     public function phoneVerified(Request $request)
     {
         $validation = Validator::make($request->all(), [
             'phone' => 'required|string',
-            'id_token'=>'required|string',
-            'email' => 'nullable|email'
+            'id_token' => 'required|string',
+            'email' => 'nullable|email',
         ]);
 
         if ($validation->fails()) {
             return response()->json([
-                'message' => $validation->errors()->first()
+                'message' => $validation->errors()->first(),
             ], 401);
         }
 
@@ -43,20 +42,20 @@ class AuthController extends Controller
         if ($request->filled('email')) {
             $user = User::where('email', $request->email)->first();
 
-            if (!$user) {
+            if (! $user) {
                 return response()->json([
-                    'message' => 'Email not found'
+                    'message' => 'Email not found',
                 ], 404);
             }
 
             // If phone is already used by another user (avoid duplicate phone numbers)
             $phoneUsedByAnother = User::where('phone', $request->phone)
-                                    ->where('id', '!=', $user->id)
-                                    ->exists();
+                ->where('id', '!=', $user->id)
+                ->exists();
 
             if ($phoneUsedByAnother) {
                 return response()->json([
-                    'message' => 'Phone number already used by another account'
+                    'message' => 'Phone number already used by another account',
                 ], 409);
             }
 
@@ -67,13 +66,11 @@ class AuthController extends Controller
         }
 
         // Step 3: If email is not provided, login/register using phone
-        if (!$user) {
-            $user = User::firstOrCreate(['phone' => $request->phone,'id_token'=>$request->id_token]);
+        if (! $user) {
+            $user = User::firstOrCreate(['phone' => $request->phone, 'id_token' => $request->id_token]);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
-
-
 
         // $user = User::create([
         //     'phone'=> $request->phone,
@@ -83,18 +80,19 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Phone number verified successfully',
-            'token'=> $token,
+            'token' => $token,
         ]);
     }
+
     public function sendEmailVerificationCode(Request $request)
     {
         $validation = Validator::make($request->all(), [
             'phone' => 'nullable|string|exists:users,phone',
-            'email' => 'nullable|email|unique:users,email'
+            'email' => 'nullable|email|unique:users,email',
         ]);
         if ($validation->fails()) {
             return response()->json([
-                'message' => $validation->errors()->first()
+                'message' => $validation->errors()->first(),
             ], 401);
         }
         $user = User::where('phone', $request->phone)->first();
@@ -107,8 +105,9 @@ class AuthController extends Controller
             $user->email = $request->email;
             $user->save();
             Mail::to($request->email)->send(new EmailVerificationCode($code));
+
             return response()->json([
-                'message' => 'Email verification code sent successfully'
+                'message' => 'Email verification code sent successfully',
             ]);
         }
     }
@@ -118,11 +117,11 @@ class AuthController extends Controller
         $validation = Validator::make($request->all(), [
             'phone' => 'nullable|string|exists:users,phone',
             'email' => 'required|email|exists:users,email',
-            'code' => 'required|integer'
+            'code' => 'required|integer',
         ]);
         if ($validation->fails()) {
             return response()->json([
-                'message' => $validation->errors()->first()
+                'message' => $validation->errors()->first(),
             ], 401);
         }
         $user = User::where('email', $request->email)->first();
@@ -133,12 +132,14 @@ class AuthController extends Controller
             $user->role = 'driver';
             $user->activity = 'in_progress';
             $user->save();
+
             return response()->json([
-                'message' => 'Email verified successfully'
+                'message' => 'Email verified successfully',
             ]);
         }
+
         return response()->json([
-            'message' => 'Email verification code is incorrect'
+            'message' => 'Email verification code is incorrect',
         ], 401);
     }
 
@@ -148,11 +149,11 @@ class AuthController extends Controller
             'phone' => 'required|string|exists:users,phone',
             'name' => 'required|string|max:255',
             'gender' => 'nullable|string|in:male,female',
-            'fcm_token' => 'required|string'
+            'fcm_token' => 'required|string',
         ]);
         if ($validation->fails()) {
             return response()->json([
-                'message' => $validation->errors()->first()
+                'message' => $validation->errors()->first(),
             ], 401);
         }
         $user = User::where('phone', $request->phone)->first();
@@ -164,24 +165,26 @@ class AuthController extends Controller
             $user->fcm_token = $request->fcm_token;
             $user->wallet = 0; // Initialize wallet to 0
             $user->save();
+
             return response()->json([
-                'message' => 'Name updated successfully'
+                'message' => 'Name updated successfully',
             ]);
         }
+
         return response()->json([
-            'message' => 'User not found'
+            'message' => 'User not found',
         ], 401);
     }
 
     public function emailVerficationFirst(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            'email' => 'required|email'
+            'email' => 'required|email',
         ]);
 
         if ($validation->fails()) {
             return response()->json([
-                'message' => $validation->errors()->first()
+                'message' => $validation->errors()->first(),
             ], 401);
         }
 
@@ -195,7 +198,7 @@ class AuthController extends Controller
                     'email_code' => $code,
                     'email_verified' => 'unverified',
                     'activity' => 'in_progress',
-                    'role' => 'driver'
+                    'role' => 'driver',
                 ]);
 
                 Mail::to($existingUser->email)->send(new EmailVerificationCode($code));
@@ -210,8 +213,9 @@ class AuthController extends Controller
                     'email_code' => $code,
                     'email_verified' => 'unverified',
                     'activity' => 'in_progress',
-                    'role' => 'driver'
+                    'role' => 'driver',
                 ]);
+
                 return response()->json([
                     'message' => "Email already verified. You can login but we will send to verify it's you",
                 ]);
@@ -224,7 +228,7 @@ class AuthController extends Controller
             'role' => 'driver',
             'email_code' => $code,
             'email_verified' => 'unverified',
-            'activity' => 'in_progress'
+            'activity' => 'in_progress',
         ]);
 
         Mail::to($user->email)->send(new EmailVerificationCode($code));
@@ -238,7 +242,7 @@ class AuthController extends Controller
     {
         $validation = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
-            'code' => 'required'
+            'code' => 'required',
         ]);
 
         if ($validation->fails()) {
@@ -255,7 +259,7 @@ class AuthController extends Controller
             'email_verified' => 'verified',
             'email_code' => null,
             'activity' => 'in_progress',
-            'role' => 'driver'
+            'role' => 'driver',
         ]);
 
         // Check if user has phone number to generate token (means login)
@@ -278,38 +282,37 @@ class AuthController extends Controller
     public function googleAuth(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            'id_token' => 'required|string'
+            'id_token' => 'required|string',
         ]);
         if ($validation->fails()) {
             return response()->json([
-                'message' => $validation->errors()->first()
+                'message' => $validation->errors()->first(),
             ], 401);
         }
 
         $client = new Google_Client(['client_id' => env('GOOGLE_CLIENT_ID')]);
         $payload = $client->verifyIdToken($request->id_token);
 
-        if($payload){
+        if ($payload) {
             $email = $payload['email'];
             $name = $payload['name'];
             $id_token = $payload['sub'];
 
-            $user =User::firstOrCreate([
+            $user = User::firstOrCreate([
                 'email' => $email,
                 'name' => $name,
                 'id_token' => $id_token,
                 'role' => 'driver',
-                'activity' => 'in_progress'
+                'activity' => 'in_progress',
             ]);
 
             return response()->json([
                 'message' => 'Google account registered successfully',
-                'user' => $user
+                'user' => $user,
             ]);
-        }
-        else{
+        } else {
             return response()->json([
-                'message' => 'Invalid Google ID token'
+                'message' => 'Invalid Google ID token',
             ], 401);
         }
     }
@@ -319,7 +322,7 @@ class AuthController extends Controller
         $requiredDocs = DocumentType::where('is_required', 1)->get();
 
         return response()->json([
-            'requiredDocs' => $requiredDocs
+            'requiredDocs' => $requiredDocs,
         ]);
     }
 
@@ -334,15 +337,15 @@ class AuthController extends Controller
 
         if ($validation->fails()) {
             return response()->json([
-                'message' => $validation->errors()->first()
+                'message' => $validation->errors()->first(),
             ], 401);
         }
 
         $driver = User::where('phone', $request->phone)->first();
 
-        if (!$driver) {
+        if (! $driver) {
             return response()->json([
-                'message' => 'User not found'
+                'message' => 'User not found',
             ], 401);
         }
 
@@ -351,9 +354,9 @@ class AuthController extends Controller
         $documents = $request->input('documents');
 
         foreach ($requiredDocs as $doc) {
-            if (!isset($documents[$doc->id])) {
+            if (! isset($documents[$doc->id])) {
                 return response()->json([
-                    'message' => 'missing document ' . $doc->name
+                    'message' => 'missing document '.$doc->name,
                 ], 401);
             }
 
@@ -370,9 +373,8 @@ class AuthController extends Controller
         $selfiePath = $this->storeBase64Image($request->selfie_image, 'driver/selfies');
         $driver->update(['image' => $selfiePath]);
 
-
         return response()->json([
-            'message' => 'Documents uploaded successfully'
+            'message' => 'Documents uploaded successfully',
         ]);
     }
 
@@ -387,20 +389,20 @@ class AuthController extends Controller
             'car_color' => 'required|string',
             'car_license' => 'nullable|string',
             'car_number' => 'required|string',
-            'car_model_id' => 'required|exists:car_models,id'
+            'car_model_id' => 'required|exists:car_models,id',
         ]);
 
         if ($validation->fails()) {
             return response()->json([
-                'message' => $validation->errors()->first()
+                'message' => $validation->errors()->first(),
             ], 400);
         }
 
         $driver = User::where('phone', $request->phone)->first();
 
-        if (!$driver) {
+        if (! $driver) {
             return response()->json([
-                'message' => 'Driver not found'
+                'message' => 'Driver not found',
             ], 404);
         }
 
@@ -410,9 +412,9 @@ class AuthController extends Controller
         $providedCategoryIds = $request->input('car_category_ids');
 
         foreach ($providedCategoryIds as $categoryId) {
-            if (!in_array($categoryId, $allowedCategoryIds, true)) {
+            if (! in_array($categoryId, $allowedCategoryIds, true)) {
                 return response()->json([
-                    'message' => 'Selected car type is not available for one or more provided categories.'
+                    'message' => 'Selected car type is not available for one or more provided categories.',
                 ], 422);
             }
         }
@@ -425,9 +427,9 @@ class AuthController extends Controller
             'car_type_id' => $request->car_type_id,
             'car_image' => $carImagePath,
             'car_color' => $request->car_color,
-            'car_license' => $car_licensePath??null,
+            'car_license' => $car_licensePath ?? null,
             'car_number' => $request->car_number,
-            'car_model_id' => $request->car_model_id
+            'car_model_id' => $request->car_model_id,
         ]);
 
         // Attach all provided categories to the driver car via pivot
@@ -435,11 +437,11 @@ class AuthController extends Controller
 
         $driver->update([
             'activity' => 'active',
-            'role' => 'driver'
+            'role' => 'driver',
         ]);
 
         return response()->json([
-            'message' => 'Waiting for admin approval, your car details have been submitted successfully'
+            'message' => 'Waiting for admin approval, your car details have been submitted successfully',
         ]);
     }
 
@@ -447,14 +449,50 @@ class AuthController extends Controller
     {
         $carModels = CarModel::all();
 
-        $carTypes = CarType::with('carCategories')->get();
+        $carTypes = CarType::with('carCategories')->get()->map(function ($carType) {
+            // Generate array of years within the range
+            $years = [];
+            if ($carType->year_from && $carType->year_to) {
+                // Full range: generate all years from year_from to year_to
+                for ($year = $carType->year_from; $year <= $carType->year_to; $year++) {
+                    $years[] = $year;
+                }
+            } elseif ($carType->year_from && ! $carType->year_to) {
+                // From year onwards: generate years from year_from to current year + 10
+                $endYear = date('Y') + 10;
+                for ($year = $carType->year_from; $year <= $endYear; $year++) {
+                    $years[] = $year;
+                }
+            } elseif (! $carType->year_from && $carType->year_to) {
+                // Up to year: generate years from a reasonable start (e.g., 1980) to year_to
+                $startYear = max(1980, $carType->year_to - 50); // Start from 1980 or 50 years before year_to
+                for ($year = $startYear; $year <= $carType->year_to; $year++) {
+                    $years[] = $year;
+                }
+            }
+            // If both are null, years array remains empty (no restriction)
+
+            return [
+                'id' => $carType->id,
+                'car_model_id' => $carType->car_model_id,
+                'type_name' => $carType->type_name,
+                'year_from' => $carType->year_from,
+                'year_to' => $carType->year_to,
+                'year_range' => $carType->year_range,
+                'years' => $years,
+                'description' => $carType->description,
+                'car_categories' => $carType->carCategories,
+                'created_at' => $carType->created_at,
+                'updated_at' => $carType->updated_at,
+            ];
+        });
 
         $carCategories = CarCategory::all();
 
         return response()->json([
             'carModels' => $carModels,
             'carTypes' => $carTypes,
-            'carCategories' => $carCategories
+            'carCategories' => $carCategories,
         ]);
     }
 
@@ -463,20 +501,20 @@ class AuthController extends Controller
         $validation = Validator::make($request->all(), [
             'phone' => 'nullable|string|exists:users,phone',
             'email' => 'nullable|email|exists:users,email',
-            'password' => 'required|string'
+            'password' => 'required|string',
         ]);
 
         if ($validation->fails()) {
             return response()->json([
-                'message' => $validation->errors()->first()
+                'message' => $validation->errors()->first(),
             ], 401);
         }
 
         $user = User::where('phone', $request->phone)->orWhere('email', $request->email)->first();
 
-        if (!$user || !password_verify($request->password, $user->password)) {
+        if (! $user || ! password_verify($request->password, $user->password)) {
             return response()->json([
-                'message' => 'Invalid credentials'
+                'message' => 'Invalid credentials',
             ], 401);
         }
 
@@ -485,7 +523,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Login successful',
             'token' => $token,
-            'user' => $user
+            'user' => $user,
         ]);
     }
 
@@ -494,7 +532,7 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Logout successful'
+            'message' => 'Logout successful',
         ]);
     }
 }

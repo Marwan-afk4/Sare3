@@ -28,9 +28,9 @@
 					<th>{{ __("Car Model/Brand") }}</th>
 					<th>{{ __("Car Categories") }}</th>
 					<th>
-						<a href="{{ route('car-types.index', ['sort' => 'type_year', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
-							{{ __("Type Year") }}
-							@if($sortField === 'type_year')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
+						<a href="{{ route('car-types.index', ['sort' => 'year_from', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+							{{ __("Year Range") }}
+							@if($sortField === 'year_from')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
 						</a>
 					</th>
 					{{-- <th>
@@ -67,7 +67,7 @@
                             -
                         @endif
                     </td>
-					<td><strong>{{ $carType->type_year ?? '-' }}</strong></td>
+					<td><strong>{{ $carType->year_range }}</strong></td>
 					{{-- <td>{{ $carType->description }}</td> --}}
 					<td>{{ $carType->created_at?->diffForHumans() ?? '-' }}</td>
 					<td class="text-center">

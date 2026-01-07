@@ -14,7 +14,8 @@ class CarType extends Model
     protected $fillable = [
         'car_model_id',
         'type_name',
-        'type_year',
+        'year_from',
+        'year_to',
         'description'
     ];
 
@@ -40,6 +41,22 @@ class CarType extends Model
     public function driverCars()
     {
         return $this->hasMany(DriverCar::class, 'car_type_id');
+    }
+
+    /**
+     * Get the formatted year range for display
+     */
+    public function getYearRangeAttribute()
+    {
+        if ($this->year_from && $this->year_to) {
+            return $this->year_from . ' - ' . $this->year_to;
+        } elseif ($this->year_from) {
+            return $this->year_from . '+';
+        } elseif ($this->year_to) {
+            return 'Up to ' . $this->year_to;
+        }
+
+        return '-';
     }
 
 }
