@@ -19,6 +19,7 @@ class UserController extends Controller
         $keyword = $request->get('keyword');
 
         $users = User::where('role', 'user')
+            ->with('zone')
             ->when($keyword, function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->where('name', 'LIKE', "%{$keyword}%")

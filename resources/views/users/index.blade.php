@@ -105,6 +105,15 @@
                         </th>
                         <th>
                             <a
+                                href="{{ route('users.index', ['sort' => 'zone_id', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                {{ __('Zone') }}
+                                @if ($sortField === 'zone_id')
+                                    <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
+                                @endif
+                            </a>
+                        </th>
+                        <th>
+                            <a
                                 href="{{ route('users.index', ['sort' => 'created_at', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
                                 {{ __('Created At') }}
                                 @if ($sortField === 'created_at')
@@ -124,6 +133,7 @@
                             <td>{{ $user->wallet??'-' }}</td>
                             <td>{!! $user->activity->badge() !!}</td>
                             {{-- <td>{{ $user->role }}</td> --}}
+                            <td>{{ $user->zone ? $user->zone->name : '-' }}</td>
                             <td>{{ $user->created_at ? $user->created_at->diffForHumans() : '-' }}</td>
                             <td class="text-center">
                                 <a href='{{ route('users.show', $user) }}'
