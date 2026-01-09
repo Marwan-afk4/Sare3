@@ -274,6 +274,9 @@ Route::middleware(['auth:sanctum'])->prefix('user')->group(function () {
 //User Transactions
     Route::get('/transactions', [UserTransactionController::class, 'getTransactions']);
 
+//AddZone
+    Route::post('/add-zone', [ProfileController::class, 'addZoneId']);
+
 //Delete Account
     Route::delete('/delete-account', [DeleteAccountController::class, 'deleteAccount']);
 
