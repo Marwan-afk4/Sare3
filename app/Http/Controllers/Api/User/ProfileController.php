@@ -180,4 +180,24 @@ class ProfileController extends Controller
             ]
         ]);
     }
+
+    public function addZoneId(Request $request)
+    {
+        $user = $request->user();
+
+        $validation = Validator::make($request->all(), [
+            'zone_id' => 'required|exists:zones,id',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json($validation->errors(), 422);
+        }
+
+        $user->zone_id = $request->zone_id;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Zone ID added successfully'
+        ]);
+    }
 }
