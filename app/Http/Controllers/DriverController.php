@@ -52,21 +52,31 @@ class DriverController extends Controller
             ->whereNull('zone_id')
             ->count();
 
-        // 👇 Get all distinct car years from car types that have drivers
-        $carYears = \App\Models\CarType::whereHas('driverCars')
-            ->distinct()
-            ->orderBy('type_year', 'desc')
-            ->pluck('type_year')
-            ->filter() // Remove null values
-            ->unique()
-            ->values();
+        // 👇 Get all car types that have drivers
+        $activeCarTypes = \App\Models\CarType::whereHas('driverCars')->get(['year_from', 'year_to']);
+
+        // Generate distinct years list from ranges
+        $carYears = collect();
+        foreach ($activeCarTypes as $type) {
+            $start = $type->year_from ?? 2000; // Default to 2000 if null? Or skip? Assuming sane data.
+            $end = $type->year_to ?? date('Y') + 1; // Default to next year if open ended
+            for ($y = $start; $y <= $end; $y++) {
+                $carYears->push($y);
+            }
+        }
+        $carYears = $carYears->unique()->sortDesc()->values();
+
 
         // 👇 Count drivers per car year
         $carYearCounts = [];
         foreach ($carYears as $year) {
             $carYearCounts[$year] = User::where('role', 'driver')
                 ->whereHas('driverCars.carType', function ($query) use ($year) {
-                    $query->where('type_year', $year);
+                    $query->where('year_from', '<=', $year)
+                        ->where(function ($q) use ($year) {
+                            $q->where('year_to', '>=', $year)
+                                ->orWhereNull('year_to');
+                        });
                 })
                 ->count();
         }
@@ -84,9 +94,13 @@ class DriverController extends Controller
                 }
             })
             ->when($carYear, function ($query, $carYear) {
-                // 👇 Filter by car type year
+                // 👇 Filter by car type year range
                 $query->whereHas('driverCars.carType', function ($carQuery) use ($carYear) {
-                    $carQuery->where('type_year', $carYear);
+                    $carQuery->where('year_from', '<=', $carYear)
+                        ->where(function ($q) use ($carYear) {
+                            $q->where('year_to', '>=', $carYear)
+                                ->orWhereNull('year_to');
+                        });
                 });
             })
             ->when($keyword, function ($query, $keyword) {
