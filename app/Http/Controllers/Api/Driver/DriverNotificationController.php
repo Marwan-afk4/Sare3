@@ -18,6 +18,7 @@ class DriverNotificationController extends Controller
                 $query->whereNull('driver_id') // للإشعارات العامة
                       ->orWhere('driver_id', $driverId); // للإشعارات الموجهة للسائق المحدد
             })
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return response()->json(['notifications'=>$notifications]);
