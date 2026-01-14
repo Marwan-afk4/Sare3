@@ -26,6 +26,20 @@
 					label="{{__('User Type')}}"
 					required
 				/>
+				<x-form-select
+					name="zone_id"
+					type="select"
+					:options="$zones"
+					label="{{__('Zone')}}"
+					required
+				/>
+				<x-form-input
+					name="time_limit_minutes"
+					type="number"
+					label="{{__('Time Limit (Minutes)')}}"
+					required
+					min="0"
+				/>
 				<x-form-input
 					name="penalty_amount"
 					type="number"
@@ -35,16 +49,6 @@
 					name="penalty_percent"
 					type="text"
 					label="{{__('Penalty Percent')}}"
-				/>
-                <x-form-input
-					name="min_minutes"
-					type="number"
-					label="{{__('Min Minutes')}}"
-				/>
-				<x-form-input
-					name="max_minutes"
-					type="number"
-					label="{{__('Max Minutes')}}"
 				/>
 				<x-form-textarea
 					name="description"

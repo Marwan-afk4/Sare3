@@ -43,12 +43,12 @@
 							@if($sortField === 'penalty_percent')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
 						</a>
 					</th>
-					{{-- <th>
-						<a href="{{ route('cancellation-policies.index', ['sort' => 'description', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
-							{{ __("Description") }}
-							@if($sortField === 'description')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
+					<th>
+						<a href="{{ route('cancellation-policies.index', ['sort' => 'zone_id', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+							{{ __("Zone") }}
+							@if($sortField === 'zone_id')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
 						</a>
-					</th> --}}
+					</th>
 					<th>
 						<a href="{{ route('cancellation-policies.index', ['sort' => 'status', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
 							{{ __("Status") }}
@@ -56,15 +56,9 @@
 						</a>
 					</th>
 					<th>
-						<a href="{{ route('cancellation-policies.index', ['sort' => 'min_minutes', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
-							{{ __("Min Minutes") }}
-							@if($sortField === 'min_minutes')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
-						</a>
-					</th>
-					<th>
-						<a href="{{ route('cancellation-policies.index', ['sort' => 'max_minutes', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
-							{{ __("Max Minutes") }}
-							@if($sortField === 'max_minutes')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
+						<a href="{{ route('cancellation-policies.index', ['sort' => 'time_limit_minutes', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+							{{ __("Time Limit (Minutes)") }}
+							@if($sortField === 'time_limit_minutes')<i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>@endif
 						</a>
 					</th>
                     <th>
@@ -82,10 +76,9 @@
 					<td>{{ $cancellationPolicy->user_type === 'rider' ? __('Rider') : __('Driver') }}</td>
 					<td>{{ $cancellationPolicy->penalty_amount ?? '-' }}</td>
 					<td>{{ $cancellationPolicy->penalty_percent ?? '-' }}</td>
-					{{-- <td>{{ $cancellationPolicy->description }}</td> --}}
+					<td>{{ $cancellationPolicy->zone ? $cancellationPolicy->zone->name : '-' }}</td>
 					<td>{!! $cancellationPolicy->status->badge() !!}</td>
-					<td>{{ $cancellationPolicy->min_minutes }}</td>
-					<td>{{ $cancellationPolicy->max_minutes }}</td>
+					<td>{{ $cancellationPolicy->time_limit_minutes ?? '-' }}</td>
 					<td>{{ $cancellationPolicy->created_at->diffForHumans() ?? '-' }}</td>
 					<td class="text-center">
 						<a href='{{ route('cancellation-policies.show', $cancellationPolicy) }}' class="btn btn-subtle-primary btn-sm me-1">{{ __("Details") }} <i class="fa fa-eye"></i></a>

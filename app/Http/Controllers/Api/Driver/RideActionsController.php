@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\User\RideEstimateController;
 use App\Http\Controllers\Controller;
 use App\Jobs\AutoRejectRideJob;
 use App\Models\AppSetting;
+use App\Models\CancellationPolicy;
+use App\Models\CancelationRide;
 use App\Models\CarCategory;
 use App\Models\Ride;
 use App\Models\RideProfit;
@@ -629,6 +631,66 @@ class RideActionsController extends Controller
 
         // 👇 خد نسخة من driver_id قبل ما نفضيه
         $currentDriverId = $request->user()->id;
+        $driver = $request->user();
+        $now = now();
+
+        // Calculate time since ride was created/accepted
+        $rideCreatedAt = $ride->accepted_at ? Carbon::parse($ride->accepted_at) : Carbon::parse($ride->created_at);
+        $minutesSinceBooking = ceil($rideCreatedAt->floatDiffInMinutes($now));
+
+        // Get zone-based cancellation policy for driver
+        $selectedPolicy = null;
+        if ($ride->zone_id) {
+            $selectedPolicy = CancellationPolicy::where('status', 'active')
+                ->where('user_type', 'driver')
+                ->where('zone_id', $ride->zone_id)
+                ->first();
+        }
+
+        // Check if penalty should be applied based on time limit
+        $shouldApplyPenalty = false;
+        $penaltyAmount = 0;
+        if ($selectedPolicy && $selectedPolicy->time_limit_minutes !== null) {
+            // If minutes since booking exceeds time limit, apply penalty
+            $shouldApplyPenalty = $minutesSinceBooking > $selectedPolicy->time_limit_minutes;
+
+            if ($shouldApplyPenalty) {
+                $estimatedFare = $ride->calculated_initial_price ?? 0;
+
+                if ($selectedPolicy->penalty_amount !== null) {
+                    $penaltyAmount = $selectedPolicy->penalty_amount;
+                } elseif ($selectedPolicy->penalty_percent !== null) {
+                    $penaltyAmount = $estimatedFare * ($selectedPolicy->penalty_percent / 100);
+                }
+
+                // Deduct from driver wallet
+                if ($penaltyAmount > 0) {
+                    $driver->wallet = max(0, $driver->wallet - $penaltyAmount);
+                    $driver->save();
+
+                    // Create transaction record for wallet history
+                    Transaction::create([
+                        'user_id' => null,
+                        'driver_id' => $driver->id,
+                        'amount' => -$penaltyAmount, // Negative amount to indicate deduction
+                        'description' => "Cancellation penalty - Ride #{$ride->id} ({$selectedPolicy->name})",
+                    ]);
+                }
+            }
+        }
+
+        // Save cancellation record (always create, even if no penalty)
+        CancelationRide::create([
+            'ride_id' => $ride->id,
+            'user_id' => $ride->user_id,
+            'driver_id' => $driver->id,
+            'cancelation_policy_id' => $selectedPolicy ? $selectedPolicy->id : null,
+            'canceled_by' => 'driver',
+            'canceled_at' => $now,
+            'penalty_applied' => $penaltyAmount > 0,
+            'penalty_amount' => round($penaltyAmount, 2),
+            'reason' => $request->reason ?? null,
+        ]);
 
         // Add current driver to rejected drivers list
         $rejectedDrivers = $ride->rejected_drivers ?? [];
@@ -690,10 +752,20 @@ class RideActionsController extends Controller
                     $driverId,
                     $ride->updated_at->format('Y-m-d H:i:s')
                 )->delay(now()->addSeconds($timeoutSeconds));
+
+                return response()->json([
+                    'message' => 'Ride rejected. Alternative driver assigned.',
+                    'status' => 'pending',
+                    'penalty_applied' => $penaltyAmount > 0,
+                    'penalty_amount' => round($penaltyAmount, 2),
+                ]);
             } else {
+                DB::commit();
                 return response()->json([
                     'message' => 'Ride rejected. No alternative drivers available.',
-                    'status' => 'pending'
+                    'status' => 'pending',
+                    'penalty_applied' => $penaltyAmount > 0,
+                    'penalty_amount' => round($penaltyAmount, 2),
                 ]);
             }
         } catch (\Exception $e) {

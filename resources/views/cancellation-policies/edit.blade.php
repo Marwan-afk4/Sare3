@@ -30,6 +30,22 @@
 					label="{{__('User Type')}}"
 					required
 				/>
+				<x-form-select
+					name="zone_id"
+					type="select"
+					:selected="$cancellationPolicy->zone_id ?? ''"
+					:options="$zones"
+					label="{{__('Zone')}}"
+					required
+				/>
+				<x-form-input
+					name="time_limit_minutes"
+					type="number"
+					label="{{__('Time Limit (Minutes)')}}"
+					:value="$cancellationPolicy->time_limit_minutes ?? ''"
+					required
+					min="0"
+				/>
 				<x-form-input
 					name="penalty_amount"
 					type="number"
@@ -41,18 +57,6 @@
 					type="number"
 					label="{{__('Penalty Percent')}}"
 					:value="$cancellationPolicy->penalty_percent ?? ''"
-				/>
-                <x-form-input
-					name="min_minutes"
-					type="number"
-					label="{{__('Min Minutes')}}"
-					:value="$cancellationPolicy->min_minutes ?? ''"
-				/>
-				<x-form-input
-					name="max_minutes"
-					type="number"
-					label="{{__('Max Minutes')}}"
-					:value="$cancellationPolicy->max_minutes ?? ''"
 				/>
 				<x-form-textarea
 					name="description"

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ActiveStatuses;
 use App\Models\CancellationPolicy;
-
+use App\Models\Zone;
 
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreCancellationPolicyRequest;
@@ -17,7 +17,7 @@ class CancellationPolicyController extends Controller
     {
         $sortField = $request->get('sort', 'id');
         $sortOrder = $request->get('order', 'ASC');
-        $cancellationPolicies = CancellationPolicy::orderBy($sortField, $sortOrder)->paginate(30);
+        $cancellationPolicies = CancellationPolicy::with('zone')->orderBy($sortField, $sortOrder)->paginate(30);
         return view('cancellation-policies.index', compact('cancellationPolicies', 'sortField', 'sortOrder'));
     }
 
@@ -28,7 +28,8 @@ class CancellationPolicyController extends Controller
             'rider' => __('Rider'),
             'driver' => __('Driver')
         ];
-        return view('cancellation-policies.create', compact('statuses', 'userTypes'));
+        $zones = Zone::orderBy('name')->pluck('name', 'id')->toArray();
+        return view('cancellation-policies.create', compact('statuses', 'userTypes', 'zones'));
     }
 
     public function store(StoreCancellationPolicyRequest $request)
@@ -39,6 +40,7 @@ class CancellationPolicyController extends Controller
 
     public function show(CancellationPolicy $cancellationPolicy)
     {
+        $cancellationPolicy->load('zone');
         return view('cancellation-policies.show', compact('cancellationPolicy'));
     }
 
@@ -49,7 +51,8 @@ class CancellationPolicyController extends Controller
             'rider' => __('Rider'),
             'driver' => __('Driver')
         ];
-        return view('cancellation-policies.edit', compact('cancellationPolicy', 'statuses', 'userTypes'));
+        $zones = Zone::orderBy('name')->pluck('name', 'id')->toArray();
+        return view('cancellation-policies.edit', compact('cancellationPolicy', 'statuses', 'userTypes', 'zones'));
     }
 
     public function update(UpdateCancellationPolicyRequest $request, CancellationPolicy $cancellationPolicy)

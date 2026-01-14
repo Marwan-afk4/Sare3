@@ -31,6 +31,9 @@
                         <strong>{{ __('Penalty Percent') }}:</strong> {{ $cancellationPolicy->penalty_percent ?? '-' }}
                     </li>
                     <li class="list-group-item">
+                        <strong>{{ __('Zone') }}:</strong> {{ $cancellationPolicy->zone ? $cancellationPolicy->zone->name : '-' }}
+                    </li>
+                    <li class="list-group-item">
                         <strong>{{ __('Description') }}:</strong> {{ $cancellationPolicy->description }}
                     </li>
                     <li class="list-group-item">
@@ -38,10 +41,7 @@
                         {!! $cancellationPolicy->status->badge() !!}
                     </li>
                     <li class="list-group-item">
-                        <strong>{{ __('Min Minutes') }}:</strong> {{ $cancellationPolicy->min_minutes }}
-                    </li>
-                    <li class="list-group-item">
-                        <strong>{{ __('Max Minutes') }}:</strong> {{ $cancellationPolicy->max_minutes }}
+                        <strong>{{ __('Time Limit (Minutes)') }}:</strong> {{ $cancellationPolicy->time_limit_minutes ?? '-' }}
                     </li>
                     <li class="list-group-item">
                         <strong>{{ __('Created At') }}:</strong>

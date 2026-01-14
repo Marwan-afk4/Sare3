@@ -15,8 +15,8 @@ class CancellationPolicy extends Model
     protected $fillable = [
         'name',
         'user_type',
-        'min_minutes',
-        'max_minutes',
+        'zone_id',
+        'time_limit_minutes',
         'penalty_amount',
         'penalty_percent',
         'description',
@@ -33,5 +33,10 @@ class CancellationPolicy extends Model
     public function cancelationRides()
     {
         return $this->hasMany(CancelationRide::class);
+    }
+
+    public function zone()
+    {
+        return $this->belongsTo(Zone::class);
     }
 }

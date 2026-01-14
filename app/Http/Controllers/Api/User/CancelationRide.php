@@ -70,84 +70,57 @@ class CancelationRide extends Controller
             return response()->json(['message' => 'Unable to determine user type for cancellation'], 400);
         }
 
-        // جلب السياسات النشطة المخصصة للمسافر (rider)
-        $policies = CancellationPolicy::where('status', true)
-            ->where('user_type', 'rider')
-            ->get();
+        // Get zone-based cancellation policy for rider
+        $selectedPolicy = null;
+        if ($ride->zone_id) {
+            $selectedPolicy = CancellationPolicy::where('status', 'active')
+                ->where('user_type', 'rider')
+                ->where('zone_id', $ride->zone_id)
+                ->first();
+        }
 
-        // تحديد السياسة المناسبة بناءً على المدة الزمنية
-        $selectedPolicy = $policies->first(function ($policy) use ($minutesSinceBooking) {
-            return $policy->min_minutes <= $minutesSinceBooking &&
-                ($policy->max_minutes === null || $minutesSinceBooking <= $policy->max_minutes);
-        });
+        // Check if penalty should be applied based on time limit
+        $shouldApplyPenalty = false;
+        if ($selectedPolicy && $selectedPolicy->time_limit_minutes !== null) {
+            // If minutes since booking exceeds time limit, apply penalty
+            $shouldApplyPenalty = $minutesSinceBooking > $selectedPolicy->time_limit_minutes;
+        }
 
-        if (!$selectedPolicy) {
-            ModelsCancelationRide::create([
-                'ride_id' => $ride->id,
-                'user_id' => $user->id,
-                'driver_id' => null,
-                'canceled_by' => 'user',
-                'canceled_at' => $now,
-                'reason' => $request->input('reason'),
-            ]);
+        // Calculate penalty if applicable
+        $penaltyAmount = 0;
+        if ($shouldApplyPenalty && $selectedPolicy) {
+            $estimatedFare = $ride->calculated_initial_price ?? 0;
 
-            // Update ride in DB - passenger cancellation sets status to cancelled
-            $ride->update(['status' => 'cancelled']);
-
-            // Update Firebase - remove ride when passenger cancels
-            try {
-                $firebase = (new Factory)
-                    ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                    ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                    ->createDatabase();
-
-                $firebaseRef = $firebase->getReference("rides/{$ride->firebase_ride_id}");
-                // Passenger canceled - remove from Firebase
-                $firebaseRef->remove();
-            } catch (\Exception $e) {
-                return response()->json([
-                    'message' => 'Ride canceled, but failed to update Firebase',
-                    'firebase_error' => $e->getMessage(),
-                ], 500);
+            if ($selectedPolicy->penalty_amount !== null) {
+                $penaltyAmount = $selectedPolicy->penalty_amount;
+            } elseif ($selectedPolicy->penalty_percent !== null) {
+                $penaltyAmount = $estimatedFare * ($selectedPolicy->penalty_percent / 100);
             }
 
-            return response()->json([
-                'message' => 'Ride canceled successfully , No applicable cancellation policy found.',
-            ], 200);
-        }
+            // Deduct from user wallet
+            if ($penaltyAmount > 0) {
+                $user->wallet = $user->wallet - $penaltyAmount;
+                $user->save();
 
-        // حساب الغرامة
-        $estimatedFare = $ride->calculated_initial_price ?? 0;
-
-        $penaltyAmount = 0;
-        if ($selectedPolicy->penalty_amount !== null) {
-            $penaltyAmount = $selectedPolicy->penalty_amount;
-        } elseif ($selectedPolicy->penalty_percent !== null) {
-            $penaltyAmount = $estimatedFare * ($selectedPolicy->penalty_percent / 100);
-        }
-
-        $user->wallet = $user->wallet - $penaltyAmount;
-        $user->save();
-
-        // Create transaction record for wallet history if penalty is applied
-        if ($penaltyAmount > 0) {
-            Transaction::create([
-                'user_id' => $user->id,
-                'driver_id' => $isPassenger ? ($ride->driver_id ?? null) : null,
-                'amount' => -$penaltyAmount, // Negative amount to indicate deduction
-                'description' => "Cancellation penalty - Ride #{$ride->id} ({$selectedPolicy->name})",
-            ]);
+                // Create transaction record for wallet history
+                Transaction::create([
+                    'user_id' => $user->id,
+                    'driver_id' => $ride->driver_id ?? null,
+                    'amount' => -$penaltyAmount, // Negative amount to indicate deduction
+                    'description' => "Cancellation penalty - Ride #{$ride->id} ({$selectedPolicy->name})",
+                ]);
+            }
         }
 
         // تحديث حالة الرحلة
         $ride->update(['status' => 'cancelled']);
 
-        // حفظ سجل الإلغاء
+        // Save cancellation record
         ModelsCancelationRide::create([
             'ride_id' => $ride->id,
             'user_id' => $user->id,
             'driver_id' => null,
-            'cancelation_policy_id' => $selectedPolicy->id,
+            'cancelation_policy_id' => $selectedPolicy ? $selectedPolicy->id : null,
             'canceled_by' => 'user',
             'canceled_at' => $now,
             'penalty_applied' => $penaltyAmount > 0,
@@ -174,7 +147,8 @@ class CancelationRide extends Controller
         return response()->json([
             'message' => 'Ride canceled successfully',
             'minutes_since_booking' => $minutesSinceBooking,
-            'cancellation_policy_used' => $selectedPolicy->name,
+            'cancellation_policy_used' => $selectedPolicy ? $selectedPolicy->name : null,
+            'time_limit_minutes' => $selectedPolicy ? $selectedPolicy->time_limit_minutes : null,
             'penalty_applied' => $penaltyAmount > 0,
             'penalty_amount' => round($penaltyAmount, 2),
         ]);
