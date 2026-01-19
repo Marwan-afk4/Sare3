@@ -123,7 +123,7 @@ class CancelationRide extends Controller
             'cancelation_policy_id' => $selectedPolicy ? $selectedPolicy->id : null,
             'canceled_by' => 'user',
             'canceled_at' => $now,
-            'penalty_applied' => $penaltyAmount > 0,
+            'penalty_applied' => $penaltyAmount > 0 ? 'yes' : 'no',
             'penalty_amount' => round($penaltyAmount, 2),
             'reason' => $request->input('reason'),
         ]);

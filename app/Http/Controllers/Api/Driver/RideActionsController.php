@@ -687,7 +687,7 @@ class RideActionsController extends Controller
             'cancelation_policy_id' => $selectedPolicy ? $selectedPolicy->id : null,
             'canceled_by' => 'driver',
             'canceled_at' => $now,
-            'penalty_applied' => $penaltyAmount > 0,
+            'penalty_applied' => $penaltyAmount > 0 ? 'yes' : 'no',
             'penalty_amount' => round($penaltyAmount, 2),
             'reason' => $request->reason ?? null,
         ]);
