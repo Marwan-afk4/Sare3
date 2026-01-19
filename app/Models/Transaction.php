@@ -20,6 +20,15 @@ class Transaction extends Model
 
     public $timestamps = true;
 
+    protected $appends = ['type'];
+
+    /**
+     * Get the transaction type based on amount
+     */
+    public function getTypeAttribute(): string
+    {
+        return $this->amount >= 0 ? 'topup' : 'deduction';
+    }
 
     public function user()
     {
