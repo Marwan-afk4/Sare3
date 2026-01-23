@@ -102,7 +102,8 @@ class DriverProfileController extends Controller
         $query = $driver->driverRides()
             ->with([
                 'user',
-                'carCategory'
+                'carCategory',
+                'coupon'
             ])
             ->orderBy('created_at', 'desc');
 

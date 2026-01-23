@@ -564,16 +564,23 @@ class RideActionsController extends Controller
             'remaining_amount' => round($remainingAmount, 2),
         ];
 
+        $pricing = [
+            'original_fare' => round($originalFare, 1),
+            'final_fare' => round($fare, 1),
+            'discount_amount' => round($discountResult['total_discount_amount'], 1),
+            'coupon_discount' => round($couponDiscountAmount, 1),
+            'applied_discounts' => $discountResult['applied_discounts'],
+            'wallet_payment' => $walletPaymentInfo
+        ];
+        
+        // Add fare_before_coupon when coupon is used for consistent display
+        if ($ride->coupon_id && $couponDiscountAmount > 0) {
+            $pricing['fare_before_coupon'] = round($fareBeforeCoupon, 2);
+        }
+
         return response()->json([
             'message' => 'Ride completed.',
-            'pricing' => [
-                'original_fare' => round($originalFare, 1),
-                'final_fare' => round($fare, 1),
-                'discount_amount' => round($discountResult['total_discount_amount'], 1),
-                'coupon_discount' => round($couponDiscountAmount, 1),
-                'applied_discounts' => $discountResult['applied_discounts'],
-                'wallet_payment' => $walletPaymentInfo
-            ],
+            'pricing' => $pricing,
             'ride_details' => [
                 'distance_km' => round($distanceKm, 1),
                 'duration_minutes' => $durationMinutes,
