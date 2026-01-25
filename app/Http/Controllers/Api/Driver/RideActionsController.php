@@ -374,6 +374,9 @@ class RideActionsController extends Controller
             'completed_at' => $endTime,
         ];
         
+        // Store wallet payment amount (will be updated after wallet payment is processed)
+        $updateData['wallet_paid_amount'] = 0;
+        
         // Update calculated_initial_price to fareBeforeCoupon when coupon is used
         // This ensures the "Before" price in the view matches the price the coupon discount was calculated on
         if ($ride->coupon_id && $couponDiscountAmount > 0) {
@@ -423,6 +426,9 @@ class RideActionsController extends Controller
                 
                 // Deduct from user wallet
                 $user->decrement('wallet', $walletPaidAmount);
+                
+                // Update ride with wallet payment amount
+                $ride->update(['wallet_paid_amount' => round($walletPaidAmount, 2)]);
                 
                 // Create transaction record for wallet payment
                 Transaction::create([
@@ -559,14 +565,18 @@ class RideActionsController extends Controller
         }
 
         // Prepare wallet payment info for response
+        // Original fare (before wallet deduction) = final fare after discounts
+        // Wallet deduction = amount paid from user wallet
+        // Remaining amount = amount to be paid by other payment method
         $walletPaymentInfo = [
-            'wallet_paid' => round($walletPaidAmount, 2),
-            'remaining_amount' => round($remainingAmount, 2),
+            'original_fare_before_wallet' => round($fare, 2), // Fare before wallet deduction
+            'wallet_deduction' => round($walletPaidAmount, 2), // Amount deducted from user wallet
+            'remaining_amount_after_wallet' => round($remainingAmount, 2), // Amount remaining after wallet deduction
         ];
 
         $pricing = [
-            'original_fare' => round($originalFare, 1),
-            'final_fare' => round($fare, 1),
+            'original_fare' => round($originalFare, 1), // Original fare before any discounts
+            'final_fare' => round($fare, 1), // Final fare after discounts (before wallet deduction)
             'discount_amount' => round($discountResult['total_discount_amount'], 1),
             'coupon_discount' => round($couponDiscountAmount, 1),
             'applied_discounts' => $discountResult['applied_discounts'],

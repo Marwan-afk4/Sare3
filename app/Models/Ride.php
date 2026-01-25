@@ -42,6 +42,7 @@ class Ride extends Model
         'verification_code_verified',
         'coupon_id',
         'coupon_discount',
+        'wallet_paid_amount',
         'cancellation_reason_id',
         'zone_id',
         'reassigned_at',

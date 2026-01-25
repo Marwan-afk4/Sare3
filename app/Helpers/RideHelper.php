@@ -355,6 +355,9 @@ class RideHelper
                 'coupon_discount' => $ride->coupon_discount ?? 0,
                 'coupon_id' => $ride->coupon_id,
                 'coupon_code' => $ride->coupon->code ?? null,
+                'wallet_paid_amount' => $ride->wallet_paid_amount ?? 0,
+                'fare_before_wallet_deduction' => $ride->calculated_final_price ?? 0, // Original fare before wallet deduction
+                'remaining_amount_after_wallet' => ($ride->calculated_final_price ?? 0) - ($ride->wallet_paid_amount ?? 0), // Amount after wallet deduction
                 'total_distance_in_km' => $ride->total_distance_in_km,
                 'time_taken' => $ride->time_taken,
                 'created_at' => $ride->created_at,
