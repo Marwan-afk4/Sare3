@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 Schedule::command('rides:auto-reject')->everyThirtySeconds();
 
 schedule::command('auto:cancel-pending-rides')->everyFiveMinutes();
+ 
