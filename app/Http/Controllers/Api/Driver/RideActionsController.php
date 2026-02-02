@@ -547,9 +547,11 @@ class RideActionsController extends Controller
                 'completed_at' => $endTime->toIso8601String(),
                 'final_price' => [
                     'original_fare' => round($originalFare, 1),
-                    'final_fare' => round($fare, 1),
+                    'final_fare' => round($fare, 1), // Fare after discounts (before wallet)
                     'discount_amount' => round($discountResult['total_discount_amount'], 1),
                     'coupon_discount' => round($couponDiscountAmount, 1),
+                    'wallet_paid_amount' => round($walletPaidAmount, 2), // Amount paid from wallet
+                    'remaining_amount' => round($remainingAmount, 2), // Amount driver should collect
                     'distance_km' => round($distanceKm, 1),
                     'duration_minutes' => $durationMinutes,
                 ],
