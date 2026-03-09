@@ -15,10 +15,13 @@ class UpdateDriverRequest extends FormRequest
 
     public function rules()
     {
+        $driver = $this->route('driver');
+        $driverId = $driver instanceof \App\Models\User ? $driver->id : $driver;
+
         return [
-            // 'name' => 'nullable|string',
-            // 'email' => 'nullable|email|unique:users,email,' . $this->driver->id,
-            // 'phone' => 'nullable|unique:users,phone,' . $this->driver->id,
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|unique:users,email,' . $driverId,
+            'phone' => 'nullable|unique:users,phone,' . $driverId,
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'password' => 'nullable|string|min:8',
             // 'activity' => 'nullable',
