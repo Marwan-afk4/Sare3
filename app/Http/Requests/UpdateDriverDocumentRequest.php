@@ -15,19 +15,20 @@ class UpdateDriverDocumentRequest extends FormRequest
     public function rules()
     {
         return [
-            'driver_id' => 'exists:users,id',
-            'identity_number' => 'nullable',
-            'selfi_image' => 'nullable',
-            'face_identity' => 'nullable',
-            'back_identity' => 'nullable',
-            'driving_license' => 'nullable'
+            'driver_id' => 'required|exists:users,id',
+            'document_type_id' => 'required|exists:document_types,id',
+            'document_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ];
     }
 
     public function messages()
     {
         return [
+            'driver_id.required' => __('The Driver field is required.'),
             'driver_id.exists' => __('The selected Driver is invalid.'),
+            'document_type_id.required' => __('The Document Type field is required.'),
+            'document_type_id.exists' => __('The selected Document Type is invalid.'),
+            'document_file.image' => __('The file must be an image.'),
         ];
     }
 

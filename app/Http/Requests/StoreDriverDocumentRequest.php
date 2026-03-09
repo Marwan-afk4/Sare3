@@ -15,24 +15,21 @@ class StoreDriverDocumentRequest extends FormRequest
     public function rules()
     {
         return [
-            'driver_id' => 'exists:users,id',
-            'identity_number' => 'required',
-            'selfi_image' => 'required',
-            'face_identity' => 'nullable',
-            'back_identity' => 'nullable',
-            'driving_license' => 'required'
+            'driver_id' => 'required|exists:users,id',
+            'document_type_id' => 'required|exists:document_types,id',
+            'document_file' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',
         ];
     }
 
     public function messages()
     {
         return [
+            'driver_id.required' => __('The Driver field is required.'),
             'driver_id.exists' => __('The selected Driver is invalid.'),
-            'identity_number.required' => __('The Identity Number field is required.'),
-            'selfi_image.required' => __('The Selfi Image field is required.'),
-            'face_identity.exists' => __('The selected Faceentity is invalid.'),
-            'back_identity.exists' => __('The selected Backentity is invalid.'),
-            'driving_license.required' => __('The Driving License field is required.')
+            'document_type_id.required' => __('The Document Type field is required.'),
+            'document_type_id.exists' => __('The selected Document Type is invalid.'),
+            'document_file.required' => __('Please upload a document image.'),
+            'document_file.image' => __('The file must be an image.'),
         ];
     }
 

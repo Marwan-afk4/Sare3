@@ -14,10 +14,7 @@
     <div class="row">
         @forelse ($documents as $document)
             @php
-                $imagePath = $document->image_path;
-                $imageUrl = \Illuminate\Support\Facades\Storage::disk('public')->exists($imagePath)
-                    ? asset('storage/' . $imagePath)
-                    : 'https://archive.org/download/placeholder-image/placeholder-image.jpg';
+                $imageUrl = $document->image_link ?? 'https://archive.org/download/placeholder-image/placeholder-image.jpg';
             @endphp
 
             <div class="col-md-3 mb-4">
@@ -28,10 +25,14 @@
                         <h5 class="card-title">{{ $document->documentType->name }}</h5>
                         <p class="card-text"><small class="text-muted">{{ $document->created_at->diffForHumans() }}</small></p>
 
-                        <!-- View Full Image Button -->
-                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#imageModal{{ $document->id }}">
-                            {{ __('View Full Image') }} <i class="fa fa-image"></i>
-                        </button>
+                        <div class="d-flex gap-1 flex-wrap">
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#imageModal{{ $document->id }}">
+                                {{ __('View Full Image') }} <i class="fa fa-image"></i>
+                            </button>
+                            <a href="{{ route('driver-documents.edit', $document) }}" class="btn btn-warning btn-sm">
+                                {{ __('Edit') }} <i class="fa fa-edit"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
