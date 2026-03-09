@@ -7,6 +7,8 @@ use App\Enums\DriverStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreDriverRequest;
 use App\Http\Requests\UpdateDriverRequest;
+use App\Models\DriverDocument;
+use App\Models\DocumentType;
 use App\Models\User;
 use App\Models\Rating;
 use App\Models\Zone;
@@ -157,15 +159,33 @@ class DriverController extends Controller
     public function create()
     {
         $driverStatus = DriverStatus::labels();
-        return view('drivers.create', compact('driverStatus'));
+        $requiredDocumentTypes = DocumentType::where('is_required', true)->orderBy('name')->get();
+        return view('drivers.create', compact('driverStatus', 'requiredDocumentTypes'));
     }
 
     public function store(StoreDriverRequest $request)
     {
         $request->setRole('driver');
 
-        User::create($request->validated());
-        return redirect()->route('drivers.index')->with('success',  __('Created successfully'));
+        $data = $request->validated();
+        unset($data['document_types']);
+
+        $driver = User::create($data);
+
+        $requiredDocumentTypes = DocumentType::where('is_required', true)->orderBy('name')->get();
+        foreach ($requiredDocumentTypes as $docType) {
+            $file = $request->file("document_types.{$docType->id}");
+            if ($file) {
+                $path = $this->uploadFile($file, 'driver/documents');
+                DriverDocument::create([
+                    'driver_id' => $driver->id,
+                    'document_type_id' => $docType->id,
+                    'image_path' => $path,
+                ]);
+            }
+        }
+
+        return redirect()->route('drivers.index')->with('success', __('Created successfully'));
     }
 
     public function show(User $driver)

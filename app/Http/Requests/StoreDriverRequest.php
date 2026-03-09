@@ -2,17 +2,21 @@
 
 namespace App\Http\Requests;
 
+use App\Models\DocumentType;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
+
 class StoreDriverRequest extends FormRequest
 {
     protected string $defaultRole = 'driver';
+
     public function authorize()
     {
         return true;
     }
+
     public function prepareForValidation()
     {
         $this->merge([
@@ -24,7 +28,7 @@ class StoreDriverRequest extends FormRequest
 
     public function rules()
     {
-        return [
+        $rules = [
             'name' => 'required|string',
             'email' => 'nullable|email|unique:users,email',
             'phone' => 'required|unique:users,phone',
@@ -35,6 +39,13 @@ class StoreDriverRequest extends FormRequest
             'role' => 'required|in:admin,driver,user',
             'status' => 'nullable|in:approved,pending,rejected',
         ];
+
+        $requiredDocTypes = DocumentType::where('is_required', true)->get();
+        foreach ($requiredDocTypes as $docType) {
+            $rules["document_types.{$docType->id}"] = 'required|image|mimes:jpeg,png,jpg,webp|max:5120';
+        }
+
+        return $rules;
     }
 
     public function messages()

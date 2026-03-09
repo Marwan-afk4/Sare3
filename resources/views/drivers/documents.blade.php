@@ -7,9 +7,25 @@
 <div class="container-fluid">
     <h1>{{ __('Documents for') }} {{ $driver->name }}</h1>
 
-    <a href="{{ route('drivers.show', $driver->id) }}" class="btn btn-secondary btn-sm mb-3">
-        <i class="fa fa-arrow-right"></i> {{ __('Back to Driver') }}
-    </a>
+    <div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
+        <a href="{{ route('drivers.show', $driver->id) }}" class="btn btn-secondary btn-sm">
+            <i class="fa fa-arrow-right"></i> {{ __('Back to Driver') }}
+        </a>
+        <a href="{{ route('driver-documents.create', ['driver_id' => $driver->id, 'redirect_driver_id' => $driver->id]) }}" class="btn btn-primary btn-sm">
+            <i class="fa fa-plus"></i> {{ __('Add Document') }}
+        </a>
+    </div>
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('Close') }}"></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('Close') }}"></button>
+        </div>
+    @endif
 
     <div class="row">
         @forelse ($documents as $document)
@@ -32,6 +48,11 @@
                             <a href="{{ route('driver-documents.edit', $document) }}" class="btn btn-warning btn-sm">
                                 {{ __('Edit') }} <i class="fa fa-edit"></i>
                             </a>
+                            <form method="POST" action="{{ route('driver-documents.destroy', $document) }}" class="d-inline" onsubmit="return confirm('{{ __('Are you sure you want to delete this document?') }}');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm">{{ __('Delete') }} <i class="fa fa-trash"></i></button>
+                            </form>
                         </div>
                     </div>
                 </div>

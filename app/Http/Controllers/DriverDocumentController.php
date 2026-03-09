@@ -23,11 +23,12 @@ class DriverDocumentController extends Controller
         return view('driver-documents.index', compact('driverDocuments', 'sortField', 'sortOrder'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $drivers = User::where('role', 'driver')->orderBy('name')->pluck('name', 'id')->toArray();
         $documentTypes = DocumentType::orderBy('name')->pluck('name', 'id')->toArray();
-        return view('driver-documents.create', compact('drivers', 'documentTypes'));
+        $selectedDriverId = $request->get('driver_id');
+        return view('driver-documents.create', compact('drivers', 'documentTypes', 'selectedDriverId'));
     }
 
     public function store(StoreDriverDocumentRequest $request)
@@ -39,7 +40,13 @@ class DriverDocumentController extends Controller
             $data['image_path'] = $this->uploadFile($request->file('document_file'), 'driver/documents');
         }
 
-        DriverDocument::create($data);
+        $driverDocument = DriverDocument::create($data);
+
+        $redirectDriverId = $request->get('redirect_driver_id');
+        if ($redirectDriverId && $driverDocument->driver_id == $redirectDriverId) {
+            return redirect()->route('drivers.documents', $redirectDriverId)->with('success', __('Document added successfully.'));
+        }
+
         return redirect()->route('driver-documents.index')->with('success',  __('Created successfully'));
     }
 
@@ -69,5 +76,18 @@ class DriverDocumentController extends Controller
 
         $driverDocument->update($data);
         return redirect()->route('driver-documents.index')->with('success',  __('Updated successfully.'));
+    }
+
+    public function destroy(DriverDocument $driverDocument)
+    {
+        try {
+            if ($driverDocument->image_path) {
+                $this->deleteImage($driverDocument->image_path);
+            }
+            $driverDocument->delete();
+            return redirect()->back()->with('success', __('Document deleted successfully.'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', __('Failed to delete document.'));
+        }
     }
 }

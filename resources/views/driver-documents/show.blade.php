@@ -35,10 +35,11 @@
 		</div>
 	</div>
 	<div class="mt-3">
-		{{-- <form method='POST' action='{{ route('driver-documents.destroy', $driverDocument) }}' onsubmit='return confirm("Are you sure you want to delete this item?")'>
-			<input type='hidden' name='_method' value='DELETE'>
-			<button type='submit' class="btn btn-square btn-danger">{{ __('Delete') }}</button>
-		</form> --}}
+		<form method="POST" action="{{ route('driver-documents.destroy', $driverDocument) }}" class="d-inline" onsubmit="return confirm('{{ __('Are you sure you want to delete this document?') }}');">
+			@csrf
+			@method('DELETE')
+			<button type="submit" class="btn btn-danger btn-sm">{{ __('Delete') }} <i class="fa fa-trash"></i></button>
+		</form>
 	</div>
 </div>
 @endsection

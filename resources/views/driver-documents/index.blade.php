@@ -55,10 +55,11 @@
 					<td class="text-center">
 						<a href='{{ route('driver-documents.show', $driverDocument) }}' class="btn btn-subtle-primary btn-sm me-1">{{ __("Details") }} <i class="fa fa-eye"></i></a>
 						<a href='{{ route('driver-documents.edit', $driverDocument) }}' class="btn btn-subtle-warning btn-sm me-1">{{ __("Edit") }} <i class="fa fa-edit"></i></a>
-						{{-- <form method='POST' action='{{ route('driver-documents.destroy', $driverDocument) }}' onsubmit='return confirm("Are you sure you want to delete this item?")'>
-							<input type='hidden' name='_method' value='DELETE'>
-							<button type='submit' class="btn btn-square btn-danger">{{ __('Delete') }}</button>
-						</form> --}}
+						<form method="POST" action="{{ route('driver-documents.destroy', $driverDocument) }}" class="d-inline" onsubmit="return confirm('{{ __('Are you sure you want to delete this document?') }}');">
+							@csrf
+							@method('DELETE')
+							<button type="submit" class="btn btn-danger btn-sm">{{ __('Delete') }} <i class="fa fa-trash"></i></button>
+						</form>
 					</td>
 				</tr>
 				@endforeach

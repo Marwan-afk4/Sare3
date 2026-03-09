@@ -13,11 +13,14 @@
 		<div class="card-body">
 			<form method="POST" action="{{ route('driver-documents.store') }}" enctype="multipart/form-data" class="needs-validation" novalidate>
 				@csrf
+				@if(!empty($selectedDriverId))
+					<input type="hidden" name="redirect_driver_id" value="{{ $selectedDriverId }}">
+				@endif
 				<x-form-select
 					name="driver_id"
 					type="select"
 					label="{{ __('Driver') }}"
-					:selected="old('driver_id', '')"
+					:selected="old('driver_id', $selectedDriverId ?? '')"
 					required
 					:options="$drivers"
 				/>
