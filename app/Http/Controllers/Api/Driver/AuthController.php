@@ -362,6 +362,9 @@ class AuthController extends Controller
 
             $base64Image = $documents[$doc->id];
             $path = $this->storeBase64Image($base64Image, 'driver/documents');
+            if ($path === null) {
+                return response()->json(['errors' => 'Invalid base64 image string'], 400);
+            }
 
             DriverDocument::create([
                 'driver_id' => $driver->id,
@@ -371,6 +374,9 @@ class AuthController extends Controller
         }
 
         $selfiePath = $this->storeBase64Image($request->selfie_image, 'driver/selfies');
+        if ($selfiePath === null) {
+            return response()->json(['errors' => 'Invalid base64 image string'], 400);
+        }
         $driver->update(['image' => $selfiePath]);
 
         return response()->json([
@@ -420,7 +426,13 @@ class AuthController extends Controller
         }
 
         $carImagePath = $this->storeBase64Image($request->car_image, 'driver/cars');
-        $car_licensePath = $this->storeBase64Image($request->car_license, 'driver/car_licenses');
+        if ($carImagePath === null) {
+            return response()->json(['errors' => 'Invalid base64 image string'], 400);
+        }
+        $car_licensePath = $request->car_license ? $this->storeBase64Image($request->car_license, 'driver/car_licenses') : null;
+        if ($request->car_license && $car_licensePath === null) {
+            return response()->json(['errors' => 'Invalid base64 image string for car license'], 400);
+        }
 
         $driverCar = DriverCar::create([
             'driver_id' => $driver->id,

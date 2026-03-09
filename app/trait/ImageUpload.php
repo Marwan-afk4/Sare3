@@ -81,14 +81,23 @@ trait ImageUpload
             return $folderPath . '/' . $fileName;
         }
 
-        return response()->json(['errors' => 'Invalid base64 image string'], 400);
+        return null;
     }
 
 
-    public function deleteImage($imagePath){
-        // Check if the file exists
-        if ($imagePath && Storage::disk('public')->exists($imagePath)) {
-            Storage::disk('public')->delete($imagePath);
+    public function deleteImage($imagePath)
+    {
+        // Only accept a non-empty string that looks like a storage path (avoid passing
+        // HTTP responses, JSON, or other corrupted data to Flysystem)
+        if (! is_string($imagePath) || $imagePath === '') {
+            return;
+        }
+        $path = trim($imagePath);
+        if ($path === '' || str_contains($path, 'HTTP/') || str_contains($path, '{"errors"') || preg_match('/[\r\n\x00]/', $path) || strlen($path) > 500) {
+            return;
+        }
+        if (Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
         }
     }
 }
