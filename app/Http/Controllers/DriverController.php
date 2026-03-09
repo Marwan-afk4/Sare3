@@ -34,14 +34,21 @@ class DriverController extends Controller
         $sortField = $request->get('sort', 'id');
         $sortOrder = $request->get('order', 'ASC');
         $keyword = $request->get('keyword');
-        $activity = $request->get('activity'); // 👈 Get the selected activity from the request
-        $zoneId = $request->get('zone'); // 👈 Get the selected zone from the request
-        $carYear = $request->get('car_year'); // 👈 Get the selected car year from the request
+        $activity = $request->get('activity');
+        $zoneId = $request->get('zone');
+        $carYear = $request->get('car_year');
+        $status = $request->get('status');
 
         $driverActivityCounts = User::where('role', 'driver')
             ->selectRaw('activity, COUNT(*) as count')
             ->groupBy('activity')
             ->pluck('count', 'activity')
+            ->toArray();
+
+        $driverStatusCounts = User::where('role', 'driver')
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
             ->toArray();
 
         // Get zone counts (including drivers with no zone)
@@ -105,6 +112,9 @@ class DriverController extends Controller
                         });
                 });
             })
+            ->when($status, function ($query, $status) {
+                $query->where('status', $status);
+            })
             ->when($keyword, function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->where('name', 'LIKE', "%{$keyword}%")
@@ -136,8 +146,9 @@ class DriverController extends Controller
         }
 
         $driverActivtyStatus = ActivtyType::cases();
+        $driverStatusCases = DriverStatus::cases();
 
-        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'zones', 'driversWithNoZoneCount', 'driverAvailability', 'carYears', 'carYearCounts'));
+        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'driverStatusCases', 'driverStatusCounts', 'zones', 'driversWithNoZoneCount', 'driverAvailability', 'carYears', 'carYearCounts'));
     }
 
     public function documents(User $driver)

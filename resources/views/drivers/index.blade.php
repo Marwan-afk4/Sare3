@@ -28,6 +28,22 @@
             </div>
         </div>
 
+        {{-- Status Filter Buttons --}}
+        <div class="mb-3">
+            <label class="form-label fw-bold">{{ __('Filter by Status') }}</label>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ route('drivers.index', request()->except('status')) }}" class="btn btn-outline-secondary btn-sm">
+                    {{ __('All') }}
+                </a>
+                @foreach ($driverStatusCases as $driverStatus)
+                    <a href="{{ route('drivers.index', array_merge(request()->except('status'), ['status' => $driverStatus->value])) }}" class="btn btn-sm {{ request('status') === $driverStatus->value ? '' : 'btn-outline-secondary' }}"
+                        style="{{ request('status') === $driverStatus->value ? 'background-color: #' . $driverStatus->color() . '; color: #' . $driverStatus->textColor() : '' }}">
+                        {{ $driverStatus->label() }} ({{ $driverStatusCounts[$driverStatus->value] ?? '0' }})
+                    </a>
+                @endforeach
+            </div>
+        </div>
+
         {{-- Zone Filter Buttons --}}
         <div class="mb-3">
             <label class="form-label fw-bold">{{ __('Filter by Zone') }}</label>
@@ -76,6 +92,9 @@
                 @endif
                 @if (request('car_year'))
                     <input type="hidden" name="car_year" value="{{ request('car_year') }}">
+                @endif
+                @if (request('status'))
+                    <input type="hidden" name="status" value="{{ request('status') }}">
                 @endif
                 @if (request('sort'))
                     <input type="hidden" name="sort" value="{{ request('sort') }}">
