@@ -251,6 +251,18 @@
                         </a>
                     </div> --}}
 
+                    {{-- leaderboard --}}
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'leaderboard' ? 'active' : '' }}"
+                            href="{{ route('leaderboard.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="award"></span></span>
+                                <span class="nav-link-text-wrapper"><span
+                                        class="nav-link-text">{{ __('Leaderboard & Bonuses') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+
                     {{-- profit-statistics --}}
                     @can('إدارة إحصائيات الربح')
                         <div class="nav-item-wrapper">

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\LeaderboardController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\{
@@ -167,4 +168,14 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')
         Route::post('/otp-limits/{otpLimit}/reset-users', [OtpLimitController::class, 'resetUsers'])->name('otp-limits.reset-users');
 
         Route::get('/drivers/{driver}/location', [DriverController::class, 'getLocation'])->name('drivers.location');
+
+        // Leaderboard & Bonus Management
+        Route::prefix('leaderboard')->name('leaderboard.')->group(function () {
+            Route::get('/', [LeaderboardController::class, 'index'])->name('index');
+            Route::post('/grant', [LeaderboardController::class, 'grantBonus'])->name('grant');
+            Route::post('/tiers', [LeaderboardController::class, 'storeTier'])->name('tier.store');
+            Route::put('/tiers/{tier}', [LeaderboardController::class, 'updateTier'])->name('tier.update');
+            Route::patch('/tiers/{tier}/toggle', [LeaderboardController::class, 'toggleTier'])->name('tier.toggle');
+            Route::delete('/tiers/{tier}', [LeaderboardController::class, 'destroyTier'])->name('tier.destroy');
+        });
     });
