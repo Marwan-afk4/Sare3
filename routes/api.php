@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CouponController as AdminCouponController;
+use App\Http\Controllers\Api\Admin\AdminLeaderboardController;
 use App\Http\Controllers\Api\Admin\AdminSettingsController;
 use App\Http\Controllers\Api\Admin\AdminSupportChatController;
 use App\Http\Controllers\Api\Admin\ProfitStatisticsController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\Api\DeleteAccountController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
 use App\Http\Controllers\Api\Driver\CancelationReasonController as DriverCancelationReasonController;
 use App\Http\Controllers\Api\Driver\DriverActivtyController;
+use App\Http\Controllers\Api\Driver\DriverLeaderboardController;
 use App\Http\Controllers\Api\Driver\DriverLocationController;
 use App\Http\Controllers\Api\Driver\DriverNotificationController;
 use App\Http\Controllers\Api\Driver\DriverProfileController;
@@ -202,6 +204,10 @@ Route::middleware(['auth:sanctum'])->prefix('driver')->group(function () {
 //Delete Account
     Route::delete('/delete-account', [DeleteAccountController::class, 'deleteAccount']);
 
+//Leaderboard
+    Route::get('/leaderboard', [DriverLeaderboardController::class, 'leaderboard']);
+    Route::get('/leaderboard/my-stats', [DriverLeaderboardController::class, 'myStats']);
+
 });
 
 
@@ -337,6 +343,21 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     // Zone Notifications
     Route::post('/notifications/zone', [NotificationController::class, 'broadcastNotificationToZone']);
 
+    // Leaderboard & Bonus Management
+    Route::get('/leaderboard', [AdminLeaderboardController::class, 'leaderboard']);
+
+    // Bonus Tiers CRUD
+    Route::get('/bonus/tiers', [AdminLeaderboardController::class, 'indexTiers']);
+    Route::post('/bonus/tiers', [AdminLeaderboardController::class, 'storeTier']);
+    Route::get('/bonus/tiers/{tier}', [AdminLeaderboardController::class, 'showTier']);
+    Route::put('/bonus/tiers/{tier}', [AdminLeaderboardController::class, 'updateTier']);
+    Route::delete('/bonus/tiers/{tier}', [AdminLeaderboardController::class, 'destroyTier']);
+    Route::patch('/bonus/tiers/{tier}/toggle', [AdminLeaderboardController::class, 'toggleTier']);
+
+    // Manual Bonus Grant & History
+    Route::post('/bonus/grant', [AdminLeaderboardController::class, 'grantBonus']);
+    Route::get('/bonus/grants', [AdminLeaderboardController::class, 'grantHistory']);
+    Route::get('/bonus/driver/{driver}', [AdminLeaderboardController::class, 'driverBonusStats']);
 
 });
 

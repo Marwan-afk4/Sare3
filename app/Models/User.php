@@ -241,6 +241,11 @@ class User extends Authenticatable
         return $this->belongsTo(Zone::class);
     }
 
+    public function bonusGrants()
+    {
+        return $this->hasMany(DriverBonusGrant::class, 'driver_id');
+    }
+
     /**
      * Check if driver can go online based on wallet balance
      */

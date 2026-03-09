@@ -15,6 +15,7 @@ use App\Models\RideProfit;
 use App\Models\Transaction;
 use App\Models\WalletRequest;
 use App\Models\Zone;
+use App\Services\BonusService;
 use App\Services\ReferralDiscountService;
 use App\Services\RideVerificationService;
 use Carbon\Carbon;
@@ -538,6 +539,14 @@ class RideActionsController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             return response()->json(['message' => 'Failed to complete ride: ' . $e->getMessage()], 500);
+        }
+
+        // Check and award any bonus tier milestones the driver may have crossed
+        try {
+            $bonusService = app(BonusService::class);
+            $bonusService->checkAndAwardTierBonus($driver);
+        } catch (\Exception $e) {
+            Log::error("Bonus check failed for driver {$driver->id} after ride {$ride->id}: " . $e->getMessage());
         }
 
         // 🔟 Push to Firebase
