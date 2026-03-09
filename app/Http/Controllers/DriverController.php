@@ -280,6 +280,56 @@ class DriverController extends Controller
         return redirect()->route('drivers.index')->with('success', __('Driver updated successfully.'));
     }
 
+    public function destroy(User $driver)
+    {
+        if ($driver->role !== 'driver') {
+            return redirect()->route('drivers.index')->with('error', __('Only drivers can be deleted from this page.'));
+        }
+
+        try {
+            // Remove driver from Firebase
+            try {
+                $firebase = (new Factory)
+                    ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                    ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                    ->createDatabase();
+                $firebaseRef = $firebase->getReference("drivers/driver {$driver->id}");
+                $firebaseRef->remove();
+            } catch (\Exception $e) {
+                \Log::warning('Firebase driver removal failed during driver delete: ' . $e->getMessage());
+            }
+
+            // Delete stored files: driver documents
+            foreach ($driver->documents as $doc) {
+                if ($doc->image_path) {
+                    $this->deleteImage($doc->image_path);
+                }
+            }
+
+            // Delete stored files: driver cars (car_image, car_license)
+            foreach ($driver->driverCars as $car) {
+                if ($car->car_image) {
+                    $this->deleteImage($car->car_image);
+                }
+                if ($car->car_license) {
+                    $this->deleteImage($car->car_license);
+                }
+            }
+
+            // Delete driver profile image
+            if ($driver->image) {
+                $this->deleteImage($driver->image);
+            }
+
+            $driver->delete();
+
+            return redirect()->route('drivers.index')->with('success', __('Driver and all associated data have been deleted.'));
+        } catch (\Exception $e) {
+            \Log::error('Driver delete failed: ' . $e->getMessage());
+            return redirect()->route('drivers.index')->with('error', __('Failed to delete driver. Please try again.'));
+        }
+    }
+
     /**
      * Get driver location from Firebase (AJAX endpoint)
      */

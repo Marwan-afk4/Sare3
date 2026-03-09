@@ -107,6 +107,11 @@
                 <a href="{{ route('drivers.ride-history', $driver->id) }}" class="btn btn-subtle-info btn-sm me-1">
                     {{ __('Ride History') }} <i class="fa fa-history"></i>
                 </a>
+                <form method="POST" action="{{ route('drivers.destroy', $driver) }}" class="d-inline" onsubmit="return confirm('{{ __('Are you sure you want to delete this driver and all their data (documents, cars, etc.)? This cannot be undone.') }}');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger btn-sm">{{ __('Delete Driver') }} <i class="fa fa-trash"></i></button>
+                </form>
             </div>
         </div>
 

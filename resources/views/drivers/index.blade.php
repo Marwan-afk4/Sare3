@@ -223,13 +223,14 @@
                             <a href='{{ route('drivers.show', $driver) }}'
                                 class="btn btn-subtle-primary btn-sm me-1">{{ __('Details') }} <i
                                     class="fa fa-eye"></i></a>
-                            {{-- <a href='{{ route('drivers.edit', $driver) }}'
-                                    class="btn btn-subtle-warning btn-sm me-1">{{ __('Edit') }} <i
-                                        class="fa fa-edit"></i></a> --}}
-                            {{-- <form method='POST' action='{{ route('users.destroy', $user) }}' onsubmit='return confirm("Are you sure you want to delete this item?")'>
-							<input type='hidden' name='_method' value='DELETE'>
-							<button type='submit' class="btn btn-square btn-danger">{{ __('Delete') }}</button>
-						</form> --}}
+                            <a href='{{ route('drivers.edit', $driver) }}'
+                                class="btn btn-subtle-warning btn-sm me-1">{{ __('Edit') }} <i
+                                    class="fa fa-edit"></i></a>
+                            <form method="POST" action="{{ route('drivers.destroy', $driver) }}" class="d-inline" onsubmit="return confirm('{{ __('Are you sure you want to delete this driver and all their data? This cannot be undone.') }}');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm">{{ __('Delete') }} <i class="fa fa-trash"></i></button>
+                            </form>
                         </td>
                     </tr>
                 @endforeach
