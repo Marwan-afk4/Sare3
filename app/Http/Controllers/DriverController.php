@@ -181,6 +181,10 @@ class DriverController extends Controller
         $data = $request->validated();
         unset($data['document_types']);
 
+        if ($request->hasFile('image')) {
+            $data['image'] = $this->uploadFile($request->file('image'), 'driver/profiles');
+        }
+
         $driver = User::create($data);
 
         $requiredDocumentTypes = DocumentType::where('is_required', true)->orderBy('name')->get();
@@ -269,6 +273,15 @@ class DriverController extends Controller
     public function update(UpdateDriverRequest $request, User $driver)
     {
         $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            if ($driver->image) {
+                $this->deleteImage($driver->image);
+            }
+            $data['image'] = $this->uploadFile($request->file('image'), 'driver/profiles');
+        } else {
+            unset($data['image']);
+        }
 
         //Check if activity is updated to inactive
         if ($request->has('activity') && $request->input('activity') === 'inactive') {

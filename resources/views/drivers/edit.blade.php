@@ -1,3 +1,4 @@
+@use('Illuminate\Support\Facades\Storage')
 @extends('layouts.app')
 @php
 	$currentPage = 'drivers';
@@ -64,9 +65,47 @@
                     :options="$zones"
                     placeholder="{{__('Select Zone')}}"
                 />
+
+                <div class="mb-3">
+                    <label for="image" class="form-label">{{ __('Profile Image') }}</label>
+                    @if($driver->image)
+                        <div class="mb-2">
+                            <img id="imagePreview" src="{{ Storage::url($driver->image) }}"
+                                 alt="{{ __('Current Profile Image') }}"
+                                 class="rounded" style="height: 120px; width: 120px; object-fit: cover; border: 1px solid #dee2e6;">
+                        </div>
+                    @else
+                        <div class="mb-2">
+                            <img id="imagePreview" src="#" alt="{{ __('Profile Image Preview') }}"
+                                 class="rounded d-none" style="height: 120px; width: 120px; object-fit: cover; border: 1px solid #dee2e6;">
+                        </div>
+                    @endif
+                    <input type="file" class="form-control @error('image') is-invalid @enderror"
+                           id="imageInput" name="image" accept="image/jpeg,image/png,image/jpg,image/webp">
+                    @error('image')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <small class="text-muted">{{ __('Leave empty to keep the current image.') }}</small>
+                </div>
+
 				<button type='submit' class="btn btn-warning btn-sm me-1">{{ __('Save') }}</button>
 			</form>
 		</div>
 	</div>
 </div>
 @endsection
+@push('scripts')
+<script>
+    document.getElementById('imageInput').addEventListener('change', function () {
+        const preview = document.getElementById('imagePreview');
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+</script>
+@endpush

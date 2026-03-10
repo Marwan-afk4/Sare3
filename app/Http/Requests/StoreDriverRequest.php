@@ -33,7 +33,7 @@ class StoreDriverRequest extends FormRequest
             'email' => 'nullable|email|unique:users,email',
             'phone' => 'required|unique:users,phone',
             'password' => 'required|string|min:8',
-            'image' => 'nullable',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'activity' => ['nullable', Rule::in('active', 'inactive')],
             'wallet' => 'nullable|numeric|min:0',
             'role' => 'required|in:admin,driver,user',
