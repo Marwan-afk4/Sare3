@@ -522,7 +522,14 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $user = User::where('phone', $request->phone)->orWhere('email', $request->email)->first();
+        $user = User::where(function($q) use ($request) {
+            if ($request->filled('phone')) {
+                $q->where('phone', $request->phone);
+            }
+            if ($request->filled('email')) {
+                $q->orWhere('email', $request->email);
+            }
+        })->first();
 
         if (! $user || ! password_verify($request->password, $user->password)) {
             return response()->json([
