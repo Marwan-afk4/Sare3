@@ -118,7 +118,8 @@ class ProfileController extends Controller
 
         return response()->json([
             'message' => 'User already exists.',
-            'remaining_otp' => $remainingOtp
+            'remaining_otp' => $remainingOtp,
+            'isPassExist' => !empty($user->password),
         ])->setStatusCode(200, 'User already exists. Remaining OTP: ' . $remainingOtp);
     }
 
