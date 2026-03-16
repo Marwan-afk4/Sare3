@@ -304,8 +304,8 @@ Route::get('/settings/ride-verification-enabled', [AppSettingsController::class,
 //======= ADMIN SETTINGS ========
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
     // Driver Management
-    Route::get('/drivers', [AdminDriverController::class, 'index']);
-    Route::get('/drivers/{id}', [AdminDriverController::class, 'show']);
+    // Route::get('/drivers', [AdminDriverController::class, 'index']);
+    // Route::get('/drivers/{id}', [AdminDriverController::class, 'show']);
 
     // Profit Settings
     Route::get('/profit-percentage', [AdminSettingsController::class, 'getProfitPercentage']);
