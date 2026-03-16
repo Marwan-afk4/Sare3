@@ -59,9 +59,9 @@ class RoleController extends Controller
     public function destroy(Role $role)
     {
         // Prevent deleting critical system roles
-        if (in_array($role->name, ['admin'])) {
+        if ($role->name === 'admin') {
             return redirect()->route('roles.index')
-                ->with('error', __('Cannot delete system role: ') . $role->name);
+                ->with('error', __('The admin role is a system role and cannot be deleted.'));
         }
 
         // Check if role has users assigned

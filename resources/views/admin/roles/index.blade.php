@@ -50,14 +50,20 @@
                                         </li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
-                                            <form action="{{ route('roles.destroy', $role) }}" method="POST" 
-                                                onsubmit="return confirm('{{ __('Are you sure you want to delete this role?') }}')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="dropdown-item text-danger">
-                                                    <i class="fa fa-trash me-2"></i>{{ __('Delete') }}
+                                            @if($role->name !== 'admin')
+                                                <form action="{{ route('roles.destroy', $role) }}" method="POST" 
+                                                    onsubmit="return confirm('{{ __('Are you sure you want to delete this role?') }}')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="dropdown-item text-danger">
+                                                        <i class="fa fa-trash me-2"></i>{{ __('Delete') }}
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <button type="button" class="dropdown-item text-muted" disabled title="{{ __('Cannot delete system role') }}">
+                                                    <i class="fa fa-lock me-2"></i>{{ __('Locked') }}
                                                 </button>
-                                            </form>
+                                            @endif
                                         </li>
                                     </ul>
                                 </div>

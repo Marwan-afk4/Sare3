@@ -53,14 +53,20 @@
                                     <a href='{{ route('admins.edit', $admin) }}'
                                         class="btn btn-subtle-warning btn-sm me-1">{{ __('Edit') }} <i
                                             class="fa fa-edit"></i></a>
-                                    <form action="{{ route('admins.destroy', $admin) }}" method="POST" class="d-inline"
-                                        onsubmit="return confirm('{{ __('Are you sure you want to delete this admin?') }}')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-subtle-danger btn-sm">
-                                            {{ __('Delete') }} <i class="fa fa-trash"></i>
+                                    @if($admin->phone !== '01111679168')
+                                        <form action="{{ route('admins.destroy', $admin) }}" method="POST" class="d-inline"
+                                            onsubmit="return confirm('{{ __('Are you sure you want to delete this admin?') }}')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-subtle-danger btn-sm">
+                                                {{ __('Delete') }} <i class="fa fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <button type="button" class="btn btn-subtle-secondary btn-sm" disabled title="{{ __('Cannot delete main admin') }}">
+                                            {{ __('Delete') }} <i class="fa fa-lock"></i>
                                         </button>
-                                    </form>
+                                    @endif
                                 </td>
                             </tr>
 
