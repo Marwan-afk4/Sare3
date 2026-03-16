@@ -32,7 +32,7 @@ class DriverController extends Controller
     public function index(Request $request)
     {
         $sortField = $request->get('sort', 'id');
-        $sortOrder = $request->get('order', 'ASC');
+        $sortOrder = $request->get('order', 'DESC');
         $keyword = $request->get('keyword');
         $activity = $request->get('activity');
         $zoneId = $request->get('zone');
