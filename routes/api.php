@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Api\Admin\AdminLeaderboardController;
 use App\Http\Controllers\Api\Admin\AdminSettingsController;
 use App\Http\Controllers\Api\Admin\AdminSupportChatController;
+use App\Http\Controllers\Api\Admin\DriverController as AdminDriverController;
 use App\Http\Controllers\Api\Admin\ProfitStatisticsController;
 use App\Http\Controllers\Api\Admin\ReferralController as AdminReferralController;
 use App\Http\Controllers\Api\AppSettingsController;
@@ -302,6 +303,10 @@ Route::get('/settings/ride-verification-enabled', [AppSettingsController::class,
 
 //======= ADMIN SETTINGS ========
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
+    // Driver Management
+    Route::get('/drivers', [AdminDriverController::class, 'index']);
+    Route::get('/drivers/{id}', [AdminDriverController::class, 'show']);
+
     // Profit Settings
     Route::get('/profit-percentage', [AdminSettingsController::class, 'getProfitPercentage']);
     Route::post('/profit-percentage', [AdminSettingsController::class, 'setProfitPercentage']);
