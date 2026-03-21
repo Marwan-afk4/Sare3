@@ -14,8 +14,9 @@ class UserNotificatonController extends Controller
     {
         $notifications = Notification::where('type', 'user')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->makeVisible(['created_at']);
 
-        return response()->json(['notifications'=>$notifications]);
+        return response()->json(['notifications' => $notifications]);
     }
 }
