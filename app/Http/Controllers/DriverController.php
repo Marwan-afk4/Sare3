@@ -211,7 +211,10 @@ class DriverController extends Controller
                 $query->with(['user', 'carCategory'])
                     ->orderBy('created_at', 'desc');
             },
-            'zone'
+            'zone',
+            'driverCars.carType',
+            'driverCars.carCategory',
+            'driverCars.carModel',
         ]);
 
         // Get driver rating

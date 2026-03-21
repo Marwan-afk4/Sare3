@@ -115,6 +115,67 @@
             </div>
         </div>
 
+        {{-- Driver cars --}}
+        <div class="card mt-4">
+            <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h5 class="card-title mb-0">{{ __('Cars') }}</h5>
+                <div class="d-flex flex-wrap gap-1">
+                    <a href="{{ route('drivers.cars', $driver->id) }}" class="btn btn-sm btn-outline-primary">
+                        {{ __('View all') }} <i class="fa fa-car"></i>
+                    </a>
+                    <a href="{{ route('driver-cars.create') }}?driver_id={{ $driver->id }}" class="btn btn-sm btn-primary">
+                        {{ __('Add New Car') }} <i class="fa fa-plus"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                @if ($driver->driverCars->isEmpty())
+                    <p class="text-muted mb-0">{{ __('No cars registered for this driver.') }}</p>
+                @else
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>{{ __('Car Number') }}</th>
+                                    <th>{{ __('Category') }}</th>
+                                    <th>{{ __('Model') }}</th>
+                                    <th>{{ __('Type') }}</th>
+                                    <th class="text-end">{{ __('Actions') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($driver->driverCars as $car)
+                                    <tr>
+                                        <td><span class="badge bg-primary">{{ $car->car_number }}</span></td>
+                                        <td>{{ $car->carCategory->name ?? '—' }}</td>
+                                        <td>{{ $car->carModel->name ?? '—' }}</td>
+                                        <td>{{ $car->carType->type_name ?? '—' }}</td>
+                                        <td class="text-end">
+                                            <a href="{{ route('driver-cars.show', $car) }}"
+                                                class="btn btn-subtle-primary btn-sm me-1">{{ __('Details') }}
+                                                <i class="fa fa-eye"></i></a>
+                                            <a href="{{ route('driver-cars.edit', $car) }}"
+                                                class="btn btn-subtle-warning btn-sm me-1">{{ __('Edit') }}
+                                                <i class="fa fa-edit"></i></a>
+                                            <form method="POST" action="{{ route('driver-cars.destroy', $car) }}"
+                                                class="d-inline"
+                                                onsubmit="return confirm('{{ __('Are you sure you want to delete this car?') }}');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-subtle-danger btn-sm">
+                                                    {{ __('Delete') }} <i class="fa fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        </div>
+
         {{-- Ride Statistics Card --}}
         <div class="card mt-4">
             <div class="card-header">

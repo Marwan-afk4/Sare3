@@ -60,6 +60,15 @@
                             <a href="{{ route('driver-cars.show', $car->id) }}" class="btn btn-success btn-sm">
                                 {{ __('Details') }} <i class="fa fa-eye"></i>
                             </a>
+
+                            <form method="POST" action="{{ route('driver-cars.destroy', $car) }}" class="d-inline"
+                                onsubmit="return confirm('{{ __('Are you sure you want to delete this car?') }}');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    {{ __('Delete') }} <i class="fa fa-trash"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>

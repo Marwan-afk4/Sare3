@@ -150,12 +150,12 @@ class CouponManager extends Component
         $coupon = Coupon::findOrFail($id);
         
         if ($coupon->usages()->exists()) {
-            session()->flash('error', 'Cannot delete coupon that has been used.');
+            session()->flash('error', __('Cannot delete coupon that has been used.'));
             return;
         }
 
         $coupon->delete();
-        session()->flash('message', 'Coupon deleted successfully!');
+        session()->flash('message', __('Coupon deleted successfully!'));
     }
 
     public function toggleStatus($id)

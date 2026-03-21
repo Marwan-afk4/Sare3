@@ -96,10 +96,17 @@
                                                     class="btn btn-sm btn-{{ $coupon->is_active ? 'warning' : 'success' }}">
                                                     <i class="fas fa-{{ $coupon->is_active ? 'pause' : 'play' }}"></i>
                                                 </button>
-                                                @if (!$coupon->usages_count)
-                                                    <button wire:click="deleteCoupon({{ $coupon->id }})"
+                                                @if ($coupon->usages_count)
+                                                    <button type="button" class="btn btn-sm btn-secondary" disabled
+                                                        title="{{ __('Cannot delete a coupon that has been used.') }}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                @else
+                                                    <button type="button"
+                                                        wire:click="deleteCoupon({{ $coupon->id }})"
+                                                        wire:confirm="{{ __('Are you sure you want to delete this coupon?') }}"
                                                         class="btn btn-sm btn-danger"
-                                                        onclick="return confirm('Are you sure you want to delete this coupon?')">
+                                                        title="{{ __('Delete') }}">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 @endif

@@ -102,9 +102,10 @@ class DriverCarController extends Controller
     {
         try {
             $driverCar->delete();
-            return redirect()->route('driver-cars.index')->with('success', __('Car deleted successfully.'));
+
+            return back()->with('success', __('Car deleted successfully.'));
         } catch (\Exception $e) {
-            return redirect()->route('driver-cars.index')->with('error', __('Failed to delete car. Please try again.'));
+            return back()->with('error', __('Failed to delete car. Please try again.'));
         }
     }
 }
