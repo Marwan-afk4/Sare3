@@ -987,5 +987,11 @@
     "The selected Document Type is invalid.": "نوع المستند المحدد غير صالح.",
     "Please upload a document image.": "يرجى رفع صورة المستند.",
     "The file must be an image.": "يجب أن يكون الملف صورة.",
-    "Deduction": "الخصم"
+    "Deduction": "الخصم",
+    "Main": "الرئيسية",
+    "People": "الناس",
+    "Operations": "العمليات",
+    "Fleet": "الأسطول",
+    "Finance": "المالية",
+    "Configuration": "الإعدادات"
 }

@@ -527,35 +527,27 @@
         "10": "resources\/views\/users\/show.blade.php"
     },
     "Employees": [
-        "resources\/views\/elements\/phoenix\/sidebar.blade.php",
         "resources\/views\/elements\/sidebar.blade.php"
     ],
     "Suppliers": [
-        "resources\/views\/elements\/phoenix\/sidebar.blade.php",
         "resources\/views\/elements\/sidebar.blade.php"
     ],
     "Clients": [
-        "resources\/views\/elements\/phoenix\/sidebar.blade.php",
         "resources\/views\/elements\/sidebar.blade.php"
     ],
     "Order Channels": [
-        "resources\/views\/elements\/phoenix\/sidebar.blade.php",
         "resources\/views\/elements\/sidebar.blade.php"
     ],
     "Delivery Vehicles": [
-        "resources\/views\/elements\/phoenix\/sidebar.blade.php",
         "resources\/views\/elements\/sidebar.blade.php"
     ],
     "Delivery Agents": [
-        "resources\/views\/elements\/phoenix\/sidebar.blade.php",
         "resources\/views\/elements\/sidebar.blade.php"
     ],
     "Delivery Orders": [
-        "resources\/views\/elements\/phoenix\/sidebar.blade.php",
         "resources\/views\/elements\/sidebar.blade.php"
     ],
     "Supplier Product Lists": [
-        "resources\/views\/elements\/phoenix\/sidebar.blade.php",
         "resources\/views\/elements\/sidebar.blade.php"
     ],
     "Complains": [
@@ -2828,11 +2820,11 @@
     ],
     "Coupon Management": [
         "resources\/views\/admin\/coupons\/index.blade.php",
-        "resources\/views\/elements\/phoenix\/sidebar.blade.php",
         "resources\/views\/livewire\/coupon-manager.blade.php"
     ],
     "Coupons": [
-        "resources\/views\/admin\/coupons\/index.blade.php"
+        "resources\/views\/admin\/coupons\/index.blade.php",
+        "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     ],
     "Chat with": [
         "resources\/views\/livewire\/chat.blade.php"
@@ -4169,5 +4161,23 @@
     ],
     "Deduction": [
         "app\/Enums\/WalletRequestType.php"
+    ],
+    "Main": [
+        "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    ],
+    "People": [
+        "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    ],
+    "Operations": [
+        "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    ],
+    "Fleet": [
+        "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    ],
+    "Finance": [
+        "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    ],
+    "Configuration": [
+        "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     ]
 }
