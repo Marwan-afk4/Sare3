@@ -201,7 +201,7 @@
                     <th class="text-center">{{ __('Actions') }}</th>
                 </tr>
                 @foreach ($drivers as $driver)
-                    <tr>
+                    <tr class="{{ $driver->status->value === 'pending' ? 'driver-row-pending' : '' }}">
                         <td>{{ $driver->id }}</td>
                         <td>{{ $driver->name ?? '-' }}</td>
                         <td>{{ $driver->email ?? '-' }}</td>
@@ -258,3 +258,20 @@
         </div>
     </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Pending driver row: soft amber highlight */
+    tr.driver-row-pending {
+        background-color: rgba(251, 191, 36, 0.12) !important;
+        border-left: 3px solid #FBBF24;
+        transition: background-color 0.3s ease;
+    }
+    tr.driver-row-pending:hover {
+        background-color: rgba(251, 191, 36, 0.22) !important;
+    }
+    tr.driver-row-pending td:first-child {
+        position: relative;
+    }
+</style>
+@endpush
