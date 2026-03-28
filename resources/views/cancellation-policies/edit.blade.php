@@ -51,12 +51,14 @@
 					type="number"
 					label="{{__('Penalty Amount')}}"
 					:value="$cancellationPolicy->penalty_amount ?? ''"
+					:attrs="['step' => 'any', 'min' => '0']"
 				/>
 				<x-form-input
 					name="penalty_percent"
 					type="number"
 					label="{{__('Penalty Percent')}}"
 					:value="$cancellationPolicy->penalty_percent ?? ''"
+					:attrs="['step' => 'any', 'min' => '0']"
 				/>
 				<x-form-textarea
 					name="description"
