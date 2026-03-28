@@ -44,11 +44,13 @@
 					name="penalty_amount"
 					type="number"
 					label="{{__('Penalty Amount')}}"
+					:attrs="['step' => 'any', 'min' => '0']"
 				/>
 				<x-form-input
 					name="penalty_percent"
-					type="text"
+					type="number"
 					label="{{__('Penalty Percent')}}"
+					:attrs="['step' => 'any', 'min' => '0']"
 				/>
 				<x-form-textarea
 					name="description"
