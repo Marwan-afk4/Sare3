@@ -94,12 +94,10 @@ class AuthController extends Controller
         );
 
         $exists = $user->wasRecentlyCreated ? false : true;
-        $token  = $exists ? $user->createToken('auth_token')->plainTextToken : null;
 
         return response()->json([
             'message' => $exists ? 'OTP sent for login' : 'OTP sent for signup',
             'isLogin' => $exists,
-            'token'   => $token,
         ]);
     }
 
@@ -141,8 +139,11 @@ class AuthController extends Controller
             'otp_expires_at' => null,
         ]);
 
+        $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
             'message' => 'Phone number verified successfully',
+            'token'   => $token,
         ]);
     }
 

@@ -84,13 +84,10 @@ class AuthController extends Controller
         );
 
         $exists = $user->wasRecentlyCreated ? false : true;
-        // Instruction: if the user excist and isLogin": true create token
-        $token  = $exists ? $user->createToken('auth_token')->plainTextToken : null;
 
         return response()->json([
             'message' => $exists ? 'OTP sent for login' : 'OTP sent for signup',
             'isLogin' => $exists,
-            'token'   => $token,
         ]);
     }
 
