@@ -59,8 +59,10 @@ class AuthController extends Controller
             ]
         );
 
+        $userLimit = $user->otp_limit > 0 ? $user->otp_limit : ($defaultOtpLimit ?? 5);
+
         // Check OTP limit
-        if ($user->otp_used >= $user->otp_limit) {
+        if ($user->otp_used >= $userLimit) {
             return response()->json([
                 'message' => 'You have reached your OTP limit. Please contact support.',
             ], 429);
@@ -70,6 +72,7 @@ class AuthController extends Controller
             'otp_code'       => $otpCode,
             'otp_expires_at' => now()->addMinutes(10),
             'otp_used'       => $user->otp_used + 1,
+            'otp_limit'      => $userLimit,
         ]);
 
         SendWhatsappMessage::dispatchSync(
@@ -140,19 +143,22 @@ class AuthController extends Controller
 
         $user = User::where('phone', $request->phone)->first();
 
-        $otpCode = rand(100000, 999999);
+        $defaultOtpLimit = OtpLimit::where('type', 'driver')->value('otp_limit') ?? 5;
+        $userLimit = $user->otp_limit > 0 ? $user->otp_limit : $defaultOtpLimit;
 
         // Check OTP limit
-        if ($user->otp_used >= $user->otp_limit) {
+        if ($user->otp_used >= $userLimit) {
             return response()->json([
                 'message' => 'You have reached your OTP limit. Please contact support.',
             ], 429);
         }
 
+        $otpCode = rand(100000, 999999);
         $user->update([
             'otp_code'       => $otpCode,
             'otp_expires_at' => now()->addMinutes(10),
             'otp_used'       => $user->otp_used + 1,
+            'otp_limit'      => $userLimit,
         ]);
 
         SendWhatsappMessage::dispatchSync(
