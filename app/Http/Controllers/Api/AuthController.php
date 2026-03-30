@@ -3,199 +3,174 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendWhatsappMessage;
 use App\Mail\EmailVerificationCode;
 use App\Models\OtpLimit;
-use App\Models\Referral;
 use App\Models\User;
-use App\trait\twilio;
 use Google_Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-    use twilio;
+    // ===================== WP OTP (Phone Verification) =====================
 
-    // public function postOtp(Request $request)
-    // {
-    //     $validation = Validator::make($request->all(), [
-    //         'phone' => 'required|string'
-    //     ]);
-
-    //     if ($validation->fails()) {
-    //         return response()->json([
-    //             'message' => $validation->errors()->first()
-    //         ], 200);
-    //     }
-    //     $this->sendOtp($request->phone);
-
-    //     $exists = User::where('phone', $request->phone)->exists();
-
-    //     return response()->json([
-    //         'message' => $exists ? 'Otp sent for login' : 'Otp sent for signup'
-    //     ]);
-    // }
-
-    // public function CheckOtp(Request $request)
-    // {
-    //     $validation = Validator::make($request->all(), [
-    //         'phone' => 'required|string',
-    //         'code' => 'required|string',
-    //         'email' => 'nullable|email|exists:users,email'
-    //     ]);
-
-    //     if ($validation->fails()) {
-    //         return response()->json([
-    //             'message' => $validation->errors()->first()
-    //         ], 422);
-    //     }
-
-    //     // Step 1: Verify OTP
-    //     $verification = $this->verifyOtp($request->phone, $request->code);
-
-    //     if ($verification->status !== 'approved') {
-    //         return response()->json([
-    //             'message' => 'OTP verification failed, try again'
-    //         ], 422);
-    //     }
-
-    //     $user = null;
-
-    //     // Step 2: Handle case when email is provided (user started with email first)
-    //     if ($request->filled('email')) {
-    //         $user = User::where('email', $request->email)->first();
-
-    //         if (!$user) {
-    //             return response()->json([
-    //                 'message' => 'Email not found'
-    //             ], 404);
-    //         }
-
-    //         // If phone is already used by another user (avoid duplicate phone numbers)
-    //         $phoneUsedByAnother = User::where('phone', $request->phone)
-    //                                 ->where('id', '!=', $user->id)
-    //                                 ->exists();
-
-    //         if ($phoneUsedByAnother) {
-    //             return response()->json([
-    //                 'message' => 'Phone number already used by another account'
-    //             ], 409);
-    //         }
-
-    //         // Attach phone to existing email user
-    //         $user->phone = $request->phone;
-    //         $user->save();
-    //     }
-
-    //     // Step 3: If email is not provided, login/register using phone
-    //     if (!$user) {
-    //         $user = User::firstOrCreate(['phone' => $request->phone]);
-    //     }
-
-    //     $token = $user->createToken('auth_token')->plainTextToken;
-
-    //     return response()->json([
-    //         'message' => 'OTP verified successfully',
-    //         'token' => $token,
-    //         'user' => $user
-    //     ]);
-    // }
-
-    public function phoneVerified(Request $request)
+    /**
+     * Send OTP via WhatsApp for user registration / first-time phone verification.
+     */
+    public function sendOtp(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            'phone' => 'required|string',
-            'id_token' => 'required|string',
-            'email' => 'nullable|email'
+            // Must be international format: country code + number, no leading 0 or +
+            // Examples: 9627XXXXXXXX (Jordan), 201XXXXXXXXX (Egypt), 9641XXXXXXXXX (Iraq)
+            'phone' => ['required', 'string', 'regex:/^[1-9][0-9]{6,14}$/'],
+        ], [
+            'phone.regex' => 'Phone must be in international format without + (e.g. 9627XXXXXXXX for Jordan, 201XXXXXXXXX for Egypt)',
         ]);
 
         if ($validation->fails()) {
             return response()->json([
-                'message' => $validation->errors()->first()
-            ], 401);
+                'message' => $validation->errors()->first(),
+            ], 422);
         }
 
-        $user = null;
-
-        // ✅ لو جاي Email
-        if ($request->filled('email')) {
-            $user = User::where('email', $request->email)->first();
-
-            if (!$user) {
-                return response()->json([
-                    'message' => 'Email not found'
-                ], 404);
-            }
-
-            // تأكد إن الرقم مش مستخدم في حساب تاني
-            $phoneUsedByAnother = User::where('phone', $request->phone)
-                                    ->where('id', '!=', $user->id)
-                                    ->exists();
-
-            if ($phoneUsedByAnother) {
-                return response()->json([
-                    'message' => 'Phone number already used by another account'
-                ], 409);
-            }
-
-            // تحديث بيانات اليوزر الحالي
-            $user->phone = $request->phone;
-            $user->id_token = $request->id_token;
-            $user->save();
-
-            // ✅ Generate token
-            $token = $user->createToken('auth_token')->plainTextToken;
-
-            return response()->json([
-                'message' => 'Phone number linked to your account successfully',
-                'token'=> $token,
-                'user_otp_limit' => $user->otp_limit,
-            ]);
-        }
-
-        // ✅ لو مفيش إيميل → شوف التليفون
-        $existingUser = User::where('phone', $request->phone)->first();
-        if ($existingUser) {
-            $token = $existingUser->createToken('auth_token')->plainTextToken;
-            return response()->json([
-                'message' => 'Phone number already used',
-                'token'=> $token,
-                'user_otp_limit' => $existingUser->otp_limit,
-            ], 409);
-        }
-
-        // ❌ الرقم مش موجود → نعمل يوزر جديد
+        $otpCode = rand(100000, 999999);
         $defaultOtpLimit = OtpLimit::where('type', 'user')->value('otp_limit');
 
-        $user = User::create([
-            'phone' => $request->phone,
-            'id_token' => $request->id_token,
-            'role' => 'user',
-            'otp_limit' => $defaultOtpLimit ?? 5,
+        // Find or create user
+        $user = User::firstOrCreate(
+            ['phone' => $request->phone],
+            [
+                'role'          => 'user',
+                'otp_limit'     => $defaultOtpLimit ?? 5,
+                'phone_verified' => false,
+            ]
+        );
+
+        // Check OTP limit
+        if ($user->otp_used >= $user->otp_limit) {
+            return response()->json([
+                'message' => 'You have reached your OTP limit. Please contact support.',
+            ], 429);
+        }
+
+        $user->update([
+            'otp_code'       => $otpCode,
+            'otp_expires_at' => now()->addMinutes(10),
+            'otp_used'       => $user->otp_used + 1,
         ]);
 
-        // ✅ Generate token بعد ما يبقى عندنا يوزر فعلي
+        SendWhatsappMessage::dispatchSync(
+            $user->phone,
+            'رمز التحقق الخاص بك هو: ' . $otpCode
+        );
+
+        $exists = $user->wasRecentlyCreated ? false : true;
+
+        return response()->json([
+            'message' => $exists ? 'OTP sent for login' : 'OTP sent for signup',
+        ]);
+    }
+
+    /**
+     * Verify OTP and log the user in (or create account).
+     */
+    public function verifyOtp(Request $request)
+    {
+        $validation = Validator::make($request->all(), [
+            'phone'    => 'required|string|exists:users,phone',
+            'otp_code' => 'required|string',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json([
+                'message' => $validation->errors()->first(),
+            ], 422);
+        }
+
+        $user = User::where('phone', $request->phone)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        if ($user->otp_code !== $request->otp_code) {
+            return response()->json(['message' => 'Invalid OTP code'], 422);
+        }
+
+        if (now()->isAfter($user->otp_expires_at)) {
+            return response()->json(['message' => 'OTP has expired. Please request a new one.'], 422);
+        }
+
+        $user->update([
+            'phone_verified' => true,
+            'otp_code'       => null,
+            'otp_expires_at' => null,
+        ]);
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Phone number verified successfully',
-            'token'=> $token,
+            'message'        => 'OTP verified successfully',
+            'token'          => $token,
             'user_otp_limit' => $user->otp_limit,
         ]);
     }
 
+    /**
+     * Resend OTP via WhatsApp.
+     */
+    public function resendOtp(Request $request)
+    {
+        $validation = Validator::make($request->all(), [
+            'phone' => 'required|string|exists:users,phone',
+        ]);
 
+        if ($validation->fails()) {
+            return response()->json([
+                'message' => $validation->errors()->first(),
+            ], 422);
+        }
+
+        $user = User::where('phone', $request->phone)->first();
+
+        // Check OTP limit
+        if ($user->otp_used >= $user->otp_limit) {
+            return response()->json([
+                'message' => 'You have reached your OTP limit. Please contact support.',
+            ], 429);
+        }
+
+        $otpCode = rand(100000, 999999);
+        $user->update([
+            'otp_code'       => $otpCode,
+            'otp_expires_at' => now()->addMinutes(10),
+            'otp_used'       => $user->otp_used + 1,
+        ]);
+
+        SendWhatsappMessage::dispatchSync(
+            $user->phone,
+            'رمز التحقق الخاص بك هو: ' . $otpCode
+        );
+
+        return response()->json([
+            'message' => 'A new OTP has been sent to your WhatsApp.',
+        ]);
+    }
+
+    // ===================== Email Verification =====================
 
     public function sendEmailVerificationCode(Request $request)
     {
         $validation = Validator::make($request->all(), [
             'phone' => 'nullable|string|exists:users,phone',
-            'email' => 'nullable|email|unique:users,email'
+            'email' => 'nullable|email|unique:users,email',
         ]);
         if ($validation->fails()) {
             return response()->json([
-                'message' => $validation->errors()->first()
+                'message' => $validation->errors()->first(),
             ], 401);
         }
         $user = User::where('phone', $request->phone)->first();
@@ -207,8 +182,9 @@ class AuthController extends Controller
             $user->email = $request->email;
             $user->save();
             Mail::to($request->email)->send(new EmailVerificationCode($code));
+
             return response()->json([
-                'message' => 'Email verification code sent successfully'
+                'message' => 'Email verification code sent successfully',
             ]);
         }
     }
@@ -218,40 +194,42 @@ class AuthController extends Controller
         $validation = Validator::make($request->all(), [
             'phone' => 'nullable|string|exists:users,phone',
             'email' => 'required|email|exists:users,email',
-            'code' => 'required|integer'
+            'code'  => 'required|integer',
         ]);
         if ($validation->fails()) {
             return response()->json([
-                'message' => $validation->errors()->first()
+                'message' => $validation->errors()->first(),
             ], 401);
         }
         $user = User::where('phone', $request->phone)->first();
         if ($user->email_code == $request->code) {
             $user->email_verified = 'verified';
             $user->email = $request->email;
-            $user->email_code = null; // Clear the code after verification
+            $user->email_code = null;
             $user->save();
+
             return response()->json([
-                'message' => 'Email verified successfully'
+                'message' => 'Email verified successfully',
             ]);
         }
+
         return response()->json([
-            'message' => 'Email verification code is incorrect'
+            'message' => 'Email verification code is incorrect',
         ], 401);
     }
 
     public function Postname(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            'phone' => 'required|string|exists:users,phone',
-            'name' => 'required|string|max:255',
-            'gender' => 'nullable|string|in:male,female',
-            'fcm_token' => 'required|string'
+            'phone'     => 'required|string|exists:users,phone',
+            'name'      => 'required|string|max:255',
+            'gender'    => 'nullable|string|in:male,female',
+            'fcm_token' => 'required|string',
         ]);
 
         if ($validation->fails()) {
             return response()->json([
-                'message' => $validation->errors()->first()
+                'message' => $validation->errors()->first(),
             ], 401);
         }
 
@@ -260,32 +238,34 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         if ($user) {
-            $user->name = $request->name;
-            $user->role = 'user';
-            $user->activity = 'active';
-            $user->gender = $request->gender ?? null;
+            $user->name      = $request->name;
+            $user->role      = 'user';
+            $user->activity  = 'active';
+            $user->gender    = $request->gender ?? null;
             $user->fcm_token = $request->fcm_token;
-            $user->wallet = 0; // Initialize wallet to 0
+            $user->wallet    = 0;
             $user->save();
+
             return response()->json([
-                'token' => $token,
+                'token'   => $token,
                 'message' => 'You can login now',
             ]);
         }
+
         return response()->json([
-            'message' => 'User not found'
+            'message' => 'User not found',
         ], 401);
     }
 
     public function emailVerficationFirst(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            'email' => 'required|email'
+            'email' => 'required|email',
         ]);
 
         if ($validation->fails()) {
             return response()->json([
-                'message' => $validation->errors()->first()
+                'message' => $validation->errors()->first(),
             ], 401);
         }
 
@@ -294,35 +274,32 @@ class AuthController extends Controller
 
         if ($existingUser) {
             if ($existingUser->email_verified == 'unverified') {
-                // Resend verification code
                 $existingUser->update([
-                    'email_code' => $code,
+                    'email_code'     => $code,
                     'email_verified' => 'unverified',
                 ]);
-
                 Mail::to($existingUser->email)->send(new EmailVerificationCode($code));
 
                 return response()->json([
                     'message' => 'Verification code resent. Please check your email.',
                 ]);
             } else {
-                // Email already verified, proceed to login or notify
                 Mail::to($existingUser->email)->send(new EmailVerificationCode($code));
                 $existingUser->update([
-                    'email_code' => $code,
+                    'email_code'     => $code,
                     'email_verified' => 'unverified',
                 ]);
+
                 return response()->json([
                     'message' => "Email already verified. You can login but we will send to verify it's you",
                 ]);
             }
         }
 
-        // Email doesn't exist, create new user and send verification
         $user = User::create([
-            'email' => $request->email,
-            'role' => 'user',
-            'email_code' => $code,
+            'email'          => $request->email,
+            'role'           => 'user',
+            'email_code'     => $code,
             'email_verified' => 'unverified',
         ]);
 
@@ -333,12 +310,11 @@ class AuthController extends Controller
         ]);
     }
 
-
     public function verifyEmailFirst(Request $request)
     {
         $validation = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
-            'code' => 'required'
+            'code'  => 'required',
         ]);
 
         if ($validation->fails()) {
@@ -353,36 +329,35 @@ class AuthController extends Controller
 
         $user->update([
             'email_verified' => 'verified',
-            'email_code' => null,
-            'activity' => 'active',
+            'email_code'     => null,
+            'activity'       => 'active',
         ]);
 
-        // Check if user has phone number to generate token (means login)
         if ($user->phone) {
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
                 'message' => 'Email verified successfully you can login now',
-                'token' => $token,
+                'token'   => $token,
             ]);
         }
 
-        // No phone number yet, so just return verification success without token
         return response()->json([
             'message' => 'Email verified successfully, please verify your phone number to complete login.',
-            'user' => $user,
+            'user'    => $user,
         ]);
     }
 
+    // ===================== Google Auth =====================
 
     public function googleAuth(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            'id_token' => 'required|string'
+            'id_token' => 'required|string',
         ]);
         if ($validation->fails()) {
             return response()->json([
-                'message' => $validation->errors()->first()
+                'message' => $validation->errors()->first(),
             ], 401);
         }
 
@@ -391,59 +366,63 @@ class AuthController extends Controller
 
         if (!$payload) {
             return response()->json([
-                'message' => 'Invalid Google ID token'
+                'message' => 'Invalid Google ID token',
             ], 401);
         }
 
-        $email = $payload['email'];
-        $name = $payload['name'];
+        $email    = $payload['email'];
+        $name     = $payload['name'];
         $googleId = $payload['sub'];
 
         $user = User::where('email', $email)->first();
 
         if ($user) {
-            // User exists, log in and return token
             $token = $user->createToken('google_token')->plainTextToken;
 
             return response()->json([
                 'message' => 'This account already exists, you can log in now.',
-                'token' => $token,
-                'user' => $user
+                'token'   => $token,
+                'user'    => $user,
             ]);
         }
 
         $user = User::create([
-            'email' => $email,
-            'name' => $name,
-            'id_token' => $googleId,
+            'email'          => $email,
+            'name'           => $name,
+            'id_token'       => $googleId,
             'email_verified' => 'verified',
-            'role' => 'user'
+            'role'           => 'user',
         ]);
 
         $token = $user->createToken('google_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Google account registered successfully.',
-            'token' => $token,
-            'user' => $user
+            'token'   => $token,
+            'user'    => $user,
         ]);
     }
 
+    // ===================== Login (Password + WP OTP) =====================
+
+    /**
+     * Step 1: Validate credentials, send OTP via WhatsApp.
+     */
     public function login(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            'phone' => 'nullable|string|exists:users,phone',
-            'email' => 'nullable|email|exists:users,email',
-            'password' => 'required|string'
+            'phone'    => 'nullable|string|exists:users,phone',
+            'email'    => 'nullable|email|exists:users,email',
+            'password' => 'required|string',
         ]);
 
         if ($validation->fails()) {
             return response()->json([
-                'message' => $validation->errors()->first()
+                'message' => $validation->errors()->first(),
             ], 401);
         }
 
-        $user = User::where(function($q) use ($request) {
+        $user = User::where(function ($q) use ($request) {
             if ($request->filled('phone')) {
                 $q->where('phone', $request->phone);
             }
@@ -452,9 +431,9 @@ class AuthController extends Controller
             }
         })->first();
 
-        if (!$user || !password_verify($request->password, $user->password)) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
-                'message' => 'Invalid credentials'
+                'message' => 'Invalid credentials',
             ], 401);
         }
 
@@ -462,17 +441,19 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login successful',
-            'token' => $token,
-            'user' => $user
+            'token'   => $token,
+            'user'    => $user,
         ]);
     }
+
+    // ===================== Logout =====================
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Logout successful'
+            'message' => 'Logout successful',
         ]);
     }
 }

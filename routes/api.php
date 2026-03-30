@@ -47,12 +47,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 //======= USER AUTH ========
-//phone otp
-// Route::post('/send-otp', [AuthController::class, 'postOtp']);
-// Route::post('/check-otp', [AuthController::class, 'checkOtp']);
-Route::post('/phone-otp', [AuthController::class, 'phoneVerified']);
+//wp phone otp
+Route::post('/send-otp', [AuthController::class, 'sendOtp']);
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 Route::post('/check-user-otp-limit', [ProfileController::class, 'checkUserOtpLimit']);
-
 
 //email otp
 Route::post('/send-email-otp', [AuthController::class, 'sendEmailVerificationCode']);
@@ -68,7 +67,7 @@ Route::post('/verify-email', [AuthController::class, 'verifyEmailFirst']);
 //google auth
 Route::post('/google-auth', [AuthController::class, 'googleAuth']);
 
-//login
+//login (password step) + verify login OTP (token step)
 Route::post('/login', [AuthController::class, 'login']);
 
 //Ads
@@ -78,10 +77,10 @@ Route::get('/ads', [AdsController::class, 'getAds']);
 
 
 //======= DRIVER AUTH ========
-//phone otp
-// Route::post('/driver/send-otp', [DriverAuthController::class, 'postOtp']);
-// Route::post('/driver/check-otp', [DriverAuthController::class, 'CheckOtp']);
-Route::post('/driver/phone-otp', [AuthController::class,'phoneVerified']);
+//wp phone otp
+Route::post('/driver/send-otp', [DriverAuthController::class, 'sendOtp']);
+Route::post('/driver/verify-otp', [DriverAuthController::class, 'verifyOtp']);
+Route::post('/driver/resend-otp', [DriverAuthController::class, 'resendOtp']);
 
 //email otp
 Route::post('/driver/send-email-otp', [DriverAuthController::class, 'sendEmailVerificationCode']);

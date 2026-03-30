@@ -49,7 +49,10 @@ class User extends Authenticatable
         'is_referrer',
         'referral_code',
         'zone_id',
-        'pending_coupon_id'
+        'pending_coupon_id',
+        'otp_code',
+        'otp_expires_at',
+        'phone_verified',
     ];
 
     protected $casts = [
