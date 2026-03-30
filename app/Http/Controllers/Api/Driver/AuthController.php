@@ -82,8 +82,11 @@ class AuthController extends Controller
             'رمز التحقق الخاص بك هو: ' . $otpCode
         );
 
+        $exists = $user->wasRecentlyCreated ? false : true;
+
         return response()->json([
-            'message' => 'OTP sent to your WhatsApp.',
+            'message' => $exists ? 'OTP sent for login' : 'OTP sent for signup',
+            'isLogin' => $exists,
         ]);
     }
 

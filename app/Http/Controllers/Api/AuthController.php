@@ -76,6 +76,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => $exists ? 'OTP sent for login' : 'OTP sent for signup',
+            'isLogin' => $exists,
         ]);
     }
 
