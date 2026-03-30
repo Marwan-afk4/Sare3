@@ -22,12 +22,14 @@ class AuthController extends Controller
      */
     public function sendOtp(Request $request)
     {
+        $this->normalizePhoneRequest($request);
+
         $validation = Validator::make($request->all(), [
-            // Must be international format: country code + number, no leading 0 or +
-            // Examples: 9627XXXXXXXX (Jordan), 201XXXXXXXXX (Egypt), 9641XXXXXXXXX (Iraq)
-            'phone' => ['required', 'string', 'regex:/^[1-9][0-9]{6,14}$/'],
+            // Must be international format: country code + number, with optional leading +
+            // Examples: +9627XXXXXXXX (Jordan), 201XXXXXXXXX (Egypt), +9641XXXXXXXXX (Iraq)
+            'phone' => ['required', 'string', 'regex:/^\+?[1-9][0-9]{6,14}$/'],
         ], [
-            'phone.regex' => 'Phone must be in international format without + (e.g. 9627XXXXXXXX for Jordan, 201XXXXXXXXX for Egypt)',
+            'phone.regex' => 'Phone must be in international format (e.g. +9627XXXXXXXX for Jordan, +201XXXXXXXXX for Egypt)',
         ]);
 
         if ($validation->fails()) {
@@ -82,6 +84,8 @@ class AuthController extends Controller
      */
     public function verifyOtp(Request $request)
     {
+        $this->normalizePhoneRequest($request);
+
         $validation = Validator::make($request->all(), [
             'phone'    => 'required|string|exists:users,phone',
             'otp_code' => 'required|string',
@@ -127,6 +131,8 @@ class AuthController extends Controller
      */
     public function resendOtp(Request $request)
     {
+        $this->normalizePhoneRequest($request);
+
         $validation = Validator::make($request->all(), [
             'phone' => 'required|string|exists:users,phone',
         ]);
@@ -171,6 +177,8 @@ class AuthController extends Controller
 
     public function sendEmailVerificationCode(Request $request)
     {
+        $this->normalizePhoneRequest($request);
+
         $validation = Validator::make($request->all(), [
             'phone' => 'nullable|string|exists:users,phone',
             'email' => 'nullable|email|unique:users,email',
@@ -198,6 +206,8 @@ class AuthController extends Controller
 
     public function verifyEmailCode(Request $request)
     {
+        $this->normalizePhoneRequest($request);
+
         $validation = Validator::make($request->all(), [
             'phone' => 'nullable|string|exists:users,phone',
             'email' => 'required|email|exists:users,email',
@@ -227,6 +237,8 @@ class AuthController extends Controller
 
     public function Postname(Request $request)
     {
+        $this->normalizePhoneRequest($request);
+
         $validation = Validator::make($request->all(), [
             'phone'     => 'required|string|exists:users,phone',
             'name'      => 'required|string|max:255',
@@ -417,6 +429,8 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
+        $this->normalizePhoneRequest($request);
+
         $validation = Validator::make($request->all(), [
             'phone'    => 'nullable|string|exists:users,phone',
             'email'    => 'nullable|email|exists:users,email',

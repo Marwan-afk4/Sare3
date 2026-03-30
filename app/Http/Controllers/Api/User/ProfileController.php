@@ -96,6 +96,8 @@ class ProfileController extends Controller
     //check user or driver otp limit
     public function checkUserOtpLimit(Request $request)
     {
+        $this->normalizePhoneRequest($request);
+
         $validation = Validator::make($request->all(), [
             'phone' => 'required|string',
         ]);
