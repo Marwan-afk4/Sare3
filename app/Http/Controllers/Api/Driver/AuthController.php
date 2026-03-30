@@ -34,11 +34,10 @@ class AuthController extends Controller
         $this->normalizePhoneRequest($request);
 
         $validation = Validator::make($request->all(), [
-            // Must be international format: country code + number, with optional leading +
-            // Examples: +9627XXXXXXXX (Jordan), 201XXXXXXXXX (Egypt), +9641XXXXXXXXX (Iraq)
+            // Must be international format with or without +
             'phone' => ['required', 'string', 'regex:/^\+?[1-9][0-9]{6,14}$/'],
         ], [
-            'phone.regex' => 'Phone must be in international format (e.g. +9627XXXXXXXX for Jordan, +201XXXXXXXXX for Egypt)',
+            'phone.regex' => 'Phone must be in international format (e.g. +9627XXXXXXXX or 9627XXXXXXXX)',
         ]);
 
         if ($validation->fails()) {
@@ -48,18 +47,30 @@ class AuthController extends Controller
         }
 
         $otpCode = rand(100000, 999999);
-
         $defaultOtpLimit = OtpLimit::where('type', 'driver')->value('otp_limit');
+        $phone = $request->phone;
+        $rawPhone = ltrim($phone, '+');
 
-        $user = User::firstOrCreate(
-            ['phone' => $request->phone],
-            [
+        // Robust lookup to handle transition to '+' prefix and avoid duplicate accounts
+        $user = User::where('phone', $phone)
+                    ->orWhere('phone', $rawPhone)
+                    ->first();
+
+        if ($user) {
+            // Ensure user has the standardized phone format with '+'
+            if ($user->phone !== $phone) {
+                $user->update(['phone' => $phone]);
+            }
+        } else {
+            // Create new driver account
+            $user = User::create([
+                'phone'          => $phone,
                 'role'           => 'driver',
                 'otp_limit'      => $defaultOtpLimit ?? 5,
                 'activity'       => 'in_progress',
                 'phone_verified' => false,
-            ]
-        );
+            ]);
+        }
 
         $userLimit = $user->otp_limit > 0 ? $user->otp_limit : ($defaultOtpLimit ?? 5);
 
@@ -83,10 +94,12 @@ class AuthController extends Controller
         );
 
         $exists = $user->wasRecentlyCreated ? false : true;
+        $token  = $exists ? $user->createToken('auth_token')->plainTextToken : null;
 
         return response()->json([
             'message' => $exists ? 'OTP sent for login' : 'OTP sent for signup',
             'isLogin' => $exists,
+            'token'   => $token,
         ]);
     }
 
@@ -142,6 +155,8 @@ class AuthController extends Controller
 
         $validation = Validator::make($request->all(), [
             'phone' => 'required|string|exists:users,phone',
+        ], [
+            'phone.exists' => 'No account found with this phone number.',
         ]);
 
         if ($validation->fails()) {
@@ -150,7 +165,21 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $user = User::where('phone', $request->phone)->first();
+        $phone = $request->phone;
+        $rawPhone = ltrim($phone, '+');
+        $user = User::where('phone', $phone)
+                    ->orWhere('phone', $rawPhone)
+                    ->first();
+
+        if ($user && $user->phone !== $phone) {
+            $user->update(['phone' => $phone]);
+        }
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'No account found with this phone number.',
+            ], 422);
+        }
 
         $defaultOtpLimit = OtpLimit::where('type', 'driver')->value('otp_limit') ?? 5;
         $userLimit = $user->otp_limit > 0 ? $user->otp_limit : $defaultOtpLimit;
@@ -190,12 +219,17 @@ class AuthController extends Controller
             'phone' => 'nullable|string|exists:users,phone',
             'email' => 'nullable|email|unique:users,email',
         ]);
-        if ($validation->fails()) {
-            return response()->json([
-                'message' => $validation->errors()->first(),
-            ], 401);
+        $phone = $request->phone;
+        $rawPhone = ltrim($phone, '+');
+        $user = User::where('phone', $phone)
+                    ->orWhere('phone', $rawPhone)
+                    ->first();
+
+        // Update format if needed
+        if ($user && $user->phone !== $phone) {
+            $user->update(['phone' => $phone]);
         }
-        $user = User::where('phone', $request->phone)->first();
+
         $code = rand(100000, 999999);
         if ($user) {
             $user->email_code    = $code;
@@ -260,7 +294,16 @@ class AuthController extends Controller
                 'message' => $validation->errors()->first(),
             ], 401);
         }
-        $user = User::where('phone', $request->phone)->first();
+        $phone = $request->phone;
+        $rawPhone = ltrim($phone, '+');
+        $user = User::where('phone', $phone)
+                    ->orWhere('phone', $rawPhone)
+                    ->first();
+
+        if ($user && $user->phone !== $phone) {
+            $user->update(['phone' => $phone]);
+        }
+
         if ($user) {
             $user->name      = $request->name;
             $user->role      = 'driver';

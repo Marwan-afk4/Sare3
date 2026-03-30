@@ -106,17 +106,27 @@ class ProfileController extends Controller
             return response()->json($validation->errors(), 422);
         }
 
-        $user = User::where('phone', $request->phone)->first();
+        $phone = $request->phone;
+        $rawPhone = ltrim($phone, '+');
+        $user = User::where('phone', $phone)
+                    ->orWhere('phone', $rawPhone)
+                    ->first();
+
         $otpLimit = OtpLimit::where('type', 'user')->first();
 
         if (!$user) {
             return response()->json([
                 'message' => 'User not found.',
-                'remaining_otp' =>$otpLimit->otp_limit
+                'remaining_otp' => $otpLimit->otp_limit ?? 5
             ], 404);
         }
 
-        $remainingOtp = $user->otp_limit - $user->otp_used;
+        // Standardize format if matched legacy
+        if ($user->phone !== $phone) {
+            $user->update(['phone' => $phone]);
+        }
+
+        $remainingOtp = max(0, $user->otp_limit - $user->otp_used);
 
         return response()->json([
             'message' => 'User already exists.',

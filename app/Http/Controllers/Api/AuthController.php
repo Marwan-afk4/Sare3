@@ -25,11 +25,10 @@ class AuthController extends Controller
         $this->normalizePhoneRequest($request);
 
         $validation = Validator::make($request->all(), [
-            // Must be international format: country code + number, with optional leading +
-            // Examples: +9627XXXXXXXX (Jordan), 201XXXXXXXXX (Egypt), +9641XXXXXXXXX (Iraq)
+            // Must be international format with or without +
             'phone' => ['required', 'string', 'regex:/^\+?[1-9][0-9]{6,14}$/'],
         ], [
-            'phone.regex' => 'Phone must be in international format (e.g. +9627XXXXXXXX for Jordan, +201XXXXXXXXX for Egypt)',
+            'phone.regex' => 'Phone must be in international format (e.g. +9627XXXXXXXX or 9627XXXXXXXX)',
         ]);
 
         if ($validation->fails()) {
@@ -40,16 +39,28 @@ class AuthController extends Controller
 
         $otpCode = rand(100000, 999999);
         $defaultOtpLimit = OtpLimit::where('type', 'user')->value('otp_limit');
+        $phone = $request->phone;
+        $rawPhone = ltrim($phone, '+');
 
-        // Find or create user
-        $user = User::firstOrCreate(
-            ['phone' => $request->phone],
-            [
-                'role'          => 'user',
-                'otp_limit'     => $defaultOtpLimit ?? 5,
+        // Robust lookup to handle transition to '+' prefix and avoid duplicate accounts
+        $user = User::where('phone', $phone)
+                    ->orWhere('phone', $rawPhone)
+                    ->first();
+
+        if ($user) {
+            // Ensure user has the standardized phone format with '+'
+            if ($user->phone !== $phone) {
+                $user->update(['phone' => $phone]);
+            }
+        } else {
+            // Create new user account
+            $user = User::create([
+                'phone'          => $phone,
+                'role'           => 'user',
+                'otp_limit'      => $defaultOtpLimit ?? 5,
                 'phone_verified' => false,
-            ]
-        );
+            ]);
+        }
 
         $userLimit = $user->otp_limit > 0 ? $user->otp_limit : ($defaultOtpLimit ?? 5);
 
@@ -73,10 +84,13 @@ class AuthController extends Controller
         );
 
         $exists = $user->wasRecentlyCreated ? false : true;
+        // Instruction: if the user excist and isLogin": true create token
+        $token  = $exists ? $user->createToken('auth_token')->plainTextToken : null;
 
         return response()->json([
             'message' => $exists ? 'OTP sent for login' : 'OTP sent for signup',
             'isLogin' => $exists,
+            'token'   => $token,
         ]);
     }
 
@@ -144,7 +158,21 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $user = User::where('phone', $request->phone)->first();
+        $phone = $request->phone;
+        $rawPhone = ltrim($phone, '+');
+        $user = User::where('phone', $phone)
+                    ->orWhere('phone', $rawPhone)
+                    ->first();
+
+        if ($user && $user->phone !== $phone) {
+            $user->update(['phone' => $phone]);
+        }
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'No account found with this phone number.',
+            ], 422);
+        }
 
         $defaultOtpLimit = OtpLimit::where('type', 'user')->value('otp_limit') ?? 5;
         $userLimit = $user->otp_limit > 0 ? $user->otp_limit : $defaultOtpLimit;
