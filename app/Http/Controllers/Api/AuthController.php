@@ -269,7 +269,7 @@ class AuthController extends Controller
             'phone'     => 'required|string|exists:users,phone',
             'name'      => 'required|string|max:255',
             'gender'    => 'nullable|string|in:male,female',
-            'fcm_token' => 'required|string',
+            'fcm_token' => 'nullable|string',
         ]);
 
         if ($validation->fails()) {
@@ -287,7 +287,7 @@ class AuthController extends Controller
             $user->role      = 'user';
             $user->activity  = 'active';
             $user->gender    = $request->gender ?? null;
-            $user->fcm_token = $request->fcm_token;
+            $user->fcm_token = $request->input('fcm_token', $user->fcm_token);
             $user->wallet    = 0;
             $user->save();
 
