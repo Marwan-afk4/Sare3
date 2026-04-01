@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Driver;
 
+use App\Enums\ActiveStatuses;
 use App\Http\Controllers\Controller;
 use App\Jobs\SendWhatsappMessage;
 use App\Mail\EmailVerificationCode;
@@ -109,7 +110,7 @@ class AuthController extends Controller
         $this->normalizePhoneRequest($request);
 
         $validation = Validator::make($request->all(), [
-            'phone'    => 'required|string|exists:users,phone',
+            'phone'    => 'required|string',
             'otp_code' => 'required|string',
         ]);
 
@@ -119,10 +120,19 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $user = User::where('phone', $request->phone)->first();
+        $phone = $request->phone;
+        $rawPhone = ltrim($phone, '+');
+        $user = User::where('phone', $phone)
+                    ->orWhere('phone', $rawPhone)
+                    ->first();
 
         if (!$user) {
             return response()->json(['message' => 'Driver not found'], 404);
+        }
+
+        // Standardize format
+        if ($user->phone !== $phone) {
+            $user->update(['phone' => $phone]);
         }
 
         if ($user->otp_code !== $request->otp_code) {
@@ -155,9 +165,7 @@ class AuthController extends Controller
         $this->normalizePhoneRequest($request);
 
         $validation = Validator::make($request->all(), [
-            'phone' => 'required|string|exists:users,phone',
-        ], [
-            'phone.exists' => 'No account found with this phone number.',
+            'phone' => 'required|string',
         ]);
 
         if ($validation->fails()) {
@@ -217,7 +225,7 @@ class AuthController extends Controller
         $this->normalizePhoneRequest($request);
 
         $validation = Validator::make($request->all(), [
-            'phone' => 'nullable|string|exists:users,phone',
+            'phone' => 'nullable|string',
             'email' => 'nullable|email|unique:users,email',
         ]);
         $phone = $request->phone;
@@ -252,7 +260,7 @@ class AuthController extends Controller
         $this->normalizePhoneRequest($request);
 
         $validation = Validator::make($request->all(), [
-            'phone' => 'nullable|string|exists:users,phone',
+            'phone' => 'nullable|string',
             'email' => 'required|email|exists:users,email',
             'code'  => 'required|integer',
         ]);
@@ -285,7 +293,7 @@ class AuthController extends Controller
         $this->normalizePhoneRequest($request);
 
         $validation = Validator::make($request->all(), [
-            'phone'     => 'required|string|exists:users,phone',
+            'phone'     => 'required|string',
             'name'      => 'required|string|max:255',
             'gender'    => 'nullable|string|in:male,female',
             'fcm_token' => 'required|string',
@@ -477,7 +485,7 @@ class AuthController extends Controller
         $this->normalizePhoneRequest($request);
 
         $validation = Validator::make($request->all(), [
-            'phone'        => 'required|string|exists:users,phone',
+            'phone'        => 'required|string',
             'selfie_image' => 'required|string',
             'documents'    => 'required|array',
             'documents.*'  => 'required',
@@ -489,33 +497,51 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $driver = User::where('phone', $request->phone)->first();
+        $phone = $request->phone;
+        $rawPhone = ltrim($phone, '+');
+        $driver = User::where('phone', $phone)
+                    ->orWhere('phone', $rawPhone)
+                    ->first();
 
         if (!$driver) {
             return response()->json([
-                'message' => 'User not found',
+                'message' => 'The selected phone is invalid.',
             ], 401);
         }
 
-        $requiredDocs = DocumentType::where('is_required', 1)->get();
-        $documents    = $request->input('documents');
+        // Ensure consistency
+        if ($driver->phone !== $phone) {
+            $driver->update(['phone' => $phone]);
+        }
 
+        $documents    = $request->input('documents');
+        $allDocs      = DocumentType::all();
+        $requiredDocs = $allDocs->where('is_required', ActiveStatuses::Active);
+
+        // 1. Verify all required documents are present
         foreach ($requiredDocs as $doc) {
             if (!isset($documents[$doc->id])) {
                 return response()->json([
                     'message' => 'missing document ' . $doc->name,
                 ], 401);
             }
+        }
 
-            $base64Image = $documents[$doc->id];
-            $path        = $this->storeBase64Image($base64Image, 'driver/documents');
+        // 2. Save all documents provided in the request
+        foreach ($documents as $docTypeId => $base64Image) {
+            $docType = $allDocs->find($docTypeId);
+            if (!$docType) {
+                continue; // Skip invalid document types
+            }
+
+            $path = $this->storeBase64Image($base64Image, 'driver/documents');
             if ($path === null) {
-                return response()->json(['errors' => 'Invalid base64 image string'], 400);
+                return response()->json(['errors' => "Invalid base64 image string for document: {$docType->name}"], 400);
             }
 
             DriverDocument::create([
                 'driver_id'        => $driver->id,
-                'document_type_id' => $doc->id,
+                'document_type_id' => $docType->id,
                 'image_path'       => $path,
             ]);
         }
@@ -536,7 +562,7 @@ class AuthController extends Controller
         $this->normalizePhoneRequest($request);
 
         $validation = Validator::make($request->all(), [
-            'phone'            => 'required|string|exists:users,phone',
+            'phone'            => 'required|string',
             'car_type_id'      => 'required|exists:car_types,id',
             'car_category_ids' => 'required|array|min:1',
             'car_category_ids.*' => 'integer|exists:car_categories,id',
@@ -553,12 +579,21 @@ class AuthController extends Controller
             ], 400);
         }
 
-        $driver = User::where('phone', $request->phone)->first();
+        $phone = $request->phone;
+        $rawPhone = ltrim($phone, '+');
+        $driver = User::where('phone', $phone)
+                    ->orWhere('phone', $rawPhone)
+                    ->first();
 
         if (!$driver) {
             return response()->json([
                 'message' => 'Driver not found',
             ], 404);
+        }
+
+        // Standardize format
+        if ($driver->phone !== $phone) {
+            $driver->update(['phone' => $phone]);
         }
 
         $carType              = CarType::with('carCategories')->find($request->car_type_id);
@@ -655,7 +690,7 @@ class AuthController extends Controller
         $this->normalizePhoneRequest($request);
 
         $validation = Validator::make($request->all(), [
-            'phone'    => 'nullable|string|exists:users,phone',
+            'phone'    => 'nullable|string',
             'email'    => 'nullable|email|exists:users,email',
             'password' => 'required|string',
         ]);
@@ -668,12 +703,19 @@ class AuthController extends Controller
 
         $user = User::where(function ($q) use ($request) {
             if ($request->filled('phone')) {
-                $q->where('phone', $request->phone);
+                $phone = $request->phone;
+                $rawPhone = ltrim($phone, '+');
+                $q->where('phone', $phone)
+                  ->orWhere('phone', $rawPhone);
             }
             if ($request->filled('email')) {
                 $q->orWhere('email', $request->email);
             }
         })->first();
+
+        if ($user && $request->filled('phone') && $user->phone !== $request->phone) {
+            $user->update(['phone' => $request->phone]);
+        }
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
