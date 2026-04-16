@@ -55,6 +55,7 @@ class Ride extends Model
         'driver_accept_lng',
         'driver_arrived_lat',
         'driver_arrived_lng',
+        'cancelled_before_accept',
     ];
 
     public $timestamps = true;
@@ -79,6 +80,7 @@ class Ride extends Model
         'driver_accept_lng' => 'float',
         'driver_arrived_lat' => 'float',
         'driver_arrived_lng' => 'float',
+        'cancelled_before_accept' => 'boolean',
     ];
 
     public function zone()
@@ -124,6 +126,45 @@ class Ride extends Model
     public function cancellationReason()
     {
         return $this->belongsTo(CancellationReason::class);
+    }
+
+    public function offers()
+    {
+        return $this->hasMany(RideOffer::class)->orderBy('offered_at');
+    }
+
+    public function acceptedOffer()
+    {
+        return $this->hasOne(RideOffer::class)->where('response', RideOffer::RESPONSE_ACCEPTED);
+    }
+
+    /**
+     * Rides the passenger cancelled before any captain accepted. Used by
+     * the admin dashboard's "cancelled before accept" filter.
+     */
+    public function scopeCancelledBeforeAccept($query)
+    {
+        return $query->where('cancelled_before_accept', true);
+    }
+
+    /**
+     * Rides where the accepting captain took longer than $seconds to
+     * accept. Powers the admin dashboard "accepted after long time" filter.
+     */
+    public function scopeAcceptedAfterSeconds($query, int $seconds)
+    {
+        return $query->whereHas('offers', function ($q) use ($seconds) {
+            $q->where('response', RideOffer::RESPONSE_ACCEPTED)
+                ->where('response_seconds', '>=', $seconds);
+        });
+    }
+
+    /**
+     * Rides that were offered to at least $min distinct captains.
+     */
+    public function scopeOfferedToAtLeast($query, int $min)
+    {
+        return $query->whereHas('offers', function ($q) {}, '>=', $min);
     }
 
     /**

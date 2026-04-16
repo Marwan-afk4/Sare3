@@ -9,6 +9,7 @@ use App\Models\CancelationRide as ModelsCancelationRide;
 use App\Models\CancellationPolicy;
 use App\Models\Ride;
 use App\Models\Transaction;
+use App\Services\RideOfferService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -112,8 +113,23 @@ class CancelationRide extends Controller
             }
         }
 
+        // Flag the ride if the passenger gave up while the request was still
+        // looking for a captain (no one had accepted yet). This is what the
+        // admin dashboard uses for the "cancelled before any accept" filter.
+        $wasNeverAccepted = is_null($ride->accepted_at)
+            && in_array($ride->status->value, ['pending', 'rejected']);
+
         // تحديث حالة الرحلة
-        $ride->update(['status' => 'cancelled']);
+        $ride->update([
+            'status' => 'cancelled',
+            'cancelled_before_accept' => $wasNeverAccepted,
+        ]);
+
+        // Close every still-pending offer as "cancelled_by_user" so the
+        // audit trail on the admin dashboard is accurate.
+        if ($wasNeverAccepted) {
+            app(RideOfferService::class)->markAllPendingCancelledByUser($ride, 'passenger_cancelled');
+        }
 
         // Save cancellation record
         ModelsCancelationRide::create([
@@ -160,6 +176,17 @@ class CancelationRide extends Controller
     private function handleDriverCancellation(Ride $ride, $driver, Request $request)
     {
         $currentDriverId = $driver->id;
+
+        // Record this captain's response in the offer audit trail. If the
+        // ride had already been accepted this is a cancellation-after-accept,
+        // otherwise it's a plain rejection.
+        $wasAccepted = !is_null($ride->accepted_at) || in_array($ride->status->value, ['accepted', 'waiting_user', 'in_progress']);
+        $offerService = app(RideOfferService::class);
+        if ($wasAccepted) {
+            $offerService->markCancelledAfterAccept($ride, (int) $currentDriverId);
+        } else {
+            $offerService->markRejected($ride, (int) $currentDriverId);
+        }
 
         // Add current driver to rejected drivers list
         $rejectedDrivers = $ride->rejected_drivers ?? [];

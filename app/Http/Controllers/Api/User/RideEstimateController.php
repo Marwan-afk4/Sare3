@@ -15,6 +15,7 @@ use App\Helpers\RideHelper;
 use App\Jobs\AutoRejectRideJob;
 use App\Models\CancellationPolicy;
 use App\Models\Rating;
+use App\Services\RideOfferService;
 use App\Models\RideRequestTimeLimit;
 use App\Models\Zone;
 use Illuminate\Support\Facades\Http;
@@ -202,6 +203,10 @@ class RideEstimateController extends Controller
             'driver_assigned_at' => now(),
             'driver_id' => $request->driver_id,
         ]);
+
+        // Log the initial offer to the first captain so the admin dashboard
+        // can show who the request was routed through from the very start.
+        app(RideOfferService::class)->recordOffer($ride, (int) $request->driver_id, 1, 'initial_assignment');
 
         // Check if user has a pending coupon and apply it
         if ($user->pending_coupon_id) {
@@ -779,6 +784,14 @@ class RideEstimateController extends Controller
                 'reassigned_at' => now(),
                 'driver_assigned_at' => now(),
             ]);
+
+            // Audit trail: record that this driver has now been offered the ride.
+            app(RideOfferService::class)->recordOffer(
+                $ride,
+                (int) $driverId,
+                null,
+                $shouldCycleDrivers ? 'cycling' : 'reassignment'
+            );
 
             // Update Firebase with new driver info
             $firebase = (new Factory)

@@ -220,6 +220,96 @@
             </div>
         @endif
 
+        <!-- Captain Offer History (who saw this ride and what did they do) -->
+        @php
+            $offers = $ride->offers ?? collect();
+            $acceptedOffer = $offers->firstWhere('response', \App\Models\RideOffer::RESPONSE_ACCEPTED);
+            $totalOffers = $offers->count();
+        @endphp
+        @if($totalOffers > 0 || $ride->cancelled_before_accept)
+            <div class="card mt-3">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="mb-0">
+                        <i class="fa fa-users"></i> {{ __('Captain Offer History') }}
+                        <span class="badge bg-primary ms-2">{{ $totalOffers }}</span>
+                    </h5>
+                    <div>
+                        @if($ride->cancelled_before_accept)
+                            <span class="badge bg-dark">
+                                <i class="fa fa-ban"></i> {{ __('Passenger cancelled before any captain accepted') }}
+                            </span>
+                        @endif
+                        @if($acceptedOffer && $acceptedOffer->response_seconds !== null)
+                            <span class="badge bg-success">
+                                <i class="fa fa-check"></i>
+                                {{ __('Accepted after :n sec', ['n' => $acceptedOffer->response_seconds]) }}
+                            </span>
+                        @endif
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    @if($totalOffers === 0)
+                        <div class="p-3 text-muted small">
+                            <i class="fa fa-info-circle"></i>
+                            {{ __('No offer records for this ride (likely created before offer tracking was enabled).') }}
+                        </div>
+                    @else
+                        <table class="table mb-0 table-sm align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>{{ __('Captain') }}</th>
+                                    <th>{{ __('Offered At') }}</th>
+                                    <th>{{ __('Responded At') }}</th>
+                                    <th>{{ __('Response Time') }}</th>
+                                    <th>{{ __('Result') }}</th>
+                                    <th>{{ __('Attempt') }}</th>
+                                    <th>{{ __('Note') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($offers as $index => $offer)
+                                    <tr>
+                                        <td>{{ $index + 1 }}</td>
+                                        <td>
+                                            @if($offer->driver)
+                                                <a href="{{ route('drivers.show', $offer->driver) }}">
+                                                    {{ $offer->driver->name }}
+                                                </a>
+                                                @if($offer->driver->phone)
+                                                    <br><small class="text-muted">{{ $offer->driver->phone }}</small>
+                                                @endif
+                                            @else
+                                                <span class="text-muted">#{{ $offer->driver_id }}</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <small>{{ optional($offer->offered_at)->format('M d, Y h:i:s A') }}</small>
+                                        </td>
+                                        <td>
+                                            <small>{{ optional($offer->responded_at)->format('M d, Y h:i:s A') ?? '-' }}</small>
+                                        </td>
+                                        <td>
+                                            @if($offer->response_seconds !== null)
+                                                <span class="badge bg-light text-dark">
+                                                    {{ $offer->response_seconds }}s
+                                                </span>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
+                                        <td>{!! $offer->responseBadgeHtml() !!}</td>
+                                        <td><small>#{{ $offer->attempt }}</small></td>
+                                        <td><small class="text-muted">{{ $offer->note }}</small></td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+                </div>
+            </div>
+        @endif
+
         <!-- Trip Timeline -->
         @if($ride->accepted_at || $ride->arrived_at || $ride->trip_started_at || $ride->completed_at)
             <div class="card mt-3">

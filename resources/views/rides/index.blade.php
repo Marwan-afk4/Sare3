@@ -47,11 +47,52 @@
 
                         {{-- Clear Filter Button --}}
                         <div class="col-md-2">
-                            @if (request('keyword') || request('min_km') || request('max_km') || request('status'))
+                            @if (request('keyword') || request('min_km') || request('max_km') || request('status') || request('accepted_after_seconds') || request('cancelled_before_accept') || request('min_offers'))
                                 <a href="{{ route('rides.index') }}" class="btn btn-secondary w-100">
                                     <i class="fa fa-times"></i> {{ __('Clear All') }}
                                 </a>
                             @endif
+                        </div>
+                    </div>
+
+                    {{-- Offer-history filters (requirements 12 & 13) --}}
+                    <div class="row g-3 align-items-end mt-1">
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('Accepted after (seconds)') }}</label>
+                            <input type="number" name="accepted_after_seconds" min="0" step="1"
+                                class="form-control" placeholder="e.g. 60"
+                                value="{{ request('accepted_after_seconds') }}">
+                            <small class="text-muted">{{ __('Rides whose accepting captain took at least N seconds.') }}</small>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('Min captains offered') }}</label>
+                            <input type="number" name="min_offers" min="1" step="1"
+                                class="form-control" placeholder="e.g. 3"
+                                value="{{ request('min_offers') }}">
+                            <small class="text-muted">{{ __('Rides that cycled through at least N captains.') }}</small>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">{{ __('Cancelled before any accept') }}</label>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox"
+                                    id="cancelled_before_accept"
+                                    name="cancelled_before_accept" value="1"
+                                    {{ request('cancelled_before_accept') ? 'checked' : '' }}>
+                                <label class="form-check-label" for="cancelled_before_accept">
+                                    {{ __('Show only rides user cancelled before any captain accepted') }}
+                                    @if(isset($cancelledBeforeAcceptCount))
+                                        <span class="badge bg-dark">{{ $cancelledBeforeAcceptCount }}</span>
+                                    @endif
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-outline-primary w-100">
+                                <i class="fa fa-sliders"></i> {{ __('Apply') }}
+                            </button>
                         </div>
                     </div>
 
@@ -227,6 +268,21 @@
                                 <td>
                                     @if ($ride->driver?->name)
                                         <a href="{{ route('drivers.show', $ride->driver) }}">{{ $ride->driver->name }}</a>
+                                    @endif
+                                    @if (($ride->offers_count ?? 0) > 0)
+                                        <div>
+                                            <small class="text-muted" title="{{ __('Captains this ride was offered to') }}">
+                                                <i class="fa fa-users"></i>
+                                                {{ trans_choice('{1} :count captain saw it|[2,*] :count captains saw it', $ride->offers_count, ['count' => $ride->offers_count]) }}
+                                            </small>
+                                        </div>
+                                    @endif
+                                    @if ($ride->cancelled_before_accept)
+                                        <div>
+                                            <span class="badge bg-dark" title="{{ __('Passenger cancelled before any captain accepted') }}">
+                                                <i class="fa fa-ban"></i> {{ __('Cancelled before accept') }}
+                                            </span>
+                                        </div>
                                     @endif
                                 </td>
                                 <td>

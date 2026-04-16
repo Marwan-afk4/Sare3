@@ -17,6 +17,7 @@ use App\Models\WalletRequest;
 use App\Models\Zone;
 use App\Services\BonusService;
 use App\Services\ReferralDiscountService;
+use App\Services\RideOfferService;
 use App\Services\RideVerificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -132,6 +133,10 @@ class RideActionsController extends Controller
         }
 
         $ride->update($updateData);
+
+        // Close out the pending offer for this captain as "accepted" in the
+        // audit trail used by the admin dashboard filters.
+        app(RideOfferService::class)->markAccepted($ride, (int) $driver->id);
 
         $firebaseData = [
             'driver_id' => $driver->id,
@@ -842,6 +847,18 @@ class RideActionsController extends Controller
         $rejectedDrivers = $ride->rejected_drivers ?? [];
         if ($currentDriverId && !in_array($currentDriverId, $rejectedDrivers)) {
             $rejectedDrivers[] = $currentDriverId;
+        }
+
+        // Record the captain's response in the offer audit trail BEFORE we
+        // blank out the driver on the ride. If the captain had already
+        // accepted (ride has accepted_at) this counts as a cancellation
+        // after accept; otherwise it's a plain rejection.
+        $wasAccepted = !is_null($ride->accepted_at) || in_array($ride->status->value, ['accepted', 'waiting_user', 'in_progress']);
+        $offerService = app(RideOfferService::class);
+        if ($wasAccepted) {
+            $offerService->markCancelledAfterAccept($ride, (int) $currentDriverId, $request->reason ? "reason_id:{$request->reason}" : null);
+        } else {
+            $offerService->markRejected($ride, (int) $currentDriverId, $request->reason ? "reason_id:{$request->reason}" : null);
         }
 
         DB::beginTransaction();

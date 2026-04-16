@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Http\Controllers\Api\User\RideEstimateController as UserRideEstimateController;
 use App\Models\Ride;
 use App\Http\Controllers\RideEstimateController;
+use App\Services\RideOfferService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -75,6 +76,14 @@ class AutoRejectRideJob implements ShouldQueue
                 'status' => 'pending',
                 'auto_rejected_at' => now(),
             ]);
+
+            // Mark this captain's offer as "ignored" in the audit trail
+            // (they got the request but didn't respond in time).
+            try {
+                app(RideOfferService::class)->markIgnored($ride, (int) $this->driverId, 'auto_timeout');
+            } catch (\Throwable $offerEx) {
+                Log::warning("AutoRejectRideJob: offer bookkeeping failed: " . $offerEx->getMessage());
+            }
 
             Log::info("AutoRejectRideJob: Reset ride {$this->rideId}, driver {$this->driverId} added to rejected list: " . json_encode($rejectedDrivers));
 

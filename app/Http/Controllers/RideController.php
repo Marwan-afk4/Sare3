@@ -44,7 +44,18 @@ class RideController extends Controller
         $minKm     = $request->get('min_km');
         $maxKm     = $request->get('max_km');
 
+        // New filters for requirements 12 & 13.
+        // - accepted_after_seconds: rides where the accepting captain took at
+        //   least N seconds to accept ("accepted after a long time").
+        // - cancelled_before_accept: rides the passenger gave up on before
+        //   any captain accepted.
+        // - min_offers: rides that cycled through at least N captains.
+        $acceptedAfterSeconds = $request->get('accepted_after_seconds');
+        $cancelledBeforeAccept = $request->boolean('cancelled_before_accept');
+        $minOffers = $request->get('min_offers');
+
         $ridesQuery = Ride::with(['user', 'driver', 'carCategory', 'coupon'])
+            ->withCount('offers')
             ->when($keyword, function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->where('id', 'LIKE', "%{$keyword}%")
@@ -70,9 +81,18 @@ class RideController extends Controller
             ->when($maxKm !== null && $maxKm !== '', function ($query) use ($maxKm) {
                 $query->whereRaw('CAST(total_distance_in_km AS DECIMAL(10,2)) <= ?', [$maxKm]);
             })
+            ->when($acceptedAfterSeconds !== null && $acceptedAfterSeconds !== '', function ($query) use ($acceptedAfterSeconds) {
+                $query->acceptedAfterSeconds((int) $acceptedAfterSeconds);
+            })
+            ->when($cancelledBeforeAccept, function ($query) {
+                $query->cancelledBeforeAccept();
+            })
+            ->when($minOffers !== null && $minOffers !== '', function ($query) use ($minOffers) {
+                $query->has('offers', '>=', (int) $minOffers);
+            })
             ->orderBy($sortField, $sortOrder);
 
-        $rides = $ridesQuery->paginate(30);
+        $rides = $ridesQuery->paginate(30)->appends($request->query());
 
         // Count per status
         $ridesStatusCounts = Ride::query()
@@ -81,6 +101,10 @@ class RideController extends Controller
             ->pluck('count', 'status')
             ->toArray();
 
+        // Count of rides cancelled before any captain accepted — surfaced
+        // next to the filter toggle so support can see the total at a glance.
+        $cancelledBeforeAcceptCount = Ride::cancelledBeforeAccept()->count();
+
         $rideStatuses = \App\Enums\RideStatus::cases();
 
         return view('rides.index', compact(
@@ -88,7 +112,8 @@ class RideController extends Controller
             'sortField',
             'sortOrder',
             'ridesStatusCounts',
-            'rideStatuses'
+            'rideStatuses',
+            'cancelledBeforeAcceptCount'
         ));
     }
 
@@ -112,6 +137,9 @@ class RideController extends Controller
     public function show(Ride $ride)
     {
         $rideStatuses = RideStatus::labels();
+        // Eager-load the offer audit trail so the show page can render
+        // "which captain saw the request + what they did" without N+1.
+        $ride->load(['offers.driver']);
         return view('rides.show', compact('ride', 'rideStatuses'));
     }
 
