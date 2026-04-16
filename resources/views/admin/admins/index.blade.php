@@ -88,7 +88,8 @@
 
                                             <!-- Add to Limit Form -->
                                             <form method="POST"
-                                                action="{{ route('admins.update-wallet-limit', $admin) }}">
+                                                action="{{ route('admins.update-wallet-limit', $admin) }}"
+                                                class="mb-4">
                                                 @csrf
                                                 <input type="hidden" name="action" value="add">
                                                 <label class="form-label">{{ __('Amount to Add') }} <span
@@ -104,6 +105,30 @@
                                                 <small
                                                     class="text-muted">{{ __('This will be added to the current limit') }}</small>
                                             </form>
+
+                                            @if ($admin->wallet_limit > 0)
+                                                <!-- Subtract from Limit Form -->
+                                                <form method="POST"
+                                                    action="{{ route('admins.update-wallet-limit', $admin) }}">
+                                                    @csrf
+                                                    <input type="hidden" name="action" value="subtract">
+                                                    <label class="form-label">{{ __('Amount to Subtract') }} <span
+                                                            class="text-danger">*</span></label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">$</span>
+                                                        <input type="number" name="amount" class="form-control" step="0.01"
+                                                            min="0.01" max="{{ $admin->wallet_limit }}"
+                                                            placeholder="0.00" required>
+                                                        <button type="submit" class="btn btn-warning text-dark">
+                                                            <i class="fa fa-minus"></i> {{ __('Subtract') }}
+                                                        </button>
+                                                    </div>
+                                                    <small
+                                                        class="text-muted">{{ __('This will be subtracted from the current limit') }}</small>
+                                                </form>
+                                            @else
+                                                <p class="text-muted small mb-0">{{ __('Nothing to subtract; current limit is zero.') }}</p>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

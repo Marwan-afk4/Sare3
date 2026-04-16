@@ -56,10 +56,18 @@
                                             </button>
 
                                             <!-- Add to Limit Button -->
-                                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
+                                            <button type="button" class="btn btn-success btn-sm me-1" data-bs-toggle="modal"
                                                 data-bs-target="#addLimitModal{{ $admin->id }}">
                                                 <i class="fa fa-plus"></i> {{ __('Add to Limit') }}
                                             </button>
+
+                                            @if ($admin->wallet_limit > 0)
+                                                <!-- Subtract from Limit Button -->
+                                                <button type="button" class="btn btn-warning btn-sm text-dark" data-bs-toggle="modal"
+                                                    data-bs-target="#subtractLimitModal{{ $admin->id }}">
+                                                    <i class="fa fa-minus"></i> {{ __('Subtract from Limit') }}
+                                                </button>
+                                            @endif
                                         </td>
                                     </tr>
 
@@ -146,6 +154,51 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                    @if ($admin->wallet_limit > 0)
+                                        <!-- Subtract from Limit Modal -->
+                                        <div class="modal fade" id="subtractLimitModal{{ $admin->id }}" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form method="POST"
+                                                        action="{{ route('admins.update-wallet-limit', $admin) }}">
+                                                        @csrf
+                                                        <input type="hidden" name="action" value="subtract">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">{{ __('Subtract from Wallet Limit') }} -
+                                                                {{ $admin->name }}</h5>
+                                                            <button type="button" class="btn-close"
+                                                                data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="mb-3">
+                                                                <label class="form-label">{{ __('Current Limit') }}</label>
+                                                                <input type="text" class="form-control"
+                                                                    value="${{ number_format($admin->wallet_limit, 2) }}"
+                                                                    readonly>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label">{{ __('Amount to Subtract') }} <span
+                                                                        class="text-danger">*</span></label>
+                                                                <input type="number" name="amount" class="form-control"
+                                                                    step="0.01" min="0.01" max="{{ $admin->wallet_limit }}"
+                                                                    required>
+                                                                <small
+                                                                    class="text-muted">{{ __('This will be subtracted from the current limit') }}</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary"
+                                                                data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                                                            <button type="submit" class="btn btn-warning text-dark">
+                                                                <i class="fa fa-minus"></i> {{ __('Subtract from Limit') }}
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
                                 @endforeach
                             </tbody>
                         </table>

@@ -279,7 +279,7 @@ class WalletRequestController extends Controller
     {
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0',
-            'action' => 'required|in:set,add'
+            'action' => 'required|in:set,add,subtract'
         ]);
 
         try {
@@ -287,6 +287,19 @@ class WalletRequestController extends Controller
                 // Set the limit to specific amount
                 $admin->update(['wallet_limit' => $validated['amount']]);
                 $message = __('Admin wallet limit set successfully to: ') . '$' . number_format($validated['amount'], 2);
+            } elseif ($validated['action'] === 'subtract') {
+                if ($validated['amount'] < 0.01) {
+                    return redirect()
+                        ->back()
+                        ->with('error', __('Amount must be at least 0.01.'));
+                }
+                if ($admin->wallet_limit < $validated['amount']) {
+                    return redirect()
+                        ->back()
+                        ->with('error', __('Cannot subtract more than the current wallet limit.'));
+                }
+                $admin->decrement('wallet_limit', $validated['amount']);
+                $message = __('Subtracted from admin wallet limit successfully. New limit: ') . '$' . number_format($admin->fresh()->wallet_limit, 2);
             } else {
                 // Add to existing limit
                 $admin->increment('wallet_limit', $validated['amount']);
