@@ -50,7 +50,11 @@ class Ride extends Model
         'accepted_at',
         'arrived_at',
         'trip_started_at',
-        'completed_at'
+        'completed_at',
+        'driver_accept_lat',
+        'driver_accept_lng',
+        'driver_arrived_lat',
+        'driver_arrived_lng',
     ];
 
     public $timestamps = true;
@@ -71,6 +75,10 @@ class Ride extends Model
         'pickup_lng' => 'float',
         'dropoff_lat' => 'float',
         'dropoff_lng' => 'float',
+        'driver_accept_lat' => 'float',
+        'driver_accept_lng' => 'float',
+        'driver_arrived_lat' => 'float',
+        'driver_arrived_lng' => 'float',
     ];
 
     public function zone()

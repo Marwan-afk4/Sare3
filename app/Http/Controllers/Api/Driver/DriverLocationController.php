@@ -42,12 +42,20 @@ class DriverLocationController extends Controller
             return response()->json(['message' => 'Ride is not in trackable status'], 400);
         }
 
+        // Tag each point with the current ride phase so the admin dashboard
+        // can render the "on the way to passenger" path separately from the
+        // actual trip path. Any status before the trip has started is
+        // considered the pickup leg.
+        $status = $ride->status->value;
+        $phase = in_array($status, ['accepted', 'waiting_user']) ? 'to_pickup' : 'trip';
+
         $points = $ride->route_points ?? [];
         $newPoint = [
             'lat' => (float) $request->lat,
             'lng' => (float) $request->lng,
             'timestamp' => now()->timestamp,
             'seq' => $request->seq ?? null,
+            'phase' => $phase,
         ];
 
         $points[] = $newPoint;
@@ -77,6 +85,7 @@ class DriverLocationController extends Controller
                 'lng' => (float) $request->lng,
                 'timestamp' => now()->timestamp,
                 'updated_at' => now()->toIso8601String(),
+                'phase' => $phase,
             ]);
         } catch (\Exception $e) {
             // Log error but don't fail the request

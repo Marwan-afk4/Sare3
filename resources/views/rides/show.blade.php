@@ -67,7 +67,7 @@
         @if($ride->pickup_lat && $ride->pickup_lng)
             <div class="map-container">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
                         <h5 class="mb-0">
                             @if(in_array($ride->status->value, ['in_progress', 'accepted', 'waiting_user']))
                                 <i class="fa fa-location-arrow text-primary"></i> {{ __('Live Ride Tracking') }}
@@ -75,6 +75,13 @@
                                 <i class="fa fa-route text-success"></i> {{ __('Trip Route') }}
                             @endif
                         </h5>
+                        <div class="small text-muted d-flex flex-wrap gap-3 mt-1">
+                            <span><span class="badge" style="background:#FF9800">A</span> {{ __('Captain accept location') }}</span>
+                            <span><span style="display:inline-block;width:24px;border-top:3px dashed #FF9800;vertical-align:middle"></span> {{ __('On the way to passenger') }}</span>
+                            <span><span class="badge" style="background:#4CAF50">P</span> {{ __('Pickup') }}</span>
+                            <span><span style="display:inline-block;width:24px;border-top:3px solid #4CAF50;vertical-align:middle"></span> {{ __('Trip path') }}</span>
+                            <span><span class="badge" style="background:#2196F3"><i class="fa fa-location-arrow"></i></span> {{ __('Captain live') }}</span>
+                        </div>
                     </div>
                     <div class="card-body p-0">
                         <div id="rideMap"></div>
@@ -172,6 +179,47 @@
             </div>
         @endif
 
+        <!-- Captain Tracking Details -->
+        @if($ride->driver_accept_lat || $ride->driver_arrived_lat)
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fa fa-map-marked-alt"></i> {{ __('Captain Tracking') }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @if($ride->driver_accept_lat && $ride->driver_accept_lng)
+                            <div class="col-md-6 mb-3">
+                                <strong><i class="fa fa-play-circle text-warning"></i> {{ __('Accept Location') }}</strong>
+                                <div class="small text-muted">
+                                    {{ $ride->driver_accept_lat }}, {{ $ride->driver_accept_lng }}
+                                    @if($ride->accepted_at)
+                                        <br><i class="fa fa-clock"></i> {{ $ride->accepted_at->format('M d, Y h:i A') }}
+                                    @endif
+                                </div>
+                                <a href="https://www.google.com/maps?q={{ $ride->driver_accept_lat }},{{ $ride->driver_accept_lng }}" target="_blank" class="small">
+                                    <i class="fa fa-external-link-alt"></i> {{ __('Open in Google Maps') }}
+                                </a>
+                            </div>
+                        @endif
+                        @if($ride->driver_arrived_lat && $ride->driver_arrived_lng)
+                            <div class="col-md-6 mb-3">
+                                <strong><i class="fa fa-flag text-purple"></i> {{ __('Arrival at Pickup') }}</strong>
+                                <div class="small text-muted">
+                                    {{ $ride->driver_arrived_lat }}, {{ $ride->driver_arrived_lng }}
+                                    @if($ride->arrived_at)
+                                        <br><i class="fa fa-clock"></i> {{ $ride->arrived_at->format('M d, Y h:i A') }}
+                                    @endif
+                                </div>
+                                <a href="https://www.google.com/maps?q={{ $ride->driver_arrived_lat }},{{ $ride->driver_arrived_lng }}" target="_blank" class="small">
+                                    <i class="fa fa-external-link-alt"></i> {{ __('Open in Google Maps') }}
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- Trip Timeline -->
         @if($ride->accepted_at || $ride->arrived_at || $ride->trip_started_at || $ride->completed_at)
             <div class="card mt-3">
@@ -253,7 +301,9 @@ const rideData = {
     },
     routePoints: @json($ride->route_points ?? []),
     driverId: {{ $ride->driver_id ?? 'null' }},
-    firebaseRideId: '{{ $ride->firebase_ride_id ?? '' }}'
+    firebaseRideId: '{{ $ride->firebase_ride_id ?? '' }}',
+    driverAcceptLocation: @json($ride->driver_accept_lat && $ride->driver_accept_lng ? ['lat' => (float) $ride->driver_accept_lat, 'lng' => (float) $ride->driver_accept_lng, 'recorded_at' => optional($ride->accepted_at)->toIso8601String()] : null),
+    driverArrivedLocation: @json($ride->driver_arrived_lat && $ride->driver_arrived_lng ? ['lat' => (float) $ride->driver_arrived_lat, 'lng' => (float) $ride->driver_arrived_lng, 'recorded_at' => optional($ride->arrived_at)->toIso8601String()] : null)
 };
 
 let rideTracker;

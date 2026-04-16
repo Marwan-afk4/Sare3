@@ -406,7 +406,9 @@
                 },
                 routePoints: @json($ride->route_points ?? []),
                 driverId: {{ $ride->driver_id ?? 'null' }},
-                firebaseRideId: '{{ $ride->firebase_ride_id ?? '' }}'
+                firebaseRideId: '{{ $ride->firebase_ride_id ?? '' }}',
+                driverAcceptLocation: @json($ride->driver_accept_lat && $ride->driver_accept_lng ? ['lat' => (float) $ride->driver_accept_lat, 'lng' => (float) $ride->driver_accept_lng, 'recorded_at' => optional($ride->accepted_at)->toIso8601String()] : null),
+                driverArrivedLocation: @json($ride->driver_arrived_lat && $ride->driver_arrived_lng ? ['lat' => (float) $ride->driver_arrived_lat, 'lng' => (float) $ride->driver_arrived_lng, 'recorded_at' => optional($ride->arrived_at)->toIso8601String()] : null)
             };
 
             let rideTracker;

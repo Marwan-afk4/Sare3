@@ -87,18 +87,75 @@ class RideActionsController extends Controller
             return response()->json(['message' => 'Ride not found or not available for acceptance.'], 404);
         }
 
-        $ride->update([
+        // Capture driver's exact location at the moment of accepting so the
+        // admin dashboard can show it and draw the "on the way to passenger"
+        // path. Prefer the lat/lng coming from the mobile app (most accurate),
+        // fall back to the driver's last known location in Firebase.
+        $acceptLat = $request->input('lat');
+        $acceptLng = $request->input('lng');
+
+        if ($acceptLat === null || $acceptLng === null) {
+            try {
+                $fbLocation = app(\App\Services\FirebaseService::class)->getDriverLocation($driver->id);
+                if ($fbLocation) {
+                    $acceptLat = $fbLocation['latitude'];
+                    $acceptLng = $fbLocation['longitude'];
+                }
+            } catch (\Exception $e) {
+                Log::warning("Could not fetch driver location from Firebase on accept: " . $e->getMessage());
+            }
+        }
+
+        $updateData = [
             'driver_id' => $driver->id,
             'started_at' => $startTime,
             'status' => 'accepted',
             'accepted_at' => $startTime,
-        ]);
+        ];
+
+        if ($acceptLat !== null && $acceptLng !== null) {
+            $updateData['driver_accept_lat'] = (float) $acceptLat;
+            $updateData['driver_accept_lng'] = (float) $acceptLng;
+
+            // Seed route_points with the first "to pickup" point so the admin
+            // dashboard can render the path from moment of acceptance.
+            $points = $ride->route_points ?? [];
+            $points[] = [
+                'lat' => (float) $acceptLat,
+                'lng' => (float) $acceptLng,
+                'timestamp' => $startTime->timestamp,
+                'phase' => 'to_pickup',
+                'seq' => 0,
+                'source' => 'accept',
+            ];
+            $updateData['route_points'] = $points;
+        }
+
+        $ride->update($updateData);
 
         $firebaseData = [
             'driver_id' => $driver->id,
             'status' => 'accepted',
             'accepted_at' => now()->toIso8601String(),
         ];
+
+        if ($acceptLat !== null && $acceptLng !== null) {
+            $firebaseData['driver_accept_location'] = [
+                'lat' => (float) $acceptLat,
+                'lng' => (float) $acceptLng,
+                'timestamp' => $startTime->timestamp,
+                'recorded_at' => $startTime->toIso8601String(),
+            ];
+            // Initialize the live driver_location so the dashboard can start
+            // rendering immediately without waiting for the first ping.
+            $firebaseData['driver_location'] = [
+                'lat' => (float) $acceptLat,
+                'lng' => (float) $acceptLng,
+                'timestamp' => $startTime->timestamp,
+                'updated_at' => $startTime->toIso8601String(),
+                'phase' => 'to_pickup',
+            ];
+        }
 
         // Generate verification code if feature is enabled
         $verificationService = new RideVerificationService();
@@ -133,16 +190,77 @@ class RideActionsController extends Controller
     {
         $ride = $this->validateRide($request);
 
-        $ride->update([
+        // Capture driver's GPS at the moment they marked "arrived at pickup".
+        // Used by the admin dashboard as the end-point of the "to pickup" path.
+        $arrivedLat = $request->input('lat');
+        $arrivedLng = $request->input('lng');
+
+        if ($arrivedLat === null || $arrivedLng === null) {
+            // Fall back to the last recorded route point if the app did not
+            // send coordinates (old mobile versions).
+            $points = $ride->route_points ?? [];
+            if (!empty($points)) {
+                $last = end($points);
+                $arrivedLat = $last['lat'] ?? null;
+                $arrivedLng = $last['lng'] ?? null;
+            }
+
+            // Last resort: driver's last known location in Firebase.
+            if ($arrivedLat === null || $arrivedLng === null) {
+                try {
+                    $fbLocation = app(\App\Services\FirebaseService::class)->getDriverLocation($ride->driver_id);
+                    if ($fbLocation) {
+                        $arrivedLat = $fbLocation['latitude'];
+                        $arrivedLng = $fbLocation['longitude'];
+                    }
+                } catch (\Exception $e) {
+                    Log::warning("Could not fetch driver location from Firebase on arrived: " . $e->getMessage());
+                }
+            }
+        }
+
+        $updateData = [
             'status' => 'waiting_user',
             'arrived_at' => now(),
-        ]);
+        ];
+
+        if ($arrivedLat !== null && $arrivedLng !== null) {
+            $updateData['driver_arrived_lat'] = (float) $arrivedLat;
+            $updateData['driver_arrived_lng'] = (float) $arrivedLng;
+
+            // Append arrival point to route_points as the final "to_pickup"
+            // marker so the dashboard renders a complete pickup leg.
+            $points = $ride->route_points ?? [];
+            $nextSeq = !empty($points) ? (int)(end($points)['seq'] ?? count($points)) + 1 : 1;
+            $points[] = [
+                'lat' => (float) $arrivedLat,
+                'lng' => (float) $arrivedLng,
+                'timestamp' => now()->timestamp,
+                'phase' => 'to_pickup',
+                'seq' => $nextSeq,
+                'source' => 'arrived',
+            ];
+            $updateData['route_points'] = $points;
+        }
+
+        $ride->update($updateData);
 
         try {
-            $this->updateFirebase($ride, [
+            $firebasePayload = [
                 'status' => 'waiting_user',
                 'arrived_at' => now()->toIso8601String(),
-            ]);
+            ];
+
+            if ($arrivedLat !== null && $arrivedLng !== null) {
+                $firebasePayload['driver_arrived_location'] = [
+                    'lat' => (float) $arrivedLat,
+                    'lng' => (float) $arrivedLng,
+                    'timestamp' => now()->timestamp,
+                    'recorded_at' => now()->toIso8601String(),
+                ];
+            }
+
+            $this->updateFirebase($ride, $firebasePayload);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Firebase error.', 'error' => $e->getMessage()], 500);
         }
