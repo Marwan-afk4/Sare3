@@ -87,6 +87,10 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'dashboard_domain' => env('DASHBOARD_DOMAIN'),
+
+    'api_domain' => env('API_DOMAIN'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
