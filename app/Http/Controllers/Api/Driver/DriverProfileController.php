@@ -44,6 +44,7 @@ class DriverProfileController extends Controller
             'phone' => $user->phone,
             'image_link' => $user->image_link,
             'activity' => $user->activity->value,
+            'is_available' => $user->is_available,
             'status' => $user->status->value,
             'driver_rating' => $driverRating,
             'rejected_reason' => $user->rejected_reason ?? 'your account is not rejected',
