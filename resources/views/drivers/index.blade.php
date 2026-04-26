@@ -222,8 +222,8 @@
                             @endif
                         </td>
                         <td>
-                            @if(isset($driverAvailability[$driver->id]) && $driverAvailability[$driver->id])
-                                <span class="badge bg-success">{{ __('Online') }} 🟢</span>
+                            @if($driver->is_available)
+                                <span class="badge bg-success">{{ __('الحالة: متصل ومتاح') }} 🟢</span>
                             @else
                                 <span class="badge bg-secondary">{{ __('Offline') }} ⚫</span>
                             @endif

@@ -125,30 +125,10 @@ class DriverController extends Controller
             ->orderBy($sortField, $sortOrder)
             ->paginate(30);
 
-        // OPTIMIZED: Get ALL available drivers from Firebase at once (single call)
-        // With error handling to prevent timeouts
-        $driverAvailability = [];
-        try {
-            $allAvailableDrivers = $this->firebaseService->getAllAvailableDrivers();
-            $availableDriverIds = array_map('intval', array_keys($allAvailableDrivers)); // Normalize to integers
-
-            // Create availability map for quick lookup
-            foreach ($drivers as $driver) {
-                // Use strict comparison with normalized integer IDs
-                $driverAvailability[$driver->id] = in_array((int) $driver->id, $availableDriverIds, true);
-            }
-        } catch (\Exception $e) {
-            // If Firebase fails, set all drivers as unavailable (offline)
-            \Log::warning('Failed to fetch driver availability from Firebase: ' . $e->getMessage());
-            foreach ($drivers as $driver) {
-                $driverAvailability[$driver->id] = false;
-            }
-        }
-
         $driverActivtyStatus = ActivtyType::cases();
         $driverStatusCases = DriverStatus::cases();
 
-        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'driverStatusCases', 'driverStatusCounts', 'zones', 'driversWithNoZoneCount', 'driverAvailability', 'carYears', 'carYearCounts'));
+        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'driverStatusCases', 'driverStatusCounts', 'zones', 'driversWithNoZoneCount', 'carYears', 'carYearCounts'));
     }
 
     public function documents(User $driver)
@@ -228,11 +208,9 @@ class DriverController extends Controller
         // Get recent rides (last 10)
         $recentRides = RideHelper::formatDriverRideHistory($driver->driverRides->take(10));
 
-        // Get driver location from Firebase
-        $driverLocation = $this->firebaseService->getDriverLocation($driver->id);
-        $isAvailable = $driverLocation !== null;
+        $isAvailable = $driver->is_available;
 
-        return view('drivers.show', compact('driver', 'driverRating', 'rideStatistics', 'recentRides', 'driverLocation', 'isAvailable'));
+        return view('drivers.show', compact('driver', 'driverRating', 'rideStatistics', 'recentRides', 'isAvailable'));
     }
 
     public function rideHistory(User $driver, Request $request)

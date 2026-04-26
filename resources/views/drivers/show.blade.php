@@ -70,7 +70,7 @@
                             <li class="list-group-item"><strong>{{ __('Availability') }}:</strong>
                                 <span id="driver-availability-badge">
                                     @if ($isAvailable)
-                                        <span class="badge bg-success">{{ __('Online & Available') }} 🟢</span>
+                                        <span class="badge bg-success">{{ __('الحالة: متصل ومتاح') }} 🟢</span>
                                     @else
                                         <span class="badge bg-danger">{{ __('Offline') }} 🔴</span>
                                     @endif
@@ -404,7 +404,7 @@
 
                     // Update availability badge
                     document.getElementById('driver-availability-badge').innerHTML =
-                        '<span class="badge bg-success">{{ __('Online & Available') }} 🟢</span>';
+                        '<span class="badge bg-success">{{ __('الحالة: متصل ومتاح') }} 🟢</span>';
                 }
 
                 // Function to handle driver going offline

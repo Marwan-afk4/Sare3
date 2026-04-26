@@ -52,12 +52,14 @@ class User extends Authenticatable
         'pending_coupon_id',
         'otp_code',
         'otp_expires_at',
+        'is_available',
         'phone_verified',
     ];
 
     protected $casts = [
         'activity' => ActivtyType::class,
         'status' => DriverStatus::class,
+        'is_available' => 'boolean',
     ];
 
     public $timestamps = true;

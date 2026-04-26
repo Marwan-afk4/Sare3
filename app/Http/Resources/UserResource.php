@@ -18,6 +18,7 @@ class UserResource extends JsonResource
             'activity' => $this->activity,
             'wallet' => $this->wallet,
             'role' => $this->role,
+            'is_available' => (bool) $this->is_available,
             'createdAt' => $this->created_at,
             'updatedAt' => $this->updated_at
         ];

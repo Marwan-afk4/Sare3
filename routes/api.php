@@ -115,13 +115,11 @@ Route::domain(config('app.api_domain'))->group(function () {
         Route::get('/zones', [RideEstimateController::class, 'zones']);
 
     //driver status
-        Route::get('/driver-activity',[DriverActivtyController::class,'getDriverActivity']);
-
-    //driver location
-        Route::post('/driver/update-location', [DriverPointController::class, 'updatePointDriverLocation']);
+        //Route::get('/driver-activity',[DriverActivtyController::class,'getDriverActivity']);
 
     //driver status
         Route::get('/driver-status', [DriverActivtyController::class, 'getDriverStatus']);
+        Route::post('/update-availability', [DriverActivtyController::class, 'updateAvailability']);
 
     //wallet status
         Route::get('/wallet-status', [DriverProfileController::class, 'checkWalletStatus']);

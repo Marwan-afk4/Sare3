@@ -40,9 +40,28 @@ class DriverActivtyController extends Controller
             'email'=> $driver->email,
             'phone'=> $driver->phone,
             'status'=> $driver->status,
+            'is_available' => $driver->is_available,
         ];
 
         return response()->json(['driver'=> $data]);
+    }
+
+    public function updateAvailability(Request $request)
+    {
+        $request->validate([
+            'is_available' => 'required|boolean'
+        ]);
+
+        $driver = $request->user();
+        $driver->update([
+            'is_available' => $request->is_available
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Availability updated successfully',
+            'is_available' => $driver->is_available
+        ]);
     }
 
 
