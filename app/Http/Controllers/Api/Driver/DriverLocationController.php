@@ -23,6 +23,7 @@ class DriverLocationController extends Controller
             'ride_id' => 'required',
             'lat' => 'required',
             'lng' => 'required',
+            'bearing' => 'nullable|numeric',
             'seq' => 'nullable|integer',
         ]);
 
@@ -37,15 +38,20 @@ class DriverLocationController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        // Update User table with latest location
+        $driver = auth()->user();
+        $driver->update([
+            'latitude' => $request->lat,
+            'longitude' => $request->lng,
+            'bearing' => $request->bearing ?? $driver->bearing,
+        ]);
+
         // Only update location for active rides
         if (!in_array($ride->status->value, ['accepted', 'waiting_user', 'in_progress'])) {
             return response()->json(['message' => 'Ride is not in trackable status'], 400);
         }
 
-        // Tag each point with the current ride phase so the admin dashboard
-        // can render the "on the way to passenger" path separately from the
-        // actual trip path. Any status before the trip has started is
-        // considered the pickup leg.
+        // Tag each point with the current ride phase
         $status = $ride->status->value;
         $phase = in_array($status, ['accepted', 'waiting_user']) ? 'to_pickup' : 'trip';
 
@@ -53,6 +59,7 @@ class DriverLocationController extends Controller
         $newPoint = [
             'lat' => (float) $request->lat,
             'lng' => (float) $request->lng,
+            'bearing' => (float) ($request->bearing ?? 0),
             'timestamp' => now()->timestamp,
             'seq' => $request->seq ?? null,
             'phase' => $phase,
@@ -62,15 +69,6 @@ class DriverLocationController extends Controller
 
         $ride->route_points = $points;
         $ride->save();
-
-        // Update Firebase for real-time tracking
-        // $firebaseService = app(\App\Services\FirebaseService::class);
-        // $firebaseService->updateDriverLocation(
-        //     $ride->id,
-        //     $request->lat,
-        //     $request->lng,
-        //     $ride->firebase_ride_id
-        // );
 
         try {
             $firebase = (new Factory)
@@ -83,18 +81,84 @@ class DriverLocationController extends Controller
             $firebase->getReference("rides/{$firebaseRideId}/driver_location")->set([
                 'lat' => (float) $request->lat,
                 'lng' => (float) $request->lng,
+                'bearing' => (float) ($request->bearing ?? 0),
                 'timestamp' => now()->timestamp,
                 'updated_at' => now()->toIso8601String(),
                 'phase' => $phase,
             ]);
+
+            // Also update general driver location in Firebase for dashboard map compatibility
+            $firebase->getReference("drivers/driver {$driver->id}")->set([
+                'latitude' => (float) $request->lat,
+                'longitude' => (float) $request->lng,
+                'bearing' => (float) ($request->bearing ?? 0),
+                'timestamp' => now()->timestamp,
+            ]);
+
         } catch (\Exception $e) {
-            // Log error but don't fail the request
+            Log::error('Firebase location update failed: ' . $e->getMessage());
+        }
+
+        try {
+            $firebase = (new Factory)
+                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
+                ->createDatabase();
+
+            $firebaseRideId = $ride->firebase_ride_id ?: 'ride_' . $ride->id;
+
+            $firebase->getReference("rides/{$firebaseRideId}/driver_location")->set([
+                'lat' => (float) $request->lat,
+                'lng' => (float) $request->lng,
+                'bearing' => (float) ($request->bearing ?? 0),
+                'timestamp' => now()->timestamp,
+                'updated_at' => now()->toIso8601String(),
+                'phase' => $phase,
+            ]);
+
+            // Also update general driver location in Firebase for dashboard map compatibility
+            $firebase->getReference("drivers/driver {$driver->id}")->set([
+                'latitude' => (float) $request->lat,
+                'longitude' => (float) $request->lng,
+                'bearing' => (float) ($request->bearing ?? 0),
+                'timestamp' => now()->timestamp,
+            ]);
+
+        } catch (\Exception $e) {
             Log::error('Firebase location update failed: ' . $e->getMessage());
         }
 
         return response()->json([
             'message' => 'Driver location updated successfully',
             'total_points' => count($points)
+        ]);
+    }
+
+    public function updateGeneralLocation(Request $request)
+    {
+        $validation = Validator::make($request->all(), [
+            'lat' => 'required',
+            'lng' => 'required',
+            'bearing' => 'nullable|numeric',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json(['message' => $validation->errors()], 422);
+        }
+
+        $driver = auth()->user();
+        $driver->update([
+            'latitude' => $request->lat,
+            'longitude' => $request->lng,
+            'bearing' => $request->bearing ?? $driver->bearing,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'General location updated successfully',
+            'latitude' => $driver->latitude,
+            'longitude' => $driver->longitude,
+            'bearing' => $driver->bearing
         ]);
     }
 

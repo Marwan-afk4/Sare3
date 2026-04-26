@@ -31,44 +31,41 @@ class HomePageController extends Controller
             ->limit(5)
             ->get();
 
-        // Get available drivers from Firebase
+        // Get availability from Database
+        $availableDriversCount = User::where('role', 'driver')->where('is_available', true)->count();
+        $unavailableDriversCount = User::where('role', 'driver')->where('is_available', false)->count();
+
+        // Get all drivers with status and location from DB
+        $driversFromDb = User::where('role', 'driver')
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->get(['id', 'name', 'is_available', 'latitude', 'longitude', 'bearing']);
+        $driverNames = $driversFromDb->pluck('name', 'id')->toArray();
+        
         $availableDrivers = [];
-        $availableDriversCount = 0;
-        try {
-            $availableDrivers = $this->firebaseService->getAllAvailableDrivers();
-            $availableDriversCount = count($availableDrivers);
-        } catch (\Exception $e) {
-            \Log::warning('Failed to fetch available drivers from Firebase: ' . $e->getMessage());
-        }
-
-        // Get unavailable drivers from Firebase
         $unavailableDrivers = [];
-        $unavailableDriversCount = 0;
-        try {
-            $unavailableDrivers = $this->firebaseService->getAllUnavailableDrivers();
-            $unavailableDriversCount = count($unavailableDrivers);
-        } catch (\Exception $e) {
-            \Log::warning('Failed to fetch unavailable drivers from Firebase: ' . $e->getMessage());
-        }
 
-        // Map driver IDs to names so we can show names on the map instead of IDs
-        $driverNames = [];
-        $driverIds = array_unique(array_merge(array_keys($availableDrivers), array_keys($unavailableDrivers)));
+        foreach ($driversFromDb as $driver) {
+            $id = $driver->id;
+            
+            // Use database coordinates if they exist
+            if ($driver->latitude && $driver->longitude) {
+                $driverData = [
+                    'driver_id' => $id,
+                    'name' => $driver->name,
+                    'latitude' => (float) $driver->latitude,
+                    'longitude' => (float) $driver->longitude,
+                    'bearing' => (float) ($driver->bearing ?? 0),
+                    'is_available' => (bool) $driver->is_available
+                ];
 
-        if (!empty($driverIds)) {
-            $driverNames = User::whereIn('id', $driverIds)->pluck('name', 'id')->toArray();
+                if ($driver->is_available) {
+                    $availableDrivers[$id] = $driverData;
+                } else {
+                    $unavailableDrivers[$id] = $driverData;
+                }
+            }
         }
-
-        // Attach driver name into the driver arrays (used by JS)
-        foreach ($availableDrivers as $id => &$driver) {
-            $driver['name'] = $driverNames[$id] ?? "Driver #{$id}";
-        }
-        unset($driver);
-
-        foreach ($unavailableDrivers as $id => &$driver) {
-            $driver['name'] = $driverNames[$id] ?? "Driver #{$id}";
-        }
-        unset($driver);
 
         return view('home.welcome', compact(
             'userCount',

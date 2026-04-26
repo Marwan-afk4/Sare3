@@ -143,6 +143,7 @@ Route::domain(config('app.api_domain'))->group(function () {
         Route::post('/ride/rating', [DriverRaitingController::class,'raiting']);
 
     //DriverLocationUpdate
+        Route::post('/update-location', [DriverLocationController::class, 'updateGeneralLocation']);
         Route::post('/ride/update-location', [DriverLocationController::class, 'updateDriverLocation']);
         // Route::post('/ride/end', [DriverLocationController::class, 'endRide']);
 

@@ -19,6 +19,9 @@ class UserResource extends JsonResource
             'wallet' => $this->wallet,
             'role' => $this->role,
             'is_available' => (bool) $this->is_available,
+            'latitude' => (float) $this->latitude,
+            'longitude' => (float) $this->longitude,
+            'bearing' => (float) $this->bearing,
             'createdAt' => $this->created_at,
             'updatedAt' => $this->updated_at
         ];

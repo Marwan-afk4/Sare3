@@ -53,6 +53,9 @@ class User extends Authenticatable
         'otp_code',
         'otp_expires_at',
         'is_available',
+        'latitude',
+        'longitude',
+        'bearing',
         'phone_verified',
     ];
 
@@ -60,6 +63,9 @@ class User extends Authenticatable
         'activity' => ActivtyType::class,
         'status' => DriverStatus::class,
         'is_available' => 'boolean',
+        'latitude' => 'float',
+        'longitude' => 'float',
+        'bearing' => 'float',
     ];
 
     public $timestamps = true;
