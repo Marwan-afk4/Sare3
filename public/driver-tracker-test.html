@@ -402,11 +402,11 @@
 
             <div class="field">
                 <label>Reverb Host</label>
-                <input id="cfg-host" value="localhost" />
+                <input id="cfg-host" value="" placeholder="auto-detecting..." />
             </div>
             <div class="field">
                 <label>Reverb Port</label>
-                <input id="cfg-port" value="8080" type="number" />
+                <input id="cfg-port" value="8175" type="number" />
             </div>
             <div class="field">
                 <label>App Key (REVERB_APP_KEY)</label>
@@ -545,12 +545,14 @@ function connect() {
 
     setBadge('connecting', 'Connecting…');
 
+    const isSecure = window.location.protocol === 'https:';
+
     pusherClient = new Pusher(appKey, {
         wsHost:           host,
         wsPort:           port,
         wssPort:          port,
-        forceTLS:         false,
-        enabledTransports: ['ws'],
+        forceTLS:         isSecure,
+        enabledTransports: ['ws', 'wss'],
         disableStats:     true,
         cluster:          'mt1',   // required but ignored by Reverb
     });
@@ -754,8 +756,13 @@ function escHtml(str) {
         .replace(/>/g,'&gt;');
 }
 
-/* ─── Auto-connect on load ──────────────────────────────────────────────── */
+/* ─── Auto-detect on load ──────────────────────────────────────────────── */
 window.addEventListener('load', () => {
+    // Auto-detect host
+    if (!document.getElementById('cfg-host').value) {
+        document.getElementById('cfg-host').value = window.location.hostname;
+    }
+
     // small delay so the map renders first
     setTimeout(connect, 600);
 });
