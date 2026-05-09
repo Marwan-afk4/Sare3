@@ -63,29 +63,26 @@
                 </div>
                 <div class="text-end">
                     <div class="d-flex align-items-center gap-2">
+                        <span id="ws-status" class="badge bg-secondary me-2">⏳ Connecting...</span>
                         <span class="badge bg-success" id="available-drivers-badge" style="font-size: 1.2rem; padding: 0.5rem 1rem;">
                             <i class="fa fa-circle text-success me-1" style="font-size: 0.5rem;"></i>
                             {{ $availableDriversCount }} / {{ $driverCount }}
                         </span>
                     </div>
                     <small class="text-muted">{{ __('Online Drivers') }}</small>
+                    {{-- <div class="mt-1">
+                        <button class="btn btn-sm btn-outline-primary" onclick="addTestMarker()">Test Map Marker</button>
+                    </div> --}}
                 </div>
             </div>
         </div>
-        <div class="card-body">
-            @if($availableDriversCount > 0)
-                <div id="available-drivers-map" style="height: 500px; border-radius: 8px; border: 1px solid #e0e0e0;"></div>
-                <div class="mt-3 text-center">
-                    <!-- <small class="text-muted">
-                        <i class="fa fa-info-circle"></i> {{ __('Map updates in real-time via Firebase') }}
-                    </small> -->
-                </div>
-            @else
-                <div class="text-center py-5">
-                    <i class="fa fa-car text-muted" style="font-size: 3rem;"></i>
-                    <p class="text-muted mt-3">{{ __('No drivers are currently online') }}</p>
-                </div>
-            @endif
+        <div class="card-body p-0">
+            <div id="available-drivers-map" style="height: 500px; width: 100%; border-radius: 0 0 8px 8px; border: 1px solid #e0e0e0;"></div>
+            <div class="m-2 text-center">
+                <small class="text-muted">
+                    <i class="fa fa-wifi"></i> {{ __('Map updates in real-time via WebSocket') }}
+                </small>
+            </div>
         </div>
     </div>
 
@@ -108,20 +105,8 @@
                 </div>
             </div>
         </div>
-        <div class="card-body">
-            @if($unavailableDriversCount > 0)
-                <div id="unavailable-drivers-map" style="height: 500px; border-radius: 8px; border: 1px solid #e0e0e0;"></div>
-                <div class="mt-3 text-center">
-                    <!-- <small class="text-muted">
-                        <i class="fa fa-info-circle"></i> {{ __('Map updates in real-time via Firebase') }}
-                    </small> -->
-                </div>
-            @else
-                <div class="text-center py-5">
-                    <i class="fa fa-car text-muted" style="font-size: 3rem;"></i>
-                    <p class="text-muted mt-3">{{ __('No unavailable drivers at the moment') }}</p>
-                </div>
-            @endif
+        <div class="card-body p-0">
+            <div id="unavailable-drivers-map" style="height: 500px; width: 100%; border-radius: 0 0 8px 8px; border: 1px solid #e0e0e0;"></div>
         </div>
     </div>
 @endsection
@@ -172,9 +157,7 @@
     <!-- Leaflet for maps -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+    <!-- Laravel Echo + Reverb loaded below -->
 
     @php
         $safeUserCounts = $userMonthlyCounts ?? [12, 15, 20, 18, 22, 30, 25, 28, 24, 26, 30, 33];
@@ -309,385 +292,244 @@
         });
     </script>
 
-    <!-- Available Drivers Map Script -->
-    @if($availableDriversCount > 0)
+    <!-- Real-time driver map via Reverb WebSocket -->
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pusher-js@8.4.0/dist/web/pusher.min.js"></script>
     <script>
-    (function() {
-        // Initialize Firebase
-        const firebaseConfig = {
-            databaseURL: 'https://sarea-adce3-default-rtdb.firebaseio.com'
-        };
-        
-        let firebaseApp = null;
-        if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-            firebaseApp = firebase.initializeApp(firebaseConfig);
-        }
-
-        // Initial drivers data from server
-        const initialDrivers = @json($availableDrivers);
+    (function () {
+        // ─── Driver name lookup (server-rendered) ────────────────────────────────
         const driverNames = @json($driverNames ?? []);
-        
-        // Initialize map
-        const mapElement = document.getElementById('available-drivers-map');
-        if (!mapElement) return;
 
-        // Calculate center point from available drivers
-        let centerLat = 24.7136; // Default: Riyadh
-        let centerLng = 46.6753;
-        
-        if (Object.keys(initialDrivers).length > 0) {
-            const drivers = Object.values(initialDrivers);
-            centerLat = drivers.reduce((sum, d) => sum + d.latitude, 0) / drivers.length;
-            centerLng = drivers.reduce((sum, d) => sum + d.longitude, 0) / drivers.length;
+        // ─── Available Drivers Map ────────────────────────────────────────────────
+        let availableMap, availableMarkers;
+        let availableDriverMarkers = {};
+        const availableMapEl = document.getElementById('available-drivers-map');
+
+        if (availableMapEl) {
+            try {
+                const initialAvailable = @json($availableDrivers);
+
+                let cLat = 30.0444, cLng = 31.2357; // Default to Cairo
+                const avVals = Object.values(initialAvailable);
+                if (avVals.length) {
+                    cLat = avVals.reduce((s, d) => s + (d.latitude || d.lat), 0) / avVals.length;
+                    cLng = avVals.reduce((s, d) => s + (d.longitude || d.lng), 0) / avVals.length;
+                }
+
+                console.log("🗺️ Initializing Available Map...");
+                availableMap = L.map('available-drivers-map').setView([cLat, cLng], 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors', maxZoom: 19
+                }).addTo(availableMap);
+
+                availableMarkers = L.layerGroup().addTo(availableMap);
+
+                setTimeout(() => { availableMap.invalidateSize(); }, 500);
+            } catch (e) {
+                console.error("Leaflet Available Map Error:", e);
+            }
         }
 
-        const map = L.map('available-drivers-map').setView([centerLat, centerLng], 12);
-        
-        // Add tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19,
-        }).addTo(map);
+        // ─── Unavailable Drivers Map ──────────────────────────────────────────────
+        let unavailableMap, unavailableMarkers;
+        let unavailableDriverMarkers = {};
+        const unavailableMapEl = document.getElementById('unavailable-drivers-map');
 
-        // Create marker cluster group
-        const markers = L.markerClusterGroup({
-            iconCreateFunction: function(cluster) {
-                const count = cluster.getChildCount();
-                return L.divIcon({
-                    html: '<div style="background-color: #4CAF50; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); font-weight: bold;">' + count + '</div>',
-                    className: 'driver-cluster',
-                    iconSize: L.point(40, 40)
-                });
-            },
-            spiderfyOnMaxZoom: true,
-            showCoverageOnHover: false,
-            zoomToBoundsOnClick: true
-        });
+        if (unavailableMapEl) {
+            try {
+                const initialUnavailable = @json($unavailableDrivers);
 
-        // Custom driver icon
-        const driverIcon = L.divIcon({
-            className: 'driver-marker',
-            html: '<div style="background-color: #4CAF50; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
-            iconSize: [22, 22],
-            iconAnchor: [11, 11]
-        });
+                let uLat = 30.0444, uLng = 31.2357; // Default to Cairo
+                const unVals = Object.values(initialUnavailable);
+                if (unVals.length) {
+                    uLat = unVals.reduce((s, d) => s + (d.latitude || d.lat), 0) / unVals.length;
+                    uLng = unVals.reduce((s, d) => s + (d.longitude || d.lng), 0) / unVals.length;
+                }
 
-        // Store markers by driver ID
-        const driverMarkers = {};
+                console.log("🗺️ Initializing Unavailable Map...");
+                unavailableMap = L.map('unavailable-drivers-map').setView([uLat, uLng], 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors', maxZoom: 19
+                }).addTo(unavailableMap);
 
-        // Function to add or update a driver marker
-        function updateDriverMarker(driverId, driverData) {
-            const lat = parseFloat(driverData.latitude);
-            const lng = parseFloat(driverData.longitude);
-            const driverName = driverData.name || driverNames[driverId] || '{{ __('Driver') }} #' + driverId;
-            
+                unavailableMarkers = L.layerGroup().addTo(unavailableMap);
+
+                setTimeout(() => { unavailableMap.invalidateSize(); }, 500);
+            } catch (e) {
+                console.error("Leaflet Unavailable Map Error:", e);
+            }
+        }
+
+        // ─── Icon factories ───────────────────────────────────────────────────────
+        function makeIcon(color) {
+            return L.divIcon({
+                html: `<div style="background:${color};width:30px;height:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;">
+                        <i class="fa fa-car" style="color:#fff;font-size:14px;"></i>
+                       </div>`,
+                iconSize: [36, 36], iconAnchor: [18, 18]
+            });
+        }
+        const greenIcon = makeIcon('#4CAF50');
+        const redIcon   = makeIcon('#f44336');
+
+        // ─── Helper: upsert marker in "available" map ─────────────────────────────
+        function upsertAvailableMarker(driverId, data) {
+            if (!availableMap) return;
+            const lat  = parseFloat(data.latitude ?? data.lat);
+            const lng  = parseFloat(data.longitude ?? data.lng);
+            const name = data.name || driverNames[driverId] || `{{ __('Driver') }} #${driverId}`;
             if (isNaN(lat) || isNaN(lng)) return;
 
-            // If marker exists, update its position
-            if (driverMarkers[driverId]) {
-                driverMarkers[driverId].setLatLng([lat, lng]);
+            if (availableDriverMarkers[driverId]) {
+                availableDriverMarkers[driverId].setLatLng([lat, lng]);
+                availableDriverMarkers[driverId].getPopup().setContent(popupHtml(name, lat, lng, true));
             } else {
-                // Create new marker
-                const marker = L.marker([lat, lng], {
-                    icon: driverIcon,
-                    title: driverName
-                });
-                
-                marker.bindPopup(`
-                    <div style="text-align: center; min-width: 120px;">
-                        <strong>${driverName}</strong><br>
-                        <span class="badge bg-success mt-1">{{ __('Online') }} 🟢</span><br>
-                        <small class="text-muted">Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}</small>
-                    </div>
-                `);
-                
-                markers.addLayer(marker);
-                driverMarkers[driverId] = marker;
+                const m = L.marker([lat, lng], { icon: greenIcon, title: name });
+                m.bindPopup(popupHtml(name, lat, lng, true));
+                availableMarkers.addLayer(m);
+                availableDriverMarkers[driverId] = m;
+                updateAvailableBadge();
             }
         }
 
-        // Function to remove a driver marker
-        function removeDriverMarker(driverId) {
-            if (driverMarkers[driverId]) {
-                markers.removeLayer(driverMarkers[driverId]);
-                delete driverMarkers[driverId];
-            }
-        }
-
-        // Add initial markers
-        Object.entries(initialDrivers).forEach(([driverId, driverData]) => {
-            updateDriverMarker(driverId, driverData);
-        });
-
-        // Add marker cluster to map
-        map.addLayer(markers);
-
-        // Set up Firebase real-time listeners
-        if (firebaseApp && firebase.database) {
-            const driversRef = firebase.database().ref('drivers');
-            
-            // Listen for new drivers
-            driversRef.on('child_added', (snapshot) => {
-                const driverId = snapshot.key;
-                const driverData = snapshot.val();
-                
-                if (driverData && driverData.latitude && driverData.longitude) {
-                    // Normalize driver ID
-                    let normalizedId = driverId;
-                    if (isNaN(driverId)) {
-                        const match = driverId.match(/(\d+)/);
-                        if (match) normalizedId = match[1];
-                    }
-                    // Attach name if we have it
-                    if (!driverData.name && driverNames[normalizedId]) {
-                        driverData.name = driverNames[normalizedId];
-                    }
-
-                    updateDriverMarker(normalizedId, driverData);
-                    
-                    // Update badge count
-                    updateDriverCount();
-                }
-            });
-
-            // Listen for driver updates
-            driversRef.on('child_changed', (snapshot) => {
-                const driverId = snapshot.key;
-                const driverData = snapshot.val();
-                
-                if (driverData && driverData.latitude && driverData.longitude) {
-                    let normalizedId = driverId;
-                    if (isNaN(driverId)) {
-                        const match = driverId.match(/(\d+)/);
-                        if (match) normalizedId = match[1];
-                    }
-                    
-                    updateDriverMarker(normalizedId, driverData);
-                }
-            });
-
-            // Listen for driver removal (went offline)
-            driversRef.on('child_removed', (snapshot) => {
-                const driverId = snapshot.key;
-                
-                let normalizedId = driverId;
-                if (isNaN(driverId)) {
-                    const match = driverId.match(/(\d+)/);
-                    if (match) normalizedId = match[1];
-                }
-                
-                removeDriverMarker(normalizedId);
-                
-                // Update badge count
-                updateDriverCount();
-            });
-        }
-
-        // Function to update driver count badge
-        function updateDriverCount() {
-            const count = Object.keys(driverMarkers).length;
-            const badge = document.getElementById('available-drivers-badge');
-            if (badge) {
-                badge.innerHTML = `<i class="fa fa-circle text-success me-1" style="font-size: 0.5rem;"></i>${count} / {{ $driverCount }}`;
-            }
-        }
-
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-            if (firebase.database) {
-                firebase.database().ref('drivers').off();
-            }
-        });
-    })();
-    </script>
-    @endif
-
-    <!-- Unavailable Drivers Map Script -->
-    @if($unavailableDriversCount > 0)
-    <script>
-    (function() {
-        // Use existing Firebase app instance
-        let firebaseApp = null;
-        if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
-            firebaseApp = firebase.apps[0];
-        }
-
-        // Initial unavailable drivers data from server
-        const initialUnavailableDrivers = @json($unavailableDrivers);
-        const unavailableDriverNames = @json($driverNames ?? []);
-        
-        // Initialize map
-        const mapElement = document.getElementById('unavailable-drivers-map');
-        if (!mapElement) return;
-
-        // Calculate center point from unavailable drivers
-        let centerLat = 24.7136; // Default: Riyadh
-        let centerLng = 46.6753;
-        
-        if (Object.keys(initialUnavailableDrivers).length > 0) {
-            const drivers = Object.values(initialUnavailableDrivers);
-            centerLat = drivers.reduce((sum, d) => sum + d.latitude, 0) / drivers.length;
-            centerLng = drivers.reduce((sum, d) => sum + d.longitude, 0) / drivers.length;
-        }
-
-        const map = L.map('unavailable-drivers-map').setView([centerLat, centerLng], 12);
-        
-        // Add tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19,
-        }).addTo(map);
-
-        // Create marker cluster group
-        const markers = L.markerClusterGroup({
-            iconCreateFunction: function(cluster) {
-                const count = cluster.getChildCount();
-                return L.divIcon({
-                    html: '<div style="background-color: #f44336; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); font-weight: bold;">' + count + '</div>',
-                    className: 'unavailable-driver-cluster',
-                    iconSize: L.point(40, 40)
-                });
-            },
-            spiderfyOnMaxZoom: true,
-            showCoverageOnHover: false,
-            zoomToBoundsOnClick: true
-        });
-
-        // Custom unavailable driver icon
-        const unavailableDriverIcon = L.divIcon({
-            className: 'unavailable-driver-marker',
-            html: '<div style="background-color: #f44336; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
-            iconSize: [22, 22],
-            iconAnchor: [11, 11]
-        });
-
-        // Store markers by driver ID
-        const unavailableDriverMarkers = {};
-
-        // Function to add or update an unavailable driver marker
-        function updateUnavailableDriverMarker(driverId, driverData) {
-            const lat = parseFloat(driverData.latitude);
-            const lng = parseFloat(driverData.longitude);
-            const driverName = driverData.name || unavailableDriverNames[driverId] || '{{ __('Driver') }} #' + driverId;
-            
+        // ─── Helper: upsert marker in "unavailable" map ───────────────────────────
+        function upsertUnavailableMarker(driverId, data) {
+            if (!unavailableMap) return;
+            const lat  = parseFloat(data.latitude ?? data.lat);
+            const lng  = parseFloat(data.longitude ?? data.lng);
+            const name = data.name || driverNames[driverId] || `{{ __('Driver') }} #${driverId}`;
             if (isNaN(lat) || isNaN(lng)) return;
 
-            // If marker exists, update its position
             if (unavailableDriverMarkers[driverId]) {
                 unavailableDriverMarkers[driverId].setLatLng([lat, lng]);
+                unavailableDriverMarkers[driverId].getPopup().setContent(popupHtml(name, lat, lng, false));
             } else {
-                // Create new marker
-                const marker = L.marker([lat, lng], {
-                    icon: unavailableDriverIcon,
-                    title: driverName
-                });
-                
-                marker.bindPopup(`
-                    <div style="text-align: center; min-width: 120px;">
-                        <strong>${driverName}</strong><br>
-                        <span class="badge bg-danger mt-1">{{ __('Offline') }} 🔴</span><br>
-                        <small class="text-muted">Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}</small>
-                    </div>
-                `);
-                
-                markers.addLayer(marker);
-                unavailableDriverMarkers[driverId] = marker;
+                const m = L.marker([lat, lng], { icon: redIcon, title: name });
+                m.bindPopup(popupHtml(name, lat, lng, false));
+                unavailableMarkers.addLayer(m);
+                unavailableDriverMarkers[driverId] = m;
+                updateUnavailableBadge();
             }
         }
 
-        // Function to remove an unavailable driver marker
-        function removeUnavailableDriverMarker(driverId) {
+        function removeAvailableMarker(driverId) {
+            if (availableDriverMarkers[driverId]) {
+                availableMarkers.removeLayer(availableDriverMarkers[driverId]);
+                delete availableDriverMarkers[driverId];
+                updateAvailableBadge();
+            }
+        }
+
+        function removeUnavailableMarker(driverId) {
             if (unavailableDriverMarkers[driverId]) {
-                markers.removeLayer(unavailableDriverMarkers[driverId]);
+                unavailableMarkers.removeLayer(unavailableDriverMarkers[driverId]);
                 delete unavailableDriverMarkers[driverId];
+                updateUnavailableBadge();
             }
         }
 
-        // Add initial markers
-        Object.entries(initialUnavailableDrivers).forEach(([driverId, driverData]) => {
-            updateUnavailableDriverMarker(driverId, driverData);
+        window.addTestMarker = function() {
+            if (!availableMap) return alert('Map not ready');
+            const center = availableMap.getCenter();
+            L.marker(center, {
+                icon: L.divIcon({
+                    html: '<div style="background:#007bff;width:40px;height:40px;border-radius:50%;border:4px solid #fff;box-shadow:0 0 20px rgba(0,123,255,0.8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold">TEST</div>',
+                    iconSize: [48, 48], iconAnchor: [24, 24]
+                })
+            }).addTo(availableMap).bindPopup("<b>Map Rendering is Working!</b>").openPopup();
+            alert('Test marker added to map center!');
+        };
+
+        function popupHtml(name, lat, lng, online) {
+            const badge = online
+                ? '<span class="badge bg-success mt-1">{{ __("Online") }} 🟢</span>'
+                : '<span class="badge bg-danger mt-1">{{ __("Offline") }} 🔴</span>';
+            return `<div style="text-align:center;min-width:120px"><strong>${name}</strong><br>${badge}<br><small class="text-muted">Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}</small></div>`;
+        }
+
+        function updateAvailableBadge() {
+            const el = document.getElementById('available-drivers-badge');
+            if (el) el.innerHTML = `<i class="fa fa-circle text-success me-1" style="font-size:.5rem"></i>${Object.keys(availableDriverMarkers).length} / {{ $driverCount }}`;
+        }
+
+        function updateUnavailableBadge() {
+            const el = document.getElementById('unavailable-drivers-badge');
+            if (el) el.innerHTML = `<i class="fa fa-circle text-danger me-1" style="font-size:.5rem"></i>${Object.keys(unavailableDriverMarkers).length} / {{ $driverCount }}`;
+        }
+
+        // ─── Initial Seeding (Must be at the end) ─────────────────────────────────
+        console.log("🚀 Seeding initial drivers...");
+        if (availableMapEl) {
+            const availableData = @json($availableDrivers);
+            Object.entries(availableData).forEach(([id, d]) => upsertAvailableMarker(id, d));
+            if (Object.keys(availableDriverMarkers).length > 0) {
+                const group = new L.featureGroup(Object.values(availableDriverMarkers));
+                availableMap.fitBounds(group.getBounds().pad(0.2));
+            }
+        }
+        if (unavailableMapEl) {
+            const unavailableData = @json($unavailableDrivers);
+            Object.entries(unavailableData).forEach(([id, d]) => upsertUnavailableMarker(id, d));
+            if (Object.keys(unavailableDriverMarkers).length > 0) {
+                const group = new L.featureGroup(Object.values(unavailableDriverMarkers));
+                unavailableMap.fitBounds(group.getBounds().pad(0.2));
+            }
+        }
+
+        // ─── Real-time: Laravel Echo → Reverb WebSocket ───────────────────────────
+        const echoConfig = {
+            broadcaster: 'reverb',
+            key:         '{{ config("broadcasting.connections.reverb.key") }}',
+            wsHost:      window.location.hostname,
+            wsPort:      8080,
+            wssPort:     8080,
+            forceTLS:    window.location.protocol === 'https:',
+            enabledTransports: ['ws', 'wss'],
+        };
+        console.log('📡 Initializing Echo with config:', echoConfig);
+        
+        const echo = new Echo(echoConfig);
+
+        // "driver-location" is a PUBLIC channel — no auth needed for admin dashboard
+        echo.channel('driver-location')
+            .listen('.driver.location.updated', (e) => {
+                const id       = String(e.driver_id);
+                const name     = driverNames[id] || `{{ __('Driver') }} #${id}`;
+                const isOnMap  = availableDriverMarkers[id] !== undefined;
+                const isUnavMap = unavailableDriverMarkers[id] !== undefined;
+
+                // Move marker on the correct map.
+                // (We don't know is_available here — just update whatever map already shows this driver.
+                //  If the driver is on neither map yet, add to available map as a live signal.)
+                if (isOnMap) {
+                    upsertAvailableMarker(id, { ...e, name });
+                } else if (isUnavMap) {
+                    upsertUnavailableMarker(id, { ...e, name });
+                } else {
+                    // New driver — add to available map (driver is sending location = online)
+                    upsertAvailableMarker(id, { ...e, name });
+                }
+            });
+
+        // ─── Connection status indicator ──────────────────────────────────────────
+        echo.connector.pusher.connection.bind('connected', () => {
+            console.log('✅ WebSocket Connected');
+            const badge = document.getElementById('ws-status');
+            if (badge) { badge.className = 'badge bg-success'; badge.textContent = '🟢 Live'; }
         });
-
-        // Add marker cluster to map
-        map.addLayer(markers);
-
-        // Set up Firebase real-time listeners
-        if (firebaseApp && firebase.database) {
-            const unavailableDriversRef = firebase.database().ref('unavailable_drivers');
-            
-            // Listen for new unavailable drivers
-            unavailableDriversRef.on('child_added', (snapshot) => {
-                const driverId = snapshot.key;
-                const driverData = snapshot.val();
-                
-                if (driverData && driverData.latitude && driverData.longitude) {
-                    // Normalize driver ID
-                    let normalizedId = driverId;
-                    if (isNaN(driverId)) {
-                        const match = driverId.match(/(\d+)/);
-                        if (match) normalizedId = match[1];
-                    }
-                    // Attach name if we have it
-                    if (!driverData.name && unavailableDriverNames[normalizedId]) {
-                        driverData.name = unavailableDriverNames[normalizedId];
-                    }
-
-                    updateUnavailableDriverMarker(normalizedId, driverData);
-                    
-                    // Update badge count
-                    updateUnavailableDriverCount();
-                }
-            });
-
-            // Listen for unavailable driver updates
-            unavailableDriversRef.on('child_changed', (snapshot) => {
-                const driverId = snapshot.key;
-                const driverData = snapshot.val();
-                
-                if (driverData && driverData.latitude && driverData.longitude) {
-                    let normalizedId = driverId;
-                    if (isNaN(driverId)) {
-                        const match = driverId.match(/(\d+)/);
-                        if (match) normalizedId = match[1];
-                    }
-                    
-                    updateUnavailableDriverMarker(normalizedId, driverData);
-                }
-            });
-
-            // Listen for unavailable driver removal (went online)
-            unavailableDriversRef.on('child_removed', (snapshot) => {
-                const driverId = snapshot.key;
-                
-                let normalizedId = driverId;
-                if (isNaN(driverId)) {
-                    const match = driverId.match(/(\d+)/);
-                    if (match) normalizedId = match[1];
-                }
-                
-                removeUnavailableDriverMarker(normalizedId);
-                
-                // Update badge count
-                updateUnavailableDriverCount();
-            });
-        }
-
-        // Function to update unavailable driver count badge
-        function updateUnavailableDriverCount() {
-            const count = Object.keys(unavailableDriverMarkers).length;
-            const badge = document.getElementById('unavailable-drivers-badge');
-            if (badge) {
-                badge.innerHTML = `<i class="fa fa-circle text-danger me-1" style="font-size: 0.5rem;"></i>${count} / {{ $driverCount }}`;
-            }
-        }
-
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-            if (firebase.database) {
-                firebase.database().ref('unavailable_drivers').off();
-            }
+        echo.connector.pusher.connection.bind('disconnected', () => {
+            console.log('🔴 WebSocket Disconnected');
+            const badge = document.getElementById('ws-status');
+            if (badge) { badge.className = 'badge bg-danger'; badge.textContent = '🔴 Disconnected'; }
+        });
+        echo.connector.pusher.connection.bind('error', (err) => {
+            console.error('❌ WebSocket Error:', err);
+            const badge = document.getElementById('ws-status');
+            if (badge) { badge.className = 'badge bg-warning'; badge.textContent = '⚠️ Error'; }
+        });
+        echo.connector.pusher.connection.bind('connecting', () => {
+            console.log('⏳ WebSocket Connecting...');
         });
     })();
     </script>
-    @endif
 @endpush

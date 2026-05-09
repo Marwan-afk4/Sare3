@@ -6,7 +6,7 @@ use App\Helpers\FcmHelper;
 use Illuminate\Console\Command;
 use App\Models\Ride;
 use Carbon\Carbon;
-use Kreait\Firebase\Factory;
+
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -49,8 +49,7 @@ class AutoCancelPendingRides extends Command
                 // ✅ 2. Update DB status to "cancelled"
                 $ride->update(['status' => 'cancelled']);
 
-                // ✅ 5. Remove ride from Firebase
-                $this->deleteFirebaseRide($ride);
+
 
                 // ✅ 4. Send notification to the user
                 $user = $ride->user; // assuming Ride has user() relationship
@@ -74,7 +73,7 @@ class AutoCancelPendingRides extends Command
                     Log::warning("⚠️ No FCM token found for user of ride {$ride->id}");
                 }
 
-                Log::info("❌ Ride ID {$ride->id} cancelled and deleted from Firebase.");
+                Log::info("❌ Ride ID {$ride->id} cancelled.");
             } catch (Exception $e) {
                 Log::error("🔥 Error cancelling ride {$ride->id}: " . $e->getMessage());
             }
@@ -84,25 +83,4 @@ class AutoCancelPendingRides extends Command
         return Command::SUCCESS;
     }
 
-    /**
-     * 🧩 Delete ride completely from Firebase Realtime Database
-     */
-    private function deleteFirebaseRide($ride)
-    {
-        try {
-            $firebase = (new Factory)
-                ->withServiceAccount(storage_path('firebase/sarea-adce5-firebase-adminsdk-fbsvc-892a07f554.json'))
-                ->withDatabaseUri('https://sarea-adce5-default-rtdb.firebaseio.com')
-                ->createDatabase();
-
-            $firebaseRideId = 'ride_' . $ride->id;
-
-            // 🔥 Remove the ride node completely
-            $firebase->getReference("rides/$firebaseRideId")->remove();
-
-            Log::info("🧹 Firebase ride {$firebaseRideId} deleted successfully.");
-        } catch (Exception $e) {
-            Log::error("❌ Failed to delete Firebase ride {$ride->id}: " . $e->getMessage());
-        }
-    }
 }

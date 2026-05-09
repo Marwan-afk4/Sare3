@@ -9,7 +9,7 @@ use App\Helpers\FcmHelper;
 use App\Http\Controllers\Api\User\RideEstimateController;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use Kreait\Firebase\Factory;
+
 use Exception;
 
 class AutoRejectRides extends Command
@@ -58,8 +58,7 @@ class AutoRejectRides extends Command
                 Log::info("Auto-rejected driver {$previousDriverId} for ride {$ride->id}, ride reset to pending.");
 
 
-                // Step 2: Update Firebase
-                $this->updateFirebaseRideStatus($ride, 'pending');
+
 
                 // Step 3: Get all available drivers
                 $allDrivers = $rideEstimateController->getEligibleDrivers(
@@ -71,7 +70,7 @@ class AutoRejectRides extends Command
                 if (empty($allDrivers)) {
                     Log::info("No drivers available for ride {$ride->id}");
                     $ride->update(['driver_id' => null, 'status' => 'pending']);
-                    $this->updateFirebaseRideStatus($ride, 'pending');
+
                     continue;
                 }
 
@@ -201,8 +200,7 @@ class AutoRejectRides extends Command
                     'reassigned_at' => now(),
                 ]);
 
-                // Step 6: Update Firebase with new driver
-                $this->updateFirebaseRideStatus($ride, 'pending', $driverId);
+
 
                 // Step 7: Send notification to new driver
                 $driver = User::find($driverId);
@@ -235,34 +233,5 @@ class AutoRejectRides extends Command
         Log::info('✅ Auto reject command finished at ' . now());
     }
 
-    /**
-     * ✅ Update Firebase (New Version)
-     */
-    private function updateFirebaseRideStatus($ride, $status, $driverId = null)
-    {
-        try {
-            $firebase = (new Factory)
-                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                ->createDatabase();
 
-            $firebaseRideId = 'ride_' . $ride->id;
-
-            $data = [
-                'status' => $status,
-                'auto_rejected_at' => now()->toIso8601String(),
-                'updated_at' => now()->toIso8601String(),
-            ];
-
-            if ($driverId) {
-                $data['driver_id'] = $driverId;
-            }
-
-            $firebase->getReference("rides/$firebaseRideId")->update($data);
-
-            Log::info("🔥 Firebase updated for ride {$ride->id} (status: {$status})");
-        } catch (Exception $e) {
-            Log::error("❌ Failed to update Firebase for ride {$ride->id}: " . $e->getMessage());
-        }
-    }
 }

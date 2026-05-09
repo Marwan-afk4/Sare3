@@ -13,20 +13,15 @@ use App\Models\User;
 use App\Models\Rating;
 use App\Models\Zone;
 use App\Helpers\RideHelper;
-use App\Services\FirebaseService;
 use App\trait\ImageUpload;
 use Illuminate\Http\Request;
-use Kreait\Firebase\Factory;
 
 class DriverController extends Controller
 {
     use ImageUpload;
 
-    protected $firebaseService;
-
-    public function __construct(FirebaseService $firebaseService)
+    public function __construct()
     {
-        $this->firebaseService = $firebaseService;
     }
 
     public function index(Request $request)
@@ -264,21 +259,7 @@ class DriverController extends Controller
             unset($data['image']);
         }
 
-        //Check if activity is updated to inactive
-        if ($request->has('activity') && $request->input('activity') === 'inactive') {
-            try {
-                $firebase = (new Factory)
-                    ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                    ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                    ->createDatabase();
 
-                $firebaseRef = $firebase->getReference("drivers/driver {$driver->id}");
-
-                $firebaseRef->remove();
-            } catch (\Exception $e) {
-                return redirect()->route('drivers.index')->with('error', 'Driver updated, but failed to update Firebase: ' . $e->getMessage());
-            }
-        }
 
         $driver->update($data);
 
@@ -292,17 +273,7 @@ class DriverController extends Controller
         }
 
         try {
-            // Remove driver from Firebase
-            try {
-                $firebase = (new Factory)
-                    ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                    ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                    ->createDatabase();
-                $firebaseRef = $firebase->getReference("drivers/driver {$driver->id}");
-                $firebaseRef->remove();
-            } catch (\Exception $e) {
-                \Log::warning('Firebase driver removal failed during driver delete: ' . $e->getMessage());
-            }
+
 
             // Delete stored files: driver documents
             foreach ($driver->documents as $doc) {
@@ -335,25 +306,24 @@ class DriverController extends Controller
         }
     }
 
-    /**
-     * Get driver location from Firebase (AJAX endpoint)
-     */
     public function getLocation(User $driver)
     {
-        $location = $this->firebaseService->getDriverLocation($driver->id);
-
-        if ($location) {
+        if ($driver->latitude && $driver->longitude) {
             return response()->json([
                 'success' => true,
-                'location' => $location,
-                'is_available' => true
+                'location' => [
+                    'latitude' => (float) $driver->latitude,
+                    'longitude' => (float) $driver->longitude,
+                    'bearing' => (float) $driver->bearing,
+                ],
+                'is_available' => (bool) $driver->is_available
             ]);
         }
 
         return response()->json([
             'success' => false,
             'message' => 'Driver location not available',
-            'is_available' => false
+            'is_available' => (bool) $driver->is_available
         ], 404);
     }
 }

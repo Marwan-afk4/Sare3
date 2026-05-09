@@ -8,42 +8,25 @@ use Illuminate\Support\Facades\Log;
 
 class RideObserver
 {
-    protected $firebaseService;
-
-    public function __construct(FirebaseService $firebaseService)
+    public function created(Ride $ride)
     {
-        $this->firebaseService = $firebaseService;
+        Log::info("Ride {$ride->id} created. Status: {$ride->status->value}. Driver: {$ride->driver_id}");
+        
+        // Notify the driver and admin dashboard immediately
+        event(new \App\Events\RideStatusUpdated($ride));
     }
 
-    /**
-     * Handle the Ride "updated" event.
-     */
     public function updated(Ride $ride)
     {
-        // Check if status was changed
-        if ($ride->isDirty('status')) {
+        // Check if status or driver_id was changed
+        if ($ride->isDirty('status') || $ride->isDirty('driver_id')) {
             $newStatus = $ride->status->value;
-            $oldStatus = $ride->getOriginal('status')->value;
+            $oldStatus = $ride->getOriginal('status') ? $ride->getOriginal('status')->value : 'none';
 
-            Log::info("Ride {$ride->id} status changed from {$oldStatus} to {$newStatus}");
+            Log::info("Ride {$ride->id} updated. Status: {$oldStatus} -> {$newStatus}. Driver: " . $ride->getOriginal('driver_id') . " -> " . $ride->driver_id);
 
-            // Update Firebase with new status
-            $this->firebaseService->updateRideStatus(
-                $ride->id,
-                $newStatus,
-                $ride->firebase_ride_id
-            );
-
-            // If ride is completed, cleanup Firebase tracking data
-            if (in_array($newStatus, ['completed', 'finished', 'finshed'])) {
-                Log::info("Ride {$ride->id} completed, cleaning up Firebase tracking data");
-
-                // Wait a moment before cleanup to ensure status update is received
-                dispatch(function () use ($ride) {
-                    sleep(2); // Wait 2 seconds
-                    $this->firebaseService->cleanupRideData($ride->id, $ride->firebase_ride_id);
-                })->delay(now()->addSeconds(5));
-            }
+            // Broadcast status update via WebSockets
+            event(new \App\Events\RideStatusUpdated($ride));
         }
     }
 }

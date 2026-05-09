@@ -15,27 +15,16 @@ use App\Http\Requests\UpdateRideRequest;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
-use Kreait\Firebase\Database;
-use Kreait\Firebase\Factory;
+
 
 class RideController extends Controller
 {
 
-    protected Database $firebase;
-
     public function __construct()
     {
-        $this->firebase = (new Factory)
-            ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-            ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-            ->createDatabase();
     }
 
-    protected function updateFirebase(Ride $ride, array $data): void
-    {
-        $firebaseRideId = 'ride_' . $ride->id;
-        $this->firebase->getReference("rides/$firebaseRideId")->update($data);
-    }
+
     public function index(Request $request)
     {
         $sortField = $request->get('sort', 'id');
@@ -193,20 +182,7 @@ class RideController extends Controller
 
         $ride->update($updateData);
 
-        try {
-            if ($newStatus === 'cancelled') {
-                $this->firebase->getReference('rides/ride_' . $ride->id)->remove();
-            } else {
-                $this->updateFirebase($ride, [
-                    'status' => $newStatus,
-                    $newStatus . '_at' => now()->toIso8601String(),
-                ]);
-            }
-        } catch (\Exception $e) {
-            return redirect()
-                ->route('rides.show', $ride)
-                ->with('error', __('Ride updated in DB but failed in Firebase: ') . $e->getMessage());
-        }
+
 
         return redirect()
             ->route('rides.show', $ride)

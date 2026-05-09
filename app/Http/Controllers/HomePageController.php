@@ -4,16 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Ride;
-use App\Services\FirebaseService;
+
 use Illuminate\Http\Request;
 
 class HomePageController extends Controller
 {
-    protected $firebaseService;
-
-    public function __construct(FirebaseService $firebaseService)
+    public function __construct()
     {
-        $this->firebaseService = $firebaseService;
     }
 
     public function index()
@@ -59,7 +56,8 @@ class HomePageController extends Controller
                     'is_available' => (bool) $driver->is_available
                 ];
 
-                if ($driver->is_available) {
+                // Robust check for availability (handle NULL as unavailable)
+                if ($driver->is_available == 1 || $driver->is_available === true) {
                     $availableDrivers[$id] = $driverData;
                 } else {
                     $unavailableDrivers[$id] = $driverData;

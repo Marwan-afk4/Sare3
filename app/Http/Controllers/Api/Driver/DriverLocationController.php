@@ -2,29 +2,80 @@
 
 namespace App\Http\Controllers\Api\Driver;
 
-use App\Helpers\RideHelper;
+use App\Events\DriverLocationUpdated;
 use App\Http\Controllers\Controller;
-use App\Jobs\PushDriverLocationToFirebase;
-use App\Models\CarCategory;
 use App\Models\Ride;
-use Carbon\Carbon;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log;
-use Kreait\Firebase\Factory;
 
 class DriverLocationController extends Controller
 {
+    /**
+     * How many seconds must pass before we force a DB write.
+     * (Even if distance hasn't changed enough.)
+     */
+    const DB_WRITE_INTERVAL_SECONDS = 30;
 
+    /**
+     * Minimum distance change (in meters) that triggers an immediate DB write.
+     */
+    const DB_WRITE_MIN_DISTANCE_METERS = 50;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // UPDATE GENERAL LOCATION  (driver not in a ride — idle / searching)
+    // POST /api/driver/update-location
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function updateGeneralLocation(Request $request)
+    {
+        $validation = Validator::make($request->all(), [
+            'lat'     => 'required|numeric|between:-90,90',
+            'lng'     => 'required|numeric|between:-180,180',
+            'bearing' => 'nullable|numeric|between:0,360',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json(['message' => $validation->errors()], 422);
+        }
+
+        $driver  = auth()->user();
+        $lat     = (float) $request->lat;
+        $lng     = (float) $request->lng;
+        $bearing = $request->bearing !== null ? (float) $request->bearing : $driver->bearing;
+
+        // 1. Cache location in Redis immediately (ultra-fast, no DB hit)
+        $this->cacheLocation($driver->id, $lat, $lng, $bearing);
+
+        // 2. Broadcast via Reverb right away (uses cached data — zero DB query)
+        $this->broadcastLocation($driver, $lat, $lng, $bearing);
+
+        // 3. Write to DB only when throttle conditions are met
+        $this->throttledDbWrite($driver, $lat, $lng, $bearing);
+
+        return response()->json([
+            'success'   => true,
+            'message'   => 'Location updated successfully',
+            'latitude'  => $lat,
+            'longitude' => $lng,
+            'bearing'   => $bearing,
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // UPDATE RIDE LOCATION  (driver is on an active ride)
+    // POST /api/driver/ride/update-location
+    // ─────────────────────────────────────────────────────────────────────────
 
     public function updateDriverLocation(Request $request)
     {
         $validation = Validator::make($request->all(), [
             'ride_id' => 'required',
-            'lat' => 'required',
-            'lng' => 'required',
-            'bearing' => 'nullable|numeric',
-            'seq' => 'nullable|integer',
+            'lat'     => 'required|numeric|between:-90,90',
+            'lng'     => 'required|numeric|between:-180,180',
+            'bearing' => 'nullable|numeric|between:0,360',
+            'seq'     => 'nullable|integer',
         ]);
 
         if ($validation->fails()) {
@@ -33,211 +84,149 @@ class DriverLocationController extends Controller
 
         $ride = Ride::findOrFail($request->ride_id);
 
-        // Verify driver owns this ride
         if ($ride->driver_id !== auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Update User table with latest location
-        $driver = auth()->user();
-        $driver->update([
-            'latitude' => $request->lat,
-            'longitude' => $request->lng,
-            'bearing' => $request->bearing ?? $driver->bearing,
-        ]);
-
-        // Only update location for active rides
-        if (!in_array($ride->status->value, ['accepted', 'waiting_user', 'in_progress'])) {
+        if (! in_array($ride->status->value, ['accepted', 'waiting_user', 'in_progress'])) {
             return response()->json(['message' => 'Ride is not in trackable status'], 400);
         }
 
-        // Tag each point with the current ride phase
+        $driver  = auth()->user();
+        $lat     = (float) $request->lat;
+        $lng     = (float) $request->lng;
+        $bearing = $request->bearing !== null ? (float) $request->bearing : $driver->bearing;
+
+        // 1. Cache in Redis
+        $this->cacheLocation($driver->id, $lat, $lng, $bearing);
+
+        // 2. Broadcast via Reverb immediately
+        $this->broadcastLocation($driver, $lat, $lng, $bearing, (int)$request->ride_id);
+
+        // 3. Throttled DB write for driver's position
+        $this->throttledDbWrite($driver, $lat, $lng, $bearing);
+
+        // 4. Determine ride phase
         $status = $ride->status->value;
-        $phase = in_array($status, ['accepted', 'waiting_user']) ? 'to_pickup' : 'trip';
+        $phase  = in_array($status, ['accepted', 'waiting_user']) ? 'to_pickup' : 'trip';
 
-        $points = $ride->route_points ?? [];
-        $newPoint = [
-            'lat' => (float) $request->lat,
-            'lng' => (float) $request->lng,
-            'bearing' => (float) ($request->bearing ?? 0),
+        // 5. Append to route_points (always — this is the ride history record)
+        $points   = $ride->route_points ?? [];
+        $points[] = [
+            'lat'       => $lat,
+            'lng'       => $lng,
+            'bearing'   => (float) ($request->bearing ?? 0),
             'timestamp' => now()->timestamp,
-            'seq' => $request->seq ?? null,
-            'phase' => $phase,
+            'seq'       => $request->seq ?? null,
+            'phase'     => $phase,
         ];
-
-        $points[] = $newPoint;
 
         $ride->route_points = $points;
         $ride->save();
 
-        try {
-            $firebase = (new Factory)
-                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                ->createDatabase();
-
-            $firebaseRideId = $ride->firebase_ride_id ?: 'ride_' . $ride->id;
-
-            $firebase->getReference("rides/{$firebaseRideId}/driver_location")->set([
-                'lat' => (float) $request->lat,
-                'lng' => (float) $request->lng,
-                'bearing' => (float) ($request->bearing ?? 0),
-                'timestamp' => now()->timestamp,
-                'updated_at' => now()->toIso8601String(),
-                'phase' => $phase,
-            ]);
-
-            // Also update general driver location in Firebase for dashboard map compatibility
-            $firebase->getReference("drivers/driver {$driver->id}")->set([
-                'latitude' => (float) $request->lat,
-                'longitude' => (float) $request->lng,
-                'bearing' => (float) ($request->bearing ?? 0),
-                'timestamp' => now()->timestamp,
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Firebase location update failed: ' . $e->getMessage());
-        }
-
-        try {
-            $firebase = (new Factory)
-                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                ->createDatabase();
-
-            $firebaseRideId = $ride->firebase_ride_id ?: 'ride_' . $ride->id;
-
-            $firebase->getReference("rides/{$firebaseRideId}/driver_location")->set([
-                'lat' => (float) $request->lat,
-                'lng' => (float) $request->lng,
-                'bearing' => (float) ($request->bearing ?? 0),
-                'timestamp' => now()->timestamp,
-                'updated_at' => now()->toIso8601String(),
-                'phase' => $phase,
-            ]);
-
-            // Also update general driver location in Firebase for dashboard map compatibility
-            $firebase->getReference("drivers/driver {$driver->id}")->set([
-                'latitude' => (float) $request->lat,
-                'longitude' => (float) $request->lng,
-                'bearing' => (float) ($request->bearing ?? 0),
-                'timestamp' => now()->timestamp,
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Firebase location update failed: ' . $e->getMessage());
-        }
-
         return response()->json([
-            'message' => 'Driver location updated successfully',
-            'total_points' => count($points)
+            'message'      => 'Driver location updated successfully',
+            'total_points' => count($points),
         ]);
     }
 
-    public function updateGeneralLocation(Request $request)
+    // ─────────────────────────────────────────────────────────────────────────
+    // PRIVATE HELPERS
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Store driver location in Redis.
+     * TTL = 5 minutes (driver considered offline after that).
+     */
+    private function cacheLocation(int $driverId, float $lat, float $lng, ?float $bearing): void
     {
-        $validation = Validator::make($request->all(), [
-            'lat' => 'required',
-            'lng' => 'required',
-            'bearing' => 'nullable|numeric',
-        ]);
-
-        if ($validation->fails()) {
-            return response()->json(['message' => $validation->errors()], 422);
-        }
-
-        $driver = auth()->user();
-        $driver->update([
-            'latitude' => $request->lat,
-            'longitude' => $request->lng,
-            'bearing' => $request->bearing ?? $driver->bearing,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'General location updated successfully',
-            'latitude' => $driver->latitude,
-            'longitude' => $driver->longitude,
-            'bearing' => $driver->bearing
-        ]);
+        Cache::put("driver_location:{$driverId}", [
+            'latitude'   => $lat,
+            'longitude'  => $lng,
+            'bearing'    => $bearing,
+            'updated_at' => now()->toIso8601String(),
+        ], now()->addMinutes(5));
     }
 
+    /**
+     * Broadcast the event using cached data — no extra DB query needed.
+     */
+    private function broadcastLocation(User $driver, float $lat, float $lng, ?float $bearing, ?int $rideId = null): void
+    {
+        // Temporarily set the values on the model instance (no DB hit)
+        $driver->latitude  = $lat;
+        $driver->longitude = $lng;
+        $driver->bearing   = $bearing;
 
+        DriverLocationUpdated::dispatch($driver, $rideId);
+    }
 
+    /**
+     * Only write to the database when:
+     *   (a) The driver moved more than DB_WRITE_MIN_DISTANCE_METERS, OR
+     *   (b) DB_WRITE_INTERVAL_SECONDS seconds have passed since last write.
+     *
+     * This reduces DB load from ~1 write/update to ~1 write/30s per driver.
+     * With 1000 drivers @ 30s interval → ~33 writes/sec instead of 200–333/sec.
+     */
+    private function throttledDbWrite(User $driver, float $lat, float $lng, ?float $bearing): void
+    {
+        $cacheKey  = "driver_last_db_write:{$driver->id}";
+        $lastWrite = Cache::get($cacheKey);
 
-    // public function endRide(Request $request)
-    // {
-    //     $validation = Validator::make($request->all(), [
-    //         'ride_id' => 'required|exists:rides,id',
-    //     ]);
+        $shouldWrite = false;
 
-    //     if ($validation->fails()) {
-    //         return response()->json(['message' => $validation->errors()], 500);
-    //     }
+        if ($lastWrite === null) {
+            // First update — always write
+            $shouldWrite = true;
+        } else {
+            $secondsSinceLast = now()->diffInSeconds($lastWrite['time']);
 
-    //     $ride = Ride::findOrFail($request->ride_id);
+            if ($secondsSinceLast >= self::DB_WRITE_INTERVAL_SECONDS) {
+                // Time threshold exceeded
+                $shouldWrite = true;
+            } else {
+                // Check distance moved
+                $distance = $this->haversineMeters(
+                    $lastWrite['lat'], $lastWrite['lng'],
+                    $lat, $lng
+                );
 
-    //     if ($ride->driver_id !== auth()->id()) {
-    //         return response()->json(['message' => 'Unauthorized'], 403);
-    //     }
+                if ($distance >= self::DB_WRITE_MIN_DISTANCE_METERS) {
+                    $shouldWrite = true;
+                }
+            }
+        }
 
-    //     $points = is_array($ride->route_points) ? $ride->route_points : json_decode($ride->route_points, true);
+        if ($shouldWrite) {
+            $driver->timestamps = false; // don't bump updated_at just for location
+            $driver->updateQuietly([
+                'latitude'  => $lat,
+                'longitude' => $lng,
+                'bearing'   => $bearing,
+            ]);
 
-    //     if (!is_array($points) || count($points) < 2) {
-    //         return response()->json(['message' => 'Not enough points to calculate distance'], 400);
-    //     }
+            Cache::put($cacheKey, [
+                'lat'  => $lat,
+                'lng'  => $lng,
+                'time' => now(),
+            ], now()->addHour());
+        }
+    }
 
-    //     // 1️⃣ Distance Calculation
-    //     $distanceKm = RideHelper::calculateTotalDistance($points);
+    /**
+     * Haversine formula — distance between two GPS points in metres.
+     */
+    private function haversineMeters(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $earthRadius = 6371000; // metres
 
-    //     // 2️⃣ Car Category
-    //     $carCategory = CarCategory::find($ride->car_category_id);
-    //     if (!$carCategory) {
-    //         return response()->json(['message' => 'Car category not found'], 404);
-    //     }
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
 
-    //     // 3️⃣ Duration Calculation (Time fare)
-    //     $startTimestamp = $points[0]['timestamp'];
-    //     $endTimestamp = $points[count($points) - 1]['timestamp'];
+        $a = sin($dLat / 2) ** 2
+           + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
 
-    //     $startTime = Carbon::createFromTimestamp($startTimestamp);
-    //     $endTime = Carbon::createFromTimestamp($endTimestamp);
-
-    //     $durationMinutes = $startTime->diffInMinutes($endTime);
-
-    //     // 4️⃣ Calculate Fare
-    //     $timeFare = $durationMinutes * $carCategory->price_per_time;
-    //     $fare = $carCategory->base_price + ($distanceKm * $carCategory->price_per_km) + $timeFare;
-
-    //     // 5️⃣ Update Ride
-    //     $ride->update([
-    //         'calculated_final_price' => round($fare, 2),
-    //         'status' => 'completed',
-    //         'ended_at' => $endTime,
-    //         'duration_minutes' => $durationMinutes,
-    //     ]);
-
-    //     // 6️⃣ Push final price to Firebase
-    //     $firebase = (new Factory)
-    //         ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-    //         ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-    //         ->createDatabase();
-
-    //     $firebase->getReference("rides/{$ride->firebase_ride_id}/final_price")->set([
-    //         'fare' => round($fare, 2),
-    //         'distance_km' => round($distanceKm, 2),
-    //         'duration_minutes' => $durationMinutes,
-    //         'status' => 'completed',
-    //     ]);
-
-    //     return response()->json([
-    //         'message' => 'Ride completed',
-    //         'final_price' => round($fare, 2),
-    //         'distance_km' => round($distanceKm, 2),
-    //         'duration_minutes' => $durationMinutes,
-    //     ]);
-    // }
-
-
-
+        return $earthRadius * 2 * asin(sqrt($a));
+    }
 }

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ride;
-use App\Services\FirebaseService;
+
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -268,23 +268,19 @@ class RideTrackingController extends Controller
             ];
         }
 
-        // Pull the driver's current live position from Firebase. This is what
-        // powers the "track the captain on his way to the passenger" view
+        // Pull the driver's current live position from the database.
+        // This powers the "track the captain on his way to the passenger" view
         // on the dashboard. Only meaningful for rides that are still active.
         $liveDriverLocation = null;
         if ($ride->driver_id && in_array($status, ['accepted', 'waiting_user', 'in_progress'])) {
-            try {
-                $fb = app(FirebaseService::class)->getDriverLocation($ride->driver_id);
-                if ($fb) {
-                    $liveDriverLocation = [
-                        'lat' => $fb['latitude'],
-                        'lng' => $fb['longitude'],
-                        'bearing' => $fb['bearing'] ?? 0,
-                        'timestamp' => $fb['timestamp'] ?? null,
-                    ];
-                }
-            } catch (\Exception $e) {
-                \Log::warning("Dashboard could not fetch live driver location: " . $e->getMessage());
+            $driver = $ride->driver;
+            if ($driver && $driver->latitude && $driver->longitude) {
+                $liveDriverLocation = [
+                    'lat' => (float) $driver->latitude,
+                    'lng' => (float) $driver->longitude,
+                    'bearing' => (float) ($driver->bearing ?? 0),
+                    'timestamp' => $driver->updated_at->timestamp,
+                ];
             }
         }
 

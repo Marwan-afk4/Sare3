@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sare3 – Live Driver Tracker</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Leaflet (map) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Pusher JS (Reverb uses the Pusher protocol) -->
+    <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
+
+    <style>
+        /* ── Reset / base ─────────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:        #0b0f1a;
+            --surface:   #131929;
+            --surface2:  #1b2236;
+            --border:    rgba(99,118,175,0.18);
+            --accent:    #4f7dff;
+            --accent2:   #7c5cff;
+            --green:     #22d3a0;
+            --yellow:    #f5c518;
+            --red:       #ff4f6d;
+            --text:      #e4e9f7;
+            --muted:     #6b7a99;
+            --radius:    14px;
+            --shadow:    0 8px 32px rgba(0,0,0,.45);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ── Top bar ──────────────────────────────────────────────────── */
+        header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 24px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .logo {
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 10px;
+            display: grid; place-items: center;
+            font-size: 20px;
+        }
+
+        header h1 {
+            font-size: 17px; font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        header h1 span { color: var(--accent); }
+
+        .ws-badge {
+            margin-left: auto;
+            display: flex; align-items: center; gap: 7px;
+            font-size: 12px; font-weight: 500;
+            padding: 5px 13px;
+            border-radius: 99px;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            transition: all .3s;
+        }
+
+        .ws-badge .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--muted);
+            transition: background .3s;
+        }
+
+        .ws-badge.connected .dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+        .ws-badge.connecting .dot { background: var(--yellow); animation: pulse 1s infinite; }
+        .ws-badge.error .dot { background: var(--red); }
+
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        /* ── Main layout ──────────────────────────────────────────────── */
+        main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ── Sidebar ──────────────────────────────────────────────────── */
+        aside {
+            width: 320px;
+            flex-shrink: 0;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-section h2 {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 14px;
+        }
+
+        /* Config inputs */
+        .field {
+            margin-bottom: 10px;
+        }
+
+        .field label {
+            font-size: 11px;
+            color: var(--muted);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .field input, .field select {
+            width: 100%;
+            padding: 9px 12px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: border .2s;
+        }
+
+        .field input:focus, .field select:focus {
+            border-color: var(--accent);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity .2s, transform .1s;
+        }
+
+        .btn:active { transform: scale(0.98); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--red), #b0003a);
+            color: #fff;
+            margin-top: 6px;
+        }
+
+        .btn:hover { opacity: .88; }
+
+        /* Driver list */
+        #driver-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        #driver-list::-webkit-scrollbar { width: 5px; }
+        #driver-list::-webkit-scrollbar-track { background: transparent; }
+        #driver-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+        .driver-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 13px 14px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: border-color .2s, transform .15s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .driver-card::before {
+            content:'';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(79,125,255,.07), transparent);
+            opacity: 0;
+            transition: opacity .2s;
+        }
+
+        .driver-card:hover::before { opacity: 1; }
+        .driver-card:hover { border-color: var(--accent); transform: translateX(2px); }
+        .driver-card.active { border-color: var(--accent); }
+
+        .driver-card-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .driver-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            display: grid; place-items: center;
+            font-size: 15px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .driver-name { font-size: 13px; font-weight: 600; }
+        .driver-id   { font-size: 11px; color: var(--muted); }
+
+        .driver-coords {
+            font-size: 11px;
+            color: var(--muted);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .driver-meta {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .chip {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 99px;
+        }
+
+        .chip-green { background: rgba(34,211,160,.15); color: var(--green); }
+        .chip-blue  { background: rgba(79,125,255,.15); color: var(--accent); }
+        .chip-muted { background: var(--border); color: var(--muted); }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 10px;
+            color: var(--muted);
+            font-size: 13px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .empty-state .icon { font-size: 42px; }
+
+        /* ── Map ──────────────────────────────────────────────────────── */
+        #map-wrap {
+            flex: 1;
+            position: relative;
+        }
+
+        #map { width: 100%; height: 100%; }
+
+        /* Leaflet dark override */
+        .leaflet-tile-pane { filter: brightness(.7) saturate(.6) hue-rotate(185deg); }
+
+        /* ── Event log ────────────────────────────────────────────────── */
+        #log-panel {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            width: 340px;
+            max-height: 240px;
+            background: rgba(13,19,35,.9);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            backdrop-filter: blur(12px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            z-index: 500;
+        }
+
+        .log-header {
+            padding: 9px 13px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #clear-log {
+            font-size: 10px;
+            cursor: pointer;
+            color: var(--muted);
+            background: none;
+            border: none;
+            font-family: inherit;
+            padding: 0;
+        }
+
+        #clear-log:hover { color: var(--red); }
+
+        #log-body {
+            overflow-y: auto;
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 11px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+
+        #log-body::-webkit-scrollbar { width: 4px; }
+        #log-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+        .log-entry {
+            margin-bottom: 5px;
+            line-height: 1.5;
+            animation: fadeIn .25s ease;
+        }
+
+        @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+
+        .log-entry .ts { color: var(--muted); margin-right: 6px; }
+        .log-entry .ev { color: var(--accent); }
+        .log-entry .err { color: var(--red); }
+        .log-entry .ok  { color: var(--green); }
+
+        /* ── Info overlay (top-left of map) ──────────────────────────── */
+        #map-info {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(13,19,35,.9);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            backdrop-filter: blur(12px);
+            padding: 12px 16px;
+            font-size: 12px;
+            z-index: 500;
+            box-shadow: var(--shadow);
+            min-width: 190px;
+        }
+
+        #map-info .stat { margin-bottom: 4px; color: var(--muted); }
+        #map-info .stat span { color: var(--text); font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<!-- ─── Header ──────────────────────────────────────────────────────────── -->
+<header>
+    <div class="logo">🚖</div>
+    <h1>Sare3 <span>Live Tracker</span></h1>
+    <div class="ws-badge connecting" id="ws-badge">
+        <div class="dot"></div>
+        <span id="ws-label">Connecting…</span>
+    </div>
+</header>
+
+<!-- ─── Main ────────────────────────────────────────────────────────────── -->
+<main>
+
+    <!-- Sidebar -->
+    <aside>
+        <!-- Config -->
+        <div class="sidebar-section">
+            <h2>⚙ Reverb Config</h2>
+
+            <div class="field">
+                <label>Reverb Host</label>
+                <input id="cfg-host" value="localhost" />
+            </div>
+            <div class="field">
+                <label>Reverb Port</label>
+                <input id="cfg-port" value="8080" type="number" />
+            </div>
+            <div class="field">
+                <label>App Key (REVERB_APP_KEY)</label>
+                <input id="cfg-key" value="2eqkhunwlke2ea0t5oaz" />
+            </div>
+
+            <button class="btn btn-primary" onclick="connect()">🔌 Connect</button>
+            <button class="btn btn-danger" onclick="disconnect()">✖ Disconnect</button>
+        </div>
+
+        <!-- Simulate send -->
+        <div class="sidebar-section">
+            <h2>🧪 Simulate Location Update</h2>
+            <p style="font-size:11px;color:var(--muted);margin-bottom:12px;">
+                Send a fake location event via the API to test the full flow end-to-end.
+                You need a valid <strong>Bearer token</strong> for a driver account.
+            </p>
+
+            <div class="field">
+                <label>API Base URL</label>
+                <input id="sim-api" value="http://sare3.tld" />
+            </div>
+            <div class="field">
+                <label>Driver Bearer Token</label>
+                <input id="sim-token" placeholder="paste token here…" />
+            </div>
+            <div class="field">
+                <label>Latitude</label>
+                <input id="sim-lat" value="33.3152" type="number" step="0.0001" />
+            </div>
+            <div class="field">
+                <label>Longitude</label>
+                <input id="sim-lng" value="44.3661" type="number" step="0.0001" />
+            </div>
+            <div class="field">
+                <label>Bearing (°)</label>
+                <input id="sim-bearing" value="45" type="number" step="1" />
+            </div>
+
+            <button class="btn btn-primary" onclick="sendLocation()">📡 Send to API</button>
+        </div>
+
+        <!-- Driver cards -->
+        <div style="padding:12px 20px 8px;border-bottom:1px solid var(--border)">
+            <h2 style="font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)">
+                🚗 Active Drivers
+            </h2>
+        </div>
+        <div id="driver-list">
+            <div class="empty-state">
+                <div class="icon">📡</div>
+                <div>Waiting for location events…<br>Connect to Reverb first.</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Map -->
+    <div id="map-wrap">
+        <div id="map"></div>
+
+        <!-- Top-left stats -->
+        <div id="map-info">
+            <div class="stat">Drivers on map: <span id="stat-count">0</span></div>
+            <div class="stat">Last event: <span id="stat-last">—</span></div>
+            <div class="stat">Channel: <span id="stat-channel" style="color:var(--accent)">—</span></div>
+        </div>
+
+        <!-- Event log -->
+        <div id="log-panel">
+            <div class="log-header">
+                Event Log
+                <button id="clear-log" onclick="clearLog()">clear</button>
+            </div>
+            <div id="log-body">
+                <div class="log-entry"><span class="ts">──</span> <span class="ev">Waiting for events…</span></div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+/* ─── Map setup ─────────────────────────────────────────────────────────── */
+const map = L.map('map', {
+    center: [33.3152, 44.3661],
+    zoom: 13,
+    zoomControl: false,
+});
+
+L.control.zoom({ position: 'topright' }).addTo(map);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19,
+}).addTo(map);
+
+/* ─── Driver state ──────────────────────────────────────────────────────── */
+const drivers = {};   // { driverId: { marker, lat, lng, name, updatedAt } }
+let totalEvents = 0;
+let pusherClient = null;
+let channel     = null;
+
+/* ─── Custom marker ─────────────────────────────────────────────────────── */
+function makeIcon(bearing) {
+    const rot = bearing ?? 0;
+    return L.divIcon({
+        className: '',
+        iconSize: [38, 38],
+        iconAnchor: [19, 19],
+        html: `
+          <div style="
+            width:38px;height:38px;
+            background:linear-gradient(135deg,#4f7dff,#7c5cff);
+            border-radius:50%;
+            border:3px solid #fff;
+            box-shadow:0 3px 12px rgba(79,125,255,.55);
+            display:grid;place-items:center;
+            font-size:18px;
+            transform:rotate(${rot}deg);
+          ">🚖</div>`,
+    });
+}
+
+/* ─── Websocket connect ─────────────────────────────────────────────────── */
+function connect() {
+    if (pusherClient) {
+        pusherClient.disconnect();
+    }
+
+    const host    = document.getElementById('cfg-host').value.trim();
+    const port    = parseInt(document.getElementById('cfg-port').value);
+    const appKey  = document.getElementById('cfg-key').value.trim();
+
+    setBadge('connecting', 'Connecting…');
+
+    pusherClient = new Pusher(appKey, {
+        wsHost:           host,
+        wsPort:           port,
+        wssPort:          port,
+        forceTLS:         false,
+        enabledTransports: ['ws'],
+        disableStats:     true,
+        cluster:          'mt1',   // required but ignored by Reverb
+    });
+
+    pusherClient.connection.bind('connected', () => {
+        setBadge('connected', 'Connected');
+        addLog('ok', `WebSocket connected → ${host}:${port}`);
+        document.getElementById('stat-channel').textContent = 'driver-location';
+        subscribePublicChannel();
+    });
+
+    pusherClient.connection.bind('disconnected', () => {
+        setBadge('error', 'Disconnected');
+        addLog('err', 'WebSocket disconnected');
+    });
+
+    pusherClient.connection.bind('error', (err) => {
+        setBadge('error', 'Error');
+        addLog('err', 'Connection error: ' + JSON.stringify(err));
+    });
+}
+
+function subscribePublicChannel() {
+    // Public channel — no auth needed
+    channel = pusherClient.subscribe('driver-location');
+
+    channel.bind('driver.location.updated', (data) => {
+        totalEvents++;
+        handleLocationUpdate(data);
+    });
+
+    addLog('ok', 'Subscribed to public channel: driver-location');
+}
+
+function disconnect() {
+    if (pusherClient) {
+        pusherClient.disconnect();
+        pusherClient = null;
+        channel = null;
+    }
+    setBadge('connecting', 'Disconnected');
+    addLog('err', 'Manually disconnected');
+}
+
+/* ─── Handle location event ─────────────────────────────────────────────── */
+function handleLocationUpdate(data) {
+    const { driver_id, latitude, longitude, bearing, updated_at } = data;
+
+    const now  = new Date(updated_at || Date.now());
+    const time = now.toLocaleTimeString();
+
+    addLog('ev', `Driver #${driver_id} → ${latitude.toFixed(6)}, ${longitude.toFixed(6)} | bearing: ${bearing ?? '—'}°`);
+
+    // Update stats bar
+    document.getElementById('stat-count').textContent = Object.keys(drivers).length;
+    document.getElementById('stat-last').textContent  = time;
+
+    if (drivers[driver_id]) {
+        // Smooth-move existing marker
+        drivers[driver_id].marker.setLatLng([latitude, longitude]);
+        drivers[driver_id].marker.setIcon(makeIcon(bearing));
+        drivers[driver_id].lat       = latitude;
+        drivers[driver_id].lng       = longitude;
+        drivers[driver_id].bearing   = bearing;
+        drivers[driver_id].updatedAt = time;
+    } else {
+        // New driver — add marker
+        const marker = L.marker([latitude, longitude], { icon: makeIcon(bearing) })
+            .addTo(map)
+            .bindPopup(`
+                <b>Driver #${driver_id}</b><br>
+                Lat: ${latitude}<br>
+                Lng: ${longitude}<br>
+                Bearing: ${bearing ?? '—'}°
+            `);
+
+        drivers[driver_id] = { marker, lat: latitude, lng: longitude, bearing, updatedAt: time };
+
+        // Auto-pan to first driver
+        if (Object.keys(drivers).length === 1) {
+            map.setView([latitude, longitude], 15);
+        }
+    }
+
+    // Update popup content
+    drivers[driver_id].marker.getPopup()?.setContent(`
+        <b>Driver #${driver_id}</b><br>
+        Lat: ${latitude}<br>
+        Lng: ${longitude}<br>
+        Bearing: ${bearing ?? '—'}°<br>
+        Last seen: ${time}
+    `);
+
+    document.getElementById('stat-count').textContent = Object.keys(drivers).length;
+    renderDriverList();
+}
+
+/* ─── Render sidebar list ───────────────────────────────────────────────── */
+function renderDriverList() {
+    const list = document.getElementById('driver-list');
+    const keys = Object.keys(drivers);
+
+    if (keys.length === 0) {
+        list.innerHTML = `<div class="empty-state"><div class="icon">📡</div><div>Waiting for location events…<br>Connect to Reverb first.</div></div>`;
+        return;
+    }
+
+    list.innerHTML = keys.map(id => {
+        const d = drivers[id];
+        return `
+          <div class="driver-card" onclick="focusDriver(${id})">
+            <div class="driver-card-top">
+              <div class="driver-avatar">${String(id).slice(-2)}</div>
+              <div>
+                <div class="driver-name">Driver #${id}</div>
+                <div class="driver-id">Last: ${d.updatedAt}</div>
+              </div>
+            </div>
+            <div class="driver-coords">
+              <span>LAT ${d.lat.toFixed(6)}</span>
+              <span>LNG ${d.lng.toFixed(6)}</span>
+            </div>
+            <div class="driver-meta">
+              <span class="chip chip-green">● Live</span>
+              ${d.bearing !== null ? `<span class="chip chip-blue">${d.bearing}°</span>` : ''}
+            </div>
+          </div>`;
+    }).join('');
+}
+
+function focusDriver(id) {
+    const d = drivers[id];
+    if (!d) return;
+    map.flyTo([d.lat, d.lng], 16, { duration: 1 });
+    d.marker.openPopup();
+}
+
+/* ─── Simulate via API ──────────────────────────────────────────────────── */
+async function sendLocation() {
+    const api     = document.getElementById('sim-api').value.trim().replace(/\/$/, '');
+    const token   = document.getElementById('sim-token').value.trim();
+    const lat     = document.getElementById('sim-lat').value;
+    const lng     = document.getElementById('sim-lng').value;
+    const bearing = document.getElementById('sim-bearing').value;
+
+    if (!token) {
+        addLog('err', 'No bearer token provided');
+        return;
+    }
+
+    addLog('ev', `POSTing to ${api}/api/driver/update-location`);
+
+    try {
+        const res = await fetch(`${api}/api/driver/update-location`, {
+            method: 'POST',
+            headers: {
+                'Content-Type':  'application/json',
+                'Accept':        'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ lat, lng, bearing }),
+        });
+
+        const json = await res.json();
+
+        if (res.ok) {
+            addLog('ok', `API response: ${json.message ?? 'ok'}`);
+        } else {
+            addLog('err', `API error ${res.status}: ${JSON.stringify(json)}`);
+        }
+    } catch (e) {
+        addLog('err', 'Fetch failed: ' + e.message);
+    }
+}
+
+/* ─── Log helpers ───────────────────────────────────────────────────────── */
+function addLog(type, msg) {
+    const body = document.getElementById('log-body');
+    const ts   = new Date().toLocaleTimeString();
+    const div  = document.createElement('div');
+    div.className = 'log-entry';
+    div.innerHTML = `<span class="ts">[${ts}]</span><span class="${type}">${escHtml(msg)}</span>`;
+    body.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+}
+
+function clearLog() {
+    document.getElementById('log-body').innerHTML = '';
+}
+
+function setBadge(state, label) {
+    const badge = document.getElementById('ws-badge');
+    badge.className = 'ws-badge ' + state;
+    document.getElementById('ws-label').textContent = label;
+}
+
+function escHtml(str) {
+    return String(str)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;');
+}
+
+/* ─── Auto-connect on load ──────────────────────────────────────────────── */
+window.addEventListener('load', () => {
+    // small delay so the map renders first
+    setTimeout(connect, 600);
+});
+</script>
+</body>
+</html>

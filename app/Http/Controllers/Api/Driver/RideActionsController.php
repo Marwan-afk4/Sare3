@@ -24,19 +24,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Kreait\Firebase\Factory;
-use Kreait\Firebase\Database;
+
 
 class RideActionsController extends Controller
 {
-    protected Database $firebase;
-
     public function __construct()
     {
-        $this->firebase = (new Factory)
-            ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-            ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-            ->createDatabase();
     }
 
     protected function validateRide(Request $request, $status = null, $requireDriverMatch = true): ?Ride
@@ -68,11 +61,7 @@ class RideActionsController extends Controller
         return $ride;
     }
 
-    protected function updateFirebase(Ride $ride, array $data): void
-    {
-        $firebaseRideId = 'ride_' . $ride->id;
-        $this->firebase->getReference("rides/$firebaseRideId")->update($data);
-    }
+
 
     //accept ride
     public function acceptRide(Request $request)
@@ -96,15 +85,8 @@ class RideActionsController extends Controller
         $acceptLng = $request->input('lng');
 
         if ($acceptLat === null || $acceptLng === null) {
-            try {
-                $fbLocation = app(\App\Services\FirebaseService::class)->getDriverLocation($driver->id);
-                if ($fbLocation) {
-                    $acceptLat = $fbLocation['latitude'];
-                    $acceptLng = $fbLocation['longitude'];
-                }
-            } catch (\Exception $e) {
-                Log::warning("Could not fetch driver location from Firebase on accept: " . $e->getMessage());
-            }
+            $acceptLat = $driver->latitude;
+            $acceptLng = $driver->longitude;
         }
 
         $updateData = [
@@ -138,47 +120,7 @@ class RideActionsController extends Controller
         // audit trail used by the admin dashboard filters.
         app(RideOfferService::class)->markAccepted($ride, (int) $driver->id);
 
-        $firebaseData = [
-            'driver_id' => $driver->id,
-            'status' => 'accepted',
-            'accepted_at' => now()->toIso8601String(),
-        ];
 
-        if ($acceptLat !== null && $acceptLng !== null) {
-            $firebaseData['driver_accept_location'] = [
-                'lat' => (float) $acceptLat,
-                'lng' => (float) $acceptLng,
-                'timestamp' => $startTime->timestamp,
-                'recorded_at' => $startTime->toIso8601String(),
-            ];
-            // Initialize the live driver_location so the dashboard can start
-            // rendering immediately without waiting for the first ping.
-            $firebaseData['driver_location'] = [
-                'lat' => (float) $acceptLat,
-                'lng' => (float) $acceptLng,
-                'timestamp' => $startTime->timestamp,
-                'updated_at' => $startTime->toIso8601String(),
-                'phase' => 'to_pickup',
-            ];
-        }
-
-        // Generate verification code if feature is enabled
-        $verificationService = new RideVerificationService();
-        $verificationCode = $verificationService->generateCodeForRide($ride);
-
-        if ($verificationCode) {
-            $firebaseData['verification_required'] = true;
-            // Code is stored separately in Firebase for user access only
-        }
-
-        try {
-            $this->updateFirebase($ride, $firebaseData);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Ride accepted in DB, but failed in Firebase.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
 
         $response = ['message' => 'Ride accepted.'];
 
@@ -210,17 +152,9 @@ class RideActionsController extends Controller
                 $arrivedLng = $last['lng'] ?? null;
             }
 
-            // Last resort: driver's last known location in Firebase.
             if ($arrivedLat === null || $arrivedLng === null) {
-                try {
-                    $fbLocation = app(\App\Services\FirebaseService::class)->getDriverLocation($ride->driver_id);
-                    if ($fbLocation) {
-                        $arrivedLat = $fbLocation['latitude'];
-                        $arrivedLng = $fbLocation['longitude'];
-                    }
-                } catch (\Exception $e) {
-                    Log::warning("Could not fetch driver location from Firebase on arrived: " . $e->getMessage());
-                }
+                $arrivedLat = $driver->latitude ?? null;
+                $arrivedLng = $driver->longitude ?? null;
             }
         }
 
@@ -250,25 +184,7 @@ class RideActionsController extends Controller
 
         $ride->update($updateData);
 
-        try {
-            $firebasePayload = [
-                'status' => 'waiting_user',
-                'arrived_at' => now()->toIso8601String(),
-            ];
 
-            if ($arrivedLat !== null && $arrivedLng !== null) {
-                $firebasePayload['driver_arrived_location'] = [
-                    'lat' => (float) $arrivedLat,
-                    'lng' => (float) $arrivedLng,
-                    'timestamp' => now()->timestamp,
-                    'recorded_at' => now()->toIso8601String(),
-                ];
-            }
-
-            $this->updateFirebase($ride, $firebasePayload);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Firebase error.', 'error' => $e->getMessage()], 500);
-        }
 
         return response()->json(['message' => 'Marked as arrived.']);
     }
@@ -291,14 +207,7 @@ class RideActionsController extends Controller
             'trip_started_at' => now(),
         ]);
 
-        try {
-            $this->updateFirebase($ride, [
-                'status' => 'in_progress',
-                'started_at' => now()->toIso8601String(),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Firebase error.', 'error' => $e->getMessage()], 500);
-        }
+
 
         return response()->json(['message' => 'Ride started.']);
     }
@@ -341,14 +250,7 @@ class RideActionsController extends Controller
             return response()->json(['message' => 'Invalid verification code.'], 422);
         }
 
-        try {
-            $this->updateFirebase($ride, [
-                'verification_verified' => true,
-                'verified_at' => now()->toIso8601String(),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Firebase error.', 'error' => $e->getMessage()], 500);
-        }
+
 
         return response()->json([
             'message' => 'Verification code verified successfully.',
@@ -672,31 +574,7 @@ class RideActionsController extends Controller
             Log::error("Bonus check failed for driver {$driver->id} after ride {$ride->id}: " . $e->getMessage());
         }
 
-        // 🔟 Push to Firebase
-        try {
-            $firebaseData = [
-                'status' => 'completed',
-                'completed_at' => $endTime->toIso8601String(),
-                'final_price' => [
-                    'original_fare' => round($originalFare, 1),
-                    'final_fare' => round($fare, 1), // Fare after discounts (before wallet)
-                    'discount_amount' => round($discountResult['total_discount_amount'], 1),
-                    'coupon_discount' => round($couponDiscountAmount, 1),
-                    'wallet_paid_amount' => round($walletPaidAmount, 2), // Amount paid from wallet
-                    'remaining_amount' => round($remainingAmount, 2), // Amount driver should collect
-                    'distance_km' => round($distanceKm, 1),
-                    'duration_minutes' => $durationMinutes,
-                ],
-            ];
 
-            if (!empty($discountResult['applied_discounts'])) {
-                $firebaseData['discounts'] = $discountResult['applied_discounts'];
-            }
-
-            $this->updateFirebase($ride, $firebaseData);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Firebase error.', 'error' => $e->getMessage()], 500);
-        }
 
         // Prepare wallet payment info for response
         // Original fare (before wallet deduction) = final fare after discounts
@@ -744,14 +622,7 @@ class RideActionsController extends Controller
 
         $ride->update(['status' => 'finshed']);
 
-        try {
-            $this->updateFirebase($ride, [
-                'status' => 'finshed',
-                'started_at' => now()->toIso8601String(),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Firebase error.', 'error' => $e->getMessage()], 500);
-        }
+
 
         return response()->json(['message' => 'Ride started.']);
     }

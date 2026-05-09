@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Ride;
 use App\Models\User;
+use App\Observers\RideObserver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -22,8 +24,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Register Ride Observer for Firebase updates
-        // \App\Models\Ride::observe(\App\Observers\RideObserver::class);
+        // Register Ride Observer for Reverb WebSocket updates
+        Ride::observe(RideObserver::class);
 
         // Share pending drivers count with all views (for sidebar badge)
         View::composer('*', function ($view) {
