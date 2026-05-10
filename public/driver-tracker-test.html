@@ -545,16 +545,16 @@ function connect() {
 
     setBadge('connecting', 'Connecting…');
 
-    const isSecure = window.location.protocol === 'https:';
+    const isSecure = window.location.protocol === 'https:' || port === 443;
     
     pusherClient = new Pusher(appKey, {
         wsHost:           host,
         wsPort:           port,
         wssPort:          port,
-        forceTLS:         isHttps,
+        forceTLS:         isSecure,
         enabledTransports: ['ws', 'wss'],
         disableStats:     true,
-        cluster:          'mt1',   // required but ignored by Reverb
+        cluster:          'mt1',
     });
 
     pusherClient.connection.bind('connected', () => {
