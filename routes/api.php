@@ -407,4 +407,39 @@ Route::domain(config('app.api_domain'))->group(function () {
             'message' => 'Admin authentication working'
         ]);
     });
+
+    //======= BROADCAST DEBUG (Temporary) ========
+    Route::get('/debug/test-broadcast', function () {
+        $user = \App\Models\User::first();
+        
+        if (!$user) {
+            return "Error: No user found in database to use for testing.";
+        }
+
+        // Create the event
+        $event = new \App\Events\DriverLocationUpdated($user);
+        
+        // Mock some data
+        $event->latitude  = 33.3152;
+        $event->longitude = 44.3661;
+        $event->bearing   = 45;
+
+        // Dispatch broadcast
+        broadcast($event)->toOthers();
+
+        return response()->json([
+            'status' => 'Broadcast Sent!',
+            'info' => 'Check your Reverb terminal for activity.',
+            'event_data' => [
+                'channel' => 'driver-location',
+                'name' => $event->broadcastAs(),
+                'payload' => $event->broadcastWith(),
+            ],
+            'reverb_config' => [
+                'host' => config('broadcasting.connections.reverb.options.host'),
+                'port' => config('broadcasting.connections.reverb.options.port'),
+            ]
+        ]);
+    });
 });
+
