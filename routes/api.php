@@ -409,7 +409,7 @@ Route::domain(config('app.api_domain'))->group(function () {
     });
 
     //======= BROADCAST DEBUG (Temporary) ========
-    Route::get('/debug/test-broadcast', function () {
+    Route::get('/debug/test-broadcast', function (Request $request) {
         $user = \App\Models\User::first();
         
         if (!$user) {
@@ -419,10 +419,10 @@ Route::domain(config('app.api_domain'))->group(function () {
         // Create the event
         $event = new \App\Events\DriverLocationUpdated($user);
         
-        // Mock some data
-        $event->latitude  = 33.3152;
-        $event->longitude = 44.3661;
-        $event->bearing   = 45;
+        // Mock some data from query params
+        $event->latitude  = (float) $request->query('lat', 33.3152);
+        $event->longitude = (float) $request->query('lng', 44.3661);
+        $event->bearing   = (float) $request->query('bearing', 45);
 
         // Dispatch broadcast
         broadcast($event)->toOthers();
@@ -442,4 +442,5 @@ Route::domain(config('app.api_domain'))->group(function () {
         ]);
     });
 });
+
 
