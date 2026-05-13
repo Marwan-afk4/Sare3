@@ -480,10 +480,10 @@
         const echoConfig = {
             broadcaster: 'reverb',
             key:         '{{ config("broadcasting.connections.reverb.key") }}',
-            wsHost:      window.location.hostname,
-            wsPort:      {{ config("broadcasting.connections.reverb.options.port", 443) }},
-            wssPort:     {{ config("broadcasting.connections.reverb.options.port", 443) }},
-            forceTLS:    window.location.protocol === 'https:',
+            wsHost:      'sarea.marwan-gaber.com',
+            wsPort:      443,
+            wssPort:     443,
+            forceTLS:    true,
             enabledTransports: ['ws', 'wss'],
         };
         console.log('📡 Initializing Echo with config:', echoConfig);
