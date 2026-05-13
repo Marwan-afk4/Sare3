@@ -410,37 +410,42 @@ Route::domain(config('app.api_domain'))->group(function () {
 
     //======= BROADCAST DEBUG (Temporary) ========
     Route::get('/debug/test-broadcast', function (Request $request) {
-        $user = \App\Models\User::first();
-        
-        if (!$user) {
-            return "Error: No user found in database to use for testing.";
+        try {
+            $user = \App\Models\User::first();
+            
+            if (!$user) {
+                return "Error: No user found in database to use for testing.";
+            }
+
+            // Create the event
+            $event = new \App\Events\DriverLocationUpdated($user);
+            
+            // Mock some data from query params
+            $event->latitude  = (float) $request->query('lat', 33.3152);
+            $event->longitude = (float) $request->query('lng', 44.3661);
+            $event->bearing   = (float) $request->query('bearing', 45);
+
+            // Dispatch broadcast
+            broadcast($event)->toOthers();
+
+            return response()->json([
+                'status' => 'Broadcast Sent!',
+                'info' => 'Check your Reverb terminal for activity.',
+                'event_data' => [
+                    'channel' => 'driver-location',
+                    'name' => $event->broadcastAs(),
+                    'payload' => $event->broadcastWith(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'Error',
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
         }
-
-        // Create the event
-        $event = new \App\Events\DriverLocationUpdated($user);
-        
-        // Mock some data from query params
-        $event->latitude  = (float) $request->query('lat', 33.3152);
-        $event->longitude = (float) $request->query('lng', 44.3661);
-        $event->bearing   = (float) $request->query('bearing', 45);
-
-        // Dispatch broadcast
-        broadcast($event)->toOthers();
-
-        return response()->json([
-            'status' => 'Broadcast Sent!',
-            'info' => 'Check your Reverb terminal for activity.',
-            'event_data' => [
-                'channel' => 'driver-location',
-                'name' => $event->broadcastAs(),
-                'payload' => $event->broadcastWith(),
-            ],
-            'reverb_config' => [
-                'host' => config('broadcasting.connections.reverb.options.host'),
-                'port' => config('broadcasting.connections.reverb.options.port'),
-            ]
-        ]);
     });
 });
+
 
 
