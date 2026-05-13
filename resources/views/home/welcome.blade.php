@@ -481,8 +481,8 @@
             broadcaster: 'reverb',
             key:         '{{ config("broadcasting.connections.reverb.key") }}',
             wsHost:      window.location.hostname,
-            wsPort:      8080,
-            wssPort:     8080,
+            wsPort:      {{ config("broadcasting.connections.reverb.options.port", 443) }},
+            wssPort:     {{ config("broadcasting.connections.reverb.options.port", 443) }},
             forceTLS:    window.location.protocol === 'https:',
             enabledTransports: ['ws', 'wss'],
         };
