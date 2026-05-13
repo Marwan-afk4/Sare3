@@ -411,6 +411,9 @@ Route::domain(config('app.api_domain'))->group(function () {
     //======= BROADCAST DEBUG (Temporary) ========
     Route::get('/debug/test-broadcast', function (Request $request) {
         try {
+            $driver = config('broadcasting.default');
+            $conf = config("broadcasting.connections.{$driver}");
+
             $user = \App\Models\User::first();
             
             if (!$user) {
@@ -419,23 +422,18 @@ Route::domain(config('app.api_domain'))->group(function () {
 
             // Create the event
             $event = new \App\Events\DriverLocationUpdated($user);
-            
-            // Mock some data from query params
             $event->latitude  = (float) $request->query('lat', 33.3152);
             $event->longitude = (float) $request->query('lng', 44.3661);
-            $event->bearing   = (float) $request->query('bearing', 45);
 
             // Dispatch broadcast
             broadcast($event)->toOthers();
 
             return response()->json([
-                'status' => 'Broadcast Sent!',
-                'info' => 'Check your Reverb terminal for activity.',
-                'event_data' => [
-                    'channel' => 'driver-location',
-                    'name' => $event->broadcastAs(),
-                    'payload' => $event->broadcastWith(),
-                ]
+                'active_driver' => $driver,
+                'target_host' => $conf['options']['host'] ?? ($conf['host'] ?? 'unknown'),
+                'target_port' => $conf['options']['port'] ?? ($conf['port'] ?? 'unknown'),
+                'status' => 'Broadcast Dispatched!',
+                'event' => $event->broadcastAs(),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -446,6 +444,7 @@ Route::domain(config('app.api_domain'))->group(function () {
         }
     });
 });
+
 
 
 
