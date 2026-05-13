@@ -411,29 +411,29 @@ Route::domain(config('app.api_domain'))->group(function () {
     //======= BROADCAST DEBUG (Temporary) ========
     Route::get('/debug/test-broadcast', function (Request $request) {
         try {
-            $driver = config('broadcasting.default');
-            $conf = config("broadcasting.connections.{$driver}");
+            // Force config for this request to be absolutely sure
+            config(['broadcasting.default' => 'reverb']);
+            config(['broadcasting.connections.reverb.options.host' => '127.0.0.1']);
+            config(['broadcasting.connections.reverb.options.port' => 8192]);
+            config(['broadcasting.connections.reverb.options.scheme' => 'http']);
+            config(['broadcasting.connections.reverb.options.useTLS' => false]);
 
             $user = \App\Models\User::first();
-            
-            if (!$user) {
-                return "Error: No user found in database to use for testing.";
-            }
+            if (!$user) return "No user found";
 
-            // Create the event
             $event = new \App\Events\DriverLocationUpdated($user);
             $event->latitude  = (float) $request->query('lat', 33.3152);
             $event->longitude = (float) $request->query('lng', 44.3661);
 
-            // Dispatch broadcast
+            // Execute broadcast
             broadcast($event)->toOthers();
 
             return response()->json([
-                'active_driver' => $driver,
-                'target_host' => $conf['options']['host'] ?? ($conf['host'] ?? 'unknown'),
-                'target_port' => $conf['options']['port'] ?? ($conf['port'] ?? 'unknown'),
-                'status' => 'Broadcast Dispatched!',
+                'status' => 'Forced Broadcast Dispatched!',
+                'target' => '127.0.0.1:8192',
+                'driver' => config('broadcasting.default'),
                 'event' => $event->broadcastAs(),
+                'note' => 'If terminal is still silent, your PHP-FPM is blocked from local networking.'
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -444,6 +444,7 @@ Route::domain(config('app.api_domain'))->group(function () {
         }
     });
 });
+
 
 
 
