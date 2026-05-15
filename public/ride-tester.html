@@ -163,6 +163,11 @@
     <h2><i class="fa fa-taxi" style="color: var(--primary)"></i> محاكي إرسال طلب رحلة</h2>
     
     <div class="form-group">
+        <label>عنوان الـ API (API Base URL)</label>
+        <input type="text" id="api_base" placeholder="https://dashboard.2te.org" value="https://dashboard.2te.org">
+    </div>
+
+    <div class="form-group">
         <label>توكن المستخدم (User Bearer Token)</label>
         <input type="text" id="token" placeholder="أدخل التوكن هنا..." value="">
     </div>
@@ -222,6 +227,7 @@
 
 <script>
     async function sendRide() {
+        const apiBase = document.getElementById('api_base').value.replace(/\/$/, '');
         const token = document.getElementById('token').value;
         const driver_id = document.getElementById('driver_id').value;
         const zone_id = document.getElementById('zone_id').value;
@@ -246,7 +252,7 @@
         btnText.style.display = 'none';
 
         try {
-            const response = await fetch('/api/user/ride/create', {
+            const response = await fetch(`${apiBase}/api/user/ride/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
