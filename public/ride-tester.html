@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ride Simulator | Sare3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2ecc71;
+            --secondary: #3498db;
+            --dark: #2c3e50;
+            --light: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--primary);
+        }
+
+        h2 {
+            color: var(--dark);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.1);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        button:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #response {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #fdfdfd;
+            border: 1px solid #eee;
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-error { background: #f8d7da; color: #721c24; }
+
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2><i class="fa fa-taxi" style="color: var(--primary)"></i> محاكي إرسال طلب رحلة</h2>
+    
+    <div class="form-group">
+        <label>توكن المستخدم (User Bearer Token)</label>
+        <input type="text" id="token" placeholder="أدخل التوكن هنا..." value="">
+    </div>
+
+    <div class="grid">
+        <div class="form-group">
+            <label>رقم السائق (Driver ID)</label>
+            <input type="number" id="driver_id" value="743">
+        </div>
+        <div class="form-group">
+            <label>رقم المنطقة (Zone ID)</label>
+            <input type="number" id="zone_id" value="1">
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="form-group">
+            <label>فئة السيارة (Category ID)</label>
+            <input type="number" id="category_id" value="1">
+        </div>
+        <div class="form-group">
+            <label>طريقة الدفع (Payment ID)</label>
+            <input type="number" id="payment_id" value="1">
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="form-group">
+            <label>خط عرض الركوب (Pickup Lat)</label>
+            <input type="text" id="p_lat" value="33.3152">
+        </div>
+        <div class="form-group">
+            <label>خط طول الركوب (Pickup Lng)</label>
+            <input type="text" id="p_lng" value="44.3661">
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="form-group">
+            <label>خط عرض النزول (Drop Lat)</label>
+            <input type="text" id="d_lat" value="33.2158">
+        </div>
+        <div class="form-group">
+            <label>خط طول النزول (Drop Lng)</label>
+            <input type="text" id="d_lng" value="44.3661">
+        </div>
+    </div>
+
+    <button onclick="sendRide()">
+        <span id="btn-text">إرسال الطلب الآن</span>
+        <div class="loader" id="loader"></div>
+    </button>
+
+    <div id="response-badge" class="badge"></div>
+    <pre id="response"></pre>
+</div>
+
+<script>
+    async function sendRide() {
+        const token = document.getElementById('token').value;
+        const driver_id = document.getElementById('driver_id').value;
+        const zone_id = document.getElementById('zone_id').value;
+        const category_id = document.getElementById('category_id').value;
+        const payment_id = document.getElementById('payment_id').value;
+        const p_lat = document.getElementById('p_lat').value;
+        const p_lng = document.getElementById('p_lng').value;
+        const d_lat = document.getElementById('d_lat').value;
+        const d_lng = document.getElementById('d_lng').value;
+
+        if (!token) {
+            alert('يرجى إدخال التوكن أولاً');
+            return;
+        }
+
+        const loader = document.getElementById('loader');
+        const btnText = document.getElementById('btn-text');
+        const responseDiv = document.getElementById('response');
+        const responseBadge = document.getElementById('response-badge');
+
+        loader.style.display = 'block';
+        btnText.style.display = 'none';
+
+        try {
+            const response = await fetch('/api/user/ride/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    zone_id: parseInt(zone_id),
+                    driver_id: parseInt(driver_id),
+                    car_category_id: parseInt(category_id),
+                    pickup_lat: parseFloat(p_lat),
+                    pickup_lng: parseFloat(p_lng),
+                    dropoff_lat: parseFloat(d_lat),
+                    dropoff_lng: parseFloat(d_lng),
+                    payment_method_id: parseInt(payment_id),
+                    estimated_km: 5,
+                    estimated_time: 10,
+                    pickup_address: 'موقع الاختبار',
+                    dropoff_address: 'وجهة الاختبار'
+                })
+            });
+
+            const data = await response.json();
+            responseDiv.style.display = 'block';
+            responseDiv.innerText = JSON.stringify(data, null, 2);
+
+            if (response.ok) {
+                responseBadge.innerText = '✅ تم إرسال الطلب بنجاح';
+                responseBadge.className = 'badge badge-success';
+            } else {
+                responseBadge.innerText = '❌ فشل الطلب';
+                responseBadge.className = 'badge badge-error';
+            }
+
+        } catch (error) {
+            alert('خطأ في الاتصال بالسيرفر');
+        } finally {
+            loader.style.display = 'none';
+            btnText.style.display = 'block';
+        }
+    }
+</script>
+
+</body>
+</html>
