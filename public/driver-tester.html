@@ -107,6 +107,11 @@
         </div>
 
         <div class="form-group">
+            <label>عنوان الـ WebSocket (WS Host)</label>
+            <input type="text" id="ws_host" placeholder="dashboard.aomsst.com" value="dashboard.aomsst.com">
+        </div>
+
+        <div class="form-group">
             <label>توكن السائق (Driver Bearer Token)</label>
             <input type="text" id="token" placeholder="أدخل توكن السائق هنا...">
         </div>
@@ -160,6 +165,7 @@
 
     function connect() {
         const apiBase = document.getElementById('api_base').value.replace(/\/$/, '');
+        const wsHost = document.getElementById('ws_host').value.trim();
         const token = document.getElementById('token').value;
         const driverId = document.getElementById('driver_id').value;
 
@@ -172,14 +178,14 @@
             log("إعادة تشغيل الاتصال...");
         }
 
-        log(`محاولة الاتصال بالقناة: private-driver.${driverId}`);
+        log(`محاولة الاتصال بالسيرفر: ${wsHost}`);
+        log(`محاولة الاشتراك بالقناة: private-driver.${driverId}`);
 
         // Setup Echo
-        const urlObj = new URL(apiBase);
         echo = new Echo.default({
             broadcaster: 'reverb',
             key: 'jkfhdfskt348itrddkfhgdfk348',
-            wsHost: urlObj.hostname,
+            wsHost: wsHost,
             wsPort: 443,
             wssPort: 443,
             forceTLS: true,
