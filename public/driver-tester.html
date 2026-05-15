@@ -176,7 +176,7 @@
 
         // Setup Echo
         const urlObj = new URL(apiBase);
-        echo = new Echo({
+        echo = new Echo.default({
             broadcaster: 'reverb',
             key: 'jkfhdfskt348itrddkfhgdfk348',
             wsHost: urlObj.hostname,
@@ -193,14 +193,21 @@
             }
         });
 
-        echo.connector.pusher.connection.bind('connected', () => {
+        // Safe connection binding
+        const pusher = echo.connector.pusher;
+        
+        pusher.connection.bind('connected', () => {
             updateStatus(true);
             log("تم الاتصال بالسيرفر بنجاح ✅");
         });
 
-        echo.connector.pusher.connection.bind('disconnected', () => {
+        pusher.connection.bind('disconnected', () => {
             updateStatus(false);
             log("انقطع الاتصال ❌");
+        });
+
+        pusher.connection.bind('error', (err) => {
+            log("خطأ في الاتصال بالسيرفر!", err);
         });
 
         // Listen to the private channel
