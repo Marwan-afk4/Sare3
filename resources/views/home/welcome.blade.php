@@ -361,16 +361,30 @@
         }
 
         // ─── Icon factories ───────────────────────────────────────────────────────
+        // ─── Icon factories ───────────────────────────────────────────────────────
         function makeIcon(color) {
+            // A professional top-down car SVG
+            const carSvg = `
+                <svg width="36" height="36" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="25" y="10" width="50" height="80" rx="15" fill="${color}" stroke="#fff" stroke-width="4"/>
+                    <rect x="30" y="25" width="40" height="25" rx="5" fill="#333" opacity="0.8"/>
+                    <rect x="30" y="60" width="40" height="15" rx="3" fill="#333" opacity="0.8"/>
+                    <rect x="20" y="20" width="5" height="15" rx="2" fill="#fff" opacity="0.5"/>
+                    <rect x="75" y="20" width="5" height="15" rx="2" fill="#fff" opacity="0.5"/>
+                    <rect x="20" y="70" width="5" height="10" rx="2" fill="red" opacity="0.8"/>
+                    <rect x="75" y="70" width="5" height="10" rx="2" fill="red" opacity="0.8"/>
+                </svg>
+            `;
+            
             return L.divIcon({
-                html: `<div style="background:${color};width:30px;height:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;">
-                        <i class="fa fa-car" style="color:#fff;font-size:14px;"></i>
-                       </div>`,
-                iconSize: [36, 36], iconAnchor: [18, 18]
+                html: `<div class="car-icon-wrapper" style="width:36px;height:36px;">${carSvg}</div>`,
+                iconSize: [36, 36], 
+                iconAnchor: [18, 18],
+                className: ''
             });
         }
-        const greenIcon = makeIcon('#4CAF50');
-        const redIcon   = makeIcon('#f44336');
+        const greenIcon = makeIcon('#2ecc71'); // Modern Emerald Green
+        const redIcon   = makeIcon('#e74c3c'); // Modern Alizarin Red
 
         // ─── Helper: upsert marker in "available" map ─────────────────────────────
         function upsertAvailableMarker(driverId, data) {
@@ -380,11 +394,24 @@
             const name = data.name || driverNames[driverId] || `{{ __('Driver') }} #${driverId}`;
             if (isNaN(lat) || isNaN(lng)) return;
 
+            const bearing = data.bearing || 0;
+            const rotate = `transform: rotate(${bearing}deg); transition: transform 0.3s ease;`;
+
             if (availableDriverMarkers[driverId]) {
                 availableDriverMarkers[driverId].setLatLng([lat, lng]);
+                const iconElement = availableDriverMarkers[driverId].getElement();
+                if (iconElement) {
+                    const wrapper = iconElement.querySelector('.car-icon-wrapper');
+                    if (wrapper) wrapper.style.transform = `rotate(${bearing}deg)`;
+                }
                 availableDriverMarkers[driverId].getPopup().setContent(popupHtml(name, lat, lng, true));
             } else {
+                const bearing = data.bearing || 0;
                 const m = L.marker([lat, lng], { icon: greenIcon, title: name });
+                m.on('add', function() {
+                    const el = m.getElement().querySelector('.car-icon-wrapper');
+                    if (el) el.style.transform = `rotate(${bearing}deg)`;
+                });
                 m.bindPopup(popupHtml(name, lat, lng, true));
                 availableMarkers.addLayer(m);
                 availableDriverMarkers[driverId] = m;
