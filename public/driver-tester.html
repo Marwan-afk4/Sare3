@@ -182,7 +182,9 @@
         log(`محاولة الاشتراك بالقناة: private-driver.${driverId}`);
 
         // Setup Echo
-        echo = new Echo.default({
+        const EchoClass = window.Echo.default || window.Echo;
+        
+        echo = new EchoClass({
             broadcaster: 'reverb',
             key: 'jkfhdfskt348itrddkfhgdfk348',
             wsHost: wsHost,
@@ -199,12 +201,19 @@
             }
         });
 
-        // Safe connection binding
-        const pusher = echo.connector.pusher;
-        
-        pusher.connection.bind('connected', () => {
+        // Monitor connection
+        echo.connector.pusher.connection.bind('state_change', (states) => {
+            log(`حالة الاتصال تغيرت إلى: ${states.current}`);
+        });
+
+        echo.connector.pusher.connection.bind('error', (err) => {
+            log("❌ خطأ في الاتصال بالسيرفر:", err.error ? err.error.message : "خطأ غير معروف");
+            console.error("Connection Error:", err);
+        });
+
+        echo.connector.pusher.connection.bind('connected', () => {
             updateStatus(true);
-            log("تم الاتصال بالسيرفر بنجاح ✅");
+            log("✅ تم الاتصال بالسيرفر بنجاح!");
         });
 
         pusher.connection.bind('disconnected', () => {
