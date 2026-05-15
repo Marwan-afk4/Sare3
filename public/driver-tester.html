@@ -208,26 +208,29 @@
                 log("✅ تم الاتصال بالسيرفر!");
             });
 
-        pusher.connection.bind('disconnected', () => {
-            updateStatus(false);
-            log("انقطع الاتصال ❌");
-        });
-
-        pusher.connection.bind('error', (err) => {
-            log("خطأ في الاتصال بالسيرفر!", err);
-        });
-
-        // Listen to the private channel
-        echo.private(`driver.${driverId}`)
-            .listen('.ride.request.new', (e) => {
-                log("🚀 تم استقبال طلب رحلة جديد!", e);
-                // Notification sound or alert
-                alert(`طلب رحلة جديد من: ${e.user_name}\nالسعر: ${e.estimated_price}`);
-            })
-            .error((error) => {
-                log("خطأ في الاشتراك بالقناة! (تأكد من صحة التوكن ورقم السائق)", error);
-                console.error(error);
+            pusher.connection.bind('disconnected', () => {
+                updateStatus(false);
+                log("انقطع الاتصال ❌");
             });
+
+            pusher.connection.bind('error', (err) => {
+                log("❌ خطأ في الاتصال بالسيرفر:", err.error ? err.error.message : "خطأ غير معروف");
+            });
+
+            // Listen to the private channel
+            echo.private(`driver.${driverId}`)
+                .listen('.ride.request.new', (e) => {
+                    log("🚀 تم استقبال طلب رحلة جديد!", e);
+                    alert(`طلب رحلة جديد من: ${e.user_name}\nالسعر: ${e.estimated_price}`);
+                })
+                .error((error) => {
+                    log("خطأ في الاشتراك بالقناة! (تأكد من صحة التوكن)", error);
+                });
+
+        } catch (error) {
+            log("❌ خطأ في تشغيل Echo:", error.message);
+            console.error(error);
+        }
     }
 </script>
 
