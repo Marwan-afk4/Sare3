@@ -174,47 +174,39 @@
             return;
         }
 
-        if (echo) {
-            log("إعادة تشغيل الاتصال...");
-        }
-
         log(`محاولة الاتصال بالسيرفر: ${wsHost}`);
-        log(`محاولة الاشتراك بالقناة: private-driver.${driverId}`);
-
-        // Setup Echo
-        const EchoClass = window.Echo.default || window.Echo;
         
-        echo = new EchoClass({
-            broadcaster: 'reverb',
-            key: 'jkfhdfskt348itrddkfhgdfk348',
-            wsHost: wsHost,
-            wsPort: 443,
-            wssPort: 443,
-            forceTLS: true,
-            enabledTransports: ['ws', 'wss'],
-            authEndpoint: `${apiBase}/api/broadcasting/auth`, 
-            auth: {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json'
+        try {
+            // Setup Echo using standard constructor
+            const EchoConstructor = window.Echo || window.LaravelEcho;
+            
+            echo = new EchoConstructor({
+                broadcaster: 'reverb',
+                key: 'jkfhdfskt348itrddkfhgdfk348',
+                wsHost: wsHost,
+                wsPort: 443,
+                wssPort: 443,
+                forceTLS: true,
+                enabledTransports: ['ws', 'wss'],
+                authEndpoint: `${apiBase}/api/broadcasting/auth`, 
+                auth: {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
                 }
-            }
-        });
+            });
 
-        // Monitor connection
-        echo.connector.pusher.connection.bind('state_change', (states) => {
-            log(`حالة الاتصال تغيرت إلى: ${states.current}`);
-        });
+            const pusher = echo.connector.pusher;
 
-        echo.connector.pusher.connection.bind('error', (err) => {
-            log("❌ خطأ في الاتصال بالسيرفر:", err.error ? err.error.message : "خطأ غير معروف");
-            console.error("Connection Error:", err);
-        });
+            pusher.connection.bind('state_change', (states) => {
+                log(`حالة الاتصال: ${states.current}`);
+            });
 
-        echo.connector.pusher.connection.bind('connected', () => {
-            updateStatus(true);
-            log("✅ تم الاتصال بالسيرفر بنجاح!");
-        });
+            pusher.connection.bind('connected', () => {
+                updateStatus(true);
+                log("✅ تم الاتصال بالسيرفر!");
+            });
 
         pusher.connection.bind('disconnected', () => {
             updateStatus(false);
