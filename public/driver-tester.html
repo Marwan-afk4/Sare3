@@ -6,8 +6,8 @@
     <title>Driver Connection Tester | Sare3</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pusher-js@8.3.0/dist/web/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pusher-js@8.4.0/dist/web/pusher.min.js"></script>
     <style>
         :root {
             --primary: #3498db;
@@ -177,10 +177,8 @@
         log(`محاولة الاتصال بالسيرفر: ${wsHost}`);
         
         try {
-            // Setup Echo using standard constructor
-            const EchoConstructor = window.Echo || window.LaravelEcho;
-            
-            echo = new EchoConstructor({
+            // Setup Echo using standard constructor from IIFE
+            echo = new Echo({
                 broadcaster: 'reverb',
                 key: 'jkfhdfskt348itrddkfhgdfk348',
                 wsHost: wsHost,
