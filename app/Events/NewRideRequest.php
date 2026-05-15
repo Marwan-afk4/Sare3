@@ -1,0 +1,51 @@
+<?php
+
+namespace App\Events;
+
+use App\Models\Ride;
+use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+
+class NewRideRequest implements ShouldBroadcastNow
+{
+    use Dispatchable, InteractsWithSockets, SerializesModels;
+
+    public $ride;
+
+    public function __construct(Ride $ride)
+    {
+        $this->ride = $ride->load('user');
+    }
+
+    public function broadcastOn(): array
+    {
+        // Broadcast specifically to the assigned driver
+        return [
+            new PrivateChannel('driver.' . $this->ride->driver_id),
+        ];
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'ride.request.new';
+    }
+
+    public function broadcastWith(): array
+    {
+        return [
+            'ride_id' => $this->ride->id,
+            'user_name' => $this->ride->user->name,
+            'pickup_lat' => (float) $this->ride->pickup_lat,
+            'pickup_lng' => (float) $this->ride->pickup_lng,
+            'dropoff_lat' => (float) $this->ride->dropoff_lat,
+            'dropoff_lng' => (float) $this->ride->dropoff_lng,
+            'pickup_address' => $this->ride->pickup_address,
+            'dropoff_address' => $this->ride->dropoff_address,
+            'estimated_price' => (float) $this->ride->calculated_initial_price,
+        ];
+    }
+}

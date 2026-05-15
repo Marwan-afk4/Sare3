@@ -223,66 +223,24 @@ class RideEstimateController extends Controller
             }
         }
 
-        $firebaseRideId = 'ride_' . $ride->id;
-
+        // ─── NEW: Broadcast to Driver via WebSockets (Reverb) ─────────────────────
         try {
-            $firebase = (new Factory)
-                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                ->createDatabase();
-
-            $firebaseData = [
-                'ride_id' => $ride->id,
-                'user' => [
-                    'user_id' => $user,
-                    'user_name' => $user->name,
-                    'user_phone' => $user->phone,
-                    'user_email' => $user->email,
-                    'user_image' => $user->image,
-                    'user_rating' => round($userRating ?? 0, 1),
-                ],
-                'driver_id' => $request->driver_id,
-                'driver_rating' => round($driverRating ?? 0, 1),
-                'car_category_id' => $ride->car_category_id,
-                'pickup' => [
-                    'lat' => (float) $ride->pickup_lat,
-                    'lng' => (float) $ride->pickup_lng,
-                    'address' => $request->pickup_address,
-                ],
-                'estimated_time' => $request->estimated_time,
-                'estimated_km' => $request->estimated_km,
-                'initial_price' => (float)($ride->calculated_initial_price ?? $price),
-                'coupon_discount' => (float)($ride->coupon_discount ?? 0),
-                'final_price' => [
-                    'original_fare' => null,
-                    'final_fare' => null,
-                    'discount_amount' => null,
-                    'distance_km' => null,
-                    'duration_minutes' => null,
-                ],
-                'driver_eta_minutes' => $request->driver_eta_minutes,
-                'status' => $ride->status,
-                'cancellation_policy' => $policyExists,
-                'created_at' => now()->toIso8601String(),
-            ];
-
-            // Only include dropoff if coordinates exist (not null and not 0)
-            if ($ride->dropoff_lat && $ride->dropoff_lng) {
-                $firebaseData['dropoff'] = [
-                    'lat' => (float) $ride->dropoff_lat,
-                    'lng' => (float) $ride->dropoff_lng,
-                    'address' => $request->dropoff_address,
+            broadcast(new \App\Events\NewRideRequest($ride))->toOthers();
+            
+            // ─── Also send Push Notification (FCM) ───
+            if ($driver->fcm_token) {
+                $data = [
+                    'title'   => 'طلب رحلة جديد',
+                    'body'    => 'لديك طلب رحلة جديد من ' . $user->name,
+                    'type'    => 'new_ride',
+                    'ride_id' => (string) $ride->id,
                 ];
+                FcmHelper::sendPushNotification($driver->fcm_token, $data['title'], $data['body'], $data);
             }
-
-            $firebase->getReference("rides/$firebaseRideId")->set($firebaseData);
-
-            $ride->update([
-                'firebase_ride_id' => $firebaseRideId,
-            ]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Ride created, but failed to sync with Firebase', 'error' => $e->getMessage()], 500);
+            \Illuminate\Support\Facades\Log::error("Failed to notify driver: " . $e->getMessage());
         }
+        // ─── END NOTIFICATION ─────────────────────────────────────────────────────
 
         // // // Schedule auto-reject job
         // $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
