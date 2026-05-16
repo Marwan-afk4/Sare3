@@ -117,9 +117,6 @@ class RideActionsController extends Controller
 
         $ride->update($updateData);
 
-        // Broadcast status update via WebSocket
-        event(new RideStatusUpdated($ride));
-
         // Close out the pending offer for this captain as "accepted" in the
         // audit trail used by the admin dashboard filters.
         app(RideOfferService::class)->markAccepted($ride, (int) $driver->id);
@@ -128,10 +125,19 @@ class RideActionsController extends Controller
 
         $response = ['message' => 'Ride accepted.'];
 
-        if ($verificationCode) {
+        // Generate verification code if feature is enabled and code is not yet set
+        if (AppSetting::isRideVerificationEnabled() && !$ride->verification_code) {
+            $ride->generateVerificationCode();
+            $ride->refresh();
+        }
+
+        if ($ride->verification_code) {
             $response['verification_required'] = true;
             $response['message'] = 'Ride accepted. Verification code generated for user.';
         }
+
+        // Broadcast status update via WebSocket (AFTER code generation)
+        event(new RideStatusUpdated($ride));
 
         return response()->json($response);
     }
