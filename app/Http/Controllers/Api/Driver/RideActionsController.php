@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Driver;
 
 use App\Helpers\RideHelper;
 use App\Http\Controllers\Api\User\RideEstimateController;
+use App\Events\RideStatusUpdated;
 use App\Http\Controllers\Controller;
 use App\Jobs\AutoRejectRideJob;
 use App\Models\AppSetting;
@@ -116,6 +117,9 @@ class RideActionsController extends Controller
 
         $ride->update($updateData);
 
+        // Broadcast status update via WebSocket
+        event(new RideStatusUpdated($ride));
+
         // Close out the pending offer for this captain as "accepted" in the
         // audit trail used by the admin dashboard filters.
         app(RideOfferService::class)->markAccepted($ride, (int) $driver->id);
@@ -184,7 +188,8 @@ class RideActionsController extends Controller
 
         $ride->update($updateData);
 
-
+        // Broadcast status update via WebSocket
+        event(new RideStatusUpdated($ride));
 
         return response()->json(['message' => 'Marked as arrived.']);
     }
@@ -206,6 +211,9 @@ class RideActionsController extends Controller
             'status' => 'in_progress',
             'trip_started_at' => now(),
         ]);
+
+        // Broadcast status update via WebSocket
+        event(new RideStatusUpdated($ride));
 
 
 
@@ -555,6 +563,9 @@ class RideActionsController extends Controller
                 ]);
             }
             
+            // Broadcast status update via WebSocket
+            event(new RideStatusUpdated($ride));
+
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
@@ -742,6 +753,9 @@ class RideActionsController extends Controller
                 'canceled_at' => now()->toIso8601String(),
                 'status' => 'pending',
             ]);
+
+            // Broadcast status update via WebSocket
+            event(new RideStatusUpdated($ride));
 
             // Sync Firebase
             $this->updateFirebase($ride, [

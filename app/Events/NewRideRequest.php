@@ -38,14 +38,18 @@ class NewRideRequest implements ShouldBroadcastNow
     {
         return [
             'ride_id' => $this->ride->id,
-            'user_name' => $this->ride->user->name,
-            'pickup_lat' => (float) $this->ride->pickup_lat,
-            'pickup_lng' => (float) $this->ride->pickup_lng,
-            'dropoff_lat' => (float) $this->ride->dropoff_lat,
-            'dropoff_lng' => (float) $this->ride->dropoff_lng,
+            'user' => [
+                'id' => $this->ride->user->id,
+                'name' => $this->ride->user->name,
+                'phone' => $this->ride->user->phone,
+                'avatar' => $this->ride->user->image_link,
+                'rating' => $this->ride->user->average_rating,
+            ],
             'pickup_address' => $this->ride->pickup_address,
             'dropoff_address' => $this->ride->dropoff_address,
             'estimated_price' => (float) $this->ride->calculated_initial_price,
+            'estimated_time' => $this->ride->estimated_time,
+            'estimated_km' => (float) $this->ride->estimated_km
         ];
     }
 }

@@ -219,7 +219,17 @@
             echo.private(`driver.${driverId}`)
                 .listen('.ride.request.new', (e) => {
                     log("🚀 تم استقبال طلب رحلة جديد!", e);
-                    alert(`طلب رحلة جديد من: ${e.user_name}\nالسعر: ${e.estimated_price}`);
+                    
+                    const user = e.user || {};
+                    const msg = `طلب رحلة جديد!\n` +
+                                `الراكب: ${user.name || 'غير معروف'}\n` +
+                                `التقييم: ⭐ ${user.rating || 5.0}\n` +
+                                `الهاتف: ${user.phone || 'N/A'}\n` +
+                                `المسافة: ${e.estimated_km || 0} كم\n` +
+                                `الوقت المتوقع: ${e.estimated_time || 0} دقيقة\n` +
+                                `السعر: ${e.estimated_price || 0}`;
+                    
+                    alert(msg);
                 })
                 .error((error) => {
                     log("خطأ في الاشتراك بالقناة! (تأكد من صحة التوكن)", error);
