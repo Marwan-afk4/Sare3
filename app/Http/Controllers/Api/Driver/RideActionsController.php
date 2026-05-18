@@ -338,11 +338,12 @@ class RideActionsController extends Controller
         }
 
         // 3️⃣ Duration Calculation
-        if (!$ride->started_at) {
+        $actualStartTime = $ride->trip_started_at ?? $ride->started_at;
+        if (!$actualStartTime) {
             return response()->json(['message' => 'Ride has no start time.'], 400);
         }
 
-        $startTime = Carbon::parse($ride->started_at);
+        $startTime = Carbon::parse($actualStartTime);
         $endTime = Carbon::now();
         $durationMinutes = ceil($startTime->floatDiffInMinutes($endTime));
 
