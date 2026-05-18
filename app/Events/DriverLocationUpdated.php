@@ -45,13 +45,20 @@ class DriverLocationUpdated implements ShouldBroadcastNow
      */
     public function broadcastOn(): array
     {
-        return [
+        $channels = [
             // Private: only the driver can subscribe (used by the mobile app)
             new PrivateChannel('driver.' . $this->driverId),
 
             // Public: dashboard / passenger apps can listen without auth
             new Channel('driver-location'),
         ];
+
+        // If this location update belongs to an active ride, also broadcast it to the private ride channel
+        if ($this->rideId) {
+            $channels[] = new PrivateChannel('ride.' . $this->rideId);
+        }
+
+        return $channels;
     }
 
     /**
