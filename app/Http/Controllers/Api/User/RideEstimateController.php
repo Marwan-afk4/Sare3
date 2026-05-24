@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\User;
 
+use App\Events\NewRideRequest;
 use App\Helpers\FcmHelper;
 use App\Http\Controllers\Controller;
 use App\Models\CarCategory;
@@ -15,6 +16,7 @@ use Kreait\Firebase\Factory;
 use App\Helpers\RideHelper;
 use App\Jobs\AutoRejectRideJob;
 use App\Models\CancellationPolicy;
+use App\Models\Coupon;
 use App\Models\Rating;
 use App\Services\RideOfferService;
 use App\Models\RideRequestTimeLimit;
@@ -163,7 +165,7 @@ class RideEstimateController extends Controller
 
         $validation = Validator::make($request->all(), [
             'zone_id' => 'required|exists:zones,id',
-            'driver_id' => 'required|exists:users,id',
+            'driver_id' => 'nullable|exists:users,id',
             'car_category_id' => 'required|exists:car_categories,id',
             'estimated_km' => 'nullable|numeric|min:0',
             'estimated_time' => 'nullable|numeric|min:0',
@@ -191,7 +193,31 @@ class RideEstimateController extends Controller
             $policyExists = true;
         }
 
-        $driver = User::with('driverCars')->findOrFail($request->driver_id);
+        // Find nearest eligible driver dynamically using pickup coordinates, database pickup radius, and haversine distance
+        $eligibleDrivers = $this->getEligibleDrivers(
+            $request->pickup_lat,
+            $request->pickup_lng,
+            [],
+            $request->car_category_id
+        );
+
+        if (empty($eligibleDrivers)) {
+            return response()->json(['message' => 'No drivers available in your area.'], 404);
+        }
+
+        // Sort by distance (nearest first)
+        usort($eligibleDrivers, function ($a, $b) {
+            return $a['distance_to_pickup'] <=> $b['distance_to_pickup'];
+        });
+
+        $nearestDriverData = $eligibleDrivers[0];
+        $driverId = $nearestDriverData['id'];
+
+        $driver = User::with('driverCars')->find($driverId);
+
+        if (!$driver) {
+            return response()->json(['message' => 'Nearest driver not found in database'], 404);
+        }
 
         // Get zone with car categories to use zone-specific pricing
         $zone = Zone::with('carCategories')->find($request->zone_id);
@@ -264,16 +290,16 @@ class RideEstimateController extends Controller
             'dropoff_address' => $request->dropoff_address,
             'payment_method_id' => $request->payment_method_id,
             'driver_assigned_at' => now(),
-            'driver_id' => $request->driver_id,
+            'driver_id' => $driverId,
         ]);
 
         // Log the initial offer to the first captain so the admin dashboard
         // can show who the request was routed through from the very start.
-        app(RideOfferService::class)->recordOffer($ride, (int) $request->driver_id, 1, 'initial_assignment');
+        app(RideOfferService::class)->recordOffer($ride, (int) $driverId, 1, 'initial_assignment');
 
         // Check if user has a pending coupon and apply it
         if ($user->pending_coupon_id) {
-            $pendingCoupon = \App\Models\Coupon::find($user->pending_coupon_id);
+            $pendingCoupon = Coupon::find($user->pending_coupon_id);
             if ($pendingCoupon && $pendingCoupon->isValid() && $pendingCoupon->canBeUsedByUser($user)) {
                 $pendingCoupon->applyToRide($ride);
                 // Clear the pending coupon from user
@@ -288,7 +314,7 @@ class RideEstimateController extends Controller
 
         // ─── NEW: Broadcast to Driver via WebSockets (Reverb) ─────────────────────
         try {
-            broadcast(new \App\Events\NewRideRequest($ride))->toOthers();
+            broadcast(new NewRideRequest($ride))->toOthers();
             
             // ─── Also send Push Notification (FCM) ───
             if ($driver->fcm_token) {
@@ -301,17 +327,17 @@ class RideEstimateController extends Controller
                 FcmHelper::sendPushNotification($driver->fcm_token, $data['title'], $data['body'], $data);
             }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Failed to notify driver: " . $e->getMessage());
+            Log::error("Failed to notify driver: " . $e->getMessage());
         }
         // ─── END NOTIFICATION ─────────────────────────────────────────────────────
 
-        // // // Schedule auto-reject job
-        // $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
-        // AutoRejectRideJob::dispatch(
-        //     $ride->id,
-        //     $request->driver_id,
-        //     $ride->updated_at->format('Y-m-d H:i:s')
-        // )->delay(now()->addSeconds($timeoutSeconds));
+        // Schedule auto-reject job
+        $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
+        AutoRejectRideJob::dispatch(
+            $ride->id,
+            $driverId,
+            $ride->updated_at->format('Y-m-d H:i:s')
+        )->delay(now()->addSeconds($timeoutSeconds));
 
         return response()->json([
             'message' => 'Ride created successfully',
@@ -339,7 +365,6 @@ class RideEstimateController extends Controller
         return $R * $c;
     }
 
-
     public function getEligibleDrivers($userPickupLat, $userPickupLng, $excludedDriverIds = [], $carCategoryId = null)
     {
         try {
@@ -356,6 +381,9 @@ class RideEstimateController extends Controller
 
             $driversData = $driversSnapshot->getValue();
             $eligibleDrivers = [];
+
+            // Load driver pickup radius settings from the database
+            $driverSettings = \App\Models\DriverRideSetting::pluck('pickup_radius', 'driver_id')->toArray();
 
             foreach ($driversData as $driverId => $driverData) {
                 try {
@@ -376,7 +404,9 @@ class RideEstimateController extends Controller
 
                     $settings = $driverData['settings'] ?? [];
                     $driverCarCategoryId = $driverData['car_category_id'] ?? null;
-                    $pickupRadius = (float)($settings['pickup_radius'] ?? 0.0);
+                    
+                    // Fetch pickup radius from database driver_ride_settings table (fallback to 5.0 km)
+                    $pickupRadius = (float)($driverSettings[$driverIdValue] ?? 5.0);
 
                     // Calculate distance using haversine
                     $distance = $this->haversineDistance(
@@ -429,7 +459,7 @@ class RideEstimateController extends Controller
                 }
             }
 
-            Log::info("Found {count} eligible drivers", [
+            Log::info("Found " . count($eligibleDrivers) . " eligible drivers", [
                 'count' => count($eligibleDrivers),
                 'car_category_id' => $carCategoryId
             ]);
