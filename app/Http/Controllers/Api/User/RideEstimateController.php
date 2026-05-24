@@ -8,6 +8,7 @@ use App\Models\CarCategory;
 use App\Models\Ride;
 use App\Models\RideEstimate;
 use App\Models\User;
+use App\Services\RideService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Kreait\Firebase\Factory;
@@ -117,7 +118,7 @@ class RideEstimateController extends Controller
             return response()->json(['message' => 'Zone not found'], 404);
         }
 
-        $rideService = app(\App\Services\RideService::class);
+        $rideService = app(RideService::class);
 
         $result = $zone->carCategories->map(function ($category) use ($estimatedKm, $estimatedTime, $user, $rideService) {
             $base = $category->pivot->base_price;
