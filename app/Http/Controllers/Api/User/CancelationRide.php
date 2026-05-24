@@ -144,21 +144,7 @@ class CancelationRide extends Controller
             'reason' => $request->input('reason'),
         ]);
 
-        try {
-            $firebase = (new Factory)
-                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                ->createDatabase();
 
-            $firebaseRef = $firebase->getReference("rides/{$ride->firebase_ride_id}");
-            // Passenger canceled - remove from Firebase
-            $firebaseRef->remove();
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Ride canceled, but failed to update Firebase',
-                'firebase_error' => $e->getMessage(),
-            ], 500);
-        }
 
         return response()->json([
             'message' => 'Ride canceled successfully',
@@ -205,23 +191,7 @@ class CancelationRide extends Controller
                 'status' => 'pending',
             ]);
 
-            // Update Firebase
-            try {
-                $firebase = (new Factory)
-                    ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                    ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                    ->createDatabase();
 
-                $firebaseRef = $firebase->getReference("rides/{$ride->firebase_ride_id}");
-                $firebaseRef->update([
-                    'driver_id' => null,
-                    'rejected_drivers' => $rejectedDrivers,
-                    'status' => 'pending',
-                    'canceled_at' => now()->toIso8601String(),
-                ]);
-            } catch (\Exception $e) {
-                Log::error("Failed to update Firebase in driver cancellation: " . $e->getMessage());
-            }
 
             // Search for alternative driver
             $rideEstimateController = new RideEstimateController();
@@ -246,22 +216,7 @@ class CancelationRide extends Controller
                     'reassigned_at' => now(),
                 ]);
 
-                try {
-                    $firebase = (new Factory)
-                        ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                        ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                        ->createDatabase();
 
-                    $firebaseRef = $firebase->getReference("rides/{$ride->firebase_ride_id}");
-                    $firebaseRef->update([
-                        'driver_id' => $driverId,
-                        'status' => 'pending',
-                        'reassigned_at' => now()->toIso8601String(),
-                        'previous_rejections' => count($rejectedDrivers),
-                    ]);
-                } catch (\Exception $e) {
-                    Log::error("Failed to update Firebase with alternative driver: " . $e->getMessage());
-                }
 
                 // Schedule auto-reject job for the new driver
                 $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);

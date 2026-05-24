@@ -215,6 +215,7 @@ Route::domain(config('app.api_domain'))->group(function () {
 
     //Ride Estimate
         Route::post('/ride-estimate', [RideEstimateController::class, 'estimateForAllCategories']);
+        Route::get('/active-drivers', [RideEstimateController::class, 'getActiveDrivers']);
         Route::get('/zones', [RideEstimateController::class, 'zones']);
 
     //LoggedUser

@@ -332,12 +332,18 @@ class RideEstimateController extends Controller
         // ─── END NOTIFICATION ─────────────────────────────────────────────────────
 
         // Schedule auto-reject job
-        $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
-        AutoRejectRideJob::dispatch(
-            $ride->id,
-            $driverId,
-            $ride->updated_at->format('Y-m-d H:i:s')
-        )->delay(now()->addSeconds($timeoutSeconds));
+        // $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
+        // AutoRejectRideJob::dispatch(
+        //     $ride->id,
+        //     $driverId,
+        //     $ride->updated_at->format('Y-m-d H:i:s')
+        // )->delay(now()->addSeconds($timeoutSeconds));
+
+        $ride->load(['driver' => function ($q) {
+            $q->with(['driverCars' => function ($q2) {
+                $q2->with(['carModel', 'carType']);
+            }]);
+        }]);
 
         return response()->json([
             'message' => 'Ride created successfully',
@@ -661,27 +667,7 @@ class RideEstimateController extends Controller
                 return null;
             }
 
-            // ✅ Update Firebase if ride ID exists
-            if ($rideId) {
-                try {
-                    $firebase = (new Factory)
-                        ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                        ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                        ->createDatabase();
 
-                    $firebaseRideId = 'ride_' . $rideId;
-
-                    $firebase->getReference("rides/$firebaseRideId")->update([
-                        'driver_eta_seconds' => $nearestDriver['eta_time'],
-                        'driver_eta_minutes' => round($nearestDriver['eta_time'] / 60, 1),
-                        'driver_id' => $nearestDriver['id'] ?? null,
-                    ]);
-
-                    Log::info("Updated Firebase with ETA for ride {$rideId}: {$nearestDriver['eta_time']} seconds");
-                } catch (\Exception $e) {
-                    Log::error("Failed to update Firebase for ride {$rideId}: " . $e->getMessage());
-                }
-            }
 
             // ✅ Return both driver ID and ETA
             return [
@@ -732,18 +718,7 @@ class RideEstimateController extends Controller
                     'status' => 'pending',
                 ]);
 
-                // Firebase update
-                $firebase = (new Factory)
-                    ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                    ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                    ->createDatabase();
 
-                $firebaseRideId = 'ride_' . $ride->id;
-
-                $firebase->getReference("rides/$firebaseRideId")->update([
-                    'driver_id' => null,
-                    'status' => 'pending',
-                ]);
 
                 return null;
             }
@@ -844,26 +819,12 @@ class RideEstimateController extends Controller
                 $shouldCycleDrivers ? 'cycling' : 'reassignment'
             );
 
-            // Update Firebase with new driver info
-            $firebase = (new Factory)
-                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                ->createDatabase();
-
-            $firebaseRideId = 'ride_' . $ride->id;
-
-            $driverRating = Rating::where('ratee_id', $driverId)
-                ->where('ratee_type', 'driver')
-                ->avg('rate');
-
-            $firebase->getReference("rides/$firebaseRideId")->update([
-                'driver_id' => $driverId,
-                'driver_rating' => round($driverRating ?? 0, 1),
-                'status' => 'pending',
-                'reassigned_at' => now()->toIso8601String(),
-                'previous_rejections' => count($excludedDriverIds),
-                'is_cycling' => $shouldCycleDrivers,
-            ]);
+            // Broadcast the new ride request to the newly assigned driver via WebSockets (Reverb)
+            try {
+                broadcast(new NewRideRequest($ride));
+            } catch (\Exception $e) {
+                Log::error("Failed to broadcast alternative ride request to driver: " . $e->getMessage());
+            }
 
             // ✅ Send push notification to new driver
             $driver = User::find($driverId);
@@ -893,6 +854,77 @@ class RideEstimateController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             return null;
+        }
+    }
+
+    public function getActiveDrivers(Request $request)
+    {
+        $validation = Validator::make($request->all(), [
+            'lat' => 'nullable|numeric|between:-90,90',
+            'lng' => 'nullable|numeric|between:-180,180',
+            'radius' => 'nullable|numeric|min:0.1'
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json(['message' => $validation->errors()->first()], 422);
+        }
+
+        $userLat = $request->lat ? (float)$request->lat : null;
+        $userLng = $request->lng ? (float)$request->lng : null;
+        $radius = $request->radius ? (float)$request->radius : 5.0; // default to 5 km
+
+        try {
+            // Load driver pickup radius settings from the database
+            $driverSettings = \App\Models\DriverRideSetting::pluck('pickup_radius', 'driver_id')->toArray();
+
+            // Fetch active/approved drivers directly from SQL database
+            $drivers = User::where('role', 'driver')
+                ->where('status', 'approved')
+                ->where('is_available', true)
+                ->whereNotNull('latitude')
+                ->whereNotNull('longitude')
+                ->with(['driverCars', 'driverRideSetting'])
+                ->get();
+
+            $activeDrivers = [];
+
+            foreach ($drivers as $driver) {
+                $lat = $driver->latitude;
+                $lng = $driver->longitude;
+
+                $distance = null;
+                if ($userLat !== null && $userLng !== null) {
+                    $distance = $this->haversineDistance($userLat, $userLng, (float)$lat, (float)$lng);
+                    // Filter out drivers outside the requested radius
+                    $pickupRadius = (float)($driverSettings[$driver->id] ?? 5.0);
+                    // Use either the customized radius or the default one
+                    $effectiveRadius = max($radius, $pickupRadius);
+                    if ($distance > $effectiveRadius) {
+                        continue;
+                    }
+                }
+
+                $driverCar = $driver->driverCars->first();
+                $activeDrivers[] = [
+                    'driver_id' => $driver->id,
+                    'name' => $driver->name ?? '',
+                    'latitude' => (float)$lat,
+                    'longitude' => (float)$lng,
+                    'bearing' => $driver->bearing !== null ? (float)$driver->bearing : null,
+                    'car_category_id' => $driverCar ? (int)$driverCar->car_categories_id : null,
+                    'distance_km' => $distance !== null ? round($distance, 2) : null,
+                    'last_updated' => $driver->updated_at ? $driver->updated_at->toIso8601String() : null
+                ];
+            }
+
+            return response()->json([
+                'message' => 'Success',
+                'data' => $activeDrivers
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching active drivers: ' . $e->getMessage());
+            return response()->json(['message' => 'Failed to fetch active drivers: ' . $e->getMessage()], 500);
         }
     }
 }

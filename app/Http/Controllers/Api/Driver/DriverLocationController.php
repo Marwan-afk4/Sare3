@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Driver;
 
 use App\Events\DriverLocationUpdated;
+use App\Events\ActiveDriverLocationUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Ride;
 use App\Models\User;
@@ -159,6 +160,7 @@ class DriverLocationController extends Controller
         $driver->bearing   = $bearing;
 
         DriverLocationUpdated::dispatch($driver, $rideId);
+        ActiveDriverLocationUpdated::dispatch($driver);
     }
 
     /**
