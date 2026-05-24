@@ -38,8 +38,12 @@ class RideEstimateController extends Controller
     {
         $validation = Validator::make($request->all(), [
             'zone_id' => 'required|exists:zones,id',
-            'estimated_km' => 'nullable|numeric|min:0',
-            'estimated_time' => 'nullable|numeric|min:0',
+            'pickup_lat' => 'required|numeric',
+            'pickup_lng' => 'required_without:pickup_lang|numeric',
+            'pickup_lang' => 'required_without:pickup_lng|numeric',
+            'dropoff_lat' => 'required|numeric',
+            'dropoff_lng' => 'required_without:dropoff_lang|numeric',
+            'dropoff_lang' => 'required_without:dropoff_lng|numeric',
         ]);
 
         if ($validation->fails()) {
@@ -48,8 +52,58 @@ class RideEstimateController extends Controller
 
         $user = $request->user();
         $zoneId = $request->zone_id;
-        $estimatedKm = $request->estimated_km ?? 0;
-        $estimatedTime = $request->estimated_time ?? 0;
+        $pickupLat = $request->pickup_lat;
+        $pickupLng = $request->pickup_lng ?? $request->pickup_lang;
+        $dropoffLat = $request->dropoff_lat;
+        $dropoffLng = $request->dropoff_lng ?? $request->dropoff_lang;
+
+        $googleApiKey = config('services.google.maps_api_key');
+
+        if (!$googleApiKey) {
+            Log::error('Google Maps API key not configured');
+            return response()->json(['message' => 'Google Maps API key not configured'], 500);
+        }
+
+        $origin = $pickupLat . ',' . $pickupLng;
+        $destination = $dropoffLat . ',' . $dropoffLng;
+
+        try {
+            $response = Http::get('https://maps.googleapis.com/maps/api/distancematrix/json', [
+                'origins' => $origin,
+                'destinations' => $destination,
+                'key' => $googleApiKey,
+            ]);
+
+            if (!$response->successful()) {
+                Log::error('Error from Google Distance Matrix API in ride-estimate: ' . $response->body());
+                return response()->json(['message' => 'Error from Google API: ' . $response->status()], 520);
+            }
+
+            $data = $response->json();
+            
+            if (($data['status'] ?? '') !== 'OK') {
+                Log::error('Google API returned status error: ' . json_encode($data));
+                return response()->json(['message' => 'Google API Error: ' . ($data['status'] ?? 'Unknown status')], 520);
+            }
+
+            $rows = $data['rows'] ?? [];
+            $elements = $rows[0]['elements'] ?? [];
+
+            if (empty($elements) || ($elements[0]['status'] ?? '') !== 'OK') {
+                Log::error('Google API row elements status error: ' . json_encode($data));
+                return response()->json(['message' => 'Unable to calculate route between pickup and dropoff'], 422);
+            }
+
+            $distanceInMeters = $elements[0]['distance']['value'] ?? 0;
+            $durationInSeconds = $elements[0]['duration']['value'] ?? 0;
+
+            $estimatedKm = round($distanceInMeters / 1000, 2);
+            $estimatedTime = round($durationInSeconds / 60, 2);
+
+        } catch (\Exception $e) {
+            Log::error('Error calling Google Distance Matrix API: ' . $e->getMessage());
+            return response()->json(['message' => 'Error calling Google API: ' . $e->getMessage()], 500);
+        }
 
         // هات الـ Zone مع الكاتيجوريز المربوطة بيه
         $zone = Zone::with('carCategories')->find($zoneId);
@@ -82,6 +136,7 @@ class RideEstimateController extends Controller
                 'description' => $category->description,
                 'estimated_price' => round($price, 2),
                 'estimated_time' => $estimatedTime,
+                'estimated_km' => $estimatedKm,
                 'icon_url' => $category->getIconUrlAttribute(),
                 'discount_preview' => $estimateWithDiscount['discount_preview']
             ];
@@ -89,6 +144,8 @@ class RideEstimateController extends Controller
 
         return response()->json([
             'message' => 'Success',
+            'estimated_km' => $estimatedKm,
+            'estimated_time' => $estimatedTime,
             'data' => $result
         ]);
     }
