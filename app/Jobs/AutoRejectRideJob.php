@@ -13,6 +13,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Events\RideStatusUpdated;
 
 class AutoRejectRideJob implements ShouldQueue
 {
@@ -96,12 +97,18 @@ class AutoRejectRideJob implements ShouldQueue
 
             if ($alternativeDriver) {
                 // Note: searchAlternativeDriver already updates the ride with the new driver_id
-                // Just need to reload and update Firebase with additional info
+                // Just need to reload
                 $ride->refresh();
                 
                 $driverId = $alternativeDriver['driver_id'] ?? $alternativeDriver['id'] ?? null;
                 
-
+                // ✅ Broadcast new driver assignment to passenger
+                try {
+                    RideStatusUpdated::dispatch($ride);
+                    Log::info("📡 Broadcasted RideStatusUpdated event for reassigned ride {$ride->id}");
+                } catch (\Exception $e) {
+                    Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
+                }
 
                 // Schedule another auto-reject job for the new driver
                 if ($driverId) {
@@ -121,7 +128,13 @@ class AutoRejectRideJob implements ShouldQueue
                     'status' => 'rejected',
                 ]);
                 
-
+                // ✅ Broadcast rejection to passenger
+                try {
+                    RideStatusUpdated::dispatch($ride);
+                    Log::info("📡 Broadcasted RideStatusUpdated event for rejected ride {$ride->id}");
+                } catch (\Exception $e) {
+                    Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
+                }
             }
 
             DB::commit();

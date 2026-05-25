@@ -7,6 +7,8 @@ use App\Models\Ride;
 use App\Models\User;
 use App\Helpers\FcmHelper;
 use App\Http\Controllers\Api\User\RideEstimateController;
+use App\Events\RideStatusUpdated;
+use App\Events\NewRideRequest;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -71,6 +73,12 @@ class AutoRejectRides extends Command
                 if (empty($allDrivers)) {
                     Log::info("No drivers available for ride {$ride->id}");
                     $ride->update(['driver_id' => null, 'status' => 'pending']);
+
+                    try {
+                        RideStatusUpdated::dispatch($ride);
+                    } catch (Exception $e) {
+                        Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
+                    }
 
                     continue;
                 }
@@ -200,6 +208,22 @@ class AutoRejectRides extends Command
                     'driver_assigned_at' => now(),
                     'reassigned_at' => now(),
                 ]);
+
+                // ✅ Broadcast new driver assignment to passenger
+                try {
+                    RideStatusUpdated::dispatch($ride);
+                    Log::info("📡 Broadcasted RideStatusUpdated event for reassigned ride {$ride->id}");
+                } catch (Exception $e) {
+                    Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
+                }
+
+                // ✅ Broadcast new ride request to the driver
+                try {
+                    broadcast(new NewRideRequest($ride));
+                    Log::info("📡 Broadcasted NewRideRequest event for ride {$ride->id} to driver {$driver->id}");
+                } catch (Exception $e) {
+                    Log::error("⚠️ Failed to broadcast NewRideRequest event for ride {$ride->id}: " . $e->getMessage());
+                }
 
 
 
