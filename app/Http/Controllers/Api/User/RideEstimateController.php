@@ -12,7 +12,6 @@ use App\Models\User;
 use App\Services\RideService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Kreait\Firebase\Factory;
 use App\Helpers\RideHelper;
 use App\Jobs\AutoRejectRideJob;
 use App\Models\CancellationPolicy;
@@ -21,6 +20,7 @@ use App\Models\Rating;
 use App\Services\RideOfferService;
 use App\Models\RideRequestTimeLimit;
 use App\Models\Zone;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -213,7 +213,26 @@ class RideEstimateController extends Controller
         $nearestDriverData = $eligibleDrivers[0];
         $driverId = $nearestDriverData['id'];
 
-        $driver = User::with('driverCars')->find($driverId);
+        $driver = User::where('role', 'driver')
+            ->where('status', 'approved')
+            ->where('is_available', true)
+            ->with(['driverCars.carModel', 'driverCars.carType'])
+            ->find($driverId);
+
+        if (!$driver) {
+            foreach (array_slice($eligibleDrivers, 1) as $candidate) {
+                $driver = User::where('role', 'driver')
+                    ->where('status', 'approved')
+                    ->where('is_available', true)
+                    ->with(['driverCars.carModel', 'driverCars.carType'])
+                    ->find($candidate['id']);
+
+                if ($driver) {
+                    $driverId = $driver->id;
+                    break;
+                }
+            }
+        }
 
         if (!$driver) {
             return response()->json(['message' => 'Nearest driver not found in database'], 404);
@@ -374,100 +393,83 @@ class RideEstimateController extends Controller
     public function getEligibleDrivers($userPickupLat, $userPickupLng, $excludedDriverIds = [], $carCategoryId = null)
     {
         try {
-            $firebase = (new Factory)
-                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                ->createDatabase();
-
-            $driversSnapshot = $firebase->getReference('drivers')->getSnapshot();
-
-            if (!$driversSnapshot->exists()) {
-                return [];
-            }
-
-            $driversData = $driversSnapshot->getValue();
-            $eligibleDrivers = [];
-
-            // Load driver pickup radius settings from the database
             $driverSettings = \App\Models\DriverRideSetting::pluck('pickup_radius', 'driver_id')->toArray();
 
-            foreach ($driversData as $driverId => $driverData) {
-                try {
-                    $driverIdValue = $driverData['id'] ?? null;
-                    $lat = $driverData['latitude'] ?? null;
-                    $lng = $driverData['longitude'] ?? null;
+            $driversQuery = User::where('role', 'driver')
+                ->where('status', 'approved')
+                ->where('is_available', true)
+                ->whereNotNull('latitude')
+                ->whereNotNull('longitude');
 
-                    // ❌ Skip invalid or missing data
-                    if (!$driverIdValue || !$lat || !$lng) {
-                        Log::warning("Skipping invalid driver record", ['driverId' => $driverId, 'data' => $driverData]);
-                        continue;
-                    }
-
-                    // ❌ Skip excluded drivers
-                    if (in_array($driverIdValue, $excludedDriverIds)) {
-                        continue;
-                    }
-
-                    $settings = $driverData['settings'] ?? [];
-                    $driverCarCategoryId = $driverData['car_category_id'] ?? null;
-                    
-                    // Fetch pickup radius from database driver_ride_settings table (fallback to 5.0 km)
-                    $pickupRadius = (float)($driverSettings[$driverIdValue] ?? 5.0);
-
-                    // Calculate distance using haversine
-                    $distance = $this->haversineDistance(
-                        $userPickupLat,
-                        $userPickupLng,
-                        (float)$lat,
-                        (float)$lng
-                    );
-
-                    // ❌ Skip if driver is outside pickup radius
-                    if ($distance > $pickupRadius) {
-                        Log::info("Driver {$driverIdValue} outside pickup radius", [
-                            'distance' => $distance,
-                            'pickup_radius' => $pickupRadius
-                        ]);
-                        continue;
-                    }
-
-                    // ❌ Skip if car category doesn't match (when category filter is provided)
-                    if ($carCategoryId !== null && $driverCarCategoryId != $carCategoryId) {
-                        Log::info("Driver {$driverIdValue} car category mismatch", [
-                            'driver_category' => $driverCarCategoryId,
-                            'requested_category' => $carCategoryId
-                        ]);
-                        continue;
-                    }
-
-                    $driver = [
-                        'id' => $driverIdValue,
-                        'name' => $driverData['name'] ?? '',
-                        'phone_number' => $driverData['phone_number'] ?? '',
-                        'photo' => $driverData['photo'] ?? '',
-                        'car_color' => $driverData['car_color'] ?? '',
-                        'car_model' => $driverData['car_model'] ?? '',
-                        'car_photo' => $driverData['car_photo'] ?? '',
-                        'plate_number' => $driverData['palete_number'] ?? '',
-                        'car_category_id' => $driverCarCategoryId,
-                        'latitude' => (float)$lat,
-                        'longitude' => (float)$lng,
-                        'gender' => $settings['gender'] ?? null,
-                        'pickup_radius' => $pickupRadius,
-                        'preferred_destination' => $settings['preferred_destination'] ?? '',
-                        'distance_to_pickup' => round($distance, 2),
-                        'eta_time' => null,
-                    ];
-
-                    $eligibleDrivers[] = $driver;
-                } catch (\Exception $e) {
-                    Log::warning("Invalid driver entry ($driverId): " . $e->getMessage());
-                }
+            if (!empty($excludedDriverIds)) {
+                $driversQuery->whereNotIn('id', $excludedDriverIds);
             }
 
-            Log::info("Found " . count($eligibleDrivers) . " eligible drivers", [
+            if ($carCategoryId !== null) {
+                $driversQuery->whereHas('driverCars', function ($query) use ($carCategoryId) {
+                    $query->where('car_categories_id', $carCategoryId);
+                });
+            }
+
+            $drivers = $driversQuery
+                ->with(['driverCars.carModel', 'driverCars.carType', 'driverRideSetting'])
+                ->get();
+
+            $eligibleDrivers = [];
+
+            foreach ($drivers as $driver) {
+                $cachedLocation = Cache::get("driver_location:{$driver->id}");
+                $lat = isset($cachedLocation['latitude']) ? (float) $cachedLocation['latitude'] : (float) $driver->latitude;
+                $lng = isset($cachedLocation['longitude']) ? (float) $cachedLocation['longitude'] : (float) $driver->longitude;
+
+                if (!$lat || !$lng) {
+                    continue;
+                }
+
+                $pickupRadius = (float) ($driverSettings[$driver->id]
+                    ?? $driver->driverRideSetting?->pickup_radius
+                    ?? 5.0);
+
+                $distance = $this->haversineDistance(
+                    $userPickupLat,
+                    $userPickupLng,
+                    $lat,
+                    $lng
+                );
+
+                if ($distance > $pickupRadius) {
+                    Log::info("Driver {$driver->id} outside pickup radius", [
+                        'distance' => $distance,
+                        'pickup_radius' => $pickupRadius,
+                    ]);
+                    continue;
+                }
+
+                $driverCar = $driver->driverCars->first();
+
+                $eligibleDrivers[] = [
+                    'id' => $driver->id,
+                    'name' => $driver->name ?? '',
+                    'phone_number' => $driver->phone ?? '',
+                    'photo' => $driver->image_link ?? '',
+                    'car_color' => $driverCar?->car_color ?? '',
+                    'car_model' => $driverCar?->carModel?->name ?? '',
+                    'car_photo' => $driverCar?->car_image_link ?? '',
+                    'plate_number' => $driverCar?->car_number ?? '',
+                    'car_category_id' => $driverCar?->car_categories_id,
+                    'latitude' => $lat,
+                    'longitude' => $lng,
+                    'gender' => $driver->gender,
+                    'pickup_radius' => $pickupRadius,
+                    'preferred_destination' => $driver->driverRideSetting?->destination_preferences ?? '',
+                    'distance_to_pickup' => round($distance, 2),
+                    'eta_time' => null,
+                ];
+            }
+
+            Log::info('Found ' . count($eligibleDrivers) . ' eligible drivers', [
                 'count' => count($eligibleDrivers),
-                'car_category_id' => $carCategoryId
+                'car_category_id' => $carCategoryId,
             ]);
 
             return $eligibleDrivers;
