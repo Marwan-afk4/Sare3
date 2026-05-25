@@ -232,7 +232,7 @@ Route::domain(config('app.api_domain'))->group(function () {
     //Ride
         Route::post('/ride/create', [RideEstimateController::class,'createRide']);
         Route::get('/ride/verification-code', [UserRideActionsController::class, 'getVerificationCode']);
-        Route::get('/ride/status', [UserRideActionsController::class, 'getRideStatus']);
+        Route::post('/ride/status', [UserRideActionsController::class, 'getRideStatus']);
 
     //Raiting
         Route::post('/ride/rating', [RaitingController::class,'raiting']);
