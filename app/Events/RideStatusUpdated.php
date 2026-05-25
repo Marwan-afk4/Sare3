@@ -20,6 +20,7 @@ class RideStatusUpdated implements ShouldBroadcastNow
     public $driver_id;
     public $user_id;
     public $verification_code;
+    public $driver_data;
 
     /**
      * Create a new event instance.
@@ -31,6 +32,40 @@ class RideStatusUpdated implements ShouldBroadcastNow
         $this->driver_id = $ride->driver_id;
         $this->user_id = $ride->user_id;
         $this->verification_code = $ride->verification_code;
+
+        $this->driver_data = null;
+        if ($ride->driver_id) {
+            // Eager-load driver and their cars if not loaded already
+            if (!$ride->relationLoaded('driver')) {
+                $ride->load(['driver' => function ($q) {
+                    $q->with(['driverCars' => function ($q2) {
+                        $q2->with(['carModel', 'carType']);
+                    }]);
+                }]);
+            }
+            
+            $driver = $ride->driver;
+            if ($driver) {
+                $driverCar = $driver->driverCars->first();
+                $this->driver_data = [
+                    'id' => $driver->id,
+                    'name' => $driver->name ?? '',
+                    'email' => $driver->email,
+                    'phone' => $driver->phone ?? '',
+                    'image_link' => $driver->image_link ?? '',
+                    'gender' => $driver->gender,
+                    'average_rating' => $driver->average_rating,
+                    'car' => $driverCar ? [
+                        'id' => $driverCar->id,
+                        'car_number' => $driverCar->car_number,
+                        'car_color' => $driverCar->car_color,
+                        'car_image_link' => $driverCar->car_image_link,
+                        'car_model' => $driverCar->carModel->name ?? '',
+                        'car_type' => $driverCar->carType->name ?? '',
+                    ] : null
+                ];
+            }
+        }
     }
 
     /**
@@ -59,6 +94,7 @@ class RideStatusUpdated implements ShouldBroadcastNow
             'driver_id' => $this->driver_id,
             'user_id' => $this->user_id,
             'verification_code' => $this->verification_code,
+            'driver' => $this->driver_data,
             'updated_at' => now()->toIso8601String(),
         ];
     }
