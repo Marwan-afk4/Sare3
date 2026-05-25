@@ -15,27 +15,33 @@ class RideSettingCOntroller extends Controller
         $driver = $request->user();
 
         $validation = Validator::make($request->all(), [
-            'pickup_radius' => 'required|numeric|min:0',
-            'destination_preferences' => 'required|array',
-            'early_trip_suggestions' => 'required|boolean',
-            'same_gender_trips' => 'required|boolean',
-            'zone_id' => 'nullable|exists:zones,id',
+            'pickup_radius' => 'sometimes|numeric|min:0',
+            'destination_preferences' => 'sometimes|array',
+            'early_trip_suggestions' => 'sometimes|boolean',
+            'same_gender_trips' => 'sometimes|boolean',
+            'zone_id' => 'sometimes|nullable|exists:zones,id',
         ]);
-
 
         if ($validation->fails()) {
             return response()->json(['errors' => $validation->errors()], 422);
         }
 
+        $updatableFields = [
+            'pickup_radius',
+            'destination_preferences',
+            'early_trip_suggestions',
+            'same_gender_trips',
+            'zone_id',
+        ];
+
+        $data = collect($updatableFields)
+            ->filter(fn (string $field) => $request->exists($field))
+            ->mapWithKeys(fn (string $field) => [$field => $request->input($field)])
+            ->all();
+
         $rideSetting = $driver->driverRideSetting()->updateOrCreate(
             ['driver_id' => $driver->id],
-            [
-                'pickup_radius' => $request->pickup_radius,
-                'destination_preferences' => $request->destination_preferences,
-                'early_trip_suggestions' => $request->early_trip_suggestions,
-                'same_gender_trips' => $request->same_gender_trips,
-                'zone_id' => $request->zone_id??null,
-            ]
+            $data
         );
 
         return response()->json([
