@@ -86,7 +86,7 @@
             </div>
 
             {{-- Driver Location Map --}}
-            @if ($isAvailable && $driverLocation)
+            @if ($isAvailable)
                 <div class="card-body border-top">
                     <h5 class="mb-3">{{ __('Current Location') }}</h5>
                     <div id="driver-location-map" style="height: 400px; border-radius: 8px;"></div>
@@ -322,7 +322,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            @if ($isAvailable && $driverLocation)
+            @if ($isAvailable)
                 // Initialize Firebase for real-time tracking
                 const firebaseConfig = {
                     databaseURL: 'https://sarea-adce3-default-rtdb.firebaseio.com'

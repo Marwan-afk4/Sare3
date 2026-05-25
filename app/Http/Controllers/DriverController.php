@@ -15,6 +15,7 @@ use App\Models\Zone;
 use App\Helpers\RideHelper;
 use App\trait\ImageUpload;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class DriverController extends Controller
 {
@@ -204,8 +205,9 @@ class DriverController extends Controller
         $recentRides = RideHelper::formatDriverRideHistory($driver->driverRides->take(10));
 
         $isAvailable = $driver->is_available;
+        $driverLocation = $this->resolveDriverLocation($driver);
 
-        return view('drivers.show', compact('driver', 'driverRating', 'rideStatistics', 'recentRides', 'isAvailable'));
+        return view('drivers.show', compact('driver', 'driverRating', 'rideStatistics', 'recentRides', 'isAvailable', 'driverLocation'));
     }
 
     public function rideHistory(User $driver, Request $request)
@@ -308,22 +310,44 @@ class DriverController extends Controller
 
     public function getLocation(User $driver)
     {
-        if ($driver->latitude && $driver->longitude) {
+        $driverLocation = $this->resolveDriverLocation($driver);
+
+        if ($driverLocation) {
             return response()->json([
                 'success' => true,
-                'location' => [
-                    'latitude' => (float) $driver->latitude,
-                    'longitude' => (float) $driver->longitude,
-                    'bearing' => (float) $driver->bearing,
-                ],
-                'is_available' => (bool) $driver->is_available
+                'location' => $driverLocation,
+                'is_available' => (bool) $driver->is_available,
             ]);
         }
 
         return response()->json([
             'success' => false,
             'message' => 'Driver location not available',
-            'is_available' => (bool) $driver->is_available
+            'is_available' => (bool) $driver->is_available,
         ], 404);
+    }
+
+    private function resolveDriverLocation(User $driver): ?array
+    {
+        $cached = Cache::get("driver_location:{$driver->id}");
+
+        if ($cached && isset($cached['latitude'], $cached['longitude'])) {
+            return [
+                'latitude' => (float) $cached['latitude'],
+                'longitude' => (float) $cached['longitude'],
+                'bearing' => isset($cached['bearing']) ? (float) $cached['bearing'] : null,
+                'timestamp' => $cached['updated_at'] ?? null,
+            ];
+        }
+
+        if ($driver->latitude && $driver->longitude) {
+            return [
+                'latitude' => (float) $driver->latitude,
+                'longitude' => (float) $driver->longitude,
+                'bearing' => $driver->bearing !== null ? (float) $driver->bearing : null,
+            ];
+        }
+
+        return null;
     }
 }
