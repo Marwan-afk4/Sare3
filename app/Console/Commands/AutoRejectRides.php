@@ -64,7 +64,8 @@ class AutoRejectRides extends Command
                 $allDrivers = $rideEstimateController->getEligibleDrivers(
                     $ride->pickup_lat,
                     $ride->pickup_lng,
-                    []
+                    [],
+                    $ride->car_category_id
                 );
 
                 if (empty($allDrivers)) {

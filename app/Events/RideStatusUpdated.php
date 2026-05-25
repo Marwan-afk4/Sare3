@@ -19,6 +19,7 @@ class RideStatusUpdated implements ShouldBroadcastNow
     public $status;
     public $driver_id;
     public $user_id;
+    public $verification_code;
 
     /**
      * Create a new event instance.
@@ -29,6 +30,7 @@ class RideStatusUpdated implements ShouldBroadcastNow
         $this->status = $ride->status->value;
         $this->driver_id = $ride->driver_id;
         $this->user_id = $ride->user_id;
+        $this->verification_code = $ride->verification_code;
     }
 
     /**
@@ -56,6 +58,7 @@ class RideStatusUpdated implements ShouldBroadcastNow
             'status' => $this->status,
             'driver_id' => $this->driver_id,
             'user_id' => $this->user_id,
+            'verification_code' => $this->verification_code,
             'updated_at' => now()->toIso8601String(),
         ];
     }

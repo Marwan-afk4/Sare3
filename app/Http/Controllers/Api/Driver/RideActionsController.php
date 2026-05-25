@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Driver;
 
 use App\Helpers\RideHelper;
 use App\Http\Controllers\Api\User\RideEstimateController;
+use App\Events\RideStatusUpdated;
 use App\Http\Controllers\Controller;
 use App\Jobs\AutoRejectRideJob;
 use App\Models\AppSetting;
@@ -124,10 +125,19 @@ class RideActionsController extends Controller
 
         $response = ['message' => 'Ride accepted.'];
 
-        if ($verificationCode) {
+        // Generate verification code if feature is enabled and code is not yet set
+        if (AppSetting::isRideVerificationEnabled() && !$ride->verification_code) {
+            $ride->generateVerificationCode();
+            $ride->refresh();
+        }
+
+        if ($ride->verification_code) {
             $response['verification_required'] = true;
             $response['message'] = 'Ride accepted. Verification code generated for user.';
         }
+
+        // Broadcast status update via WebSocket (AFTER code generation)
+        event(new RideStatusUpdated($ride));
 
         return response()->json($response);
     }
@@ -184,7 +194,8 @@ class RideActionsController extends Controller
 
         $ride->update($updateData);
 
-
+        // Broadcast status update via WebSocket
+        event(new RideStatusUpdated($ride));
 
         return response()->json(['message' => 'Marked as arrived.']);
     }
@@ -206,6 +217,9 @@ class RideActionsController extends Controller
             'status' => 'in_progress',
             'trip_started_at' => now(),
         ]);
+
+        // Broadcast status update via WebSocket
+        event(new RideStatusUpdated($ride));
 
 
 
@@ -324,11 +338,12 @@ class RideActionsController extends Controller
         }
 
         // 3️⃣ Duration Calculation
-        if (!$ride->started_at) {
+        $actualStartTime = $ride->trip_started_at ?? $ride->started_at;
+        if (!$actualStartTime) {
             return response()->json(['message' => 'Ride has no start time.'], 400);
         }
 
-        $startTime = Carbon::parse($ride->started_at);
+        $startTime = Carbon::parse($actualStartTime);
         $endTime = Carbon::now();
         $durationMinutes = ceil($startTime->floatDiffInMinutes($endTime));
 
@@ -555,6 +570,9 @@ class RideActionsController extends Controller
                 ]);
             }
             
+            // Broadcast status update via WebSocket
+            event(new RideStatusUpdated($ride));
+
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
@@ -742,6 +760,9 @@ class RideActionsController extends Controller
                 'canceled_at' => now()->toIso8601String(),
                 'status' => 'pending',
             ]);
+
+            // Broadcast status update via WebSocket
+            event(new RideStatusUpdated($ride));
 
             // Sync Firebase
             $this->updateFirebase($ride, [

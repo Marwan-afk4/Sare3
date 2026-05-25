@@ -2,18 +2,21 @@
 
 namespace App\Http\Controllers\Api\User;
 
+use App\Events\NewRideRequest;
 use App\Helpers\FcmHelper;
 use App\Http\Controllers\Controller;
 use App\Models\CarCategory;
 use App\Models\Ride;
 use App\Models\RideEstimate;
 use App\Models\User;
+use App\Services\RideService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Kreait\Firebase\Factory;
 use App\Helpers\RideHelper;
 use App\Jobs\AutoRejectRideJob;
 use App\Models\CancellationPolicy;
+use App\Models\Coupon;
 use App\Models\Rating;
 use App\Services\RideOfferService;
 use App\Models\RideRequestTimeLimit;
@@ -38,8 +41,12 @@ class RideEstimateController extends Controller
     {
         $validation = Validator::make($request->all(), [
             'zone_id' => 'required|exists:zones,id',
-            'estimated_km' => 'nullable|numeric|min:0',
-            'estimated_time' => 'nullable|numeric|min:0',
+            'pickup_lat' => 'nullable|numeric',
+            'pickup_lng' => 'nullable|numeric',
+            'pickup_lang' => 'nullable|numeric',
+            'dropoff_lat' => 'nullable|numeric',
+            'dropoff_lng' => 'nullable|numeric',
+            'dropoff_lang' => 'nullable|numeric',
         ]);
 
         if ($validation->fails()) {
@@ -48,8 +55,63 @@ class RideEstimateController extends Controller
 
         $user = $request->user();
         $zoneId = $request->zone_id;
+        $pickupLat = $request->pickup_lat;
+        $pickupLng = $request->pickup_lng ?? $request->pickup_lang;
+        $dropoffLat = $request->dropoff_lat;
+        $dropoffLng = $request->dropoff_lng ?? $request->dropoff_lang;
+
         $estimatedKm = $request->estimated_km ?? 0;
         $estimatedTime = $request->estimated_time ?? 0;
+
+        if ($pickupLat !== null && $pickupLng !== null && $dropoffLat !== null && $dropoffLng !== null) {
+            $googleApiKey = config('services.google.maps_api_key');
+
+            if (!$googleApiKey) {
+                Log::error('Google Maps API key not configured');
+                return response()->json(['message' => 'Google Maps API key not configured'], 500);
+            }
+
+            $origin = $pickupLat . ',' . $pickupLng;
+            $destination = $dropoffLat . ',' . $dropoffLng;
+
+            try {
+                $response = Http::get('https://maps.googleapis.com/maps/api/distancematrix/json', [
+                    'origins' => $origin,
+                    'destinations' => $destination,
+                    'key' => $googleApiKey,
+                ]);
+
+                if (!$response->successful()) {
+                    Log::error('Error from Google Distance Matrix API in ride-estimate: ' . $response->body());
+                    return response()->json(['message' => 'Error from Google API: ' . $response->status()], 520);
+                }
+
+                $data = $response->json();
+                
+                if (($data['status'] ?? '') !== 'OK') {
+                    Log::error('Google API returned status error: ' . json_encode($data));
+                    return response()->json(['message' => 'Google API Error: ' . ($data['status'] ?? 'Unknown status')], 520);
+                }
+
+                $rows = $data['rows'] ?? [];
+                $elements = $rows[0]['elements'] ?? [];
+
+                if (empty($elements) || ($elements[0]['status'] ?? '') !== 'OK') {
+                    Log::error('Google API row elements status error: ' . json_encode($data));
+                    return response()->json(['message' => 'Unable to calculate route between pickup and dropoff'], 422);
+                }
+
+                $distanceInMeters = $elements[0]['distance']['value'] ?? 0;
+                $durationInSeconds = $elements[0]['duration']['value'] ?? 0;
+
+                $estimatedKm = round($distanceInMeters / 1000, 2);
+                $estimatedTime = round($durationInSeconds / 60, 2);
+
+            } catch (\Exception $e) {
+                Log::error('Error calling Google Distance Matrix API: ' . $e->getMessage());
+                return response()->json(['message' => 'Error calling Google API: ' . $e->getMessage()], 500);
+            }
+        }
 
         // هات الـ Zone مع الكاتيجوريز المربوطة بيه
         $zone = Zone::with('carCategories')->find($zoneId);
@@ -58,7 +120,7 @@ class RideEstimateController extends Controller
             return response()->json(['message' => 'Zone not found'], 404);
         }
 
-        $rideService = app(\App\Services\RideService::class);
+        $rideService = app(RideService::class);
 
         $result = $zone->carCategories->map(function ($category) use ($estimatedKm, $estimatedTime, $user, $rideService) {
             $base = $category->pivot->base_price;
@@ -82,6 +144,7 @@ class RideEstimateController extends Controller
                 'description' => $category->description,
                 'estimated_price' => round($price, 2),
                 'estimated_time' => $estimatedTime,
+                'estimated_km' => $estimatedKm,
                 'icon_url' => $category->getIconUrlAttribute(),
                 'discount_preview' => $estimateWithDiscount['discount_preview']
             ];
@@ -89,6 +152,8 @@ class RideEstimateController extends Controller
 
         return response()->json([
             'message' => 'Success',
+            'estimated_km' => $estimatedKm,
+            'estimated_time' => $estimatedTime,
             'data' => $result
         ]);
     }
@@ -100,7 +165,7 @@ class RideEstimateController extends Controller
 
         $validation = Validator::make($request->all(), [
             'zone_id' => 'required|exists:zones,id',
-            'driver_id' => 'required|exists:users,id',
+            'driver_id' => 'nullable|exists:users,id',
             'car_category_id' => 'required|exists:car_categories,id',
             'estimated_km' => 'nullable|numeric|min:0',
             'estimated_time' => 'nullable|numeric|min:0',
@@ -128,7 +193,31 @@ class RideEstimateController extends Controller
             $policyExists = true;
         }
 
-        $driver = User::with('driverCars')->findOrFail($request->driver_id);
+        // Find nearest eligible driver dynamically using pickup coordinates, database pickup radius, and haversine distance
+        $eligibleDrivers = $this->getEligibleDrivers(
+            $request->pickup_lat,
+            $request->pickup_lng,
+            [],
+            $request->car_category_id
+        );
+
+        if (empty($eligibleDrivers)) {
+            return response()->json(['message' => 'No drivers available in your area.'], 404);
+        }
+
+        // Sort by distance (nearest first)
+        usort($eligibleDrivers, function ($a, $b) {
+            return $a['distance_to_pickup'] <=> $b['distance_to_pickup'];
+        });
+
+        $nearestDriverData = $eligibleDrivers[0];
+        $driverId = $nearestDriverData['id'];
+
+        $driver = User::with('driverCars')->find($driverId);
+
+        if (!$driver) {
+            return response()->json(['message' => 'Nearest driver not found in database'], 404);
+        }
 
         // Get zone with car categories to use zone-specific pricing
         $zone = Zone::with('carCategories')->find($request->zone_id);
@@ -201,16 +290,16 @@ class RideEstimateController extends Controller
             'dropoff_address' => $request->dropoff_address,
             'payment_method_id' => $request->payment_method_id,
             'driver_assigned_at' => now(),
-            'driver_id' => $request->driver_id,
+            'driver_id' => $driverId,
         ]);
 
         // Log the initial offer to the first captain so the admin dashboard
         // can show who the request was routed through from the very start.
-        app(RideOfferService::class)->recordOffer($ride, (int) $request->driver_id, 1, 'initial_assignment');
+        app(RideOfferService::class)->recordOffer($ride, (int) $driverId, 1, 'initial_assignment');
 
         // Check if user has a pending coupon and apply it
         if ($user->pending_coupon_id) {
-            $pendingCoupon = \App\Models\Coupon::find($user->pending_coupon_id);
+            $pendingCoupon = Coupon::find($user->pending_coupon_id);
             if ($pendingCoupon && $pendingCoupon->isValid() && $pendingCoupon->canBeUsedByUser($user)) {
                 $pendingCoupon->applyToRide($ride);
                 // Clear the pending coupon from user
@@ -223,74 +312,38 @@ class RideEstimateController extends Controller
             }
         }
 
-        $firebaseRideId = 'ride_' . $ride->id;
-
+        // ─── NEW: Broadcast to Driver via WebSockets (Reverb) ─────────────────────
         try {
-            $firebase = (new Factory)
-                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                ->createDatabase();
-
-            $firebaseData = [
-                'ride_id' => $ride->id,
-                'user' => [
-                    'user_id' => $user,
-                    'user_name' => $user->name,
-                    'user_phone' => $user->phone,
-                    'user_email' => $user->email,
-                    'user_image' => $user->image,
-                    'user_rating' => round($userRating ?? 0, 1),
-                ],
-                'driver_id' => $request->driver_id,
-                'driver_rating' => round($driverRating ?? 0, 1),
-                'car_category_id' => $ride->car_category_id,
-                'pickup' => [
-                    'lat' => (float) $ride->pickup_lat,
-                    'lng' => (float) $ride->pickup_lng,
-                    'address' => $request->pickup_address,
-                ],
-                'estimated_time' => $request->estimated_time,
-                'estimated_km' => $request->estimated_km,
-                'initial_price' => (float)($ride->calculated_initial_price ?? $price),
-                'coupon_discount' => (float)($ride->coupon_discount ?? 0),
-                'final_price' => [
-                    'original_fare' => null,
-                    'final_fare' => null,
-                    'discount_amount' => null,
-                    'distance_km' => null,
-                    'duration_minutes' => null,
-                ],
-                'driver_eta_minutes' => $request->driver_eta_minutes,
-                'status' => $ride->status,
-                'cancellation_policy' => $policyExists,
-                'created_at' => now()->toIso8601String(),
-            ];
-
-            // Only include dropoff if coordinates exist (not null and not 0)
-            if ($ride->dropoff_lat && $ride->dropoff_lng) {
-                $firebaseData['dropoff'] = [
-                    'lat' => (float) $ride->dropoff_lat,
-                    'lng' => (float) $ride->dropoff_lng,
-                    'address' => $request->dropoff_address,
+            broadcast(new NewRideRequest($ride))->toOthers();
+            
+            // ─── Also send Push Notification (FCM) ───
+            if ($driver->fcm_token) {
+                $data = [
+                    'title'   => 'طلب رحلة جديد',
+                    'body'    => 'لديك طلب رحلة جديد من ' . $user->name,
+                    'type'    => 'new_ride',
+                    'ride_id' => (string) $ride->id,
                 ];
+                FcmHelper::sendPushNotification($driver->fcm_token, $data['title'], $data['body'], $data);
             }
-
-            $firebase->getReference("rides/$firebaseRideId")->set($firebaseData);
-
-            $ride->update([
-                'firebase_ride_id' => $firebaseRideId,
-            ]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Ride created, but failed to sync with Firebase', 'error' => $e->getMessage()], 500);
+            Log::error("Failed to notify driver: " . $e->getMessage());
         }
+        // ─── END NOTIFICATION ─────────────────────────────────────────────────────
 
-        // // // Schedule auto-reject job
+        // Schedule auto-reject job
         // $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
         // AutoRejectRideJob::dispatch(
         //     $ride->id,
-        //     $request->driver_id,
+        //     $driverId,
         //     $ride->updated_at->format('Y-m-d H:i:s')
         // )->delay(now()->addSeconds($timeoutSeconds));
+
+        $ride->load(['driver' => function ($q) {
+            $q->with(['driverCars' => function ($q2) {
+                $q2->with(['carModel', 'carType']);
+            }]);
+        }]);
 
         return response()->json([
             'message' => 'Ride created successfully',
@@ -318,7 +371,6 @@ class RideEstimateController extends Controller
         return $R * $c;
     }
 
-
     public function getEligibleDrivers($userPickupLat, $userPickupLng, $excludedDriverIds = [], $carCategoryId = null)
     {
         try {
@@ -335,6 +387,9 @@ class RideEstimateController extends Controller
 
             $driversData = $driversSnapshot->getValue();
             $eligibleDrivers = [];
+
+            // Load driver pickup radius settings from the database
+            $driverSettings = \App\Models\DriverRideSetting::pluck('pickup_radius', 'driver_id')->toArray();
 
             foreach ($driversData as $driverId => $driverData) {
                 try {
@@ -355,7 +410,9 @@ class RideEstimateController extends Controller
 
                     $settings = $driverData['settings'] ?? [];
                     $driverCarCategoryId = $driverData['car_category_id'] ?? null;
-                    $pickupRadius = (float)($settings['pickup_radius'] ?? 0.0);
+                    
+                    // Fetch pickup radius from database driver_ride_settings table (fallback to 5.0 km)
+                    $pickupRadius = (float)($driverSettings[$driverIdValue] ?? 5.0);
 
                     // Calculate distance using haversine
                     $distance = $this->haversineDistance(
@@ -408,7 +465,7 @@ class RideEstimateController extends Controller
                 }
             }
 
-            Log::info("Found {count} eligible drivers", [
+            Log::info("Found " . count($eligibleDrivers) . " eligible drivers", [
                 'count' => count($eligibleDrivers),
                 'car_category_id' => $carCategoryId
             ]);
@@ -610,27 +667,7 @@ class RideEstimateController extends Controller
                 return null;
             }
 
-            // ✅ Update Firebase if ride ID exists
-            if ($rideId) {
-                try {
-                    $firebase = (new Factory)
-                        ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                        ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                        ->createDatabase();
 
-                    $firebaseRideId = 'ride_' . $rideId;
-
-                    $firebase->getReference("rides/$firebaseRideId")->update([
-                        'driver_eta_seconds' => $nearestDriver['eta_time'],
-                        'driver_eta_minutes' => round($nearestDriver['eta_time'] / 60, 1),
-                        'driver_id' => $nearestDriver['id'] ?? null,
-                    ]);
-
-                    Log::info("Updated Firebase with ETA for ride {$rideId}: {$nearestDriver['eta_time']} seconds");
-                } catch (\Exception $e) {
-                    Log::error("Failed to update Firebase for ride {$rideId}: " . $e->getMessage());
-                }
-            }
 
             // ✅ Return both driver ID and ETA
             return [
@@ -681,18 +718,7 @@ class RideEstimateController extends Controller
                     'status' => 'pending',
                 ]);
 
-                // Firebase update
-                $firebase = (new Factory)
-                    ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                    ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                    ->createDatabase();
 
-                $firebaseRideId = 'ride_' . $ride->id;
-
-                $firebase->getReference("rides/$firebaseRideId")->update([
-                    'driver_id' => null,
-                    'status' => 'pending',
-                ]);
 
                 return null;
             }
@@ -793,26 +819,12 @@ class RideEstimateController extends Controller
                 $shouldCycleDrivers ? 'cycling' : 'reassignment'
             );
 
-            // Update Firebase with new driver info
-            $firebase = (new Factory)
-                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-                ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-                ->createDatabase();
-
-            $firebaseRideId = 'ride_' . $ride->id;
-
-            $driverRating = Rating::where('ratee_id', $driverId)
-                ->where('ratee_type', 'driver')
-                ->avg('rate');
-
-            $firebase->getReference("rides/$firebaseRideId")->update([
-                'driver_id' => $driverId,
-                'driver_rating' => round($driverRating ?? 0, 1),
-                'status' => 'pending',
-                'reassigned_at' => now()->toIso8601String(),
-                'previous_rejections' => count($excludedDriverIds),
-                'is_cycling' => $shouldCycleDrivers,
-            ]);
+            // Broadcast the new ride request to the newly assigned driver via WebSockets (Reverb)
+            try {
+                broadcast(new NewRideRequest($ride));
+            } catch (\Exception $e) {
+                Log::error("Failed to broadcast alternative ride request to driver: " . $e->getMessage());
+            }
 
             // ✅ Send push notification to new driver
             $driver = User::find($driverId);
@@ -842,6 +854,77 @@ class RideEstimateController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             return null;
+        }
+    }
+
+    public function getActiveDrivers(Request $request)
+    {
+        $validation = Validator::make($request->all(), [
+            'lat' => 'nullable|numeric|between:-90,90',
+            'lng' => 'nullable|numeric|between:-180,180',
+            'radius' => 'nullable|numeric|min:0.1'
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json(['message' => $validation->errors()->first()], 422);
+        }
+
+        $userLat = $request->lat ? (float)$request->lat : null;
+        $userLng = $request->lng ? (float)$request->lng : null;
+        $radius = $request->radius ? (float)$request->radius : 5.0; // default to 5 km
+
+        try {
+            // Load driver pickup radius settings from the database
+            $driverSettings = \App\Models\DriverRideSetting::pluck('pickup_radius', 'driver_id')->toArray();
+
+            // Fetch active/approved drivers directly from SQL database
+            $drivers = User::where('role', 'driver')
+                ->where('status', 'approved')
+                ->where('is_available', true)
+                ->whereNotNull('latitude')
+                ->whereNotNull('longitude')
+                ->with(['driverCars', 'driverRideSetting'])
+                ->get();
+
+            $activeDrivers = [];
+
+            foreach ($drivers as $driver) {
+                $lat = $driver->latitude;
+                $lng = $driver->longitude;
+
+                $distance = null;
+                if ($userLat !== null && $userLng !== null) {
+                    $distance = $this->haversineDistance($userLat, $userLng, (float)$lat, (float)$lng);
+                    // Filter out drivers outside the requested radius
+                    $pickupRadius = (float)($driverSettings[$driver->id] ?? 5.0);
+                    // Use either the customized radius or the default one
+                    $effectiveRadius = max($radius, $pickupRadius);
+                    if ($distance > $effectiveRadius) {
+                        continue;
+                    }
+                }
+
+                $driverCar = $driver->driverCars->first();
+                $activeDrivers[] = [
+                    'driver_id' => $driver->id,
+                    'name' => $driver->name ?? '',
+                    'latitude' => (float)$lat,
+                    'longitude' => (float)$lng,
+                    'bearing' => $driver->bearing !== null ? (float)$driver->bearing : null,
+                    'car_category_id' => $driverCar ? (int)$driverCar->car_categories_id : null,
+                    'distance_km' => $distance !== null ? round($distance, 2) : null,
+                    'last_updated' => $driver->updated_at ? $driver->updated_at->toIso8601String() : null
+                ];
+            }
+
+            return response()->json([
+                'message' => 'Success',
+                'data' => $activeDrivers
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching active drivers: ' . $e->getMessage());
+            return response()->json(['message' => 'Failed to fetch active drivers: ' . $e->getMessage()], 500);
         }
     }
 }

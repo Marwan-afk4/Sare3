@@ -13,8 +13,6 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Kreait\Firebase\Factory;
-use Kreait\Firebase\Database;
 
 class AutoRejectRideJob implements ShouldQueue
 {
@@ -87,17 +85,7 @@ class AutoRejectRideJob implements ShouldQueue
 
             Log::info("AutoRejectRideJob: Reset ride {$this->rideId}, driver {$this->driverId} added to rejected list: " . json_encode($rejectedDrivers));
 
-            // Update Firebase
-            $firebase = $this->getFirebaseDatabase();
-            $firebaseRideId = 'ride_' . $ride->id;
 
-            $firebase->getReference("rides/$firebaseRideId")->update([
-                'driver_id' => null,
-                'rejected_drivers' => $rejectedDrivers,
-                'status' => 'pending',
-                'auto_rejected_at' => now()->toIso8601String(),
-                'rejection_reason' => 'auto_timeout'
-            ]);
 
             // Reload the ride to get fresh data
             $ride->refresh();
@@ -113,9 +101,7 @@ class AutoRejectRideJob implements ShouldQueue
                 
                 $driverId = $alternativeDriver['driver_id'] ?? $alternativeDriver['id'] ?? null;
                 
-                $firebase->getReference("rides/$firebaseRideId")->update([
-                    'previous_rejections' => count($rejectedDrivers),
-                ]);
+
 
                 // Schedule another auto-reject job for the new driver
                 if ($driverId) {
@@ -135,9 +121,7 @@ class AutoRejectRideJob implements ShouldQueue
                     'status' => 'rejected',
                 ]);
                 
-                $firebase->getReference("rides/$firebaseRideId")->update([
-                    'status' => 'rejected',
-                ]);
+
             }
 
             DB::commit();
@@ -149,11 +133,5 @@ class AutoRejectRideJob implements ShouldQueue
         }
     }
 
-    private function getFirebaseDatabase(): Database
-    {
-        return (new Factory)
-            ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
-            ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
-            ->createDatabase();
-    }
+
 }

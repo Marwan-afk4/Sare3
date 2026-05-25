@@ -286,4 +286,13 @@ class User extends Authenticatable
             'balance_deficit' => $canGoOnline ? 0 : ($minimumBalance - $currentBalance)
         ];
     }
+    public function ratingsReceived()
+    {
+        return $this->hasMany(Rating::class, 'ratee_id');
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        return round($this->ratingsReceived()->avg('rate') ?: 5.0, 1);
+    }
 }

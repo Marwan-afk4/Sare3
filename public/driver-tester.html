@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Connection Tester | Sare3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pusher-js@8.4.0/dist/web/pusher.min.js"></script>
+    <style>
+        :root {
+            --primary: #3498db;
+            --success: #2ecc71;
+            --dark: #2c3e50;
+            --light: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            margin: 0;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        h2 { color: var(--dark); margin-top: 0; }
+
+        .form-group { margin-bottom: 15px; }
+
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        button:hover { background: #2980b9; }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .status-offline { background: #fee2e2; color: #991b1b; }
+        .status-online { background: #dcfce7; color: #166534; }
+
+        #logs {
+            background: #1e293b;
+            color: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: monospace;
+            height: 300px;
+            overflow-y: auto;
+            text-align: left;
+            direction: ltr;
+        }
+
+        .log-entry { margin-bottom: 8px; border-bottom: 1px solid #334155; padding-bottom: 4px; }
+        .log-time { color: #94a3b8; font-size: 11px; }
+        .log-msg { color: #38bdf8; }
+        .log-data { color: #fbbf24; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h2><i class="fa fa-id-card"></i> اختبار اتصال السائق (WebSocket)</h2>
+        
+        <div class="form-group">
+            <label>عنوان الـ API (API Base URL)</label>
+            <input type="text" id="api_base" placeholder="https://dashboard.2te.org" value="https://dashboard.2te.org">
+        </div>
+
+        <div class="form-group">
+            <label>عنوان الـ WebSocket (WS Host)</label>
+            <input type="text" id="ws_host" placeholder="dashboard.aomsst.com" value="dashboard.aomsst.com">
+        </div>
+
+        <div class="form-group">
+            <label>توكن السائق (Driver Bearer Token)</label>
+            <input type="text" id="token" placeholder="أدخل توكن السائق هنا...">
+        </div>
+
+        <div class="form-group">
+            <label>رقم السائق (Driver ID)</label>
+            <input type="number" id="driver_id" value="743">
+        </div>
+
+        <button onclick="connect()">بدء الاتصال والاستماع</button>
+
+        <div id="status-box" class="status status-offline">
+            <i class="fa fa-circle"></i> <span id="status-text">غير متصل</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3><i class="fa fa-list"></i> سجل الأحداث (Logs)</h3>
+        <div id="logs">
+            <div class="log-entry">بانتظار بدء الاتصال...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let echo = null;
+
+    function log(msg, data = null) {
+        const logs = document.getElementById('logs');
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        
+        const time = new Date().toLocaleTimeString();
+        let dataHtml = data ? `<br><span class="log-data">${JSON.stringify(data)}</span>` : '';
+        
+        entry.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-msg">${msg}</span>${dataHtml}`;
+        logs.prepend(entry);
+    }
+
+    function updateStatus(isOnline) {
+        const box = document.getElementById('status-box');
+        const text = document.getElementById('status-text');
+        if (isOnline) {
+            box.className = 'status status-online';
+            text.innerText = 'متصل (Live)';
+        } else {
+            box.className = 'status status-offline';
+            text.innerText = 'غير متصل';
+        }
+    }
+
+    function connect() {
+        const apiBase = document.getElementById('api_base').value.replace(/\/$/, '');
+        const wsHost = document.getElementById('ws_host').value.trim();
+        const token = document.getElementById('token').value;
+        const driverId = document.getElementById('driver_id').value;
+
+        if (!token) {
+            alert('يرجى إدخال التوكن');
+            return;
+        }
+
+        log(`محاولة الاتصال بالسيرفر: ${wsHost}`);
+        
+        try {
+            // Setup Echo using standard constructor from IIFE
+            echo = new Echo({
+                broadcaster: 'reverb',
+                key: 'jkfhdfskt348itrddkfhgdfk348',
+                wsHost: wsHost,
+                wsPort: 443,
+                wssPort: 443,
+                forceTLS: true,
+                enabledTransports: ['ws', 'wss'],
+                authEndpoint: `${apiBase}/api/broadcasting/auth`, 
+                auth: {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                }
+            });
+
+            const pusher = echo.connector.pusher;
+
+            pusher.connection.bind('state_change', (states) => {
+                log(`حالة الاتصال: ${states.current}`);
+            });
+
+            pusher.connection.bind('connected', () => {
+                updateStatus(true);
+                log("✅ تم الاتصال بالسيرفر!");
+            });
+
+            pusher.connection.bind('disconnected', () => {
+                updateStatus(false);
+                log("انقطع الاتصال ❌");
+            });
+
+            pusher.connection.bind('error', (err) => {
+                log("❌ خطأ في الاتصال بالسيرفر:", err.error ? err.error.message : "خطأ غير معروف");
+            });
+
+            // Listen to the private channel
+            echo.private(`driver.${driverId}`)
+                .listen('.ride.request.new', (e) => {
+                    log("🚀 تم استقبال طلب رحلة جديد!", e);
+                    
+                    const user = e.user || {};
+                    const msg = `طلب رحلة جديد!\n` +
+                                `الراكب: ${user.name || 'غير معروف'}\n` +
+                                `التقييم: ⭐ ${user.rating || 5.0}\n` +
+                                `الهاتف: ${user.phone || 'N/A'}\n` +
+                                `المسافة: ${e.estimated_km || 0} كم\n` +
+                                `الوقت المتوقع: ${e.estimated_time || 0} دقيقة\n` +
+                                `السعر: ${e.estimated_price || 0}`;
+                    
+                    alert(msg);
+                })
+                .error((error) => {
+                    log("خطأ في الاشتراك بالقناة! (تأكد من صحة التوكن)", error);
+                });
+
+        } catch (error) {
+            log("❌ خطأ في تشغيل Echo:", error.message);
+            console.error(error);
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -160,9 +160,10 @@ class RideController extends Controller
                 $updateData['completed_at'] = now();
                 $updateData['ended_at'] = now();
 
-                // Calculate time_taken if started_at exists
-                if ($ride->started_at) {
-                    $startTime = Carbon::parse($ride->started_at);
+                // Calculate time_taken if trip_started_at or started_at exists
+                $actualStartTime = $ride->trip_started_at ?? $ride->started_at;
+                if ($actualStartTime) {
+                    $startTime = Carbon::parse($actualStartTime);
                     $endTime = now();
                     $updateData['time_taken'] = (int) round($startTime->floatDiffInMinutes($endTime));
                 }
@@ -170,9 +171,10 @@ class RideController extends Controller
             case 'cancelled':
                 $updateData['ended_at'] = now();
 
-                // Calculate time_taken from started_at to ended_at
-                if ($ride->started_at) {
-                    $startTime = Carbon::parse($ride->started_at);
+                // Calculate time_taken from trip_started_at or started_at to ended_at
+                $actualStartTime = $ride->trip_started_at ?? $ride->started_at;
+                if ($actualStartTime) {
+                    $startTime = Carbon::parse($actualStartTime);
                     $endTime = now();
                     $timeTakenInMinutes = $startTime->floatDiffInMinutes($endTime);
                     $updateData['time_taken'] = (int) round($timeTakenInMinutes);

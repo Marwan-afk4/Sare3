@@ -215,6 +215,7 @@ Route::domain(config('app.api_domain'))->group(function () {
 
     //Ride Estimate
         Route::post('/ride-estimate', [RideEstimateController::class, 'estimateForAllCategories']);
+        Route::get('/active-drivers', [RideEstimateController::class, 'getActiveDrivers']);
         Route::get('/zones', [RideEstimateController::class, 'zones']);
 
     //LoggedUser
@@ -407,4 +408,45 @@ Route::domain(config('app.api_domain'))->group(function () {
             'message' => 'Admin authentication working'
         ]);
     });
+
+    //======= BROADCAST DEBUG (Temporary) ========
+    Route::get('/debug/test-broadcast', function (Request $request) {
+        try {
+            // Force config for this request to be absolutely sure
+            config(['broadcasting.default' => 'reverb']);
+            config(['broadcasting.connections.reverb.options.host' => '127.0.0.1']);
+            config(['broadcasting.connections.reverb.options.port' => 8192]);
+            config(['broadcasting.connections.reverb.options.scheme' => 'http']);
+            config(['broadcasting.connections.reverb.options.useTLS' => false]);
+
+            $user = \App\Models\User::first();
+            if (!$user) return "No user found";
+
+            $event = new \App\Events\DriverLocationUpdated($user);
+            $event->latitude  = (float) $request->query('lat', 33.3152);
+            $event->longitude = (float) $request->query('lng', 44.3661);
+
+            // Execute broadcast
+            broadcast($event)->toOthers();
+
+            return response()->json([
+                'status' => 'Forced Broadcast Dispatched!',
+                'target' => '127.0.0.1:8192',
+                'driver' => config('broadcasting.default'),
+                'event' => $event->broadcastAs(),
+                'note' => 'If terminal is still silent, your PHP-FPM is blocked from local networking.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'Error',
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
+    });
 });
+
+
+
+
+
