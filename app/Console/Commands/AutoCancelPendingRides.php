@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Helpers\FcmHelper;
 use Illuminate\Console\Command;
 use App\Models\Ride;
+use App\Events\RideStatusUpdated;
 use Carbon\Carbon;
 
 use Illuminate\Support\Facades\Log;
@@ -48,6 +49,14 @@ class AutoCancelPendingRides extends Command
 
                 // ✅ 2. Update DB status to "cancelled"
                 $ride->update(['status' => 'cancelled']);
+
+                // ✅ 3. Broadcast status update event to private-ride.{ride_id} channel
+                try {
+                    RideStatusUpdated::dispatch($ride);
+                    Log::info("📡 Broadcasted RideStatusUpdated event for cancelled ride {$ride->id}");
+                } catch (Exception $e) {
+                    Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
+                }
 
 
 
