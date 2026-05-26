@@ -340,7 +340,7 @@ class RideEstimateController extends Controller
                 $data = [
                     'title'   => 'طلب رحلة جديد',
                     'body'    => 'لديك طلب رحلة جديد من ' . $user->name,
-                    'type'    => 'ride_request',
+                    'msg_type'    => 'ride_request',
                     'ride_id' => (string) $ride->id,
                 ];
                 FcmHelper::sendPushNotification($driver->fcm_token, $data['title'], $data['body'], $data);
@@ -834,7 +834,7 @@ class RideEstimateController extends Controller
                 $data = [
                     'title'   => 'طلب رحلة جديد',
                     'body'    => 'لديك طلب رحلة جديد من ' . $user->name,
-                    'type'    => 'ride_request',
+                    'msg_type'    => 'ride_request',
                     'ride_id' => (string) $ride->id,
                 ];
 
