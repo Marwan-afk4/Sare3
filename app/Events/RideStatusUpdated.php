@@ -21,6 +21,7 @@ class RideStatusUpdated implements ShouldBroadcastNow
     public $user_id;
     public $verification_code;
     public $driver_data;
+    public $completed_details;
 
     /**
      * Create a new event instance.
@@ -66,6 +67,19 @@ class RideStatusUpdated implements ShouldBroadcastNow
                 ];
             }
         }
+
+        $this->completed_details = null;
+        if ($this->status === 'completed' || $this->status === 'finshed') {
+            $this->completed_details = [
+                'distance_km' => $ride->total_distance_in_km ? (float) $ride->total_distance_in_km : 0.0,
+                'duration_minutes' => $ride->time_taken ? (int) $ride->time_taken : 0,
+                'final_price' => $ride->calculated_final_price ? (float) $ride->calculated_final_price : 0.0,
+                'original_price' => $ride->original_price ? (float) $ride->original_price : 0.0,
+                'discount_amount' => $ride->discount_amount ? (float) $ride->discount_amount : 0.0,
+                'coupon_discount' => $ride->coupon_discount ? (float) $ride->coupon_discount : 0.0,
+                'wallet_paid_amount' => $ride->wallet_paid_amount ? (float) $ride->wallet_paid_amount : 0.0,
+            ];
+        }
     }
 
     /**
@@ -95,6 +109,7 @@ class RideStatusUpdated implements ShouldBroadcastNow
             'user_id' => $this->user_id,
             'verification_code' => $this->verification_code,
             'driver' => $this->driver_data,
+            'completed_details' => $this->completed_details,
             'updated_at' => now()->toIso8601String(),
         ];
     }
