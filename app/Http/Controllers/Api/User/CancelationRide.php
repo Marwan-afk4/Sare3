@@ -10,12 +10,12 @@ use App\Models\CancellationPolicy;
 use App\Models\Ride;
 use App\Models\Transaction;
 use App\Services\RideOfferService;
+use App\Events\RideStatusUpdated;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Kreait\Firebase\Factory;
 
 class CancelationRide extends Controller
 {
@@ -125,6 +125,14 @@ class CancelationRide extends Controller
             'cancelled_before_accept' => $wasNeverAccepted,
         ]);
 
+        // ✅ Broadcast the cancellation update to the driver
+        try {
+            event(new RideStatusUpdated($ride));
+            Log::info("📡 Broadcasted RideStatusUpdated event on user cancellation for ride {$ride->id}");
+        } catch (\Exception $e) {
+            Log::error("⚠️ Failed to broadcast RideStatusUpdated event: " . $e->getMessage());
+        }
+
         // Close every still-pending offer as "cancelled_by_user" so the
         // audit trail on the admin dashboard is accurate.
         if ($wasNeverAccepted) {
@@ -216,7 +224,12 @@ class CancelationRide extends Controller
                     'reassigned_at' => now(),
                 ]);
 
-
+                // ✅ Broadcast the reassignment to passenger
+                try {
+                    event(new RideStatusUpdated($ride));
+                } catch (\Exception $e) {
+                    Log::error("⚠️ Failed to broadcast RideStatusUpdated on driver cancellation reassignment: " . $e->getMessage());
+                }
 
                 // Schedule auto-reject job for the new driver
                 $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
@@ -231,6 +244,13 @@ class CancelationRide extends Controller
                     'status' => 'pending'
                 ]);
             } else {
+                // ✅ Broadcast the lack of alternative drivers to passenger
+                try {
+                    event(new RideStatusUpdated($ride));
+                } catch (\Exception $e) {
+                    Log::error("⚠️ Failed to broadcast RideStatusUpdated on driver cancellation fallback: " . $e->getMessage());
+                }
+
                 return response()->json([
                     'message' => 'Ride rejected. No alternative drivers available.',
                     'status' => 'pending'
