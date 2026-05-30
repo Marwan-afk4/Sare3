@@ -13,7 +13,11 @@ class RideObserver
         Log::info("Ride {$ride->id} created. Status: {$ride->status->value}. Driver: {$ride->driver_id}");
         
         // Notify the driver and admin dashboard immediately
-        event(new \App\Events\RideStatusUpdated($ride));
+        try {
+            event(new \App\Events\RideStatusUpdated($ride));
+        } catch (\Throwable $e) {
+            Log::error("Failed to broadcast RideStatusUpdated for new ride {$ride->id}: " . $e->getMessage());
+        }
     }
 
     public function updated(Ride $ride)
@@ -25,8 +29,12 @@ class RideObserver
 
             Log::info("Ride {$ride->id} updated. Status: {$oldStatus} -> {$newStatus}. Driver: " . $ride->getOriginal('driver_id') . " -> " . $ride->driver_id);
 
-            // Broadcast status update via WebSockets
-            event(new \App\Events\RideStatusUpdated($ride));
+            // Broadcast status update via WebSockets (must not fail the DB update)
+            try {
+                event(new \App\Events\RideStatusUpdated($ride));
+            } catch (\Throwable $e) {
+                Log::error("Failed to broadcast RideStatusUpdated for ride {$ride->id}: " . $e->getMessage());
+            }
         }
     }
 }
