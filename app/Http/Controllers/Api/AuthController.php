@@ -217,7 +217,7 @@ class AuthController extends Controller
             ], 401);
         }
         $user = User::where('phone', $request->phone)->first();
-        $code = rand(100000, 999999);
+        $code = rand(100000, 999999); 
         if ($user) {
             $user->email_code = $code;
             $user->email_verified = 'unverified';
