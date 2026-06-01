@@ -112,12 +112,13 @@ class ProfileController extends Controller
                     ->orWhere('phone', $rawPhone)
                     ->first();
 
-        $otpLimit = OtpLimit::where('type', 'user')->first();
+        $type = $request->is('*driver*') ? 'driver' : 'user';
+        $otpLimit = OtpLimit::where('type', $type)->first();
 
         if (!$user) {
             return response()->json([
                 'message' => 'User not found.',
-                'remaining_otp' => $otpLimit->otp_limit ?? 5
+                'remaining_otp' => $otpLimit?->otp_limit ?? 5
             ], 404);
         }
 
