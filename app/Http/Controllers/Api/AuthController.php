@@ -58,6 +58,7 @@ class AuthController extends Controller
                 'phone'          => $phone,
                 'role'           => 'user',
                 'otp_limit'      => $defaultOtpLimit ?? 5,
+                'status'         => 'pending',
                 'phone_verified' => false,
             ]);
         }
@@ -127,6 +128,7 @@ class AuthController extends Controller
             'phone_verified' => true,
             'otp_code'       => null,
             'otp_expires_at' => null,
+            'status'         => 'approved',
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -346,6 +348,7 @@ class AuthController extends Controller
             'role'           => 'user',
             'email_code'     => $code,
             'email_verified' => 'unverified',
+            'status'         => 'approved',
         ]);
 
         Mail::to($user->email)->send(new EmailVerificationCode($code));
@@ -437,6 +440,7 @@ class AuthController extends Controller
             'id_token'       => $googleId,
             'email_verified' => 'verified',
             'role'           => 'user',
+            'status'         => 'approved',
         ]);
 
         $token = $user->createToken('google_token')->plainTextToken;
