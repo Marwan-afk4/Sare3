@@ -87,12 +87,17 @@ class RideStatusUpdated implements ShouldBroadcastNow
      */
     public function broadcastOn(): array
     {
-        return [
+        $channels = [
             new PrivateChannel('ride.' . $this->ride_id),
             new PrivateChannel('user.' . $this->user_id),
-            $this->driver_id ? new PrivateChannel('driver.' . $this->driver_id) : null,
             new Channel('ride-updates'), // For Admin Dashboard
         ];
+
+        if (! empty($this->driver_id)) {
+            $channels[] = new PrivateChannel('driver.' . $this->driver_id);
+        }
+
+        return $channels;
     }
 
     public function broadcastAs(): string
