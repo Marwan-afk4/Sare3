@@ -137,7 +137,7 @@
                             <thead>
                                 <tr>
                                     <th>{{ __('Car Number') }}</th>
-                                    <th>{{ __('Category') }}</th>
+                                    <th>{{ __('Categories') }}</th>
                                     <th>{{ __('Model') }}</th>
                                     <th>{{ __('Type') }}</th>
                                     <th class="text-end">{{ __('Actions') }}</th>
@@ -147,7 +147,13 @@
                                 @foreach ($driver->driverCars as $car)
                                     <tr>
                                         <td><span class="badge bg-primary">{{ $car->car_number }}</span></td>
-                                        <td>{{ $car->carCategory->name ?? '—' }}</td>
+                                        <td>
+                                            @forelse($car->carCategories as $category)
+                                                <span class="badge bg-secondary mb-1">{{ $category->name }}</span>
+                                            @empty
+                                                {{ $car->carCategory->name ?? '—' }}
+                                            @endforelse
+                                        </td>
                                         <td>{{ $car->carModel->name ?? '—' }}</td>
                                         <td>{{ $car->carType->type_name ?? '—' }}</td>
                                         <td class="text-end">

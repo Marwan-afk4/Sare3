@@ -136,7 +136,7 @@ class DriverController extends Controller
 
     public function cars(User $driver)
     {
-        $cars = $driver->driverCars()->with(['carType', 'carCategory', 'carModel'])->get();
+        $cars = $driver->driverCars()->with(['carType', 'carCategory', 'carCategories', 'carModel'])->get();
 
         return view('drivers.cars', compact('driver', 'cars'));
     }
@@ -190,6 +190,7 @@ class DriverController extends Controller
             'zone',
             'driverCars.carType',
             'driverCars.carCategory',
+            'driverCars.carCategories',
             'driverCars.carModel',
         ]);
 

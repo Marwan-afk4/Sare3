@@ -39,7 +39,12 @@
                                     </span>
                                 </li>
                                 <li class="list-group-item">
-                                    <strong>{{ __('Category') }}:</strong> {{ $driverCar->carCategory->name ?? 'N/A' }}
+                                    <strong>{{ __('Categories') }}:</strong>
+                                    @forelse($driverCar->carCategories as $category)
+                                        <span class="badge bg-secondary">{{ $category->name }}</span>
+                                    @empty
+                                        {{ $driverCar->carCategory->name ?? 'N/A' }}
+                                    @endforelse
                                 </li>
                                 <li class="list-group-item">
                                     <strong>{{ __('Model') }}:</strong> {{ $driverCar->carModel->name ?? 'N/A' }}

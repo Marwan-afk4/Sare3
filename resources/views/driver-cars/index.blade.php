@@ -26,7 +26,7 @@
                             </th>
                             <th>{{ __('Driver') }}</th>
                             <th>{{ __('Car Number') }}</th>
-                            <th>{{ __('Category') }}</th>
+                            <th>{{ __('Categories') }}</th>
                             <th>{{ __('Model') }}</th>
                             <th>{{ __('Type') }}</th>
                             <th>{{ __('Color') }}</th>
@@ -53,7 +53,13 @@
                             <td>
                                 <span class="badge bg-primary">{{ $driverCar->car_number }}</span>
                             </td>
-                            <td>{{ $driverCar->carCategory->name ?? 'N/A' }}</td>
+                            <td>
+                                @forelse($driverCar->carCategories as $category)
+                                    <span class="badge bg-secondary mb-1">{{ $category->name }}</span>
+                                @empty
+                                    {{ $driverCar->carCategory->name ?? 'N/A' }}
+                                @endforelse
+                            </td>
                             <td>{{ $driverCar->carModel->name ?? 'N/A' }}</td>
                             <td>{{ $driverCar->carType->type_name ?? 'N/A' }}</td>
                             <td>

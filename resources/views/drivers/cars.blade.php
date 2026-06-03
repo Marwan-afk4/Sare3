@@ -32,7 +32,13 @@
                     <div class="card-body">
                         <h5 class="card-title">{{ __('Car Number:') }} {{ $car->car_number }}</h5>
                         <p class="card-text">
-                            {{ __('Category:') }} {{ $car->carCategory->name ?? '-' }}<br>
+                            {{ __('Categories:') }}
+                            @forelse($car->carCategories as $category)
+                                <span class="badge bg-secondary">{{ $category->name }}</span>
+                            @empty
+                                {{ $car->carCategory->name ?? '-' }}
+                            @endforelse
+                            <br>
                             {{ __('Type:') }} {{ $car->carType->type_name ?? '-' }}
                             @if($car->carType && ($car->carType->year_from || $car->carType->year_to))
                                 ({{ $car->carType->year_range }})

@@ -23,7 +23,7 @@ class DriverCarController extends Controller
     {
         $sortField = $request->get('sort', 'id');
         $sortOrder = $request->get('order', 'ASC');
-        $driverCars = DriverCar::with(['driver', 'carCategory', 'carModel', 'carType'])->orderBy($sortField, $sortOrder)->paginate(30);
+        $driverCars = DriverCar::with(['driver', 'carCategory', 'carCategories', 'carModel', 'carType'])->orderBy($sortField, $sortOrder)->paginate(30);
         return view('driver-cars.index', compact('driverCars', 'sortField', 'sortOrder'));
     }
 
@@ -53,12 +53,16 @@ class DriverCarController extends Controller
             $data['car_license'] = $this->uploadFile($request->file('car_license'), 'driver-cars/licenses');
         }
         
-        DriverCar::create($data);
+        $driverCar = DriverCar::create($data);
+        if ($driverCar && isset($data['car_categories_id'])) {
+            $driverCar->carCategories()->sync([$data['car_categories_id']]);
+        }
         return redirect()->route('driver-cars.index')->with('success',  __('Created successfully'));
     }
 
     public function show(DriverCar $driverCar)
     {
+        $driverCar->load(['driver', 'carCategory', 'carCategories', 'carModel', 'carType']);
         return view('driver-cars.show', compact('driverCar'));
     }
 
@@ -95,6 +99,9 @@ class DriverCarController extends Controller
         }
         
         $driverCar->update($data);
+        if (isset($data['car_categories_id'])) {
+            $driverCar->carCategories()->sync([$data['car_categories_id']]);
+        }
         return redirect()->route('driver-cars.index')->with('success',  __('Updated successfully.'));
     }
 
