@@ -6,6 +6,7 @@ use App\Events\NewRideRequest;
 use App\Helpers\FcmHelper;
 use App\Http\Controllers\Controller;
 use App\Models\CarCategory;
+use App\Models\DriverRideSetting;
 use App\Models\Ride;
 use App\Models\RideEstimate;
 use App\Models\User;
@@ -393,7 +394,7 @@ class RideEstimateController extends Controller
     public function getEligibleDrivers($userPickupLat, $userPickupLng, $excludedDriverIds = [], $carCategoryId = null)
     {
         try {
-            $driverSettings = \App\Models\DriverRideSetting::pluck('pickup_radius', 'driver_id')->toArray();
+            $driverSettings = DriverRideSetting::pluck('pickup_radius', 'driver_id')->toArray();
 
             $driversQuery = User::where('role', 'driver')
                 ->where('status', 'approved')
@@ -407,12 +408,15 @@ class RideEstimateController extends Controller
 
             if ($carCategoryId !== null) {
                 $driversQuery->whereHas('driverCars', function ($query) use ($carCategoryId) {
-                    $query->where('car_categories_id', $carCategoryId);
+                    $query->where('car_categories_id', $carCategoryId)
+                        ->orWhereHas('carCategories', function ($q) use ($carCategoryId) {
+                            $q->where('car_categories.id', $carCategoryId);
+                        });
                 });
             }
 
             $drivers = $driversQuery
-                ->with(['driverCars.carModel', 'driverCars.carType', 'driverRideSetting'])
+                ->with(['driverCars.carModel', 'driverCars.carType', 'driverCars.carCategories', 'driverRideSetting'])
                 ->get();
 
             $eligibleDrivers = [];
@@ -456,7 +460,7 @@ class RideEstimateController extends Controller
                     'car_model' => $driverCar?->carModel?->name ?? '',
                     'car_photo' => $driverCar?->car_image_link ?? '',
                     'plate_number' => $driverCar?->car_number ?? '',
-                    'car_category_id' => $driverCar?->car_categories_id,
+                    'car_category_id' => $driverCar ? (int) ($carCategoryId ?? ($driverCar->car_categories_id ?? $driverCar->carCategories->pluck('id')->first())) : null,
                     'latitude' => $lat,
                     'longitude' => $lng,
                     'gender' => $driver->gender,
@@ -885,7 +889,7 @@ class RideEstimateController extends Controller
                 ->where('is_available', true)
                 ->whereNotNull('latitude')
                 ->whereNotNull('longitude')
-                ->with(['driverCars', 'driverRideSetting'])
+                ->with(['driverCars.carCategories', 'driverRideSetting'])
                 ->get();
 
             $activeDrivers = [];
@@ -913,7 +917,7 @@ class RideEstimateController extends Controller
                     'latitude' => (float)$lat,
                     'longitude' => (float)$lng,
                     'bearing' => $driver->bearing !== null ? (float)$driver->bearing : null,
-                    'car_category_id' => $driverCar ? (int)$driverCar->car_categories_id : null,
+                    'car_category_id' => $driverCar ? (int) ($driverCar->car_categories_id ?? $driverCar->carCategories->pluck('id')->first()) : null,
                     'distance_km' => $distance !== null ? round($distance, 2) : null,
                     'last_updated' => $driver->updated_at ? $driver->updated_at->toIso8601String() : null
                 ];

@@ -28,8 +28,8 @@ class ActiveDriverLocationUpdated implements ShouldBroadcastNow
         $this->bearing = $driver->bearing !== null ? (float) $driver->bearing : null;
         
         // Fetch driver's car category
-        $driverCar = $driver->driverCars()->first();
-        $this->car_category_id = $driverCar ? (int) $driverCar->car_categories_id : null;
+        $driverCar = $driver->driverCars()->with('carCategories')->first();
+        $this->car_category_id = $driverCar ? (int) ($driverCar->car_categories_id ?? $driverCar->carCategories->pluck('id')->first()) : null;
         
         $this->updated_at = now()->toIso8601String();
     }
