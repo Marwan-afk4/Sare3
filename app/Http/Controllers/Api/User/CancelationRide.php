@@ -188,6 +188,11 @@ class CancelationRide extends Controller
             $rejectedDrivers[] = $currentDriverId;
         }
 
+        // Put the driver on a 1-minute cooldown for this ride request
+        if ($currentDriverId) {
+            \Illuminate\Support\Facades\Cache::put("ride_cooldown:{$ride->id}:{$currentDriverId}", 'manual', now()->addMinutes(1));
+        }
+
         DB::beginTransaction();
 
         try {

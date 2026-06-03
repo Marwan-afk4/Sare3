@@ -729,9 +729,12 @@ class RideEstimateController extends Controller
                 return null;
             }
 
-            // Normal flow - exclude rejected drivers
-            $eligibleDrivers = array_filter($allDrivers, function ($driver) use ($excludedDriverIds) {
-                return !in_array($driver['id'], $excludedDriverIds);
+            // Normal flow - exclude rejected drivers and drivers currently on cooldown
+            $eligibleDrivers = array_filter($allDrivers, function ($driver) use ($excludedDriverIds, $ride) {
+                if (in_array($driver['id'], $excludedDriverIds)) {
+                    return false;
+                }
+                return !\Illuminate\Support\Facades\Cache::has("ride_cooldown:{$ride->id}:{$driver['id']}");
             });
 
             if (empty($eligibleDrivers) || $shouldCycleDrivers) {
@@ -749,6 +752,26 @@ class RideEstimateController extends Controller
                     Log::error("No drivers available with valid ETA for ride {$ride->id}");
                     return null;
                 }
+
+                // Filter out drivers who are currently on cooldown
+                $allDriversWithETA = array_filter($allDriversWithETA, function ($driver) use ($ride) {
+                    return !\Illuminate\Support\Facades\Cache::has("ride_cooldown:{$ride->id}:{$driver['id']}");
+                });
+
+                if (empty($allDriversWithETA)) {
+                    Log::info("No drivers available (all on cooldown) for ride {$ride->id} in cycling mode");
+                    
+                    // Reset driver_id on the ride
+                    $ride->update([
+                        'driver_id' => null,
+                        'status' => 'pending',
+                    ]);
+                    
+                    return null;
+                }
+                
+                // Re-index cycling drivers array after filtering
+                $allDriversWithETA = array_values($allDriversWithETA);
                 
                 // Find the next driver to assign (round-robin through sorted list)
                 $lastDriverId = end($excludedDriverIds);

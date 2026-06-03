@@ -738,6 +738,11 @@ class RideActionsController extends Controller
             $rejectedDrivers[] = $currentDriverId;
         }
 
+        // Put the driver on a 1-minute cooldown for this ride request
+        if ($currentDriverId) {
+            \Illuminate\Support\Facades\Cache::put("ride_cooldown:{$ride->id}:{$currentDriverId}", 'manual', now()->addMinutes(1));
+        }
+
         // Record the captain's response in the offer audit trail BEFORE we
         // blank out the driver on the ride. If the captain had already
         // accepted (ride has accepted_at) this counts as a cancellation

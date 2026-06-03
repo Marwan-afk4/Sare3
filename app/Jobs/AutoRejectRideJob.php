@@ -53,6 +53,17 @@ class AutoRejectRideJob implements ShouldQueue
 
         Log::info("AutoRejectRideJob: Auto-rejecting ride {$this->rideId} for driver {$this->driverId}");
 
+        // Track auto-reject count for this driver on this ride
+        if ($this->driverId) {
+            $autoRejectCount = (int) \Illuminate\Support\Facades\Cache::get("ride_auto_reject_count:{$ride->id}:{$this->driverId}", 0) + 1;
+            \Illuminate\Support\Facades\Cache::put("ride_auto_reject_count:{$ride->id}:{$this->driverId}", $autoRejectCount, now()->addMinutes(5));
+            
+            if ($autoRejectCount >= 2) {
+                \Illuminate\Support\Facades\Cache::put("ride_cooldown:{$ride->id}:{$this->driverId}", 'auto', now()->addMinutes(2));
+                Log::info("AutoRejectRideJob: Driver {$this->driverId} auto-rejected ride {$ride->id} {$autoRejectCount} times consecutively. Placing on 2-minute cooldown.");
+            }
+        }
+
         DB::beginTransaction();
 
         try {

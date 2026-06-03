@@ -52,6 +52,17 @@ class AutoRejectRides extends Command
                     $excludedDriverIds[] = $previousDriverId;
                 }
 
+                // Track auto-reject count for this driver on this ride
+                if ($previousDriverId) {
+                    $autoRejectCount = (int) \Illuminate\Support\Facades\Cache::get("ride_auto_reject_count:{$ride->id}:{$previousDriverId}", 0) + 1;
+                    \Illuminate\Support\Facades\Cache::put("ride_auto_reject_count:{$ride->id}:{$previousDriverId}", $autoRejectCount, now()->addMinutes(5));
+                    
+                    if ($autoRejectCount >= 2) {
+                        \Illuminate\Support\Facades\Cache::put("ride_cooldown:{$ride->id}:{$previousDriverId}", 'auto', now()->addMinutes(2));
+                        Log::info("AutoRejectRides Command: Driver {$previousDriverId} auto-rejected ride {$ride->id} {$autoRejectCount} times consecutively. Placing on 2-minute cooldown.");
+                    }
+                }
+
                 $ride->update([
                     'status' => 'pending',
                     'driver_id' => null,
@@ -90,20 +101,23 @@ class AutoRejectRides extends Command
                     Log::info("   - Driver ID: {$d['id']} | Name: {$driverName}");
                 }
 
-                // Step 4: Filter out excluded (rejected) drivers
-                $eligibleDrivers = array_filter($allDrivers, function ($d) use ($excludedDriverIds) {
-                    return !in_array($d['id'], $excludedDriverIds);
+                // Step 4: Filter out excluded (rejected) drivers and drivers currently on cooldown
+                $eligibleDrivers = array_filter($allDrivers, function ($d) use ($excludedDriverIds, $ride) {
+                    if (in_array($d['id'], $excludedDriverIds)) {
+                        return false;
+                    }
+                    return !\Illuminate\Support\Facades\Cache::has("ride_cooldown:{$ride->id}:{$d['id']}");
                 });
 
                 // 📝 Log filtering results
                 $filteredOutCount = count($allDrivers) - count($eligibleDrivers);
                 if ($filteredOutCount > 0) {
-                    Log::info("🚫 Filtered out {$filteredOutCount} rejected driver(s). Rejected IDs: " . json_encode($excludedDriverIds));
+                    Log::info("🚫 Filtered out {$filteredOutCount} rejected/cooldown driver(s). Rejected IDs: " . json_encode($excludedDriverIds));
                 }
 
                 $isCycling = false;
                 if (empty($eligibleDrivers)) {
-                    Log::info("🔄 All drivers rejected ride {$ride->id}, starting cycling mode");
+                    Log::info("🔄 All drivers rejected/cooldown ride {$ride->id}, starting cycling mode");
                     $isCycling = true;
                     
                     // When cycling: sort all drivers by ETA and pick the NEXT one, not the first
@@ -119,6 +133,25 @@ class AutoRejectRides extends Command
                         Log::error("No drivers available with valid ETA for ride {$ride->id}");
                         continue;
                     }
+
+                    // Filter out drivers who are currently on cooldown
+                    $allDriversWithETA = array_filter($allDriversWithETA, function ($d) use ($ride) {
+                        return !\Illuminate\Support\Facades\Cache::has("ride_cooldown:{$ride->id}:{$d['id']}");
+                    });
+
+                    if (empty($allDriversWithETA)) {
+                        Log::info("All available drivers are currently on cooldown for ride {$ride->id}. Resetting driver_id.");
+                        $ride->update(['driver_id' => null, 'status' => 'pending']);
+                        try {
+                            RideStatusUpdated::dispatch($ride);
+                        } catch (Exception $e) {
+                            Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
+                        }
+                        continue;
+                    }
+
+                    // Re-index array after filtering
+                    $allDriversWithETA = array_values($allDriversWithETA);
                     
                     // Find the next driver to assign (round-robin through sorted list)
                     // Get the last assigned driver from rejected list to determine position
