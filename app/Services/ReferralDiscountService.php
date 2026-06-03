@@ -89,25 +89,19 @@ class ReferralDiscountService
      */
     private function applyReferrerRewardDiscount(Ride $ride, User $user, float $originalFare): ?array
     {
-        // Find active referrals where this user is the referrer
+        // Find an accepted referral where this user is the inviter and still has
+        // reward rides remaining.
         $referral = Referral::where('referrer_id', $user->id)
             ->whereNotNull('referred_user_id') // Must be accepted
-            ->where('is_active', true)
-            ->first();
+            ->where('referrer_rewards_active', true)
+            ->get()
+            ->first(fn (Referral $r) => $r->isValidForReferrerReward());
 
         if (!$referral) {
             return null;
         }
 
-        // Check if referrer has used all their reward rides
-        $usedRewardRides = ReferrerDiscount::where('referral_id', $referral->id)->count();
-        $maxRewardRides = AppSetting::getReferrerRewardRides();
-
-        if ($usedRewardRides >= $maxRewardRides) {
-            return null;
-        }
-
-        $rewardPercentage = AppSetting::getReferrerRewardPercentage();
+        $rewardPercentage = $referral->getEffectiveReferrerPercentage();
         $rewardAmount = ($originalFare * $rewardPercentage) / 100;
 
         // Create referrer discount record
@@ -121,13 +115,14 @@ class ReferralDiscountService
             'discount_percentage' => $rewardPercentage
         ]);
 
-        $remainingRewardRides = $maxRewardRides - ($usedRewardRides + 1);
+        // Track usage on the referral itself so reporting stays consistent.
+        $referral->useReferrerRewardRide();
 
         return [
             'type' => 'referrer_reward',
             'percentage' => $rewardPercentage,
             'amount' => $rewardAmount,
-            'remaining_rides' => $remainingRewardRides
+            'remaining_rides' => $referral->getReferrerRemainingRides()
         ];
     }
 
@@ -158,24 +153,20 @@ class ReferralDiscountService
         // Check referrer reward discount
         $referrerReward = Referral::where('referrer_id', $user->id)
             ->whereNotNull('referred_user_id')
-            ->where('is_active', true)
-            ->first();
+            ->where('referrer_rewards_active', true)
+            ->get()
+            ->first(fn (Referral $r) => $r->isValidForReferrerReward());
 
         if ($referrerReward) {
-            $usedRewardRides = ReferrerDiscount::where('referral_id', $referrerReward->id)->count();
-            $maxRewardRides = AppSetting::getReferrerRewardRides();
+            $rewardPercentage = $referrerReward->getEffectiveReferrerPercentage();
+            $rewardAmount = ($estimatedFare * $rewardPercentage) / 100;
 
-            if ($usedRewardRides < $maxRewardRides) {
-                $rewardPercentage = AppSetting::getReferrerRewardPercentage();
-                $rewardAmount = ($estimatedFare * $rewardPercentage) / 100;
-                
-                $previewDiscounts[] = [
-                    'type' => 'referrer_reward',
-                    'percentage' => $rewardPercentage,
-                    'amount' => $rewardAmount
-                ];
-                $totalDiscountAmount += $rewardAmount;
-            }
+            $previewDiscounts[] = [
+                'type' => 'referrer_reward',
+                'percentage' => $rewardPercentage,
+                'amount' => $rewardAmount
+            ];
+            $totalDiscountAmount += $rewardAmount;
         }
 
         $finalCost = max(0, $estimatedFare - $totalDiscountAmount);
@@ -186,7 +177,7 @@ class ReferralDiscountService
             'final_cost' => $finalCost,
             'applied_discounts' => $previewDiscounts,
             'referral_remaining_rides' => $userReferral ? $userReferral->getRemainingRides() : 0,
-            'referrer_remaining_rides' => $referrerReward ? ($maxRewardRides - $usedRewardRides) : 0
+            'referrer_remaining_rides' => $referrerReward ? $referrerReward->getReferrerRemainingRides() : 0
         ];
     }
 }

@@ -72,6 +72,18 @@ class User extends Authenticatable
 
     protected $appends = ['image_link'];
 
+    /**
+     * Ensure every account gets a unique, random referral code as soon as it is created.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if (empty($user->referral_code)) {
+                $user->referral_code = static::generateUniqueReferralCode();
+            }
+        });
+    }
+
     public function referrer()
     {
         return $this->belongsTo(User::class, 'referrer_id');
@@ -100,24 +112,46 @@ class User extends Authenticatable
     }
 
     /**
-     * Generate unique referral code for user
+     * Build a unique, random referral code that does not depend on the user's name.
+     * Uses an unambiguous uppercase alphanumeric alphabet (no 0/O/1/I/L) so codes are
+     * easy to read and share, and are always different per account.
+     */
+    public static function generateUniqueReferralCode(int $length = 8): string
+    {
+        $alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+        $max = strlen($alphabet) - 1;
+
+        do {
+            $code = '';
+            for ($i = 0; $i < $length; $i++) {
+                $code .= $alphabet[random_int(0, $max)];
+            }
+        } while (static::where('referral_code', $code)->exists());
+
+        return $code;
+    }
+
+    /**
+     * Generate and persist a unique referral code for this user.
      */
     public function generateReferralCode(): string
     {
-        do {
-            $code = strtoupper(substr($this->name ?? 'USER', 0, 3) . rand(1000, 9999));
-        } while (User::where('referral_code', $code)->exists());
-
+        $code = static::generateUniqueReferralCode();
         $this->update(['referral_code' => $code]);
         return $code;
     }
 
     /**
-     * Get or create referral code
+     * Get the user's referral code, generating one on demand for legacy accounts
+     * that were created before codes were assigned at signup.
      */
     public function getReferralCode(): string
     {
-        return $this->referral_code ?? $this->generateReferralCode();
+        if (empty($this->referral_code)) {
+            return $this->generateReferralCode();
+        }
+
+        return $this->referral_code;
     }
 
     public function getImageLinkAttribute()
