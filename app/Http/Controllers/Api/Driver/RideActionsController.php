@@ -770,12 +770,12 @@ class RideActionsController extends Controller
             event(new RideStatusUpdated($ride));
 
             // Sync Firebase
-            $this->updateFirebase($ride, [
-                'driver_id' => null,
-                'rejected_drivers' => $rejectedDrivers,
-                'status' => 'pending',
-                'canceled_at' => now()->toIso8601String(),
-            ]);
+            // $this->updateFirebase($ride, [
+            //     'driver_id' => null,
+            //     'rejected_drivers' => $rejectedDrivers,
+            //     'status' => 'pending',
+            //     'canceled_at' => now()->toIso8601String(),
+            // ]);
 
             // دور على بديل
             $rideEstimateController = new RideEstimateController();
@@ -798,12 +798,12 @@ class RideActionsController extends Controller
                     'reassigned_at' => now(),
                 ]);
 
-                $this->updateFirebase($ride, [
-                    'driver_id' => $driverId,
-                    'status' => 'pending',
-                    'reassigned_at' => now()->toIso8601String(),
-                    'previous_rejections' => count($rejectedDrivers),
-                ]);
+                // $this->updateFirebase($ride, [
+                //     'driver_id' => $driverId,
+                //     'status' => 'pending',
+                //     'reassigned_at' => now()->toIso8601String(),
+                //     'previous_rejections' => count($rejectedDrivers),
+                // ]);
 
                 // Schedule auto-reject job for the new driver
                 $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
