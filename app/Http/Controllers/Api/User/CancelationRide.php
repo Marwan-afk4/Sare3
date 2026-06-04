@@ -204,13 +204,19 @@ class CancelationRide extends Controller
                 'status' => 'pending',
             ]);
 
+            DB::commit();
 
+            // ✅ Broadcast initial cancellation status update via WebSocket (after commit)
+            try {
+                event(new RideStatusUpdated($ride));
+                Log::info("📡 Broadcasted initial RideStatusUpdated event for ride {$ride->id} after driver cancel in CancelationRide");
+            } catch (\Exception $e) {
+                Log::error("⚠️ Failed to broadcast initial RideStatusUpdated on driver cancellation: " . $e->getMessage());
+            }
 
             // Search for alternative driver
             $rideEstimateController = new RideEstimateController();
             $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
-
-            DB::commit();
 
             if ($alternativeDriver) {
                 $driverId = $alternativeDriver['driver_id'] ?? $alternativeDriver['id'] ?? null;
@@ -232,6 +238,7 @@ class CancelationRide extends Controller
                 // ✅ Broadcast the reassignment to passenger
                 try {
                     event(new RideStatusUpdated($ride));
+                    Log::info("📡 Broadcasted RideStatusUpdated event for reassigned ride {$ride->id} after driver cancel in CancelationRide");
                 } catch (\Exception $e) {
                     Log::error("⚠️ Failed to broadcast RideStatusUpdated on driver cancellation reassignment: " . $e->getMessage());
                 }
@@ -249,20 +256,16 @@ class CancelationRide extends Controller
                     'status' => 'pending'
                 ]);
             } else {
-                // ✅ Broadcast the lack of alternative drivers to passenger
-                try {
-                    event(new RideStatusUpdated($ride));
-                } catch (\Exception $e) {
-                    Log::error("⚠️ Failed to broadcast RideStatusUpdated on driver cancellation fallback: " . $e->getMessage());
-                }
-
                 return response()->json([
                     'message' => 'Ride rejected. No alternative drivers available.',
                     'status' => 'pending'
                 ]);
             }
         } catch (\Exception $e) {
-            DB::rollback();
+            // Rollback only if we are still inside transaction
+            if (DB::transactionLevel() > 0) {
+                DB::rollback();
+            }
             Log::error('Error in handleDriverCancellation: ' . $e->getMessage(), [
                 'ride_id' => $ride->id,
                 'driver_id' => $currentDriverId,

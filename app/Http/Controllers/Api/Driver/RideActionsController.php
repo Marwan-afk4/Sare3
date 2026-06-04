@@ -766,22 +766,19 @@ class RideActionsController extends Controller
                 'status' => 'pending',
             ]);
 
-            // Broadcast status update via WebSocket
-            event(new RideStatusUpdated($ride));
+            DB::commit();
 
-            // Sync Firebase
-            // $this->updateFirebase($ride, [
-            //     'driver_id' => null,
-            //     'rejected_drivers' => $rejectedDrivers,
-            //     'status' => 'pending',
-            //     'canceled_at' => now()->toIso8601String(),
-            // ]);
+            // ✅ Broadcast initial cancellation status update via WebSocket (after commit)
+            try {
+                event(new RideStatusUpdated($ride));
+                Log::info("📡 Broadcasted initial RideStatusUpdated event for ride {$ride->id} after driver cancel in RideActionsController");
+            } catch (\Exception $e) {
+                Log::error("⚠️ Failed to broadcast initial RideStatusUpdated on driver cancel: " . $e->getMessage());
+            }
 
             // دور على بديل
             $rideEstimateController = new RideEstimateController();
             $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
-
-            DB::commit();
 
             if ($alternativeDriver) {
                 $driverId = $alternativeDriver['driver_id'] ?? $alternativeDriver['id'] ?? null;
@@ -801,7 +798,7 @@ class RideActionsController extends Controller
                 // ✅ Broadcast the reassignment to passenger
                 try {
                     event(new RideStatusUpdated($ride));
-                    Log::info("📡 Broadcasted RideStatusUpdated event for reassigned ride {$ride->id} after driver cancel");
+                    Log::info("📡 Broadcasted RideStatusUpdated event for reassigned ride {$ride->id} after driver cancel in RideActionsController");
                 } catch (\Exception $e) {
                     Log::error("⚠️ Failed to broadcast RideStatusUpdated on driver cancel reassignment: " . $e->getMessage());
                 }
@@ -821,16 +818,6 @@ class RideActionsController extends Controller
                     'penalty_amount' => round($penaltyAmount, 2),
                 ]);
             } else {
-                DB::commit();
-
-                // ✅ Broadcast the lack of alternative drivers to passenger
-                try {
-                    event(new RideStatusUpdated($ride));
-                    Log::info("📡 Broadcasted RideStatusUpdated event for ride {$ride->id} after driver cancel (no alternative driver)");
-                } catch (\Exception $e) {
-                    Log::error("⚠️ Failed to broadcast RideStatusUpdated on driver cancel fallback: " . $e->getMessage());
-                }
-
                 return response()->json([
                     'message' => 'Ride rejected. No alternative drivers available.',
                     'status' => 'pending',
@@ -839,7 +826,10 @@ class RideActionsController extends Controller
                 ]);
             }
         } catch (\Exception $e) {
-            DB::rollback();
+            // Rollback only if we are still inside transaction
+            if (DB::transactionLevel() > 0) {
+                DB::rollback();
+            }
 
             Log::error('Error in cancelRide: ' . $e->getMessage(), [
                 'ride_id' => $ride->id,
