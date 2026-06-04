@@ -798,12 +798,13 @@ class RideActionsController extends Controller
                     'reassigned_at' => now(),
                 ]);
 
-                // $this->updateFirebase($ride, [
-                //     'driver_id' => $driverId,
-                //     'status' => 'pending',
-                //     'reassigned_at' => now()->toIso8601String(),
-                //     'previous_rejections' => count($rejectedDrivers),
-                // ]);
+                // ✅ Broadcast the reassignment to passenger
+                try {
+                    event(new RideStatusUpdated($ride));
+                    Log::info("📡 Broadcasted RideStatusUpdated event for reassigned ride {$ride->id} after driver cancel");
+                } catch (\Exception $e) {
+                    Log::error("⚠️ Failed to broadcast RideStatusUpdated on driver cancel reassignment: " . $e->getMessage());
+                }
 
                 // Schedule auto-reject job for the new driver
                 $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
@@ -821,6 +822,15 @@ class RideActionsController extends Controller
                 ]);
             } else {
                 DB::commit();
+
+                // ✅ Broadcast the lack of alternative drivers to passenger
+                try {
+                    event(new RideStatusUpdated($ride));
+                    Log::info("📡 Broadcasted RideStatusUpdated event for ride {$ride->id} after driver cancel (no alternative driver)");
+                } catch (\Exception $e) {
+                    Log::error("⚠️ Failed to broadcast RideStatusUpdated on driver cancel fallback: " . $e->getMessage());
+                }
+
                 return response()->json([
                     'message' => 'Ride rejected. No alternative drivers available.',
                     'status' => 'pending',

@@ -106,13 +106,26 @@ class AutoRejectRideJob implements ShouldQueue
             $rideEstimateController = new UserRideEstimateController();
             $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
 
+            $driverId = null;
             if ($alternativeDriver) {
                 // Note: searchAlternativeDriver already updates the ride with the new driver_id
                 // Just need to reload
                 $ride->refresh();
                 
                 $driverId = $alternativeDriver['driver_id'] ?? $alternativeDriver['id'] ?? null;
+            } else {
+                Log::warning("❌ AutoRejectRideJob: No alternative drivers found for ride {$this->rideId}, marking as rejected");
                 
+                // Mark ride as truly rejected if no alternative driver found
+                $ride->update([
+                    'status' => 'rejected',
+                ]);
+            }
+
+            DB::commit();
+
+            // Broadcast and dispatch AFTER commit
+            if ($alternativeDriver) {
                 // ✅ Broadcast new driver assignment to passenger
                 try {
                     RideStatusUpdated::dispatch($ride);
@@ -132,13 +145,6 @@ class AutoRejectRideJob implements ShouldQueue
 
                 Log::info("✅ AutoRejectRideJob: Ride {$this->rideId} reassigned to driver {$driverId} (previous driver: {$this->driverId})");
             } else {
-                Log::warning("❌ AutoRejectRideJob: No alternative drivers found for ride {$this->rideId}, marking as rejected");
-                
-                // Mark ride as truly rejected if no alternative driver found
-                $ride->update([
-                    'status' => 'rejected',
-                ]);
-                
                 // ✅ Broadcast rejection to passenger
                 try {
                     RideStatusUpdated::dispatch($ride);
@@ -147,8 +153,6 @@ class AutoRejectRideJob implements ShouldQueue
                     Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
                 }
             }
-
-            DB::commit();
 
         } catch (\Exception $e) {
             DB::rollback();
