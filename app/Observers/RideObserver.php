@@ -31,7 +31,10 @@ class RideObserver
 
             // Broadcast status update via WebSockets (must not fail the DB update)
             try {
-                event(new \App\Events\RideStatusUpdated($ride));
+                $previousDriverId = $ride->wasChanged('driver_id')
+                    ? $ride->getOriginal('driver_id')
+                    : null;
+                event(new \App\Events\RideStatusUpdated($ride, $previousDriverId ? (int) $previousDriverId : null));
             } catch (\Throwable $e) {
                 Log::error("Failed to broadcast RideStatusUpdated for ride {$ride->id}: " . $e->getMessage());
             }

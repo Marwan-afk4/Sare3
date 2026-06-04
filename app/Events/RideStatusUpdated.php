@@ -22,17 +22,19 @@ class RideStatusUpdated implements ShouldBroadcastNow
     public $verification_code;
     public $driver_data;
     public $completed_details;
+    public $previous_driver_id;
 
     /**
      * Create a new event instance.
      */
-    public function __construct(Ride $ride)
+    public function __construct(Ride $ride, ?int $previousDriverId = null)
     {
         $this->ride_id = $ride->id;
         $this->status = $ride->status->value;
         $this->driver_id = $ride->driver_id;
         $this->user_id = $ride->user_id;
         $this->verification_code = $ride->verification_code;
+        $this->previous_driver_id = $previousDriverId;
 
         $this->driver_data = null;
         if ($ride->driver_id) {
@@ -95,6 +97,11 @@ class RideStatusUpdated implements ShouldBroadcastNow
 
         if (! empty($this->driver_id)) {
             $channels[] = new PrivateChannel('driver.' . $this->driver_id);
+        }
+
+        // Also notify the previous driver so their app can dismiss the ride request UI
+        if (! empty($this->previous_driver_id) && $this->previous_driver_id !== $this->driver_id) {
+            $channels[] = new PrivateChannel('driver.' . $this->previous_driver_id);
         }
 
         return $channels;

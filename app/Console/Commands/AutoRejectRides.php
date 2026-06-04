@@ -17,12 +17,12 @@ use Exception;
 class AutoRejectRides extends Command
 {
     protected $signature = 'rides:auto-reject';
-    protected $description = 'Automatically reject rides if the driver does not respond within 10 seconds';
+    protected $description = 'Automatically reject rides if the driver does not respond within 20 seconds';
 
     public function handle()
     {
         Log::info('🚀 Auto reject command started at ' . now());
-        $expiredTime = Carbon::now()->subSeconds(10);
+        $expiredTime = Carbon::now()->subSeconds(20);
 
         $rides = Ride::where('status', 'pending')
             ->whereNotNull('driver_assigned_at')
@@ -86,7 +86,7 @@ class AutoRejectRides extends Command
                     $ride->update(['driver_id' => null, 'status' => 'pending']);
 
                     try {
-                        RideStatusUpdated::dispatch($ride);
+                        RideStatusUpdated::dispatch($ride, (int) $previousDriverId);
                     } catch (Exception $e) {
                         Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
                     }
@@ -143,7 +143,7 @@ class AutoRejectRides extends Command
                         Log::info("All available drivers are currently on cooldown for ride {$ride->id}. Resetting driver_id.");
                         $ride->update(['driver_id' => null, 'status' => 'pending']);
                         try {
-                            RideStatusUpdated::dispatch($ride);
+                            RideStatusUpdated::dispatch($ride, (int) $previousDriverId);
                         } catch (Exception $e) {
                             Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
                         }
@@ -244,8 +244,8 @@ class AutoRejectRides extends Command
 
                 // ✅ Broadcast new driver assignment to passenger
                 try {
-                    RideStatusUpdated::dispatch($ride);
-                    Log::info("📡 Broadcasted RideStatusUpdated event for reassigned ride {$ride->id}");
+                    RideStatusUpdated::dispatch($ride, (int) $previousDriverId);
+                    Log::info("📡 Broadcasted RideStatusUpdated event for reassigned ride {$ride->id} (old driver: {$previousDriverId})");
                 } catch (Exception $e) {
                     Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
                 }

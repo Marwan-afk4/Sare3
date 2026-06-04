@@ -208,8 +208,8 @@ class CancelationRide extends Controller
 
             // ✅ Broadcast initial cancellation status update via WebSocket (after commit)
             try {
-                event(new RideStatusUpdated($ride));
-                Log::info("📡 Broadcasted initial RideStatusUpdated event for ride {$ride->id} after driver cancel in CancelationRide");
+                event(new RideStatusUpdated($ride, (int) $currentDriverId));
+                Log::info("📡 Broadcasted initial RideStatusUpdated event for ride {$ride->id} after driver cancel (old driver: {$currentDriverId})");
             } catch (\Exception $e) {
                 Log::error("⚠️ Failed to broadcast initial RideStatusUpdated on driver cancellation: " . $e->getMessage());
             }
@@ -237,8 +237,8 @@ class CancelationRide extends Controller
 
                 // ✅ Broadcast the reassignment to passenger
                 try {
-                    event(new RideStatusUpdated($ride));
-                    Log::info("📡 Broadcasted RideStatusUpdated event for reassigned ride {$ride->id} after driver cancel in CancelationRide");
+                    event(new RideStatusUpdated($ride, (int) $currentDriverId));
+                    Log::info("📡 Broadcasted RideStatusUpdated event for reassigned ride {$ride->id} (old driver: {$currentDriverId})");
                 } catch (\Exception $e) {
                     Log::error("⚠️ Failed to broadcast RideStatusUpdated on driver cancellation reassignment: " . $e->getMessage());
                 }
