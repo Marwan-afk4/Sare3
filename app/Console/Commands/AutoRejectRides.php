@@ -11,6 +11,7 @@ use App\Events\RideStatusUpdated;
 use App\Events\NewRideRequest;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 use Exception;
 
