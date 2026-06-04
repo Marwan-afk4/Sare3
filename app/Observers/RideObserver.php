@@ -23,7 +23,7 @@ class RideObserver
     public function updated(Ride $ride)
     {
         // Check if status or driver_id was changed
-        if ($ride->isDirty('status') || $ride->isDirty('driver_id')) {
+        if ($ride->wasChanged('status') || $ride->wasChanged('driver_id')) {
             $newStatus = $ride->status->value;
             $oldStatus = $ride->getOriginal('status') ? $ride->getOriginal('status')->value : 'none';
 
