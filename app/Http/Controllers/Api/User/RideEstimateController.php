@@ -858,9 +858,11 @@ class RideEstimateController extends Controller
             // ✅ Send push notification to new driver
             $driver = User::find($driverId);
             if ($driver && $driver->fcm_token) {
+                $passenger = $ride->user;
+                $passengerName = $passenger ? $passenger->name : 'عميل';
                 $data = [
                     'title'   => 'طلب رحلة جديد',
-                    'body'    => 'لديك طلب رحلة جديد من ' . $user->name,
+                    'body'    => 'لديك طلب رحلة جديد من ' . $passengerName,
                     'msg_type'    => 'ride_request',
                     'ride_id' => (string) $ride->id,
                 ];
