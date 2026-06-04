@@ -67,6 +67,15 @@ class AutoRejectRideJob implements ShouldQueue
         DB::beginTransaction();
 
         try {
+            // 🔒 Lock the ride row for update to prevent race conditions (e.g., passenger canceling)
+            $ride = Ride::where('id', $this->rideId)->lockForUpdate()->first();
+
+            if (!$ride || $ride->status->value !== 'pending' || $ride->driver_id !== $this->driverId) {
+                DB::rollBack();
+                Log::info("AutoRejectRideJob: Ride {$this->rideId} status changed, driver changed, or cancelled by user during execution.");
+                return;
+            }
+
             // Add current driver to rejected drivers list
             $rejectedDrivers = $ride->rejected_drivers ?? [];
             

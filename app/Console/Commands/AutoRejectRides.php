@@ -37,8 +37,18 @@ class AutoRejectRides extends Command
         $rideEstimateController = new RideEstimateController();
 
         foreach ($rides as $ride) {
+            DB::beginTransaction();
             try {
                 Log::info("Processing ride ID {$ride->id}...");
+
+                // 🔒 Lock the ride row for update to prevent race conditions with passenger canceling
+                $freshRide = Ride::where('id', $ride->id)->lockForUpdate()->first();
+                if (!$freshRide || $freshRide->status->value !== 'pending' || $freshRide->driver_id !== $ride->driver_id) {
+                    DB::rollBack();
+                    Log::info("AutoRejectRides Command: Ride {$ride->id} status or driver changed during execution, skipping.");
+                    continue;
+                }
+                $ride = $freshRide;
 
                 // // Step 1: Reject the current driver
                 // $ride->update(['status' => 'rejected', 'driver_id' => null]);
@@ -91,6 +101,7 @@ class AutoRejectRides extends Command
                         Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
                     }
 
+                    DB::commit();
                     continue;
                 }
 
@@ -131,6 +142,7 @@ class AutoRejectRides extends Command
                     
                     if (empty($allDriversWithETA)) {
                         Log::error("No drivers available with valid ETA for ride {$ride->id}");
+                        DB::commit();
                         continue;
                     }
 
@@ -147,6 +159,7 @@ class AutoRejectRides extends Command
                         } catch (Exception $e) {
                             Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
                         }
+                        DB::commit();
                         continue;
                     }
 
@@ -225,6 +238,7 @@ class AutoRejectRides extends Command
                     $driverId = $nearestDriver['id'];
                 } else {
                     Log::warning("⚠️ Invalid nearest driver structure for ride {$ride->id}: " . json_encode($nearestDriver));
+                    DB::commit();
                     continue;
                 }
 
@@ -232,6 +246,7 @@ class AutoRejectRides extends Command
                 $driver = User::find($driverId);
                 if (!$driver) {
                     Log::warning("⚠️ Driver ID {$driverId} not found in database for ride {$ride->id}");
+                    DB::commit();
                     continue;
                 }
 
@@ -283,7 +298,9 @@ class AutoRejectRides extends Command
                 }
 
                 Log::info("✅ Reassigned ride {$ride->id} to driver {$driver->id}");
+                DB::commit();
             } catch (Exception $e) {
+                DB::rollBack();
                 Log::error("❌ Error processing ride {$ride->id}: " . $e->getMessage());
             }
         }
