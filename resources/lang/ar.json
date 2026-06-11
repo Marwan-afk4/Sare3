@@ -1099,5 +1099,14 @@
     "Abnormally Short Duration": "مدة قصيرة بشكل غير طبيعي",
     "Offers": "العروض",
     "No abnormal ride logs found in this tab.": "لم يتم العثور على سجلات رحلات شاذة في هذا التبويب.",
-    "No offer records found.": "لم يتم العثور على سجلات عروض."
+    "No offer records found.": "لم يتم العثور على سجلات عروض.",
+    "Balance Condition": "حالة الرصيد",
+    "Less than": "أقل من",
+    "Equal to": "يساوي",
+    "Greater than": "أكبر من",
+    "Less than or equal to": "أقل من أو يساوي",
+    "Greater than or equal to": "أكبر من أو يساوي",
+    "Balance Amount (JOD)": "مبلغ الرصيد (دينار)",
+    "Quick Balance Filter": "تصفية الرصيد السريع",
+    "Custom": "مخصص"
 }

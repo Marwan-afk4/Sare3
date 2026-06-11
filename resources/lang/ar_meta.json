@@ -301,7 +301,8 @@
         "resources\/views\/admin\/financial-reports\/index.blade.php",
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/rides\/index.blade.php",
-        "resources\/views\/users\/index.blade.php"
+        "resources\/views\/users\/index.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "Id": [
         "resources\/views\/admin\/financial-reports\/index.blade.php",
@@ -2659,10 +2660,11 @@
         "resources\/views\/admin\/financial-reports\/index.blade.php",
         "resources\/views\/admin\/referrals\/list.blade.php"
     ],
-    "Clear Filters": [
-        "resources\/views\/admin\/financial-reports\/index.blade.php",
-        "resources\/views\/admin\/referrals\/list.blade.php"
-    ],
+    "Clear Filters": {
+        "0": "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "1": "resources\/views\/admin\/referrals\/list.blade.php",
+        "3": "resources\/views\/wallet-requests\/index.blade.php"
+    },
     "Referred User": [
         "resources\/views\/admin\/referrals\/list.blade.php"
     ],
@@ -4483,7 +4485,8 @@
         "resources\/views\/admin\/financial-reports\/index.blade.php"
     ],
     "All Balances": [
-        "resources\/views\/admin\/financial-reports\/index.blade.php"
+        "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "Positive Balance": [
         "resources\/views\/admin\/financial-reports\/index.blade.php"
@@ -4562,6 +4565,40 @@
         "resources\/views\/rides\/abnormal.blade.php"
     ],
     "No results found": [
+        "resources\/views\/admin\/financial-reports\/index.blade.php"
+    ],
+    "Balance Condition": [
+        "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php"
+    ],
+    "Less than": [
+        "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php"
+    ],
+    "Equal to": [
+        "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php"
+    ],
+    "Greater than": [
+        "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php"
+    ],
+    "Less than or equal to": [
+        "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php"
+    ],
+    "Greater than or equal to": [
+        "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php"
+    ],
+    "Balance Amount (JOD)": [
+        "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php"
+    ],
+    "Quick Balance Filter": [
+        "resources\/views\/admin\/financial-reports\/index.blade.php"
+    ],
+    "Custom": [
         "resources\/views\/admin\/financial-reports\/index.blade.php"
     ]
 }
