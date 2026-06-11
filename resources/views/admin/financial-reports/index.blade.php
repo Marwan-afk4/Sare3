@@ -149,10 +149,27 @@
                     @endif
 
                     @if ($tab === 'wallets')
-                        <div class="col-md-3">
-                            <label for="balance_filter" class="form-label">{{ __('Wallet Balance') }}</label>
-                            <select name="balance_filter" id="balance_filter" class="form-select">
+                        <div class="col-md-2">
+                            <label for="balance_operator" class="form-label">{{ __('Balance Condition') }}</label>
+                            <select name="balance_operator" id="balance_operator" class="form-select">
                                 <option value="">{{ __('All Balances') }}</option>
+                                <option value="lt" {{ ($filters['balance_operator'] ?? '') === 'lt' ? 'selected' : '' }}>{{ __('Less than') }}</option>
+                                <option value="eq" {{ ($filters['balance_operator'] ?? '') === 'eq' ? 'selected' : '' }}>{{ __('Equal to') }}</option>
+                                <option value="gt" {{ ($filters['balance_operator'] ?? '') === 'gt' ? 'selected' : '' }}>{{ __('Greater than') }}</option>
+                                <option value="lte" {{ ($filters['balance_operator'] ?? '') === 'lte' ? 'selected' : '' }}>{{ __('Less than or equal to') }}</option>
+                                <option value="gte" {{ ($filters['balance_operator'] ?? '') === 'gte' ? 'selected' : '' }}>{{ __('Greater than or equal to') }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="balance_amount" class="form-label">{{ __('Balance Amount (JOD)') }}</label>
+                            <input type="number" name="balance_amount" id="balance_amount" class="form-control"
+                                step="0.001" min="0" placeholder="10"
+                                value="{{ $filters['balance_amount'] ?? '' }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="balance_filter" class="form-label">{{ __('Quick Balance Filter') }}</label>
+                            <select name="balance_filter" id="balance_filter" class="form-select">
+                                <option value="">{{ __('Custom') }}</option>
                                 <option value="positive" {{ ($filters['balance_filter'] ?? '') === 'positive' ? 'selected' : '' }}>{{ __('Positive Balance') }}</option>
                                 <option value="negative" {{ ($filters['balance_filter'] ?? '') === 'negative' ? 'selected' : '' }}>{{ __('Negative Balance') }}</option>
                                 <option value="below_minimum" {{ ($filters['balance_filter'] ?? '') === 'below_minimum' ? 'selected' : '' }}>

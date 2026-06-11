@@ -20,19 +20,47 @@
             </div>
         @endif
 
-        <!-- Search Form -->
+        <!-- Search & Filters -->
         <div class="card mb-3">
             <div class="card-body">
+                @php
+                    $queryParams = request()->except(['sort', 'order']);
+                @endphp
                 <form method="GET" action="{{ route('wallet-requests.index') }}" class="row g-3">
-                    <div class="col-md-10">
-                        <input type="text" name="keyword" class="form-control"
+                    <div class="col-md-4">
+                        <label for="keyword" class="form-label">{{ __('Keyword') }}</label>
+                        <input type="text" name="keyword" id="keyword" class="form-control"
                             placeholder="{{ __('Search by name, phone, or email...') }}" value="{{ request('keyword') }}">
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
+                        <label for="balance_operator" class="form-label">{{ __('Balance Condition') }}</label>
+                        <select name="balance_operator" id="balance_operator" class="form-select">
+                            <option value="">{{ __('All Balances') }}</option>
+                            <option value="lt" {{ ($balanceOperator ?? '') === 'lt' ? 'selected' : '' }}>{{ __('Less than') }}</option>
+                            <option value="eq" {{ ($balanceOperator ?? '') === 'eq' ? 'selected' : '' }}>{{ __('Equal to') }}</option>
+                            <option value="gt" {{ ($balanceOperator ?? '') === 'gt' ? 'selected' : '' }}>{{ __('Greater than') }}</option>
+                            <option value="lte" {{ ($balanceOperator ?? '') === 'lte' ? 'selected' : '' }}>{{ __('Less than or equal to') }}</option>
+                            <option value="gte" {{ ($balanceOperator ?? '') === 'gte' ? 'selected' : '' }}>{{ __('Greater than or equal to') }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="balance_amount" class="form-label">{{ __('Balance Amount (JOD)') }}</label>
+                        <input type="number" name="balance_amount" id="balance_amount" class="form-control"
+                            step="0.001" min="0" placeholder="10"
+                            value="{{ $balanceAmount ?? '' }}">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary w-100">
                             <i class="fa fa-search"></i> {{ __('Search') }}
                         </button>
                     </div>
+                    @if (request()->hasAny(['keyword', 'balance_operator', 'balance_amount']))
+                        <div class="col-12">
+                            <a href="{{ route('wallet-requests.index') }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fa fa-times"></i> {{ __('Clear Filters') }}
+                            </a>
+                        </div>
+                    @endif
                 </form>
             </div>
         </div>
@@ -44,7 +72,7 @@
                         <tr>
                             <th>
                                 <a
-                                    href="{{ route('wallet-requests.index', ['sort' => 'id', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                    href="{{ route('wallet-requests.index', array_merge($queryParams, ['sort' => 'id', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc'])) }}">
                                     {{ __('Id') }}
                                     @if ($sortField === 'id')
                                         <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
@@ -53,7 +81,7 @@
                             </th>
                             <th>
                                 <a
-                                    href="{{ route('wallet-requests.index', ['sort' => 'name', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                    href="{{ route('wallet-requests.index', array_merge($queryParams, ['sort' => 'name', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc'])) }}">
                                     {{ __('Driver Name') }}
                                     @if ($sortField === 'name')
                                         <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
@@ -62,7 +90,7 @@
                             </th>
                             <th>
                                 <a
-                                    href="{{ route('wallet-requests.index', ['sort' => 'phone', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                    href="{{ route('wallet-requests.index', array_merge($queryParams, ['sort' => 'phone', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc'])) }}">
                                     {{ __('Phone') }}
                                     @if ($sortField === 'phone')
                                         <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
@@ -71,7 +99,7 @@
                             </th>
                             <th>
                                 <a
-                                    href="{{ route('wallet-requests.index', ['sort' => 'wallet', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                    href="{{ route('wallet-requests.index', array_merge($queryParams, ['sort' => 'wallet', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc'])) }}">
                                     {{ __('Wallet Amount') }}
                                     @if ($sortField === 'wallet')
                                         <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>

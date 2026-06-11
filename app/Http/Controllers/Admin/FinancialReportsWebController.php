@@ -66,6 +66,8 @@ class FinancialReportsWebController extends Controller
             'to_date' => $request->get('to_date'),
             'keyword' => $request->get('keyword'),
             'balance_filter' => $request->get('balance_filter'),
+            'balance_operator' => $request->get('balance_operator'),
+            'balance_amount' => $request->get('balance_amount'),
             'period' => $request->get('period'),
             'per_page' => (int) $request->get('per_page', 25),
         ];
@@ -241,6 +243,12 @@ class FinancialReportsWebController extends Controller
     {
         if ($filters['driver_id']) {
             $query->where('id', $filters['driver_id']);
+        }
+
+        if ($filters['balance_operator'] && $filters['balance_amount'] !== null && $filters['balance_amount'] !== '') {
+            $query->filterByWalletBalance($filters['balance_operator'], $filters['balance_amount']);
+
+            return;
         }
 
         match ($filters['balance_filter']) {

@@ -329,4 +329,22 @@ class User extends Authenticatable
     {
         return round($this->ratingsReceived()->avg('rate') ?: 5.0, 1);
     }
+
+    public function scopeFilterByWalletBalance($query, ?string $operator, $amount)
+    {
+        if (!$operator || $amount === null || $amount === '') {
+            return $query;
+        }
+
+        $amount = round((float) $amount, 3);
+
+        return match ($operator) {
+            'lt' => $query->where('wallet', '<', $amount),
+            'lte' => $query->where('wallet', '<=', $amount),
+            'eq' => $query->whereRaw('ROUND(wallet, 3) = ?', [$amount]),
+            'gte' => $query->where('wallet', '>=', $amount),
+            'gt' => $query->where('wallet', '>', $amount),
+            default => $query,
+        };
+    }
 }

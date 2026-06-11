@@ -21,6 +21,8 @@ class WalletRequestController extends Controller
         $sortField = $request->get('sort', 'name');
         $sortOrder = $request->get('order', 'ASC');
         $keyword = $request->get('keyword');
+        $balanceOperator = $request->get('balance_operator');
+        $balanceAmount = $request->get('balance_amount');
 
         $drivers = User::where('role', 'driver')
             ->when($keyword, function ($query, $keyword) {
@@ -30,10 +32,18 @@ class WalletRequestController extends Controller
                         ->orWhere('email', 'LIKE', "%{$keyword}%");
                 });
             })
+            ->filterByWalletBalance($balanceOperator, $balanceAmount)
             ->orderBy($sortField, $sortOrder)
-            ->paginate(30);
+            ->paginate(30)
+            ->withQueryString();
 
-        return view('wallet-requests.index', compact('drivers', 'sortField', 'sortOrder'));
+        return view('wallet-requests.index', compact(
+            'drivers',
+            'sortField',
+            'sortOrder',
+            'balanceOperator',
+            'balanceAmount'
+        ));
     }
 
     public function create()
