@@ -496,10 +496,17 @@ class SimpleRideTracker {
                 if (parseInt(e.ride_id) !== parseInt(this.rideData.id)) return;
                 console.log('🔄 Ride status changed via WebSocket:', e.status);
 
+                this.updateStatusUI(e.status);
+
+                // Redraw line immediately if we have driver location
+                if (this.driverMarker && this.driverMarker.getPosition()) {
+                    const pos = this.driverMarker.getPosition();
+                    this.updateLiveDriverLine({ lat: pos.lat(), lng: pos.lng() });
+                }
+
                 if (['completed', 'finished', 'finshed'].includes(e.status)) {
                     this.stopTracking();
-                    // Update local status so the live line stops drawing
-                    this.rideData.status = e.status;
+                    this.showCompletedRoute();
                 }
             });
 
@@ -535,6 +542,105 @@ class SimpleRideTracker {
         el.textContent = message;
     }
 
+    updateStatusUI(status) {
+        this.rideData.status = status;
+
+        // Update the status indicator class
+        const indicatorEl = document.getElementById('ride-status-indicator');
+        if (indicatorEl) {
+            let indicatorClass = 'pending';
+            if (['completed', 'finished', 'finshed'].includes(status)) {
+                indicatorClass = 'completed';
+            } else if (['in_progress', 'accepted', 'waiting_user'].includes(status)) {
+                indicatorClass = 'live';
+            }
+            indicatorEl.className = `status-indicator status-${indicatorClass}`;
+        }
+
+        // Update status text
+        const textEl = document.getElementById('ride-status-text');
+        if (textEl) {
+            if (status === 'in_progress') {
+                textEl.innerHTML = `<i class="fa fa-broadcast-tower text-success"></i> ${this.translate('Real-time WebSocket Tracking Active')}`;
+            } else if (['accepted', 'waiting_user'].includes(status)) {
+                textEl.innerHTML = `<i class="fa fa-location-arrow text-info"></i> ${this.translate('Live Tracking Active')}`;
+            } else if (['completed', 'finished', 'finshed'].includes(status)) {
+                textEl.innerHTML = `<i class="fa fa-check-circle text-success"></i> ${this.translate('Trip Completed')}`;
+            } else {
+                const label = this.getStatusLabel(status);
+                textEl.innerHTML = `<i class="fa fa-clock text-warning"></i> ${label}`;
+            }
+        }
+
+        // Update status badge
+        const badgeEl = document.getElementById('ride-status-badge');
+        if (badgeEl) {
+            const color = this.getStatusColor(status);
+            const textColor = this.getStatusTextColor(status);
+            const label = this.getStatusLabel(status);
+            badgeEl.innerHTML = `<span class="badge rounded-pill px-3 py-2" style="background-color: #${color}; color: #${textColor};">${label}</span>`;
+        }
+    }
+
+    translate(key) {
+        const isAr = document.documentElement.lang === 'ar' || document.dir === 'rtl';
+        if (isAr) {
+            if (key === 'Real-time WebSocket Tracking Active') return 'تتبع WebSocket اللحظي مفعل';
+            if (key === 'Live Tracking Active') return 'التتبع المباشر نشط';
+            if (key === 'Trip Completed') return 'اكتملت الرحلة';
+        }
+        return key;
+    }
+
+    getStatusLabel(status) {
+        const isAr = document.documentElement.lang === 'ar' || document.dir === 'rtl';
+        const labels = {
+            'pending': isAr ? 'معلق' : 'Pending',
+            'in_progress': isAr ? 'قيد التنفيذ' : 'In Progress',
+            'completed': isAr ? 'مكتملة' : 'Completed',
+            'cancelled': isAr ? 'ملغية' : 'Cancelled',
+            'arrived': isAr ? 'وصل الكابتن' : 'Arrived',
+            'waiting_user': isAr ? 'في انتظار العميل' : 'Waiting User',
+            'rejected': isAr ? 'مرفوضة' : 'Rejected',
+            'accepted': isAr ? 'مقبولة' : 'Accepted',
+            'finshed': isAr ? 'مكتملة' : 'Finished',
+            'finished': isAr ? 'مكتملة' : 'Finished'
+        };
+        return labels[status] || status;
+    }
+
+    getStatusColor(status) {
+        const colors = {
+            'pending': 'FBBF24',
+            'in_progress': '3B82F6',
+            'completed': '22C55E',
+            'cancelled': 'EF4444',
+            'arrived': 'FBBF24',
+            'waiting_user': 'FBBF24',
+            'rejected': 'EF4444',
+            'accepted': '22C55E',
+            'finshed': '22C55E',
+            'finished': '22C55E'
+        };
+        return colors[status] || 'FBBF24';
+    }
+
+    getStatusTextColor(status) {
+        const textColors = {
+            'pending': '000000',
+            'in_progress': 'FFFFFF',
+            'completed': 'FFFFFF',
+            'cancelled': 'FFFFFF',
+            'arrived': '000000',
+            'waiting_user': '000000',
+            'rejected': 'FFFFFF',
+            'accepted': 'FFFFFF',
+            'finshed': 'FFFFFF',
+            'finished': 'FFFFFF'
+        };
+        return textColors[status] || 'FFFFFF';
+    }
+
     startApiPolling() {
         if (this.trackingInterval) return;
         this.trackingInterval = setInterval(() => {
@@ -566,8 +672,12 @@ class SimpleRideTracker {
             }
 
             const status = data.ride?.status;
-            if (status && ['completed', 'finished', 'finshed'].includes(status)) {
-                this.stopTracking();
+            if (status) {
+                this.updateStatusUI(status);
+                if (['completed', 'finished', 'finshed'].includes(status)) {
+                    this.stopTracking();
+                    this.showCompletedRoute();
+                }
             }
         } catch (error) {
             console.error('Error fetching driver location:', error);

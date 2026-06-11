@@ -151,11 +151,11 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h4 class="mb-1">
-                                    <span
+                                    <span id="ride-status-indicator"
                                         class="status-indicator status-{{ $ride->status->value === 'completed' || $ride->status->value === 'finshed' ? 'completed' : ($ride->status->value === 'in_progress' || $ride->status->value === 'accepted' || $ride->status->value === 'waiting_user' ? 'live' : 'pending') }}"></span>
                                     {{ __('Ride #') }}{{ $ride->id }}
                                 </h4>
-                                <p class="mb-0">
+                                <p class="mb-0" id="ride-status-text">
                                     @if ($ride->status->value === 'in_progress')
                                         <i class="fa fa-broadcast-tower text-success"></i> {{ __('Real-time WebSocket Tracking Active') }}
                                     @elseif (in_array($ride->status->value, ['accepted', 'waiting_user']))
@@ -168,7 +168,7 @@
                                 </p>
                             </div>
                             <div class="text-end">
-                                <div class="badge bg-light text-dark fs-6 me-2">
+                                <div id="ride-status-badge" class="badge bg-light text-dark fs-6 me-2">
                                     {!! $ride->status->badge() !!}
                                 </div>
                                 @if (in_array($ride->status->value, ['in_progress', 'accepted', 'waiting_user']))
