@@ -367,7 +367,6 @@
     "Duration": "المدة",
     "min": "دقيقة",
     "Price": "السعر",
-    "Passenger": "الراكب",
     "Trip Progress": "مراحل الرحلة",
     "Ride Accepted": "تم قبول الرحلة",
     "Driver accepted ride request": "قام السائق بقبول طلب الرحله",
@@ -1061,7 +1060,6 @@
     "Wallet Transactions": "معاملات المحفظة",
     "Coupon Reports": "تقارير الكوبونات",
     "Driver Wallets Overview": "نظرة عامة على محافظ السائقين",
-    "All Drivers": "جميع السائقين",
     "All Types": "جميع الأنواع",
     "Transaction Category": "فئة المعاملة",
     "All Categories": "جميع الفئات",
@@ -1085,6 +1083,5 @@
     "No coupon usages found for the selected filters.": "لم يتم العثور على استخدامات كوبون للفلاتر المحددة.",
     "No drivers found for the selected filters.": "لم يتم العثور على سائقين للفلاتر المحددة.",
     "Filter": "تصفية",
-    "Transactions": "المعاملات",
-    "No results found": "لا توجد نتائج"
+    "Transactions": "المعاملات"
 }

@@ -4,7 +4,7 @@
     $groupMap = [
         'main'        => ['home', 'leaderboard', 'support-chat', 'ads', 'notifications'],
         'users'       => ['users', 'drivers', 'admins', 'roles'],
-        'rides'       => ['rides', 'cancelation-rides', 'zones'],
+        'rides'       => ['rides', 'cancelation-rides', 'zones', 'abnormal-rides'],
         'fleet'       => ['car-categories', 'car-models', 'car-types'],
         'finance'     => ['wallet-requests', 'financial-reports', 'profit-statistics', 'profit-history', 'referrals', 'coupons', 'paymenent-methods'],
         'settings'    => ['document-types', 'cancellation-policies', 'cancellation-reasons', 'ride-request-time-limits', 'otp-limits', 'settings'],
@@ -172,6 +172,15 @@
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="navigation"></span></span>
                                 <span class="nav-link-text-wrapper"><span class="nav-link-text">{{ __('Rides') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'abnormal-rides' ? 'active' : '' }}"
+                            href="{{ route('rides.abnormal') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="alert-triangle"></span></span>
+                                <span class="nav-link-text-wrapper"><span class="nav-link-text">{{ __('Abnormal Rides') }}</span></span>
                             </div>
                         </a>
                     </div>
