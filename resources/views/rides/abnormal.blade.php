@@ -273,7 +273,7 @@
 
             @if($rides->hasPages())
                 <div class="card-footer bg-white border-top py-3">
-                    {{ $rides->links() }}
+                    {{ $rides->links('pagination::custom') }}
                 </div>
             @endif
         </div>
