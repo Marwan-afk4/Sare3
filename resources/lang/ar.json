@@ -1085,5 +1085,6 @@
     "No coupon usages found for the selected filters.": "لم يتم العثور على استخدامات كوبون للفلاتر المحددة.",
     "No drivers found for the selected filters.": "لم يتم العثور على سائقين للفلاتر المحددة.",
     "Filter": "تصفية",
-    "Transactions": "المعاملات"
+    "Transactions": "المعاملات",
+    "No results found": "لا توجد نتائج"
 }

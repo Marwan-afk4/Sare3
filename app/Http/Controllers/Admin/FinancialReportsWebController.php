@@ -21,7 +21,7 @@ class FinancialReportsWebController extends Controller
 
         $drivers = User::where('role', 'driver')
             ->orderBy('name')
-            ->get(['id', 'name', 'phone', 'wallet']);
+            ->get(['id', 'name', 'phone']);
 
         $coupons = Coupon::orderBy('name')->get(['id', 'code', 'name']);
 

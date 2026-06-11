@@ -90,7 +90,7 @@
 
                     <div class="col-md-3">
                         <label for="driver_id" class="form-label">{{ __('Driver') }}</label>
-                        <select name="driver_id" id="driver_id" class="form-select">
+                        <select name="driver_id" id="driver_id" class="form-select driver-search-select">
                             <option value="">{{ __('All Drivers') }}</option>
                             @foreach ($drivers as $driver)
                                 <option value="{{ $driver->id }}" {{ ($filters['driver_id'] ?? '') == $driver->id ? 'selected' : '' }}>
@@ -417,3 +417,21 @@
         @endif
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const driverSelect = document.querySelector('#driver_id');
+            if (driverSelect && typeof Choices !== 'undefined') {
+                new Choices(driverSelect, {
+                    searchEnabled: true,
+                    searchPlaceholderValue: @json(__('Search drivers...')),
+                    noResultsText: @json(__('No results found')),
+                    itemSelectText: '',
+                    shouldSort: false,
+                    allowHTML: false,
+                });
+            }
+        });
+    </script>
+@endpush
