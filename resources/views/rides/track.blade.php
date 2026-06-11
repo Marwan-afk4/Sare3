@@ -157,7 +157,7 @@
                                 </h4>
                                 <p class="mb-0">
                                     @if ($ride->status->value === 'in_progress')
-                                        <i class="fa fa-broadcast-tower text-success"></i> {{ __('Real-time Firebase Tracking Active') }}
+                                        <i class="fa fa-broadcast-tower text-success"></i> {{ __('Real-time WebSocket Tracking Active') }}
                                     @elseif (in_array($ride->status->value, ['accepted', 'waiting_user']))
                                         <i class="fa fa-location-arrow text-info"></i> {{ __('Live Tracking Active') }}
                                     @elseif(in_array($ride->status->value, ['completed', 'finshed']))
@@ -171,9 +171,9 @@
                                 <div class="badge bg-light text-dark fs-6 me-2">
                                     {!! $ride->status->badge() !!}
                                 </div>
-                                @if ($ride->status->value === 'in_progress')
+                                @if (in_array($ride->status->value, ['in_progress', 'accepted', 'waiting_user']))
                                     <div id="connection-status" class="badge bg-secondary">
-                                        Connecting...
+                                        <i class="fa fa-circle-notch fa-spin"></i> {{ __('Connecting...') }}
                                     </div>
                                 @endif
                             </div>
@@ -387,6 +387,30 @@
     @endif
 
     @push('scripts')
+        <!-- Laravel Echo + Pusher (Reverb) — loaded first -->
+        <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/pusher-js@8.4.0/dist/web/pusher.min.js"></script>
+        <script>
+            (function () {
+                try {
+                    const wsPort  = window.location.port ? parseInt(window.location.port) : (window.location.protocol === 'https:' ? 443 : 80);
+                    const useTLS  = window.location.protocol === 'https:';
+                    window.Echo = new Echo({
+                        broadcaster:       'reverb',
+                        key:               '{{ config("broadcasting.connections.reverb.key") }}',
+                        wsHost:            window.location.hostname,
+                        wsPort:            wsPort,
+                        wssPort:           wsPort,
+                        forceTLS:          useTLS,
+                        enabledTransports: ['ws', 'wss'],
+                    });
+                    console.log('📡 Laravel Echo (Reverb) initialized for ride tracking');
+                } catch (e) {
+                    console.warn('Could not initialize Laravel Echo:', e);
+                }
+            })();
+        </script>
+
         @include('rides.tracking-scripts')
 
         <script>
@@ -406,7 +430,6 @@
                 },
                 routePoints: @json($ride->route_points ?? []),
                 driverId: {{ $ride->driver_id ?? 'null' }},
-                firebaseRideId: '{{ $ride->firebase_ride_id ?? '' }}',
                 driverAcceptLocation: @json($ride->driver_accept_lat && $ride->driver_accept_lng ? ['lat' => (float) $ride->driver_accept_lat, 'lng' => (float) $ride->driver_accept_lng, 'recorded_at' => optional($ride->accepted_at)->toIso8601String()] : null),
                 driverArrivedLocation: @json($ride->driver_arrived_lat && $ride->driver_arrived_lng ? ['lat' => (float) $ride->driver_arrived_lat, 'lng' => (float) $ride->driver_arrived_lng, 'recorded_at' => optional($ride->arrived_at)->toIso8601String()] : null)
             };
@@ -455,27 +478,6 @@
                 }, 15000); // Refresh every 15 seconds for tracking page
             }
 
-            // Add connection status indicator
-            function updateConnectionStatus(status, message) {
-                const statusElement = document.getElementById('connection-status');
-                if (statusElement) {
-                    statusElement.className = `badge ${status === 'connected' ? 'bg-success' : status === 'connecting' ? 'bg-warning' : 'bg-danger'}`;
-                    statusElement.textContent = message;
-                }
-            }
-
-            // Monitor Firebase connection if available
-            if (typeof firebase !== 'undefined' && rideData.status === 'in_progress') {
-                const connectedRef = firebase.database().ref('.info/connected');
-                connectedRef.on('value', (snapshot) => {
-                    if (snapshot.val() === true) {
-                        updateConnectionStatus('connected', 'Real-time Connected');
-                    } else {
-                        updateConnectionStatus('disconnected', 'Connection Lost');
-                    }
-                });
-            }
-
             // Initialize map when page loads
             window.addEventListener('load', initMap);
             window.addEventListener('beforeunload', cleanup);
@@ -495,19 +497,6 @@
                 window.addEventListener('load', initMap);
             </script>
         @endif
-
-        <!-- Firebase SDK -->
-        <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-        <script>
-            const firebaseConfig = {
-                databaseURL: 'https://sarea-adce3-default-rtdb.firebaseio.com'
-            };
-
-            if (typeof firebase !== 'undefined') {
-                firebase.initializeApp(firebaseConfig);
-            }
-        </script>
     @endpush
 
 @endsection

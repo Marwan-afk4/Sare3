@@ -1,15 +1,17 @@
 <script>
 /**
- * Inline Ride Tracking JavaScript (dashboard).
+ * Inline Ride Tracking JavaScript (admin dashboard).
  *
- * In addition to pickup/dropoff and the full trip polyline, this tracker
- * renders:
- *   - An "A" marker at the captain's location when they accepted the ride
- *   - A dashed orange polyline for the "on the way to passenger" leg
- *   - A solid green polyline for the actual trip leg
- *   - A live-updating driver marker driven by Firebase Realtime Database
- *     and (fallback) the REST tracking-data endpoint. It works while the
- *     ride is in any of: accepted, waiting_user, in_progress.
+ * Uses Laravel Echo → Reverb WebSocket for real-time updates:
+ *   - Public channel `driver-location`  → '.driver.location.updated'
+ *   - Public channel `ride-updates`     → '.ride.status.updated'
+ *
+ * Renders on the map:
+ *   - Orange "A" marker at the captain's accept location
+ *   - Dashed orange polyline: captain → passenger (to_pickup leg)
+ *   - Solid green polyline: passenger → destination (trip leg)
+ *   - Live blue driver marker, updated via WebSocket in real time
+ *   - Live dashed/solid line showing current driver movement
  */
 
 class SimpleRideTracker {
@@ -26,10 +28,10 @@ class SimpleRideTracker {
         this.arrivedMarker = null;
         this.toPickupPolyline = null;
         this.tripPolyline = null;
+        this.liveDriverLine = null;   // live segment: driver→pickup or pickup→driver
         this.trackingInterval = null;
-        this.firebaseRideLocationRef = null;
-        this.firebaseDriverRef = null;
-        this.firebaseStatusRef = null;
+        this.echoChannel = null;
+        this.echoStatusChannel = null;
         this.liveTrackingStatuses = ['accepted', 'waiting_user', 'in_progress'];
     }
 
@@ -53,8 +55,7 @@ class SimpleRideTracker {
             this.setupMarkers();
             this.handleRideStatus();
 
-            // Pull the enriched tracking payload (segmented polylines,
-            // accept/arrived markers, live driver location) once on init.
+            // Pull the enriched tracking payload once on init.
             this.fetchTrackingData();
         } catch (error) {
             console.error('Error initializing map:', error);
@@ -85,7 +86,8 @@ class SimpleRideTracker {
             suppressMarkers: true,
             polylineOptions: {
                 strokeColor: '#4285F4',
-                strokeWeight: 4
+                strokeWeight: 4,
+                strokeOpacity: 0.5
             }
         });
         this.directionsRenderer.setMap(this.map);
@@ -109,15 +111,11 @@ class SimpleRideTracker {
                 strokeColor: 'white',
                 strokeWeight: 2
             },
-            label: { text: 'P', color: 'white', fontWeight: 'bold' }
+            label: { text: 'P', color: 'white', fontWeight: 'bold', fontSize: '11px' },
+            zIndex: 800
         });
 
-        const pickupInfoWindow = new google.maps.InfoWindow({
-            content: `<div><strong>Pickup Location</strong><br>${this.rideData.pickup.address || 'Pickup Point'}</div>`
-        });
-        this.pickupMarker.addListener('click', () => pickupInfoWindow.open(this.map, this.pickupMarker));
-
-        // Dropoff marker
+        // Dropoff marker (if available)
         if (this.rideData.dropoff.lat && this.rideData.dropoff.lng) {
             this.dropoffMarker = new google.maps.Marker({
                 position: { lat: this.rideData.dropoff.lat, lng: this.rideData.dropoff.lng },
@@ -125,19 +123,15 @@ class SimpleRideTracker {
                 title: 'Drop-off Location',
                 icon: {
                     path: google.maps.SymbolPath.CIRCLE,
-                    scale: 12,
+                    scale: 10,
                     fillColor: '#F44336',
                     fillOpacity: 1,
                     strokeColor: 'white',
-                    strokeWeight: 3
+                    strokeWeight: 2
                 },
-                label: { text: 'D', color: 'white', fontWeight: 'bold' }
+                label: { text: 'D', color: 'white', fontWeight: 'bold', fontSize: '11px' },
+                zIndex: 800
             });
-
-            const dropoffInfoWindow = new google.maps.InfoWindow({
-                content: `<div><strong>Drop-off Location</strong><br>${this.rideData.dropoff.address || 'Destination'}</div>`
-            });
-            this.dropoffMarker.addListener('click', () => dropoffInfoWindow.open(this.map, this.dropoffMarker));
         } else {
             this.showNoDropoffMessage();
         }
@@ -160,8 +154,6 @@ class SimpleRideTracker {
     }
 
     showCompletedRoute() {
-        // Fallback: if we don't yet have segmented data from the API, draw
-        // whatever flat route_points the Blade view already provided.
         if (this.rideData.routePoints && this.rideData.routePoints.length > 0) {
             const routePath = this.rideData.routePoints.map(point => ({
                 lat: parseFloat(point.lat),
@@ -186,6 +178,7 @@ class SimpleRideTracker {
     }
 
     showLiveTracking() {
+        // Draw the planned pickup→dropoff route as a faint guide
         if (this.rideData.dropoff.lat && this.rideData.dropoff.lng) {
             const request = {
                 origin: { lat: this.rideData.pickup.lat, lng: this.rideData.pickup.lng },
@@ -197,6 +190,8 @@ class SimpleRideTracker {
             });
         }
 
+        // Create the driver live-position marker (no position yet — will be set
+        // from WebSocket or the API poll).
         this.driverMarker = new google.maps.Marker({
             map: this.map,
             title: 'Driver Location (Live)',
@@ -244,11 +239,12 @@ class SimpleRideTracker {
             this.renderTripPolyline(data.trip_route_points || []);
 
             // Prime the live marker so the dashboard doesn't stay empty while
-            // waiting for the next Firebase update or API poll.
+            // waiting for the next WebSocket update or API poll.
             if (data.live_driver_location && this.driverMarker) {
                 this.updateDriverPosition({
                     lat: parseFloat(data.live_driver_location.lat),
-                    lng: parseFloat(data.live_driver_location.lng)
+                    lng: parseFloat(data.live_driver_location.lng),
+                    bearing: data.live_driver_location.bearing
                 });
             }
 
@@ -355,6 +351,57 @@ class SimpleRideTracker {
         this.tripPolyline.setMap(this.map);
     }
 
+    /**
+     * Draw (or redraw) a live line between the driver's current position
+     * and the relevant waypoint:
+     *  - accepted / waiting_user: dashed orange  driver → pickup
+     *  - in_progress:             solid blue     pickup → driver
+     */
+    updateLiveDriverLine(driverPos) {
+        if (!driverPos || !driverPos.lat || !driverPos.lng) return;
+        const status = this.rideData.status;
+        const pickup = this.rideData.pickup;
+        if (!pickup || !pickup.lat) return;
+
+        if (this.liveDriverLine) {
+            this.liveDriverLine.setMap(null);
+            this.liveDriverLine = null;
+        }
+
+        if (status === 'accepted' || status === 'waiting_user') {
+            this.liveDriverLine = new google.maps.Polyline({
+                path: [
+                    { lat: parseFloat(driverPos.lat), lng: parseFloat(driverPos.lng) },
+                    { lat: parseFloat(pickup.lat), lng: parseFloat(pickup.lng) }
+                ],
+                geodesic: true,
+                strokeColor: '#FF9800',
+                strokeOpacity: 0,
+                strokeWeight: 4,
+                icons: [{
+                    icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, strokeColor: '#FF9800', scale: 3 },
+                    offset: '0',
+                    repeat: '12px'
+                }]
+            });
+        } else if (status === 'in_progress') {
+            this.liveDriverLine = new google.maps.Polyline({
+                path: [
+                    { lat: parseFloat(pickup.lat), lng: parseFloat(pickup.lng) },
+                    { lat: parseFloat(driverPos.lat), lng: parseFloat(driverPos.lng) }
+                ],
+                geodesic: true,
+                strokeColor: '#2196F3',
+                strokeOpacity: 0.9,
+                strokeWeight: 4
+            });
+        }
+
+        if (this.liveDriverLine) {
+            this.liveDriverLine.setMap(this.map);
+        }
+    }
+
     fitBoundsToEverything(data) {
         try {
             const bounds = new google.maps.LatLngBounds();
@@ -397,63 +444,95 @@ class SimpleRideTracker {
         }
     }
 
+    // ─── Tracking start ───────────────────────────────────────────────────────
+
     startTracking() {
         if (this.liveTrackingStatuses.includes(this.rideData.status)) {
-            this.startFirebaseTracking();
+            this.startEchoTracking();
         }
-        // Always keep an API polling safety net so the dashboard still works
-        // if Firebase is unreachable or the driver only writes to the DB.
+        // Always keep an API polling safety net
         this.startApiPolling();
     }
 
-    startFirebaseTracking() {
-        try {
-            if (typeof firebase === 'undefined' || !firebase.database) {
-                console.log('Firebase not available, relying on API polling');
-                return;
-            }
+    /**
+     * Subscribe to the PUBLIC `driver-location` channel via Laravel Echo.
+     * We filter events client-side by driver_id so we only react to this ride's driver.
+     * Also subscribe to `ride-updates` to detect status changes.
+     */
+    startEchoTracking() {
+        if (typeof window.Echo === 'undefined') {
+            console.warn('Laravel Echo not available, relying on API polling only');
+            return;
+        }
 
-            const firebaseRideId = this.rideData.firebaseRideId || `ride_${this.rideData.id}`;
+        const driverId = this.rideData.driverId;
+        if (!driverId) {
+            console.warn('No driver assigned yet, skipping Echo subscription');
+            return;
+        }
 
-            // Primary source: per-ride driver_location node written by the
-            // mobile app / updateDriverLocation endpoint.
-            this.firebaseRideLocationRef = firebase.database().ref(`rides/${firebaseRideId}/driver_location`);
-            this.firebaseRideLocationRef.on('value', (snapshot) => {
-                const location = snapshot.val();
-                if (location && location.lat && location.lng && this.driverMarker) {
+        console.log(`📡 Subscribing to driver-location for driver #${driverId}`);
+
+        // Listen on the PUBLIC driver-location channel (no auth needed for admin)
+        this.echoChannel = window.Echo.channel('driver-location')
+            .listen('.driver.location.updated', (e) => {
+                // Filter: only react to our ride's driver
+                if (parseInt(e.driver_id) !== parseInt(driverId)) return;
+
+                console.log('📍 Driver location update via WebSocket:', e);
+
+                if (e.latitude && e.longitude && this.driverMarker) {
                     this.updateDriverPosition({
-                        lat: parseFloat(location.lat),
-                        lng: parseFloat(location.lng)
+                        lat: parseFloat(e.latitude),
+                        lng: parseFloat(e.longitude),
+                        bearing: e.bearing
                     });
                 }
             });
 
-            // Secondary source: driver's global node (drivers/{id}). This is
-            // the same feed the mobile driver app writes while online, so we
-            // keep getting updates even if the per-ride node lags.
-            if (this.rideData.driverId) {
-                this.firebaseDriverRef = firebase.database().ref(`drivers/${this.rideData.driverId}`);
-                this.firebaseDriverRef.on('value', (snapshot) => {
-                    const loc = snapshot.val();
-                    if (loc && loc.latitude && loc.longitude && this.driverMarker) {
-                        this.updateDriverPosition({
-                            lat: parseFloat(loc.latitude),
-                            lng: parseFloat(loc.longitude)
-                        });
-                    }
-                });
-            }
+        // Listen for ride status changes on the PUBLIC ride-updates channel
+        this.echoStatusChannel = window.Echo.channel('ride-updates')
+            .listen('.ride.status.updated', (e) => {
+                if (parseInt(e.ride_id) !== parseInt(this.rideData.id)) return;
+                console.log('🔄 Ride status changed via WebSocket:', e.status);
 
-            this.firebaseStatusRef = firebase.database().ref(`rides/${firebaseRideId}/status`);
-            this.firebaseStatusRef.on('value', (snapshot) => {
-                const status = snapshot.val();
-                if (status && (status === 'completed' || status === 'finished' || status === 'finshed')) {
+                if (['completed', 'finished', 'finshed'].includes(e.status)) {
                     this.stopTracking();
+                    // Update local status so the live line stops drawing
+                    this.rideData.status = e.status;
                 }
             });
-        } catch (error) {
-            console.error('Firebase tracking error:', error);
+
+        // Bind connection state to the UI badge
+        try {
+            window.Echo.connector.pusher.connection.bind('connected', () => {
+                this._updateConnectionBadge('connected', '🟢 Live');
+            });
+            window.Echo.connector.pusher.connection.bind('disconnected', () => {
+                this._updateConnectionBadge('disconnected', '🔴 Disconnected');
+            });
+            window.Echo.connector.pusher.connection.bind('connecting', () => {
+                this._updateConnectionBadge('connecting', '⏳ Connecting...');
+            });
+            // Reflect initial state immediately
+            const state = window.Echo.connector.pusher.connection.state;
+            if (state === 'connected') {
+                this._updateConnectionBadge('connected', '🟢 Live');
+            }
+        } catch (e) {
+            console.warn('Could not bind Echo connection events:', e);
         }
+    }
+
+    _updateConnectionBadge(status, message) {
+        const el = document.getElementById('connection-status');
+        if (!el) return;
+        el.className = `badge ${
+            status === 'connected'    ? 'bg-success' :
+            status === 'connecting'   ? 'bg-warning text-dark' :
+                                        'bg-danger'
+        }`;
+        el.textContent = message;
     }
 
     startApiPolling() {
@@ -469,15 +548,15 @@ class SimpleRideTracker {
             if (!response.ok) return;
             const data = await response.json();
 
-            // Redraw the segmented polylines; they grow while the captain
-            // is driving so the admin sees the path update over time.
+            // Redraw the segmented polylines — they grow while the captain is driving
             this.renderToPickupPolyline(data.to_pickup_route_points || []);
             this.renderTripPolyline(data.trip_route_points || []);
 
             if (data.live_driver_location && this.driverMarker) {
                 this.updateDriverPosition({
                     lat: parseFloat(data.live_driver_location.lat),
-                    lng: parseFloat(data.live_driver_location.lng)
+                    lng: parseFloat(data.live_driver_location.lng),
+                    bearing: data.live_driver_location.bearing
                 });
             } else if (data.latest_location && this.driverMarker) {
                 this.updateDriverPosition({
@@ -487,7 +566,7 @@ class SimpleRideTracker {
             }
 
             const status = data.ride?.status;
-            if (status && (status === 'completed' || status === 'finished' || status === 'finshed')) {
+            if (status && ['completed', 'finished', 'finshed'].includes(status)) {
                 this.stopTracking();
             }
         } catch (error) {
@@ -498,12 +577,24 @@ class SimpleRideTracker {
     updateDriverPosition(newPosition) {
         if (!this.driverMarker) return;
 
+        // Update arrow bearing/rotation if available
+        if (newPosition.bearing != null) {
+            const icon = this.driverMarker.getIcon();
+            if (icon) {
+                icon.rotation = newPosition.bearing;
+                this.driverMarker.setIcon(icon);
+            }
+        }
+
         const currentPosition = this.driverMarker.getPosition();
         if (currentPosition) {
             this.animateMarker(this.driverMarker, currentPosition, newPosition);
         } else {
             this.driverMarker.setPosition(newPosition);
         }
+
+        // Redraw the live tracking line on every position update
+        this.updateLiveDriverLine(newPosition);
 
         const bounds = this.map.getBounds();
         if (bounds && !bounds.contains(newPosition)) {
@@ -536,21 +627,27 @@ class SimpleRideTracker {
     }
 
     stopTracking() {
-        if (this.firebaseRideLocationRef) {
-            this.firebaseRideLocationRef.off();
-            this.firebaseRideLocationRef = null;
+        // Unsubscribe from Echo channels
+        if (this.echoChannel && typeof window.Echo !== 'undefined') {
+            try {
+                window.Echo.leaveChannel('driver-location');
+            } catch (e) { /* ignore */ }
+            this.echoChannel = null;
         }
-        if (this.firebaseDriverRef) {
-            this.firebaseDriverRef.off();
-            this.firebaseDriverRef = null;
+        if (this.echoStatusChannel && typeof window.Echo !== 'undefined') {
+            try {
+                window.Echo.leaveChannel('ride-updates');
+            } catch (e) { /* ignore */ }
+            this.echoStatusChannel = null;
         }
-        if (this.firebaseStatusRef) {
-            this.firebaseStatusRef.off();
-            this.firebaseStatusRef = null;
-        }
+
         if (this.trackingInterval) {
             clearInterval(this.trackingInterval);
             this.trackingInterval = null;
+        }
+        if (this.liveDriverLine) {
+            this.liveDriverLine.setMap(null);
+            this.liveDriverLine = null;
         }
     }
 
@@ -570,8 +667,6 @@ class SimpleRideTracker {
     }
 
     refreshRideData() {
-        // Soft refresh: just re-pull the tracking data without reloading
-        // the whole page, so the admin doesn't lose their map interaction.
         this.fetchTrackingData();
     }
 }

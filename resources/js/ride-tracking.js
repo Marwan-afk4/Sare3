@@ -1,5 +1,6 @@
 /**
- * Real-time ride tracking with Firebase integration
+ * Real-time ride tracking — uses Laravel Echo (Reverb WebSocket).
+ * Firebase references have been fully removed.
  */
 
 class RideTracker {
@@ -13,18 +14,13 @@ class RideTracker {
         this.pickupMarker = null;
         this.dropoffMarker = null;
         this.routePolyline = null;
+        this.liveDriverLine = null;
         this.trackingInterval = null;
-        this.firebaseRef = null;
-
-        // Firebase configuration (if available)
-        this.firebaseConfig = {
-            databaseURL: 'https://sarea-adce3-default-rtdb.firebaseio.com'
-        };
+        this.echoChannel = null;
+        this.echoStatusChannel = null;
     }
 
-    /**
-     * Initialize the map and tracking
-     */
+    /** Initialize the map and tracking */
     init() {
         if (!this.rideData.pickup.lat || !this.rideData.pickup.lng) {
             console.log('No pickup coordinates available');
@@ -36,9 +32,7 @@ class RideTracker {
         this.handleRideStatus();
     }
 
-    /**
-     * Initialize Google Maps
-     */
+    /** Initialize Google Maps */
     initMap() {
         this.map = new google.maps.Map(document.getElementById(this.mapElementId), {
             zoom: 13,
@@ -65,11 +59,8 @@ class RideTracker {
         this.directionsRenderer.setMap(this.map);
     }
 
-    /**
-     * Setup map markers - Show both pickup and drop-off markers
-     */
+    /** Setup map markers */
     setupMarkers() {
-        // Pickup marker
         this.pickupMarker = new google.maps.Marker({
             position: { lat: this.rideData.pickup.lat, lng: this.rideData.pickup.lng },
             map: this.map,
@@ -77,7 +68,6 @@ class RideTracker {
             icon: this.createMarkerIcon('#4CAF50', 'P')
         });
 
-        // Add info window for pickup
         const pickupInfoWindow = new google.maps.InfoWindow({
             content: `<div><strong>Pickup Location</strong><br>${this.rideData.pickup.address || 'Pickup Point'}</div>`
         });
@@ -85,7 +75,6 @@ class RideTracker {
             pickupInfoWindow.open(this.map, this.pickupMarker);
         });
 
-        // Dropoff marker (if available)
         if (this.rideData.dropoff.lat && this.rideData.dropoff.lng) {
             this.dropoffMarker = new google.maps.Marker({
                 position: { lat: this.rideData.dropoff.lat, lng: this.rideData.dropoff.lng },
@@ -101,14 +90,10 @@ class RideTracker {
                 dropoffInfoWindow.open(this.map, this.dropoffMarker);
             });
         } else {
-            // Show message when no drop-off location is set
             this.showNoDropoffMessage();
         }
     }
 
-    /**
-     * Create custom marker icon
-     */
     createMarkerIcon(color, text) {
         return {
             url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
@@ -122,9 +107,6 @@ class RideTracker {
         };
     }
 
-    /**
-     * Handle different ride statuses
-     */
     handleRideStatus() {
         switch (this.rideData.status) {
             case 'completed':
@@ -141,18 +123,11 @@ class RideTracker {
         }
     }
 
-    /**
-     * Show completed ride route using filtered/snapped points
-     */
     async showCompletedRoute() {
         try {
-            // Fetch filtered/snapped route points from API
             const response = await fetch(`/api/rides/${this.rideData.id}/route-points`);
             const data = await response.json();
 
-            console.log('Route points response:', data);
-
-            // Use filtered points if available, fallback to raw points
             const points = (data.points && data.points.length > 0)
                 ? data.points
                 : (this.rideData.routePoints || []);
@@ -170,118 +145,34 @@ class RideTracker {
                     strokeOpacity: 1.0,
                     strokeWeight: 4
                 });
-
                 this.routePolyline.setMap(this.map);
 
-                // Add markers for start and end points
-                if (routePath.length > 0) {
-                    new google.maps.Marker({
-                        position: routePath[0],
-                        map: this.map,
-                        title: 'Trip Start',
-                        icon: this.createMarkerIcon('#2196F3', 'S')
-                    });
-
-                    new google.maps.Marker({
-                        position: routePath[routePath.length - 1],
-                        map: this.map,
-                        title: 'Trip End',
-                        icon: this.createMarkerIcon('#FF9800', 'E')
-                    });
-                }
-
-                // Fit map to show entire route
                 const bounds = new google.maps.LatLngBounds();
                 routePath.forEach(point => bounds.extend(point));
                 if (this.pickupMarker) bounds.extend(this.pickupMarker.getPosition());
                 if (this.dropoffMarker) bounds.extend(this.dropoffMarker.getPosition());
                 this.map.fitBounds(bounds);
-
-                // Log filtering results
-                if (data.total_points && data.filtered_points) {
-                    console.log(`Route filtered: ${data.total_points} -> ${data.filtered_points} points (snapped: ${data.snapped})`);
-                }
             } else {
-                console.log('No route points available, showing static route');
                 this.showStaticRoute();
             }
         } catch (error) {
             console.error('Error fetching route points:', error);
-            // Fallback to original method
-            this.showCompletedRouteFallback();
-        }
-    }
-
-    /**
-     * Fallback method for showing completed route (original implementation)
-     */
-    showCompletedRouteFallback() {
-        if (this.rideData.routePoints && this.rideData.routePoints.length > 0) {
-            const routePath = this.rideData.routePoints.map(point => ({
-                lat: parseFloat(point.lat),
-                lng: parseFloat(point.lng)
-            }));
-
-            this.routePolyline = new google.maps.Polyline({
-                path: routePath,
-                geodesic: true,
-                strokeColor: '#4CAF50',
-                strokeOpacity: 1.0,
-                strokeWeight: 4
-            });
-
-            this.routePolyline.setMap(this.map);
-
-            // Add markers for start and end points
-            if (routePath.length > 0) {
-                new google.maps.Marker({
-                    position: routePath[0],
-                    map: this.map,
-                    title: 'Trip Start',
-                    icon: this.createMarkerIcon('#2196F3', 'S')
-                });
-
-                new google.maps.Marker({
-                    position: routePath[routePath.length - 1],
-                    map: this.map,
-                    title: 'Trip End',
-                    icon: this.createMarkerIcon('#FF9800', 'E')
-                });
-            }
-
-            // Fit map to show entire route
-            const bounds = new google.maps.LatLngBounds();
-            routePath.forEach(point => bounds.extend(point));
-            if (this.pickupMarker) bounds.extend(this.pickupMarker.getPosition());
-            if (this.dropoffMarker) bounds.extend(this.dropoffMarker.getPosition());
-            this.map.fitBounds(bounds);
-        } else {
             this.showStaticRoute();
         }
     }
 
-    /**
-     * Show live tracking for active rides
-     */
     showLiveTracking() {
-        // Show planned route
         if (this.rideData.dropoff.lat && this.rideData.dropoff.lng) {
             const request = {
                 origin: { lat: this.rideData.pickup.lat, lng: this.rideData.pickup.lng },
                 destination: { lat: this.rideData.dropoff.lat, lng: this.rideData.dropoff.lng },
                 travelMode: google.maps.TravelMode.DRIVING,
-                avoidHighways: false,
-                avoidTolls: false
             };
-
             this.directionsService.route(request, (result, status) => {
-                if (status === 'OK') {
-                    this.directionsRenderer.setDirections(result);
-                }
+                if (status === 'OK') this.directionsRenderer.setDirections(result);
             });
         }
 
-        // Add driver marker
         this.driverMarker = new google.maps.Marker({
             map: this.map,
             title: 'Driver Location',
@@ -289,13 +180,9 @@ class RideTracker {
             zIndex: 1000
         });
 
-        // Start real-time tracking
         this.startRealTimeTracking();
     }
 
-    /**
-     * Create animated driver icon
-     */
     createDriverIcon() {
         return {
             url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
@@ -310,9 +197,6 @@ class RideTracker {
         };
     }
 
-    /**
-     * Show static route for pending rides
-     */
     showStaticRoute() {
         if (this.rideData.dropoff.lat && this.rideData.dropoff.lng) {
             const request = {
@@ -320,108 +204,83 @@ class RideTracker {
                 destination: { lat: this.rideData.dropoff.lat, lng: this.rideData.dropoff.lng },
                 travelMode: google.maps.TravelMode.DRIVING
             };
-
             this.directionsService.route(request, (result, status) => {
-                if (status === 'OK') {
-                    this.directionsRenderer.setDirections(result);
-                }
+                if (status === 'OK') this.directionsRenderer.setDirections(result);
             });
         }
     }
 
-    /**
-     * Start real-time tracking - Firebase for in-progress rides, API polling for others
-     */
     startRealTimeTracking() {
-        // Use Firebase real-time tracking for in-progress rides
-        if (this.rideData.status === 'in_progress') {
-            this.startFirebaseTracking();
-        } else {
-            // Use API polling for other active statuses
-            this.startApiPolling();
-        }
+        this.startEchoTracking();
+        // API polling as safety net
+        this.startApiPolling();
     }
 
     /**
-     * Start Firebase real-time tracking with ride completion detection
+     * Subscribe to the PUBLIC `driver-location` channel via Laravel Echo (Reverb).
+     * Filter by driver_id client-side. Also watch `ride-updates` for status changes.
      */
-    startFirebaseTracking() {
-        try {
-            if (typeof firebase === 'undefined' || !firebase.database) {
-                console.log('Firebase not available, falling back to API polling');
-                this.startApiPolling();
-                return;
-            }
+    startEchoTracking() {
+        if (typeof window.Echo === 'undefined') {
+            console.warn('Laravel Echo not available — relying on API polling only');
+            return;
+        }
 
-            const firebaseRideId = this.rideData.firebaseRideId || `ride_${this.rideData.id}`;
-            this.firebaseRef = firebase.database().ref(`rides/${firebaseRideId}/driver_location`);
+        const driverId = this.rideData.driverId;
+        if (!driverId) {
+            console.warn('No driver assigned, skipping Echo subscription');
+            return;
+        }
 
-            console.log('Starting Firebase tracking for:', firebaseRideId);
+        console.log(`📡 Subscribing to driver-location for driver #${driverId}`);
 
-            this.firebaseRef.on('value', (snapshot) => {
-                const location = snapshot.val();
-                console.log('Firebase location update:', location);
-
-                if (location && location.lat && location.lng && this.driverMarker) {
-                    const newPosition = {
-                        lat: parseFloat(location.lat),
-                        lng: parseFloat(location.lng)
-                    };
-
-                    this.updateDriverPosition(newPosition);
-
-                    // Update timestamp if available
-                    if (location.timestamp) {
-                        this.lastLocationUpdate = new Date(location.timestamp);
-                    }
+        this.echoChannel = window.Echo.channel('driver-location')
+            .listen('.driver.location.updated', (e) => {
+                if (parseInt(e.driver_id) !== parseInt(driverId)) return;
+                if (e.latitude && e.longitude && this.driverMarker) {
+                    this.updateDriverPosition({
+                        lat: parseFloat(e.latitude),
+                        lng: parseFloat(e.longitude),
+                        bearing: e.bearing
+                    });
                 }
             });
 
-            // Listen for ride status changes to stop tracking when completed
-            const rideStatusRef = firebase.database().ref(`rides/${firebaseRideId}/status`);
-            rideStatusRef.on('value', (snapshot) => {
-                const status = snapshot.val();
-                if (status && (status === 'completed' || status === 'finished')) {
-                    console.log('Ride completed, stopping Firebase tracking');
+        this.echoStatusChannel = window.Echo.channel('ride-updates')
+            .listen('.ride.status.updated', (e) => {
+                if (parseInt(e.ride_id) !== parseInt(this.rideData.id)) return;
+                if (['completed', 'finished', 'finshed'].includes(e.status)) {
                     this.stopTracking();
+                    this.rideData.status = e.status;
                 }
             });
-
-        } catch (error) {
-            console.error('Firebase tracking error:', error);
-            this.startApiPolling();
-        }
     }
 
-    /**
-     * Start API polling as fallback
-     */
     startApiPolling() {
         this.trackingInterval = setInterval(() => {
             this.fetchDriverLocation();
-        }, 5000); // Update every 5 seconds
+        }, 5000);
     }
 
-    /**
-     * Fetch driver location from API with ride completion detection
-     */
     async fetchDriverLocation() {
         try {
-            const response = await fetch(`/api/rides/${this.rideData.id}/driver-location`);
+            const response = await fetch(`/api/rides/${this.rideData.id}/tracking-data`);
             const data = await response.json();
 
-            if (data.lat && data.lng && this.driverMarker) {
-                const newPosition = {
-                    lat: parseFloat(data.lat),
-                    lng: parseFloat(data.lng)
-                };
-
-                this.updateDriverPosition(newPosition);
+            if (data.live_driver_location && this.driverMarker) {
+                this.updateDriverPosition({
+                    lat: parseFloat(data.live_driver_location.lat),
+                    lng: parseFloat(data.live_driver_location.lng),
+                    bearing: data.live_driver_location.bearing
+                });
+            } else if (data.latest_location && this.driverMarker) {
+                this.updateDriverPosition({
+                    lat: parseFloat(data.latest_location.lat),
+                    lng: parseFloat(data.latest_location.lng)
+                });
             }
 
-            // Check if ride status changed to completed and stop tracking
-            if (data.status && (data.status === 'completed' || data.status === 'finished')) {
-                console.log('Ride completed, stopping tracking');
+            if (data.ride?.status && ['completed', 'finished', 'finshed'].includes(data.ride.status)) {
                 this.stopTracking();
             }
         } catch (error) {
@@ -429,32 +288,67 @@ class RideTracker {
         }
     }
 
-    /**
-     * Update driver position with smooth animation
-     */
+    updateLiveDriverLine(driverPos) {
+        if (!driverPos || !driverPos.lat || !driverPos.lng) return;
+        const status = this.rideData.status;
+        const pickup = this.rideData.pickup;
+        if (!pickup || !pickup.lat) return;
+
+        if (this.liveDriverLine) {
+            this.liveDriverLine.setMap(null);
+            this.liveDriverLine = null;
+        }
+
+        if (status === 'accepted' || status === 'waiting_user') {
+            this.liveDriverLine = new google.maps.Polyline({
+                path: [
+                    { lat: parseFloat(driverPos.lat), lng: parseFloat(driverPos.lng) },
+                    { lat: parseFloat(pickup.lat), lng: parseFloat(pickup.lng) }
+                ],
+                geodesic: true,
+                strokeColor: '#FF9800',
+                strokeOpacity: 0,
+                strokeWeight: 4,
+                icons: [{
+                    icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, strokeColor: '#FF9800', scale: 3 },
+                    offset: '0',
+                    repeat: '12px'
+                }]
+            });
+        } else if (status === 'in_progress') {
+            this.liveDriverLine = new google.maps.Polyline({
+                path: [
+                    { lat: parseFloat(pickup.lat), lng: parseFloat(pickup.lng) },
+                    { lat: parseFloat(driverPos.lat), lng: parseFloat(driverPos.lng) }
+                ],
+                geodesic: true,
+                strokeColor: '#2196F3',
+                strokeOpacity: 0.9,
+                strokeWeight: 4
+            });
+        }
+
+        if (this.liveDriverLine) this.liveDriverLine.setMap(this.map);
+    }
+
     updateDriverPosition(newPosition) {
         if (!this.driverMarker) return;
 
         const currentPosition = this.driverMarker.getPosition();
-
         if (currentPosition) {
-            // Animate marker movement
             this.animateMarker(this.driverMarker, currentPosition, newPosition);
         } else {
-            // First position update
             this.driverMarker.setPosition(newPosition);
         }
 
-        // Update map center if driver is far from view
+        this.updateLiveDriverLine(newPosition);
+
         const bounds = this.map.getBounds();
         if (bounds && !bounds.contains(newPosition)) {
             this.map.panTo(newPosition);
         }
     }
 
-    /**
-     * Animate marker movement
-     */
     animateMarker(marker, startPos, endPos) {
         const startLat = startPos.lat();
         const startLng = startPos.lng();
@@ -464,28 +358,23 @@ class RideTracker {
         let step = 0;
         const numSteps = 50;
         const timePerStep = 100;
-
         const stepLat = (endLat - startLat) / numSteps;
         const stepLng = (endLng - startLng) / numSteps;
 
         const animate = () => {
             if (step <= numSteps) {
-                const lat = startLat + (stepLat * step);
-                const lng = startLng + (stepLng * step);
-                marker.setPosition({ lat, lng });
+                marker.setPosition({
+                    lat: startLat + (stepLat * step),
+                    lng: startLng + (stepLng * step)
+                });
                 step++;
                 setTimeout(animate, timePerStep);
             }
         };
-
         animate();
     }
 
-    /**
-     * Show message when no drop-off location is set
-     */
     showNoDropoffMessage() {
-        // Create info window to show no drop-off message
         const noDropoffInfoWindow = new google.maps.InfoWindow({
             content: `<div class="alert alert-warning mb-0">
                         <strong>No Drop-off Location</strong><br>
@@ -493,42 +382,32 @@ class RideTracker {
                       </div>`,
             position: { lat: this.rideData.pickup.lat, lng: this.rideData.pickup.lng }
         });
-
         noDropoffInfoWindow.open(this.map);
-
-        // Note: Pickup marker is already shown in setupMarkers(), 
-        // so we don't need to create another marker here
     }
 
-    /**
-     * Stop all tracking activities
-     */
     stopTracking() {
-        // Stop Firebase listening
-        if (this.firebaseRef) {
-            this.firebaseRef.off();
-            this.firebaseRef = null;
-            console.log('Firebase tracking stopped');
+        if (this.echoChannel && typeof window.Echo !== 'undefined') {
+            try { window.Echo.leaveChannel('driver-location'); } catch (e) { /* ignore */ }
+            this.echoChannel = null;
         }
-
-        // Stop API polling
+        if (this.echoStatusChannel && typeof window.Echo !== 'undefined') {
+            try { window.Echo.leaveChannel('ride-updates'); } catch (e) { /* ignore */ }
+            this.echoStatusChannel = null;
+        }
         if (this.trackingInterval) {
             clearInterval(this.trackingInterval);
             this.trackingInterval = null;
-            console.log('API polling stopped');
+        }
+        if (this.liveDriverLine) {
+            this.liveDriverLine.setMap(null);
+            this.liveDriverLine = null;
         }
     }
 
-    /**
-     * Cleanup resources
-     */
     cleanup() {
         this.stopTracking();
     }
 
-    /**
-     * Refresh ride data
-     */
     async refreshRideData() {
         try {
             const response = await fetch(`/api/rides/${this.rideData.id}/tracking-data`);
@@ -540,8 +419,6 @@ class RideTracker {
                     status: data.ride.status,
                     routePoints: data.route_points
                 };
-
-                // Re-handle status if it changed
                 this.handleRideStatus();
             }
         } catch (error) {

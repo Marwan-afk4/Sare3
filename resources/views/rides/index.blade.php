@@ -326,7 +326,7 @@
                                             </td>
                                             <td>{!! $ride->status->badge() !!}</td>
                                             <td>
-                                                @if ($ride->driver)
+                                                @if ($ride->driver && in_array($ride->status->value, ['accepted', 'waiting_user', 'in_progress', 'completed', 'finshed']))
                                                     <span class="badge bg-success mb-1" title="{{ __('Accepted by :driver', ['driver' => $ride->driver->name]) }}">
                                                         <i class="fa fa-check-circle"></i> {{ __('Accepted') }}
                                                     </span>

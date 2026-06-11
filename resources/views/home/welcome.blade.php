@@ -504,13 +504,15 @@
         }
 
         // ─── Real-time: Laravel Echo → Reverb WebSocket ───────────────────────────
+        const _wsPort = window.location.port ? parseInt(window.location.port) : (window.location.protocol === 'https:' ? 443 : 80);
+        const _useTLS = window.location.protocol === 'https:';
         const echoConfig = {
-            broadcaster: 'reverb',
-            key:         '{{ config("broadcasting.connections.reverb.key") }}',
-            wsHost:      window.location.hostname,
-            wsPort:      443,
-            wssPort:     443,
-            forceTLS:    true,
+            broadcaster:       'reverb',
+            key:               '{{ config("broadcasting.connections.reverb.key") }}',
+            wsHost:            window.location.hostname,
+            wsPort:            _wsPort,
+            wssPort:           _wsPort,
+            forceTLS:          _useTLS,
             enabledTransports: ['ws', 'wss'],
         };
         console.log('📡 Initializing Echo with config:', echoConfig);
