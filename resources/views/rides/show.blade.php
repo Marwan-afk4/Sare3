@@ -113,7 +113,7 @@
                             </li>
                             <li class="list-group-item">
                                 <strong>{{ __('Status') }}:</strong>
-                                {!! $ride->status->badge() !!}
+                                <span id="ride-status-badge">{!! $ride->status->badge() !!}</span>
 
                                 <form action="{{ route('rides.updateStatus', $ride) }}" method="POST" class="d-inline-block ms-2">
                                     @csrf
@@ -372,6 +372,30 @@
     </div>
 
 @push('scripts')
+<!-- Laravel Echo + Pusher (Reverb) — loaded first -->
+<script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pusher-js@8.4.0/dist/web/pusher.min.js"></script>
+<script>
+    (function () {
+        try {
+            const wsPort  = window.location.port ? parseInt(window.location.port) : (window.location.protocol === 'https:' ? 443 : 80);
+            const useTLS  = window.location.protocol === 'https:';
+            window.Echo = new Echo({
+                broadcaster:       'reverb',
+                key:               '{{ config("broadcasting.connections.reverb.key") }}',
+                wsHost:            window.location.hostname,
+                wsPort:            wsPort,
+                wssPort:           wsPort,
+                forceTLS:          useTLS,
+                enabledTransports: ['ws', 'wss'],
+            });
+            console.log('📡 Laravel Echo (Reverb) initialized for ride tracking');
+        } catch (e) {
+            console.warn('Could not initialize Laravel Echo:', e);
+        }
+    })();
+</script>
+
 @include('rides.tracking-scripts')
 
 <script>
@@ -447,19 +471,6 @@ window.addEventListener('beforeunload', cleanup);
 </script>
 @endif
 
-<!-- Firebase SDK (if you want real-time updates) -->
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-<script>
-// Initialize Firebase for real-time tracking
-const firebaseConfig = {
-    databaseURL: 'https://sarea-adce3-default-rtdb.firebaseio.com'
-};
-
-if (typeof firebase !== 'undefined') {
-    firebase.initializeApp(firebaseConfig);
-}
-</script>
 @endpush
 
 @endsection
