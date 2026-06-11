@@ -219,4 +219,60 @@ class RideController extends Controller
     {
         return view('rides.track', compact('ride'));
     }
+
+    public function abnormal(Request $request)
+    {
+        $activeTab = $request->get('active_tab', 'multi_captain');
+        $durationThreshold = (int) $request->get('duration_threshold', 2); // default 2 minutes
+
+        // Query for Multi-Captain Rides
+        $multiCaptainQuery = Ride::with(['user', 'driver', 'offers.driver'])
+            ->withCount('offers')
+            ->has('offers', '>', 1);
+
+        // Query for Suspicious Rides
+        $suspiciousQuery = Ride::with(['user', 'driver', 'offers.driver'])
+            ->withCount('offers')
+            ->where(function ($query) use ($durationThreshold) {
+                // Case A: Cancelled after starting
+                $query->where('status', RideStatus::Cancelled->value)
+                      ->whereNotNull('trip_started_at');
+
+                // Case B: Completed abnormally quickly
+                $query->orWhere(function ($sub) use ($durationThreshold) {
+                    $sub->whereIn('status', [
+                        RideStatus::Completed->value,
+                        RideStatus::Finshed->value
+                    ])
+                    ->whereNotNull('trip_started_at')
+                    ->where(function ($orSub) use ($durationThreshold) {
+                        $orSub->whereRaw('TIMESTAMPDIFF(SECOND, trip_started_at, completed_at) <= ?', [$durationThreshold * 60])
+                              ->orWhere(function ($timeTakenQuery) use ($durationThreshold) {
+                                  $timeTakenQuery->whereNotNull('time_taken')
+                                                 ->where('time_taken', '>', 0)
+                                                 ->where('time_taken', '<=', $durationThreshold);
+                              });
+                    });
+                });
+            });
+
+        // Get total counts
+        $multiCaptainCount = $multiCaptainQuery->count();
+        $suspiciousCount   = $suspiciousQuery->count();
+
+        // Paginated results based on active tab
+        if ($activeTab === 'suspicious') {
+            $rides = $suspiciousQuery->orderBy('id', 'desc')->paginate(30)->appends($request->query());
+        } else {
+            $rides = $multiCaptainQuery->orderBy('offers_count', 'desc')->paginate(30)->appends($request->query());
+        }
+
+        return view('rides.abnormal', compact(
+            'rides',
+            'activeTab',
+            'durationThreshold',
+            'multiCaptainCount',
+            'suspiciousCount'
+        ));
+    }
 }
