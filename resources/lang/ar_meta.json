@@ -231,6 +231,7 @@
         "resources\/views\/ride-request-time-limits\/edit.blade.php",
         "resources\/views\/ride-request-time-limits\/index.blade.php",
         "resources\/views\/rides\/edit.blade.php",
+        "resources\/views\/rides\/index.blade.php",
         "resources\/views\/users\/edit.blade.php",
         "resources\/views\/users\/index.blade.php",
         "resources\/views\/wallet-requests\/edit.blade.php",
@@ -717,6 +718,7 @@
         "app\/Enums\/RideStatus.php"
     ],
     "Rejected": [
+        "app\/Models\/RideOffer.php",
         "app\/Enums\/ActivtyType.php",
         "app\/Enums\/DriverStatus.php",
         "app\/Enums\/RideStatus.php"
@@ -748,22 +750,22 @@
         "15": "resources\/views\/driver-documents\/index.blade.php",
         "16": "resources\/views\/driver-documents\/show.blade.php",
         "17": "resources\/views\/home\/welcome.blade.php",
-        "19": "resources\/views\/leaderboard\/index.blade.php",
-        "21": "resources\/views\/notifications\/create.blade.php",
-        "22": "resources\/views\/notifications\/edit.blade.php",
-        "23": "resources\/views\/notifications\/index.blade.php",
-        "24": "resources\/views\/notifications\/show.blade.php",
-        "25": "resources\/views\/rides\/create.blade.php",
-        "26": "resources\/views\/rides\/edit.blade.php",
-        "27": "resources\/views\/rides\/index.blade.php",
-        "28": "resources\/views\/rides\/show.blade.php",
-        "29": "resources\/views\/rides\/track.blade.php",
-        "30": "resources\/views\/users\/ride-history.blade.php",
-        "31": "resources\/views\/users\/show.blade.php",
-        "32": "resources\/views\/wallet-requests\/create.blade.php",
-        "33": "resources\/views\/wallet-requests\/show.blade.php",
-        "39": "app\/Http\/Controllers\/CancellationPolicyController.php",
-        "41": "app\/Enums\/OtpTypes.php"
+        "20": "resources\/views\/leaderboard\/index.blade.php",
+        "22": "resources\/views\/notifications\/create.blade.php",
+        "23": "resources\/views\/notifications\/edit.blade.php",
+        "24": "resources\/views\/notifications\/index.blade.php",
+        "25": "resources\/views\/notifications\/show.blade.php",
+        "26": "resources\/views\/rides\/create.blade.php",
+        "27": "resources\/views\/rides\/edit.blade.php",
+        "28": "resources\/views\/rides\/index.blade.php",
+        "30": "resources\/views\/rides\/show.blade.php",
+        "31": "resources\/views\/rides\/track.blade.php",
+        "32": "resources\/views\/users\/ride-history.blade.php",
+        "33": "resources\/views\/users\/show.blade.php",
+        "34": "resources\/views\/wallet-requests\/create.blade.php",
+        "35": "resources\/views\/wallet-requests\/show.blade.php",
+        "41": "app\/Http\/Controllers\/CancellationPolicyController.php",
+        "43": "app\/Enums\/OtpTypes.php"
     },
     "Document Type": [
         "resources\/views\/driver-documents\/create.blade.php",
@@ -1165,12 +1167,12 @@
         "resources\/views\/rides\/create.blade.php",
         "resources\/views\/rides\/edit.blade.php"
     ],
-    "Pickup Address": [
-        "resources\/views\/rides\/create.blade.php",
-        "resources\/views\/rides\/edit.blade.php",
-        "resources\/views\/rides\/index.blade.php",
-        "resources\/views\/rides\/show.blade.php"
-    ],
+    "Pickup Address": {
+        "0": "resources\/views\/rides\/create.blade.php",
+        "1": "resources\/views\/rides\/edit.blade.php",
+        "2": "resources\/views\/rides\/index.blade.php",
+        "4": "resources\/views\/rides\/show.blade.php"
+    },
     "Dropoff Lat": [
         "resources\/views\/rides\/create.blade.php",
         "resources\/views\/rides\/edit.blade.php"
@@ -1179,12 +1181,12 @@
         "resources\/views\/rides\/create.blade.php",
         "resources\/views\/rides\/edit.blade.php"
     ],
-    "Dropoff Address": [
-        "resources\/views\/rides\/create.blade.php",
-        "resources\/views\/rides\/edit.blade.php",
-        "resources\/views\/rides\/index.blade.php",
-        "resources\/views\/rides\/show.blade.php"
-    ],
+    "Dropoff Address": {
+        "0": "resources\/views\/rides\/create.blade.php",
+        "1": "resources\/views\/rides\/edit.blade.php",
+        "2": "resources\/views\/rides\/index.blade.php",
+        "4": "resources\/views\/rides\/show.blade.php"
+    },
     "Estimated Km": [
         "resources\/views\/rides\/create.blade.php",
         "resources\/views\/rides\/edit.blade.php"
@@ -1192,7 +1194,6 @@
     "Estimated Time": [
         "resources\/views\/rides\/create.blade.php",
         "resources\/views\/rides\/edit.blade.php",
-        "resources\/views\/rides\/index.blade.php",
         "resources\/views\/rides\/show.blade.php"
     ],
     "Calculated Initial Price": [
@@ -1258,11 +1259,9 @@
         "resources\/views\/rides\/edit.blade.php"
     ],
     "Initial Price": [
-        "resources\/views\/rides\/index.blade.php",
         "resources\/views\/rides\/show.blade.php"
     ],
     "Final Price": [
-        "resources\/views\/rides\/index.blade.php",
         "resources\/views\/rides\/show.blade.php"
     ],
     "The selected Car Categories is invalid.": [
@@ -1362,6 +1361,7 @@
         "resources\/views\/admin\/dashboard-support-widget.blade.php",
         "resources\/views\/admin\/support-chat\/realtime.blade.php",
         "resources\/views\/components\/support-chat-widget.blade.php",
+        "app\/Models\/RideOffer.php",
         "app\/Enums\/DriverStatus.php",
         "app\/Enums\/RideStatus.php"
     ],
@@ -1388,6 +1388,8 @@
         "app\/Enums\/RideStatus.php"
     ],
     "Accepted": [
+        "resources\/views\/rides\/index.blade.php",
+        "app\/Models\/RideOffer.php",
         "app\/Enums\/RideStatus.php"
     ],
     "Finished": [
@@ -1455,11 +1457,12 @@
     ],
     "Note": {
         "0": "resources\/views\/leaderboard\/index.blade.php",
-        "2": "resources\/views\/wallet-requests\/create.blade.php",
-        "3": "resources\/views\/wallet-requests\/edit.blade.php",
-        "4": "resources\/views\/wallet-requests\/history.blade.php",
-        "5": "resources\/views\/wallet-requests\/index.blade.php",
-        "7": "resources\/views\/wallet-requests\/show.blade.php"
+        "2": "resources\/views\/rides\/show.blade.php",
+        "3": "resources\/views\/wallet-requests\/create.blade.php",
+        "4": "resources\/views\/wallet-requests\/edit.blade.php",
+        "5": "resources\/views\/wallet-requests\/history.blade.php",
+        "6": "resources\/views\/wallet-requests\/index.blade.php",
+        "8": "resources\/views\/wallet-requests\/show.blade.php"
     },
     "Edit Wallet Request": [
         "resources\/views\/wallet-requests\/edit.blade.php"
@@ -1546,6 +1549,7 @@
         "resources\/views\/cancelation-rides\/edit.blade.php",
         "resources\/views\/cancelation-rides\/index.blade.php",
         "resources\/views\/cancelation-rides\/show.blade.php",
+        "resources\/views\/rides\/index.blade.php",
         "resources\/views\/rides\/show.blade.php"
     ],
     "Cancelation Policy": [
@@ -2044,11 +2048,13 @@
     "Distance": {
         "0": "resources\/views\/drivers\/ride-history.blade.php",
         "2": "resources\/views\/drivers\/show.blade.php",
-        "3": "resources\/views\/rides\/track.blade.php",
-        "4": "resources\/views\/users\/ride-history.blade.php",
-        "6": "resources\/views\/users\/show.blade.php"
+        "3": "resources\/views\/rides\/index.blade.php",
+        "5": "resources\/views\/rides\/track.blade.php",
+        "6": "resources\/views\/users\/ride-history.blade.php",
+        "8": "resources\/views\/users\/show.blade.php"
     },
     "km": [
+        "resources\/views\/rides\/index.blade.php",
         "resources\/views\/rides\/track.blade.php"
     ],
     "Duration": [
@@ -2057,6 +2063,7 @@
         "resources\/views\/users\/ride-history.blade.php"
     ],
     "min": [
+        "resources\/views\/rides\/index.blade.php",
         "resources\/views\/rides\/track.blade.php"
     ],
     "Price": [
@@ -2067,6 +2074,7 @@
     "Passenger": [
         "resources\/views\/drivers\/ride-history.blade.php",
         "resources\/views\/drivers\/show.blade.php",
+        "resources\/views\/rides\/index.blade.php",
         "resources\/views\/rides\/track.blade.php"
     ],
     "Trip Progress": [
@@ -2119,9 +2127,6 @@
         "resources\/views\/livewire\/zone-car-categories.blade.php"
     ],
     "Category": [
-        "resources\/views\/driver-cars\/index.blade.php",
-        "resources\/views\/driver-cars\/show.blade.php",
-        "resources\/views\/drivers\/show.blade.php",
         "resources\/views\/livewire\/zone-car-categories.blade.php"
     ],
     "Base": [
@@ -2486,6 +2491,7 @@
         "resources\/views\/rides\/track.blade.php"
     ],
     "No drop-off location selected": [
+        "resources\/views\/rides\/index.blade.php",
         "resources\/views\/rides\/track.blade.php"
     ],
     "The passenger has not selected a destination yet.": [
@@ -2728,7 +2734,8 @@
         "resources\/views\/admin\/support-chat\/realtime.blade.php"
     ],
     "Connecting...": [
-        "resources\/views\/admin\/support-chat\/realtime.blade.php"
+        "resources\/views\/admin\/support-chat\/realtime.blade.php",
+        "resources\/views\/rides\/track.blade.php"
     ],
     "Total": [
         "resources\/views\/admin\/support-chat\/realtime.blade.php"
@@ -2908,8 +2915,8 @@
         "6": "resources\/views\/leaderboard\/index.blade.php",
         "9": "resources\/views\/livewire\/coupon-manager.blade.php",
         "10": "resources\/views\/wallet-requests\/admin-limits.blade.php",
-        "12": "resources\/views\/wallet-requests\/index.blade.php",
-        "14": "resources\/views\/wallet-requests\/show.blade.php"
+        "13": "resources\/views\/wallet-requests\/index.blade.php",
+        "15": "resources\/views\/wallet-requests\/show.blade.php"
     },
     "Please select a valid supplier from the list.": [
         "resources\/views\/livewire\/supplier-autocomplete.blade.php"
@@ -3297,8 +3304,7 @@
         "resources\/views\/rides\/index.blade.php"
     ],
     "Filter by Status": [
-        "resources\/views\/drivers\/index.blade.php",
-        "resources\/views\/rides\/index.blade.php"
+        "resources\/views\/drivers\/index.blade.php"
     ],
     "Admin Message to Driver": [
         "resources\/views\/wallet-requests\/edit.blade.php"
@@ -3489,9 +3495,8 @@
         "resources\/views\/drivers\/show.blade.php"
     ],
     "Online": {
-        "0": "resources\/views\/drivers\/index.blade.php",
-        "1": "resources\/views\/drivers\/show.blade.php",
-        "3": "resources\/views\/home\/welcome.blade.php"
+        "0": "resources\/views\/drivers\/show.blade.php",
+        "2": "resources\/views\/home\/welcome.blade.php"
     },
     "Offline": {
         "0": "resources\/views\/drivers\/index.blade.php",
@@ -4010,6 +4015,7 @@
         "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "Subtract": [
+        "resources\/views\/admin\/admins\/index.blade.php",
         "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "History": [
@@ -4025,6 +4031,8 @@
         "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "Amount to Subtract": [
+        "resources\/views\/admin\/admins\/index.blade.php",
+        "resources\/views\/wallet-requests\/admin-limits.blade.php",
         "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "Maximum": [
@@ -4179,5 +4187,166 @@
     ],
     "Configuration": [
         "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    ],
+    "This will be subtracted from the current limit": [
+        "resources\/views\/admin\/admins\/index.blade.php",
+        "resources\/views\/wallet-requests\/admin-limits.blade.php"
+    ],
+    "Nothing to subtract; current limit is zero.": [
+        "resources\/views\/admin\/admins\/index.blade.php"
+    ],
+    "Categories": [
+        "resources\/views\/driver-cars\/index.blade.php",
+        "resources\/views\/driver-cars\/show.blade.php",
+        "resources\/views\/drivers\/show.blade.php"
+    ],
+    "Categories:": [
+        "resources\/views\/drivers\/cars.blade.php"
+    ],
+    "الحالة: متصل ومتاح": [
+        "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/drivers\/show.blade.php"
+    ],
+    "pending drivers": [
+        "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    ],
+    "Map updates in real-time via WebSocket": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "Status Filters": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Accepted after (seconds)": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Rides whose accepting captain took at least N seconds.": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Min captains offered": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Rides that cycled through at least N captains.": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Cancelled before any accept": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Show only rides user cancelled before any captain accepted": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Apply": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Captain Status": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Captains this ride was offered to": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Preview Route": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Ride Route Preview": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Loading map & route data...": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Route Locations": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Captain Offer History": [
+        "resources\/views\/rides\/index.blade.php",
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Not assigned": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Loading offer history...": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Response time": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "No offer records found for this ride.": [
+        "resources\/views\/rides\/index.blade.php"
+    ],
+    "Captain accept location": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "On the way to passenger": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Pickup": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Trip path": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Captain live": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Captain Tracking": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Accept Location": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Open in Google Maps": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Arrival at Pickup": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Passenger cancelled before any captain accepted": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "No offer records for this ride (likely created before offer tracking was enabled).": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Captain": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Offered At": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Responded At": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Response Time": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Result": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Attempt": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Real-time WebSocket Tracking Active": [
+        "resources\/views\/rides\/track.blade.php"
+    ],
+    "Subtract from Limit": [
+        "resources\/views\/wallet-requests\/admin-limits.blade.php"
+    ],
+    "Subtract from Wallet Limit": [
+        "resources\/views\/wallet-requests\/admin-limits.blade.php"
+    ],
+    "Amount must be at least 0.01.": [
+        "app\/Http\/Controllers\/WalletRequestController.php"
+    ],
+    "Cannot subtract more than the current wallet limit.": [
+        "app\/Http\/Controllers\/WalletRequestController.php"
+    ],
+    "Subtracted from admin wallet limit successfully. New limit: ": [
+        "app\/Http\/Controllers\/WalletRequestController.php"
+    ],
+    "Ignored": [
+        "app\/Models\/RideOffer.php"
+    ],
+    "Cancelled after accept": [
+        "app\/Models\/RideOffer.php"
+    ],
+    "Cancelled by user": [
+        "app\/Models\/RideOffer.php"
     ]
 }
