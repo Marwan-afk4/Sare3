@@ -189,7 +189,7 @@ class RideTrackingController extends Controller
      */
     public function getRideTrackingData(Request $request, $rideId): JsonResponse
     {
-        $ride = Ride::with(['user', 'driver', 'carCategory'])->find($rideId);
+        $ride = Ride::with(['user', 'driver', 'carCategory', 'offers.driver'])->find($rideId);
         
         if (!$ride) {
             return response()->json(['error' => 'Ride not found'], 404);
@@ -284,6 +284,18 @@ class RideTrackingController extends Controller
             }
         }
 
+        $offersData = [];
+        foreach ($ride->offers as $offer) {
+            $offersData[] = [
+                'driver_name' => $offer->driver?->name ?? ('Captain #' . $offer->driver_id),
+                'response' => $offer->response,
+                'response_label' => $offer->responseLabel(),
+                'response_color' => $offer->responseColor(),
+                'response_seconds' => $offer->response_seconds,
+                'offered_at' => $offer->offered_at ? $offer->offered_at->translatedFormat('h:i:s A') : null,
+            ];
+        }
+
         return response()->json([
             'ride' => $rideData,
             'route_points' => $displayPoints, // legacy flat list
@@ -296,7 +308,8 @@ class RideTrackingController extends Controller
             'filtered_points' => count($displayPoints),
             'snapped' => $snap,
             'latest_location' => $latestLocation,
-            'is_trackable' => in_array($status, ['in_progress', 'accepted', 'waiting_user'])
+            'is_trackable' => in_array($status, ['in_progress', 'accepted', 'waiting_user']),
+            'offers' => $offersData,
         ]);
     }
 }

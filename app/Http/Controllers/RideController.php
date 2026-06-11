@@ -44,7 +44,15 @@ class RideController extends Controller
         $minOffers = $request->get('min_offers');
 
         $ridesQuery = Ride::with(['user', 'driver', 'carCategory', 'coupon'])
-            ->withCount('offers')
+            ->withCount([
+                'offers',
+                'offers as rejected_count' => function ($query) {
+                    $query->where('response', \App\Models\RideOffer::RESPONSE_REJECTED);
+                },
+                'offers as timeout_count' => function ($query) {
+                    $query->where('response', \App\Models\RideOffer::RESPONSE_IGNORED);
+                }
+            ])
             ->when($keyword, function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->where('id', 'LIKE', "%{$keyword}%")
