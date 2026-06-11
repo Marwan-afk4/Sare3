@@ -6,7 +6,7 @@
         'users'       => ['users', 'drivers', 'admins', 'roles'],
         'rides'       => ['rides', 'cancelation-rides', 'zones', 'abnormal-rides'],
         'fleet'       => ['car-categories', 'car-models', 'car-types'],
-        'finance'     => ['wallet-requests', 'profit-statistics', 'profit-history', 'referrals', 'coupons', 'paymenent-methods'],
+        'finance'     => ['wallet-requests', 'financial-reports', 'profit-statistics', 'profit-history', 'referrals', 'coupons', 'paymenent-methods'],
         'settings'    => ['document-types', 'cancellation-policies', 'cancellation-reasons', 'ride-request-time-limits', 'otp-limits', 'settings'],
     ];
     foreach ($groupMap as $group => $pages) {
@@ -261,7 +261,7 @@
                 {{-- ═══════════════════════════════════════════════ --}}
                 {{-- SECTION: FINANCE & MARKETING                    --}}
                 {{-- ═══════════════════════════════════════════════ --}}
-                @canany(['إدارة طلبات المحفظة', 'إدارة إحصائيات الربح', 'إدارة الإحالات', 'إدارة الكوبونات', 'إدارة طرق الدفع'])
+                @canany(['إدارة طلبات المحفظة', 'إدارة التقارير المالية', 'إدارة إحصائيات الربح', 'إدارة الإحالات', 'إدارة الكوبونات', 'إدارة طرق الدفع'])
                 <li class="nav-item mt-3">
                     <p class="navbar-vertical-label">{{ __('Finance') }}</p>
                     <hr class="navbar-vertical-line"/>
@@ -273,6 +273,18 @@
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="credit-card"></span></span>
                                 <span class="nav-link-text-wrapper"><span class="nav-link-text">{{ __('Wallet Requests') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+                    @endcan
+
+                    @can('إدارة التقارير المالية')
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'financial-reports' ? 'active' : '' }}"
+                            href="{{ route('financial-reports.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="file-text"></span></span>
+                                <span class="nav-link-text-wrapper"><span class="nav-link-text">{{ __('Financial Reports') }}</span></span>
                             </div>
                         </a>
                     </div>

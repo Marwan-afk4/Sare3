@@ -123,6 +123,11 @@ Route::domain(config('app.dashboard_domain'))->group(function () {
                 Route::get('/history', [\App\Http\Controllers\Admin\ProfitStatisticsWebController::class, 'history'])->name('history');
             });
 
+            // Financial Reports routes
+            Route::middleware(['can:إدارة التقارير المالية'])->prefix('financial-reports')->name('financial-reports.')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Admin\FinancialReportsWebController::class, 'index'])->name('index');
+            });
+
             // Referral Management routes
             Route::middleware(['can:إدارة الإحالات'])->prefix('referrals')->name('referrals.')->group(function () {
                 Route::get('/', [AdminReferralController::class, 'index'])->name('index');
