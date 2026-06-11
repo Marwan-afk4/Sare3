@@ -80,28 +80,64 @@
         </div>
     </div>
 
+        {{-- Wallet Balance Filter --}}
+        <div class="card mb-3">
+            <div class="card-body">
+                <form method="GET" action="{{ route('drivers.index') }}" class="row g-3 align-items-end">
+                    @foreach (request()->except(['balance_operator', 'balance_amount', 'page']) as $key => $value)
+                        @if (is_array($value))
+                            @foreach ($value as $item)
+                                <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
+                            @endforeach
+                        @else
+                            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                        @endif
+                    @endforeach
+                    <div class="col-md-4">
+                        <label for="balance_operator" class="form-label fw-bold">{{ __('Balance Condition') }}</label>
+                        <select name="balance_operator" id="balance_operator" class="form-select">
+                            <option value="">{{ __('All Balances') }}</option>
+                            <option value="lt" {{ ($balanceOperator ?? '') === 'lt' ? 'selected' : '' }}>{{ __('Less than') }}</option>
+                            <option value="eq" {{ ($balanceOperator ?? '') === 'eq' ? 'selected' : '' }}>{{ __('Equal to') }}</option>
+                            <option value="gt" {{ ($balanceOperator ?? '') === 'gt' ? 'selected' : '' }}>{{ __('Greater than') }}</option>
+                            <option value="lte" {{ ($balanceOperator ?? '') === 'lte' ? 'selected' : '' }}>{{ __('Less than or equal to') }}</option>
+                            <option value="gte" {{ ($balanceOperator ?? '') === 'gte' ? 'selected' : '' }}>{{ __('Greater than or equal to') }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="balance_amount" class="form-label fw-bold">{{ __('Balance Amount (JOD)') }}</label>
+                        <input type="number" name="balance_amount" id="balance_amount" class="form-control"
+                            step="0.001" min="0" placeholder="10"
+                            value="{{ $balanceAmount ?? '' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fa fa-filter me-1"></i> {{ __('Apply Filters') }}
+                        </button>
+                        @if (request()->filled('balance_operator') || request()->filled('balance_amount'))
+                            <a href="{{ route('drivers.index', request()->except(['balance_operator', 'balance_amount', 'page'])) }}"
+                               class="btn btn-outline-secondary w-100 mt-2">
+                                <i class="fa fa-times me-1"></i> {{ __('Clear Filters') }}
+                            </a>
+                        @endif
+                    </div>
+                </form>
+            </div>
+        </div>
+
         {{-- Search Form --}}
         <div class="d-flex justify-content-end">
             <form action="{{ route(Route::currentRouteName(), [], false) }}" method="GET" class="d-flex"
                 style="max-width: 300px;">
-                @if (request('activity'))
-                    <input type="hidden" name="activity" value="{{ request('activity') }}">
-                @endif
-                @if (request('zone'))
-                    <input type="hidden" name="zone" value="{{ request('zone') }}">
-                @endif
-                @if (request('car_year'))
-                    <input type="hidden" name="car_year" value="{{ request('car_year') }}">
-                @endif
-                @if (request('status'))
-                    <input type="hidden" name="status" value="{{ request('status') }}">
-                @endif
-                @if (request('sort'))
-                    <input type="hidden" name="sort" value="{{ request('sort') }}">
-                @endif
-                @if (request('order'))
-                    <input type="hidden" name="order" value="{{ request('order') }}">
-                @endif
+                @foreach (request()->except(['keyword', 'page']) as $key => $value)
+                    @if (is_array($value))
+                        @foreach ($value as $item)
+                            <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
+                        @endforeach
+                    @else
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @endif
+                @endforeach
                 @if (request('keyword'))
                     <a class="btn btn-outline-secondary me-1"
                         href="{{ route(Route::currentRouteName(), request()->except('keyword')) }}">

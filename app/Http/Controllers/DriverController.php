@@ -34,6 +34,8 @@ class DriverController extends Controller
         $zoneId = $request->get('zone');
         $carYear = $request->get('car_year');
         $status = $request->get('status');
+        $balanceOperator = $request->get('balance_operator');
+        $balanceAmount = $request->get('balance_amount');
 
         $driverActivityCounts = User::where('role', 'driver')
             ->selectRaw('activity, COUNT(*) as count')
@@ -118,13 +120,15 @@ class DriverController extends Controller
                         ->orWhere('phone', 'LIKE', "%{$keyword}%");
                 });
             })
+            ->filterByWalletBalance($balanceOperator, $balanceAmount)
             ->orderBy($sortField, $sortOrder)
-            ->paginate(30);
+            ->paginate(30)
+            ->withQueryString();
 
         $driverActivtyStatus = ActivtyType::cases();
         $driverStatusCases = DriverStatus::cases();
 
-        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'driverStatusCases', 'driverStatusCounts', 'zones', 'driversWithNoZoneCount', 'carYears', 'carYearCounts'));
+        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'driverStatusCases', 'driverStatusCounts', 'zones', 'driversWithNoZoneCount', 'carYears', 'carYearCounts', 'balanceOperator', 'balanceAmount'));
     }
 
     public function documents(User $driver)
