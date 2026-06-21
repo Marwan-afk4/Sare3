@@ -266,7 +266,11 @@ class DriverController extends Controller
             unset($data['image']);
         }
 
+        if (!$request->filled('password')) {
+            unset($data['password']);
+        }
 
+        unset($data['password_confirmation']);
 
         $driver->update($data);
 

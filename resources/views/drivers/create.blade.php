@@ -36,6 +36,12 @@
 					label="{{ __('Password') }}"
 					required
 				/>
+				<x-form-input
+					name="password_confirmation"
+					type="password"
+					label="{{ __('Confirm Password') }}"
+					required
+				/>
 			<x-form-select
 				name="status"
 				type="select"

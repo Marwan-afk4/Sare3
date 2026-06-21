@@ -34,6 +34,16 @@
 					label="{{__('Phone')}}"
 					:value="$driver->phone ?? ''"
 				/>
+				<x-form-input
+					name="password"
+					type="password"
+					label="{{ __('Password (Leave blank to keep current)') }}"
+				/>
+				<x-form-input
+					name="password_confirmation"
+					type="password"
+					label="{{ __('Confirm Password') }}"
+				/>
                 <x-form-input
                     name="wallet"
                     type="number"
