@@ -11,6 +11,9 @@
 		<a href="{{ route('drivers.index') }}" class="btn btn-secondary btn-sm me-1"> <i class="fa fa-arrow-right"></i> {{__('Back to')}} {{__('Drivers')}}</a>
 		<a href='{{ route('drivers.show', $driver) }}' class="btn btn-primary btn-sm me-1">{{ __("Details") }} <i class="fa fa-eye"></i></a>
 	</div>
+	@if (session('success'))
+		<div class="alert alert-success">{{ session('success') }}</div>
+	@endif
 	<div class="main-card mb-3 card">
 		<div class="card-body">
 			@if ($errors->any())
@@ -63,13 +66,13 @@
 				@endif
 				<div id="password-fields-wrapper">
 					<x-form-input
-						name="password"
+						name="new_password"
 						type="password"
 						label="{{ __('New Password') }}"
 						:attrs="['autocomplete' => 'new-password']"
 					/>
 					<x-form-input
-						name="password_confirmation"
+						name="new_password_confirmation"
 						type="password"
 						label="{{ __('Confirm New Password') }}"
 						:attrs="['autocomplete' => 'new-password']"

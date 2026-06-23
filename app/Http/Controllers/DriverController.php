@@ -268,22 +268,17 @@ class DriverController extends Controller
             unset($data['image']);
         }
 
-        $removePassword = $request->has('remove_password');
-        $newPassword = $data['password'] ?? null;
-
-        unset($data['password'], $data['password_confirmation'], $data['remove_password']);
-
-        $driver->fill($data);
-
-        if ($removePassword) {
-            $driver->password = null;
-        } elseif (filled($newPassword)) {
-            $driver->password = $newPassword;
+        if ($request->boolean('remove_password')) {
+            $data['password'] = null;
+        } elseif ($request->filled('new_password')) {
+            $data['password'] = $request->input('new_password');
         }
 
-        $driver->save();
+        unset($data['new_password'], $data['new_password_confirmation'], $data['remove_password']);
 
-        return redirect()->route('drivers.index')->with('success', __('Driver updated successfully.'));
+        $driver->update($data);
+
+        return redirect()->route('drivers.edit', $driver)->with('success', __('Driver updated successfully.'));
     }
 
     public function destroy(User $driver)
