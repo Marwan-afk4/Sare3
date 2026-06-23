@@ -13,7 +13,16 @@
 	</div>
 	<div class="main-card mb-3 card">
 		<div class="card-body">
-			<form method='POST' enctype="multipart/form-data" action='{{ route('drivers.update', $driver->id) }}'  novalidate>
+			@if ($errors->any())
+				<div class="alert alert-danger">
+					<ul class="mb-0">
+						@foreach ($errors->all() as $error)
+							<li>{{ $error }}</li>
+						@endforeach
+					</ul>
+				</div>
+			@endif
+			<form method='POST' enctype="multipart/form-data" action='{{ route('drivers.update', $driver->id) }}' id="driver-edit-form" novalidate>
 				@csrf
 				@method('PUT')
 				<x-form-input
@@ -130,45 +139,20 @@
 @push('scripts')
 <script>
     (function () {
-        const form = document.querySelector('form[action*="drivers"]');
         const removePassword = document.getElementById('remove_password');
         const passwordWrapper = document.getElementById('password-fields-wrapper');
-        const password = document.getElementById('password');
-        const passwordConfirmation = document.getElementById('password_confirmation');
 
         function togglePasswordFields() {
             if (!removePassword || !passwordWrapper) {
                 return;
             }
 
-            const removing = removePassword.checked;
-            passwordWrapper.classList.toggle('d-none', removing);
-
-            if (removing) {
-                password.value = '';
-                passwordConfirmation.value = '';
-                password.removeAttribute('name');
-                passwordConfirmation.removeAttribute('name');
-            } else {
-                password.setAttribute('name', 'password');
-                passwordConfirmation.setAttribute('name', 'password_confirmation');
-            }
+            passwordWrapper.classList.toggle('d-none', removePassword.checked);
         }
 
         if (removePassword) {
             removePassword.addEventListener('change', togglePasswordFields);
             togglePasswordFields();
-        }
-
-        if (form) {
-            form.addEventListener('submit', function () {
-                if (removePassword && removePassword.checked) {
-                    password.value = '';
-                    passwordConfirmation.value = '';
-                    password.removeAttribute('name');
-                    passwordConfirmation.removeAttribute('name');
-                }
-            });
         }
     })();
 
