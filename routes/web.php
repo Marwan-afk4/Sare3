@@ -70,7 +70,6 @@ Route::domain(config('app.dashboard_domain'))->group(function () {
             });
             Route::middleware(['can:إدارة السائقين'])->group(function () {
                 Route::resource('/drivers', DriverController::class);
-                Route::put('/drivers/{driver}/password', [DriverController::class, 'updatePassword'])->name('drivers.update-password');
                 Route::get('/drivers/{driver}/documents', [DriverController::class, 'documents'])->name('drivers.documents');
                 Route::get('/drivers/{driver}/cars', [DriverController::class, 'cars'])->name('drivers.cars');
                 Route::get('/drivers/{driver}/ride-history', [DriverController::class, 'rideHistory'])->name('drivers.ride-history');

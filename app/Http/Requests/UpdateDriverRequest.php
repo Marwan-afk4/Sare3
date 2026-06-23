@@ -18,6 +18,18 @@ class UpdateDriverRequest extends FormRequest
 
     public function rules()
     {
+        if ($this->boolean('_password_only')) {
+            if ($this->has('remove_password')) {
+                return [
+                    'remove_password' => 'required|in:1',
+                ];
+            }
+
+            return [
+                'password' => 'required|string|min:8|confirmed',
+            ];
+        }
+
         $driver = $this->route('driver');
         $driverId = $driver instanceof \App\Models\User ? $driver->id : $driver;
 
@@ -39,6 +51,9 @@ class UpdateDriverRequest extends FormRequest
             'email.email' => __('The Email must be a valid email address.'),
             'email.unique' => __('The Email has already been taken.'),
             'phone.unique' => __('The Phone has already been taken.'),
+            'password.required' => __('The Password field is required.'),
+            'password.min' => __('The Password must be at least 8 characters.'),
+            'password.confirmed' => __('The Password confirmation does not match.'),
             'status.in' => __('The Status must be one of the following: approved, rejected, pending.'),
             'zone_id.exists' => __('The selected zone does not exist.'),
             'activity.in'=> __('The Activity must be one of the following: active, inactive, in progress, rejected.'),

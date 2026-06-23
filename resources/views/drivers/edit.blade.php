@@ -16,7 +16,7 @@
 	@endif
 	<div class="main-card mb-3 card">
 		<div class="card-body">
-			@if ($errors->any())
+			@if ($errors->any() && ! old('_password_only'))
 				<div class="alert alert-danger">
 					<ul class="mb-0">
 						@foreach ($errors->all() as $error)
@@ -105,7 +105,7 @@
 		</div>
 	</div>
 
-	<div class="main-card mb-3 card">
+	<div class="main-card mb-3 card" id="password-section">
 		<div class="card-body">
 			<h5 class="mb-3">{{ __('Password') }}</h5>
 			<p class="text-muted mb-3">
@@ -116,22 +116,20 @@
 				@endif
 			</p>
 
-			@if ($errors->has('password') || $errors->has('password_confirmation'))
+			@if (old('_password_only') && $errors->any())
 				<div class="alert alert-danger">
 					<ul class="mb-0">
-						@foreach ($errors->get('password') as $error)
-							<li>{{ $error }}</li>
-						@endforeach
-						@foreach ($errors->get('password_confirmation') as $error)
+						@foreach ($errors->all() as $error)
 							<li>{{ $error }}</li>
 						@endforeach
 					</ul>
 				</div>
 			@endif
 
-			<form method="POST" action="{{ route('drivers.update-password', $driver) }}" id="driver-password-form">
+			<form method="POST" action="{{ route('drivers.update', $driver) }}" id="driver-password-form" novalidate>
 				@csrf
 				@method('PUT')
+				<input type="hidden" name="_password_only" value="1">
 
 				@if($hasPassword)
 					<div class="mb-3">
@@ -154,30 +152,30 @@
 
 				<div id="password-fields-wrapper">
 					<div class="mb-3">
-						<label for="password" class="form-label">{{ __('New Password') }}</label>
+						<label for="driver_password" class="form-label">{{ __('New Password') }}</label>
 						<input
 							type="password"
 							class="form-control @error('password') is-invalid @enderror"
-							id="password"
+							id="driver_password"
 							name="password"
 							autocomplete="new-password"
 						>
 						@error('password')
-							<div class="invalid-feedback">{{ $message }}</div>
+							<div class="text-danger small mt-1">{{ $message }}</div>
 						@enderror
 					</div>
 
 					<div class="mb-3">
-						<label for="password_confirmation" class="form-label">{{ __('Confirm New Password') }}</label>
+						<label for="driver_password_confirmation" class="form-label">{{ __('Confirm New Password') }}</label>
 						<input
 							type="password"
 							class="form-control @error('password_confirmation') is-invalid @enderror"
-							id="password_confirmation"
+							id="driver_password_confirmation"
 							name="password_confirmation"
 							autocomplete="new-password"
 						>
 						@error('password_confirmation')
-							<div class="invalid-feedback">{{ $message }}</div>
+							<div class="text-danger small mt-1">{{ $message }}</div>
 						@enderror
 					</div>
 				</div>
@@ -193,8 +191,8 @@
     (function () {
         const removePassword = document.getElementById('remove_password');
         const passwordWrapper = document.getElementById('password-fields-wrapper');
-        const password = document.getElementById('password');
-        const passwordConfirmation = document.getElementById('password_confirmation');
+        const password = document.getElementById('driver_password');
+        const passwordConfirmation = document.getElementById('driver_password_confirmation');
 
         function togglePasswordFields() {
             if (!removePassword || !passwordWrapper) {
@@ -203,8 +201,6 @@
 
             const removing = removePassword.checked;
             passwordWrapper.classList.toggle('d-none', removing);
-            password.required = !removing;
-            passwordConfirmation.required = !removing;
 
             if (removing) {
                 password.value = '';
@@ -216,6 +212,10 @@
             removePassword.addEventListener('change', togglePasswordFields);
             togglePasswordFields();
         }
+
+        @if (old('_password_only'))
+        document.getElementById('password-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        @endif
     })();
 
     document.getElementById('imageInput').addEventListener('change', function () {
