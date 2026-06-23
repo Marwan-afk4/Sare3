@@ -16,7 +16,7 @@
 	@endif
 	<div class="main-card mb-3 card">
 		<div class="card-body">
-			@if ($errors->any() && ! old('_password_only'))
+			@if ($errors->any() && ! old('_password_action'))
 				<div class="alert alert-danger">
 					<ul class="mb-0">
 						@foreach ($errors->all() as $error)
@@ -116,7 +116,7 @@
 				@endif
 			</p>
 
-			@if (old('_password_only') && $errors->any())
+			@if (old('_password_action') && $errors->any())
 				<div class="alert alert-danger">
 					<ul class="mb-0">
 						@foreach ($errors->all() as $error)
@@ -129,7 +129,7 @@
 			<form method="POST" action="{{ route('drivers.update', $driver) }}" id="driver-password-form" novalidate>
 				@csrf
 				@method('PUT')
-				<input type="hidden" name="_password_only" value="1">
+				<input type="hidden" name="_password_action" id="password_action" value="set">
 
 				@if($hasPassword)
 					<div class="mb-3">
@@ -137,10 +137,9 @@
 							<input
 								class="form-check-input"
 								type="checkbox"
-								name="remove_password"
 								id="remove_password"
 								value="1"
-								{{ old('remove_password') ? 'checked' : '' }}
+								{{ old('_password_action') === 'remove' ? 'checked' : '' }}
 							>
 							<label class="form-check-label" for="remove_password">
 								{{ __('Remove password') }}
@@ -155,12 +154,12 @@
 						<label for="driver_password" class="form-label">{{ __('New Password') }}</label>
 						<input
 							type="password"
-							class="form-control @error('password') is-invalid @enderror"
+							class="form-control @error('driver_password') is-invalid @enderror"
 							id="driver_password"
-							name="password"
+							name="driver_password"
 							autocomplete="new-password"
 						>
-						@error('password')
+						@error('driver_password')
 							<div class="text-danger small mt-1">{{ $message }}</div>
 						@enderror
 					</div>
@@ -169,12 +168,12 @@
 						<label for="driver_password_confirmation" class="form-label">{{ __('Confirm New Password') }}</label>
 						<input
 							type="password"
-							class="form-control @error('password_confirmation') is-invalid @enderror"
+							class="form-control @error('driver_password_confirmation') is-invalid @enderror"
 							id="driver_password_confirmation"
-							name="password_confirmation"
+							name="driver_password_confirmation"
 							autocomplete="new-password"
 						>
-						@error('password_confirmation')
+						@error('driver_password_confirmation')
 							<div class="text-danger small mt-1">{{ $message }}</div>
 						@enderror
 					</div>
@@ -189,10 +188,12 @@
 @push('scripts')
 <script>
     (function () {
+        const passwordForm = document.getElementById('driver-password-form');
         const removePassword = document.getElementById('remove_password');
         const passwordWrapper = document.getElementById('password-fields-wrapper');
         const password = document.getElementById('driver_password');
         const passwordConfirmation = document.getElementById('driver_password_confirmation');
+        const passwordAction = document.getElementById('password_action');
 
         function togglePasswordFields() {
             if (!removePassword || !passwordWrapper) {
@@ -213,7 +214,17 @@
             togglePasswordFields();
         }
 
-        @if (old('_password_only'))
+        if (passwordForm && passwordAction) {
+            passwordForm.addEventListener('submit', function () {
+                if (removePassword && removePassword.checked) {
+                    passwordAction.value = 'remove';
+                } else {
+                    passwordAction.value = 'set';
+                }
+            });
+        }
+
+        @if (old('_password_action'))
         document.getElementById('password-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         @endif
     })();

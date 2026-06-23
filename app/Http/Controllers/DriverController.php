@@ -16,8 +16,6 @@ use App\Helpers\RideHelper;
 use App\trait\ImageUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 
 class DriverController extends Controller
 {
@@ -259,18 +257,24 @@ class DriverController extends Controller
 
     public function update(UpdateDriverRequest $request, User $driver)
     {
-        if ($request->boolean('_password_only')) {
-            if ($request->has('remove_password')) {
-                DB::table('users')->where('id', $driver->id)->update(['password' => null]);
+        if ($request->filled('_password_action')) {
+            if ($request->input('_password_action') === 'remove') {
+                $driver->forceFill(['password' => null])->save();
 
                 return redirect()
                     ->route('drivers.edit', $driver)
                     ->with('success', __('Password removed successfully.'));
             }
 
-            DB::table('users')->where('id', $driver->id)->update([
-                'password' => Hash::make($request->input('password')),
-            ]);
+            $driver->password = $request->input('driver_password');
+            $driver->save();
+            $driver->refresh();
+
+            if (empty($driver->getAttributes()['password'])) {
+                return back()
+                    ->withErrors(['driver_password' => __('Failed to save password. Please try again.')])
+                    ->withInput(['_password_action' => 'set']);
+            }
 
             return redirect()
                 ->route('drivers.edit', $driver)

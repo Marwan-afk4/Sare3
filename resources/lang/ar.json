@@ -673,6 +673,7 @@
     "Update Password": "تحديث كلمة المرور",
     "Password updated successfully.": "تم تحديث كلمة المرور بنجاح.",
     "Password removed successfully.": "تم إزالة كلمة المرور بنجاح.",
+    "Failed to save password. Please try again.": "فشل حفظ كلمة المرور. يرجى المحاولة مرة أخرى.",
     "Update": "تحديث",
     "Admins": "المشرفون",
     "Are you sure you want to delete this admin?": "هل أنت متأكد من حذف هذا المشرف؟",

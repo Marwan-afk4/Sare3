@@ -18,15 +18,16 @@ class UpdateDriverRequest extends FormRequest
 
     public function rules()
     {
-        if ($this->boolean('_password_only')) {
-            if ($this->has('remove_password')) {
+        if ($this->filled('_password_action')) {
+            if ($this->input('_password_action') === 'remove') {
                 return [
-                    'remove_password' => 'required|in:1',
+                    '_password_action' => 'required|in:remove',
                 ];
             }
 
             return [
-                'password' => 'required|string|min:8|confirmed',
+                '_password_action' => 'required|in:set',
+                'driver_password' => 'required|string|min:8|confirmed',
             ];
         }
 
@@ -51,9 +52,9 @@ class UpdateDriverRequest extends FormRequest
             'email.email' => __('The Email must be a valid email address.'),
             'email.unique' => __('The Email has already been taken.'),
             'phone.unique' => __('The Phone has already been taken.'),
-            'password.required' => __('The Password field is required.'),
-            'password.min' => __('The Password must be at least 8 characters.'),
-            'password.confirmed' => __('The Password confirmation does not match.'),
+            'driver_password.required' => __('The Password field is required.'),
+            'driver_password.min' => __('The Password must be at least 8 characters.'),
+            'driver_password.confirmed' => __('The Password confirmation does not match.'),
             'status.in' => __('The Status must be one of the following: approved, rejected, pending.'),
             'zone_id.exists' => __('The selected zone does not exist.'),
             'activity.in'=> __('The Activity must be one of the following: active, inactive, in progress, rejected.'),
