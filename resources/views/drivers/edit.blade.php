@@ -82,7 +82,7 @@
                     type="select"
                     label="{{__('Activity')}}"
                     :selected="$driver->activity->value ?? ''"
-                    :options="['active' => __('Active'), 'inactive' => __('Inactive')]"
+                    :options="$diverActivityStatus"
                     required
                 />
                 <x-form-select

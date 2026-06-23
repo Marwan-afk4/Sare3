@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\ActivtyType;
+use App\Enums\DriverStatus;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
+
 class UpdateDriverRequest extends FormRequest
 {
     public function authorize()
@@ -23,14 +26,18 @@ class UpdateDriverRequest extends FormRequest
             'email' => 'nullable|email|unique:users,email,' . $driverId,
             'phone' => 'nullable|unique:users,phone,' . $driverId,
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'password' => 'nullable|string|min:8|confirmed',
+            'password' => [
+                Rule::excludeIf(fn () => $this->boolean('remove_password')),
+                'nullable',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
             'remove_password' => 'nullable|boolean',
-            // 'activity' => 'nullable',
-            'status' => 'nullable|in:approved,rejected',
+            'status' => ['nullable', Rule::in(DriverStatus::values())],
             'wallet' => 'nullable|numeric|min:0',
-            'activity' => ['required', Rule::in('active', 'inactive')],
+            'activity' => ['required', Rule::in(ActivtyType::values())],
             'zone_id' => 'nullable|exists:zones,id',
-            // 'role' => 'nullable'
         ];
     }
 
@@ -43,9 +50,9 @@ class UpdateDriverRequest extends FormRequest
             'password.min' => __('The Password must be at least 8 characters.'),
             'password.string' => __('The Password must be a string.'),
             'password.confirmed' => __('The Password confirmation does not match.'),
-            'status.in' => __('The Status must be one of the following: approved, rejected.'),
+            'status.in' => __('The Status must be one of the following: approved, rejected, pending.'),
             'zone_id.exists' => __('The selected zone does not exist.'),
-            'activity.in'=> __('The Activity must be one of the following: active, inactive.'),
+            'activity.in'=> __('The Activity must be one of the following: active, inactive, in progress, rejected.'),
             'wallet.numeric'=> __('The Wallet must be a number.'),
             'wallet.min'=> __('The Wallet must be at least 0.'),
             'activity.required'=> __('The Activity field is required.'),
