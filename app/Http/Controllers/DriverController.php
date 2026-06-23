@@ -7,6 +7,7 @@ use App\Enums\DriverStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreDriverRequest;
 use App\Http\Requests\UpdateDriverRequest;
+use App\Http\Requests\UpdateDriverPasswordRequest;
 use App\Models\DriverDocument;
 use App\Models\DocumentType;
 use App\Models\User;
@@ -16,6 +17,8 @@ use App\Helpers\RideHelper;
 use App\trait\ImageUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class DriverController extends Controller
 {
@@ -268,17 +271,28 @@ class DriverController extends Controller
             unset($data['image']);
         }
 
-        if ($request->boolean('remove_password')) {
-            $data['password'] = null;
-        } elseif ($request->filled('new_password')) {
-            $data['password'] = $request->input('new_password');
-        }
-
-        unset($data['new_password'], $data['new_password_confirmation'], $data['remove_password']);
-
         $driver->update($data);
 
         return redirect()->route('drivers.edit', $driver)->with('success', __('Driver updated successfully.'));
+    }
+
+    public function updatePassword(UpdateDriverPasswordRequest $request, User $driver)
+    {
+        if ($driver->role !== 'driver') {
+            return redirect()->route('drivers.index')->with('error', __('Only drivers can be updated from this page.'));
+        }
+
+        if ($request->has('remove_password')) {
+            DB::table('users')->where('id', $driver->id)->update(['password' => null]);
+
+            return redirect()->route('drivers.edit', $driver)->with('success', __('Password removed successfully.'));
+        }
+
+        DB::table('users')->where('id', $driver->id)->update([
+            'password' => Hash::make($request->input('password')),
+        ]);
+
+        return redirect()->route('drivers.edit', $driver)->with('success', __('Password updated successfully.'));
     }
 
     public function destroy(User $driver)

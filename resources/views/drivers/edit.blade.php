@@ -46,39 +46,6 @@
 					label="{{__('Phone')}}"
 					:value="$driver->phone ?? ''"
 				/>
-				@if($hasPassword)
-					<div class="mb-3">
-						<div class="form-check form-switch">
-							<input
-								class="form-check-input"
-								type="checkbox"
-								name="remove_password"
-								id="remove_password"
-								value="1"
-								{{ old('remove_password') ? 'checked' : '' }}
-							>
-							<label class="form-check-label" for="remove_password">
-								{{ __('Remove password') }}
-							</label>
-						</div>
-						<small class="text-muted">{{ __('Driver will sign in using OTP only.') }}</small>
-					</div>
-				@endif
-				<div id="password-fields-wrapper">
-					<x-form-input
-						name="new_password"
-						type="password"
-						label="{{ __('New Password') }}"
-						:attrs="['autocomplete' => 'new-password']"
-					/>
-					<x-form-input
-						name="new_password_confirmation"
-						type="password"
-						label="{{ __('Confirm New Password') }}"
-						:attrs="['autocomplete' => 'new-password']"
-					/>
-					<small class="text-muted d-block mb-3">{{ __('Fill only when you want to set a new password for this driver.') }}</small>
-				</div>
                 <x-form-input
                     name="wallet"
                     type="number"
@@ -137,6 +104,88 @@
 			</form>
 		</div>
 	</div>
+
+	<div class="main-card mb-3 card">
+		<div class="card-body">
+			<h5 class="mb-3">{{ __('Password') }}</h5>
+			<p class="text-muted mb-3">
+				@if($hasPassword)
+					{{ __('This driver currently has a password set.') }}
+				@else
+					{{ __('This driver has no password and signs in using OTP only.') }}
+				@endif
+			</p>
+
+			@if ($errors->has('password') || $errors->has('password_confirmation'))
+				<div class="alert alert-danger">
+					<ul class="mb-0">
+						@foreach ($errors->get('password') as $error)
+							<li>{{ $error }}</li>
+						@endforeach
+						@foreach ($errors->get('password_confirmation') as $error)
+							<li>{{ $error }}</li>
+						@endforeach
+					</ul>
+				</div>
+			@endif
+
+			<form method="POST" action="{{ route('drivers.update-password', $driver) }}" id="driver-password-form">
+				@csrf
+				@method('PUT')
+
+				@if($hasPassword)
+					<div class="mb-3">
+						<div class="form-check form-switch">
+							<input
+								class="form-check-input"
+								type="checkbox"
+								name="remove_password"
+								id="remove_password"
+								value="1"
+								{{ old('remove_password') ? 'checked' : '' }}
+							>
+							<label class="form-check-label" for="remove_password">
+								{{ __('Remove password') }}
+							</label>
+						</div>
+						<small class="text-muted">{{ __('Driver will sign in using OTP only.') }}</small>
+					</div>
+				@endif
+
+				<div id="password-fields-wrapper">
+					<div class="mb-3">
+						<label for="password" class="form-label">{{ __('New Password') }}</label>
+						<input
+							type="password"
+							class="form-control @error('password') is-invalid @enderror"
+							id="password"
+							name="password"
+							autocomplete="new-password"
+						>
+						@error('password')
+							<div class="invalid-feedback">{{ $message }}</div>
+						@enderror
+					</div>
+
+					<div class="mb-3">
+						<label for="password_confirmation" class="form-label">{{ __('Confirm New Password') }}</label>
+						<input
+							type="password"
+							class="form-control @error('password_confirmation') is-invalid @enderror"
+							id="password_confirmation"
+							name="password_confirmation"
+							autocomplete="new-password"
+						>
+						@error('password_confirmation')
+							<div class="invalid-feedback">{{ $message }}</div>
+						@enderror
+					</div>
+				</div>
+
+				<button type="submit" class="btn btn-primary btn-sm">{{ __('Update Password') }}</button>
+			</form>
+		</div>
+	</div>
 </div>
 @endsection
 @push('scripts')
@@ -144,13 +193,23 @@
     (function () {
         const removePassword = document.getElementById('remove_password');
         const passwordWrapper = document.getElementById('password-fields-wrapper');
+        const password = document.getElementById('password');
+        const passwordConfirmation = document.getElementById('password_confirmation');
 
         function togglePasswordFields() {
             if (!removePassword || !passwordWrapper) {
                 return;
             }
 
-            passwordWrapper.classList.toggle('d-none', removePassword.checked);
+            const removing = removePassword.checked;
+            passwordWrapper.classList.toggle('d-none', removing);
+            password.required = !removing;
+            passwordConfirmation.required = !removing;
+
+            if (removing) {
+                password.value = '';
+                passwordConfirmation.value = '';
+            }
         }
 
         if (removePassword) {
