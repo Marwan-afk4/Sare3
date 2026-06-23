@@ -34,16 +34,6 @@
 					label="{{__('Phone')}}"
 					:value="$driver->phone ?? ''"
 				/>
-				<x-form-input
-					name="password"
-					type="password"
-					label="{{ __('Password (Leave blank to keep current)') }}"
-				/>
-				<x-form-input
-					name="password_confirmation"
-					type="password"
-					label="{{ __('Confirm Password') }}"
-				/>
 				@if($hasPassword)
 					<div class="mb-3">
 						<div class="form-check form-switch">
@@ -62,6 +52,21 @@
 						<small class="text-muted">{{ __('Driver will sign in using OTP only.') }}</small>
 					</div>
 				@endif
+				<div id="password-fields-wrapper">
+					<x-form-input
+						name="password"
+						type="password"
+						label="{{ __('New Password') }}"
+						:attrs="['autocomplete' => 'new-password']"
+					/>
+					<x-form-input
+						name="password_confirmation"
+						type="password"
+						label="{{ __('Confirm New Password') }}"
+						:attrs="['autocomplete' => 'new-password']"
+					/>
+					<small class="text-muted d-block mb-3">{{ __('Fill only when you want to set a new password for this driver.') }}</small>
+				</div>
                 <x-form-input
                     name="wallet"
                     type="number"
@@ -125,28 +130,45 @@
 @push('scripts')
 <script>
     (function () {
+        const form = document.querySelector('form[action*="drivers"]');
         const removePassword = document.getElementById('remove_password');
+        const passwordWrapper = document.getElementById('password-fields-wrapper');
         const password = document.getElementById('password');
         const passwordConfirmation = document.getElementById('password_confirmation');
 
         function togglePasswordFields() {
-            if (!removePassword) {
+            if (!removePassword || !passwordWrapper) {
                 return;
             }
 
-            const disabled = removePassword.checked;
-            password.disabled = disabled;
-            passwordConfirmation.disabled = disabled;
+            const removing = removePassword.checked;
+            passwordWrapper.classList.toggle('d-none', removing);
 
-            if (disabled) {
+            if (removing) {
                 password.value = '';
                 passwordConfirmation.value = '';
+                password.removeAttribute('name');
+                passwordConfirmation.removeAttribute('name');
+            } else {
+                password.setAttribute('name', 'password');
+                passwordConfirmation.setAttribute('name', 'password_confirmation');
             }
         }
 
         if (removePassword) {
             removePassword.addEventListener('change', togglePasswordFields);
             togglePasswordFields();
+        }
+
+        if (form) {
+            form.addEventListener('submit', function () {
+                if (removePassword && removePassword.checked) {
+                    password.value = '';
+                    passwordConfirmation.value = '';
+                    password.removeAttribute('name');
+                    passwordConfirmation.removeAttribute('name');
+                }
+            });
         }
     })();
 

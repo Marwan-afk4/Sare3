@@ -16,6 +16,7 @@ use App\Helpers\RideHelper;
 use App\trait\ImageUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class DriverController extends Controller
 {
@@ -268,19 +269,19 @@ class DriverController extends Controller
             unset($data['image']);
         }
 
-        $removePassword = $request->boolean('remove_password');
+        $removePassword = $request->has('remove_password');
 
         unset($data['password'], $data['password_confirmation'], $data['remove_password']);
 
         $driver->fill($data);
+        $driver->save();
 
         if ($removePassword) {
-            $driver->forceFill(['password' => null]);
+            DB::table('users')->where('id', $driver->id)->update(['password' => null]);
         } elseif ($request->filled('password')) {
             $driver->password = $request->input('password');
+            $driver->save();
         }
-
-        $driver->save();
 
         return redirect()->route('drivers.index')->with('success', __('Driver updated successfully.'));
     }
