@@ -44,6 +44,24 @@
 					type="password"
 					label="{{ __('Confirm Password') }}"
 				/>
+				@if($hasPassword)
+					<div class="mb-3">
+						<div class="form-check form-switch">
+							<input
+								class="form-check-input"
+								type="checkbox"
+								name="remove_password"
+								id="remove_password"
+								value="1"
+								{{ old('remove_password') ? 'checked' : '' }}
+							>
+							<label class="form-check-label" for="remove_password">
+								{{ __('Remove password') }}
+							</label>
+						</div>
+						<small class="text-muted">{{ __('Driver will sign in using OTP only.') }}</small>
+					</div>
+				@endif
                 <x-form-input
                     name="wallet"
                     type="number"
@@ -106,6 +124,32 @@
 @endsection
 @push('scripts')
 <script>
+    (function () {
+        const removePassword = document.getElementById('remove_password');
+        const password = document.getElementById('password');
+        const passwordConfirmation = document.getElementById('password_confirmation');
+
+        function togglePasswordFields() {
+            if (!removePassword) {
+                return;
+            }
+
+            const disabled = removePassword.checked;
+            password.disabled = disabled;
+            passwordConfirmation.disabled = disabled;
+
+            if (disabled) {
+                password.value = '';
+                passwordConfirmation.value = '';
+            }
+        }
+
+        if (removePassword) {
+            removePassword.addEventListener('change', togglePasswordFields);
+            togglePasswordFields();
+        }
+    })();
+
     document.getElementById('imageInput').addEventListener('change', function () {
         const preview = document.getElementById('imagePreview');
         if (this.files && this.files[0]) {

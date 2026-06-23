@@ -249,7 +249,9 @@ class DriverController extends Controller
         $diverActivityStatus = ActivtyType::labels();
         $driverStatus = DriverStatus::labels();
         $zones = Zone::orderBy('name')->pluck('name', 'id')->toArray();
-        return view('drivers.edit', compact('driver', 'diverActivityStatus', 'driverStatus', 'zones'));
+        $hasPassword = ! empty($driver->getAttributes()['password']);
+
+        return view('drivers.edit', compact('driver', 'diverActivityStatus', 'driverStatus', 'zones', 'hasPassword'));
     }
 
 
@@ -266,11 +268,13 @@ class DriverController extends Controller
             unset($data['image']);
         }
 
-        if (!$request->filled('password')) {
+        if ($request->boolean('remove_password')) {
+            $data['password'] = null;
+        } elseif (! $request->filled('password')) {
             unset($data['password']);
         }
 
-        unset($data['password_confirmation']);
+        unset($data['password_confirmation'], $data['remove_password']);
 
         $driver->update($data);
 

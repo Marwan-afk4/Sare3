@@ -24,6 +24,7 @@ class UpdateDriverRequest extends FormRequest
             'phone' => 'nullable|unique:users,phone,' . $driverId,
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'password' => 'nullable|string|min:8|confirmed',
+            'remove_password' => 'nullable|boolean',
             // 'activity' => 'nullable',
             'status' => 'nullable|in:approved,rejected',
             'wallet' => 'nullable|numeric|min:0',
