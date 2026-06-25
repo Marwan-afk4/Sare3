@@ -36,7 +36,7 @@ class NewRideRequest implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
-        return [
+        $data = [
             'ride_id' => $this->ride->id,
             'user' => [
                 'id' => $this->ride->user->id,
@@ -45,11 +45,20 @@ class NewRideRequest implements ShouldBroadcastNow
                 'avatar' => $this->ride->user->image_link,
                 'rating' => $this->ride->user->average_rating,
             ],
+            'pickup_lat' => (float) $this->ride->pickup_lat,
+            'pickup_lng' => (float) $this->ride->pickup_lng,
             'pickup_address' => $this->ride->pickup_address,
             'dropoff_address' => $this->ride->dropoff_address,
             'estimated_price' => (float) $this->ride->calculated_initial_price,
             'estimated_time' => $this->ride->estimated_time,
             'estimated_km' => (float) $this->ride->estimated_km
         ];
+
+        if ($this->ride->dropoff_lat !== null && $this->ride->dropoff_lng !== null) {
+            $data['dropoff_lat'] = (float) $this->ride->dropoff_lat;
+            $data['dropoff_lng'] = (float) $this->ride->dropoff_lng;
+        }
+
+        return $data;
     }
 }
