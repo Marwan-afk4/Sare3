@@ -81,7 +81,7 @@ class AuthController extends Controller
 
         SendWhatsappMessage::dispatchSync(
             $user->phone,
-            'رمز التحقق الخاص بك هو: ' . $otpCode
+            $this->getRandomOtpMessage($otpCode)
         );
 
         $exists = $user->wasRecentlyCreated ? false : true;
@@ -193,7 +193,7 @@ class AuthController extends Controller
 
         SendWhatsappMessage::dispatchSync(
             $user->phone,
-            'رمز التحقق الخاص بك هو: ' . $otpCode
+            $this->getRandomOtpMessage($otpCode)
         );
 
         return response()->json([
@@ -506,5 +506,46 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Logout successful',
         ]);
+    }
+
+    /**
+     * Generate a random OTP message in Arabic to prevent spam/ban.
+     *
+     * @param string|int $otpCode
+     * @return string
+     */
+    private function getRandomOtpMessage($otpCode)
+    {
+        $templates = [
+            "رمز التحقق الخاص بك هو: {$otpCode}",
+            "كود التفعيل الخاص بك هو: {$otpCode}",
+            "رمز الأمان الخاص بحسابك: {$otpCode}",
+            "استخدم الرمز {$otpCode} لإكمال عملية التحقق.",
+            "رمز OTP الخاص بك: {$otpCode}",
+            "رمز الدخول لمرة واحدة هو: {$otpCode}",
+            "الرجاء استخدام الكود {$otpCode} لتأكيد حسابك.",
+            "كود التحقق الخاص بك هو {$otpCode} - لا تشاركه مع أحد.",
+            "لتسجيل الدخول، استخدم رمز التحقق: {$otpCode}",
+            "رمز التحقق الثنائي الخاص بك هو: {$otpCode}",
+        ];
+
+        $closings = [
+            "اهلا وسهلا بك في تطبيق سارع رمزك هو ",
+            " طاب يومك! هذا الرمز صالح لمدة 2 دقائق 🌸",
+            " شكراً لك رمز التحقق الخاص بك هو لا تشاركه مع احد. ✨",
+            " 🔒 حافظ على سرية هذا الرمز.",
+            " (صالح لمدة 2 دقائق)",
+            " 📱 فريق الدعم.",
+            " يومك سعيد! ☀️",
+        ];
+
+        // Pick random template and random closing
+        $template = $templates[array_rand($templates)];
+        $closing = $closings[array_rand($closings)];
+
+        // Append a unique reference ID (e.g. #7482) to guarantee uniqueness
+        $refId = " [#" . rand(1000, 9999) . "]";
+
+        return $template . $closing . $refId;
     }
 }
