@@ -761,8 +761,7 @@ class AuthController extends Controller
         ];
 
         $template = $templates[array_rand($templates)];
-        $refId = " (id: " . rand(100, 999) . ")";
 
-        return $template . $refId;
+        return $template;
     }
 }
