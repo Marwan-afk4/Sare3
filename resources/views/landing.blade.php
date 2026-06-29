@@ -149,21 +149,34 @@
                 <a href="/support" class="hover:text-brand-500 transition-colors">الدعم الفني</a>
             </div>
 
-            <!-- Action Button -->
-            {{-- <div class="flex items-center gap-3">
+            <!-- Action Button & Mobile Menu Toggle -->
+            <div class="flex items-center gap-3">
                 @if(Auth::check() || Auth::guard('sanctum')->check())
-                    <a href="{{ route('home') }}" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-emerald-600 text-white font-bold text-sm shadow-lg shadow-brand-500/20 hover:shadow-brand-500/35 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2">
+                    <a href="{{ route('home') }}" class="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-emerald-600 text-white font-bold text-xs sm:text-sm shadow-lg shadow-brand-500/20 hover:shadow-brand-500/35 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2">
                         <span>لوحة التحكم</span>
                         <i class="fa-solid fa-gauge text-xs"></i>
                     </a>
                 @else
-                    <a href="{{ route('login') }}" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-emerald-600 text-white font-bold text-sm shadow-lg shadow-brand-500/20 hover:shadow-brand-500/35 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2">
+                    <a href="{{ route('login') }}" class="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-emerald-600 text-white font-bold text-xs sm:text-sm shadow-lg shadow-brand-500/20 hover:shadow-brand-500/35 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2">
                         <span>تسجيل الدخول</span>
                         <i class="fa-solid fa-arrow-left-to-bracket text-xs"></i>
                     </a>
                 @endif
-            </div> --}}
+
+                <!-- Hamburger Button for Mobile -->
+                <button id="mobile-menu-btn" class="md:hidden flex items-center justify-center w-10 h-10 rounded-xl bg-slate-900 border border-white/5 text-slate-300 hover:text-white focus:outline-none transition-all" aria-label="Toggle Menu">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+            </div>
         </nav>
+
+        <!-- Mobile Dropdown Menu -->
+        <div id="mobile-menu" class="hidden md:hidden mt-3 px-6 py-4 rounded-2xl glass-panel border border-white/5 shadow-2xl flex flex-col gap-3 text-right">
+            <a href="#features" class="block hover:text-brand-500 transition-colors py-2.5 border-b border-white/5 text-sm font-medium">المميزات</a>
+            <a href="#how-it-works" class="block hover:text-brand-500 transition-colors py-2.5 border-b border-white/5 text-sm font-medium">كيف نعمل</a>
+            <a href="#drivers" class="block hover:text-brand-500 transition-colors py-2.5 border-b border-white/5 text-sm font-medium">كن كابتن</a>
+            <a href="/support" class="block hover:text-brand-500 transition-colors py-2.5 text-sm font-medium">الدعم الفني</a>
+        </div>
     </header>
 
     <!-- Hero Section -->
@@ -635,5 +648,34 @@
         </div>
     </footer>
 
+    <!-- Mobile Menu Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('mobile-menu-btn');
+            const menu = document.getElementById('mobile-menu');
+            
+            if (btn && menu) {
+                const icon = btn.querySelector('i');
+                
+                btn.addEventListener('click', function() {
+                    menu.classList.toggle('hidden');
+                    if (menu.classList.contains('hidden')) {
+                        icon.className = 'fa-solid fa-bars text-lg';
+                    } else {
+                        icon.className = 'fa-solid fa-xmark text-lg';
+                    }
+                });
+                
+                // Close menu when clicking on any link
+                const links = menu.querySelectorAll('a');
+                links.forEach(link => {
+                    link.addEventListener('click', () => {
+                        menu.classList.add('hidden');
+                        icon.className = 'fa-solid fa-bars text-lg';
+                    });
+                });
+            }
+        });
+    </script>
 </body>
 </html>
