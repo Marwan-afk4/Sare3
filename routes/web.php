@@ -37,7 +37,7 @@ use App\Http\Controllers\Admin\SupportChatController as AdminSupportChatControll
 
 Route::domain(config('app.dashboard_domain'))->group(function () {
     Route::middleware(['auth:sanctum'])->group(function () {
-        Route::get('/', [HomePageController::class, 'index'])->name('home');
+        Route::get('/dashboard', [HomePageController::class, 'index'])->name('home');
 
         // Test route to check permissions
         Route::get('/test-permissions', function () {
@@ -53,6 +53,7 @@ Route::domain(config('app.dashboard_domain'))->group(function () {
     });
 
     // Public routes
+    Route::get('/', [App\Http\Controllers\LandingPageController::class, 'index'])->name('landing');
     Route::get('/privacy-policy', [PrivacyPolicyController::class, 'index'])->name('privacy-policy');
     Route::get('/support', [SupportController::class, 'index'])->name('support');
 
