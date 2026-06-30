@@ -752,35 +752,16 @@ class AuthController extends Controller
     private function getRandomOtpMessage($otpCode)
     {
         $templates = [
-            "رمز التحقق الخاص بك هو: {$otpCode}",
-            "كود التفعيل الخاص بك هو: {$otpCode}",
-            "رمز الأمان الخاص بحسابك: {$otpCode}",
-            "استخدم الرمز {$otpCode} لإكمال عملية التحقق.",
-            "رمز OTP الخاص بك: {$otpCode}",
-            "رمز الدخول لمرة واحدة هو: {$otpCode}",
-            "الرجاء استخدام الكود {$otpCode} لتأكيد حسابك.",
-            "كود التحقق الخاص بك هو {$otpCode} - لا تشاركه مع أحد.",
-            "لتسجيل الدخول، استخدم رمز التحقق: {$otpCode}",
-            "رمز التحقق الثنائي الخاص بك هو: {$otpCode}",
+            "سريع: {$otpCode}",
+            "Sarea: {$otpCode}",
+            "{$otpCode} - سريع",
+            "{$otpCode} - Sarea",
+            "تطبيق سريع: {$otpCode}",
+            "Sarea App: {$otpCode}",
         ];
 
-        $closings = [
-            "",
-            " طاب يومك! 🌸",
-            " شكراً لك. ✨",
-            " 🔒 حافظ على سرية هذا الرمز.",
-            " (صالح لمدة 10 دقائق)",
-            " 📱 فريق الدعم.",
-            " يومك سعيد! ☀️",
-        ];
-
-        // Pick random template and random closing
         $template = $templates[array_rand($templates)];
-        $closing = $closings[array_rand($closings)];
 
-        // Append a unique reference ID (e.g. #7482) to guarantee uniqueness
-        $refId = " [#" . rand(1000, 9999) . "]";
-
-        return $template . $closing . $refId;
+        return $template;
     }
 }
