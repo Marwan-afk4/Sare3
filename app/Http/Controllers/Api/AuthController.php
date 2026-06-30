@@ -7,6 +7,7 @@ use App\Jobs\SendWhatsappMessage;
 use App\Mail\EmailVerificationCode;
 use App\Models\OtpLimit;
 use App\Models\User;
+use App\Services\PhoneVerificationService;
 use Google_Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -124,20 +125,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'OTP has expired. Please request a new one.'], 422);
         }
 
-        $user->update([
-            'phone_verified' => true,
-            'otp_code'       => null,
-            'otp_expires_at' => null,
-            'status'         => 'approved',
-        ]);
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'message'        => 'OTP verified successfully',
-            'token'          => $token,
-            'user_otp_limit' => $user->otp_limit,
-        ]);
+        return app(PhoneVerificationService::class)->finalizePhoneVerification($user);
     }
 
     /**

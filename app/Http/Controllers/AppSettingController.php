@@ -40,6 +40,11 @@ class AppSettingController extends Controller
             AppSetting::set('ride_verification_enabled', false, 'boolean', 'Enable 6-digit verification code for starting rides');
         }
 
+        // Ensure phone verification method setting exists
+        if (!AppSetting::where('key', 'phone_verification_method')->exists()) {
+            AppSetting::setPhoneVerificationMethod('backend_otp');
+        }
+
         // Ensure referral settings exist
         $this->ensureReferralSettings();
     }
@@ -86,6 +91,7 @@ class AppSettingController extends Controller
             'settings.admin_profit_percentage' => 'nullable|numeric|min:0|max:100',
             'settings.minimum_driver_wallet_balance' => 'nullable|numeric|min:0',
             'settings.ride_verification_enabled' => 'nullable|in:0,1,on',
+            'settings.phone_verification_method' => 'nullable|in:backend_otp,firebase_otp',
             'settings.referral_discount_percentage' => 'nullable|numeric|min:0|max:100',
             'settings.referral_discount_rides' => 'nullable|integer|min:1|max:50',
             'settings.referrer_reward_percentage' => 'nullable|numeric|min:0|max:100',

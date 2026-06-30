@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\Admin\ProfitStatisticsController;
 use App\Http\Controllers\Api\Admin\ReferralController as AdminReferralController;
 use App\Http\Controllers\Api\AppSettingsController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\FirebasePhoneAuthController;
+use App\Http\Controllers\Api\PhoneVerificationController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\DeleteAccountController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
@@ -52,6 +54,8 @@ Route::domain(config('app.api_domain'))->group(function () {
     Route::post('/send-otp', [AuthController::class, 'sendOtp']);
     Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
     Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
+    Route::get('/auth/otp-method', [PhoneVerificationController::class, 'otpMethod']);
+    Route::post('/firebase-phone-login', [FirebasePhoneAuthController::class, 'login']);
     Route::post('/check-user-otp-limit', [ProfileController::class, 'checkUserOtpLimit']);
 
     //email otp

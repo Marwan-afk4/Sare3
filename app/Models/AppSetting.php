@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PhoneVerificationMethod;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -179,5 +180,24 @@ class AppSetting extends Model
     public static function setReferrerRewardRides(int $rides): void
     {
         static::set('referrer_reward_rides', $rides, 'integer', 'Number of rides with referrer rewards');
+    }
+
+    public static function getPhoneVerificationMethod(): string
+    {
+        $method = static::get('phone_verification_method', PhoneVerificationMethod::BackendOtp->value);
+
+        return in_array($method, PhoneVerificationMethod::values(), true)
+            ? $method
+            : PhoneVerificationMethod::BackendOtp->value;
+    }
+
+    public static function setPhoneVerificationMethod(string $method): void
+    {
+        static::set(
+            'phone_verification_method',
+            $method,
+            'string',
+            'Active phone verification method for mobile apps (backend_otp or firebase_otp)'
+        );
     }
 }

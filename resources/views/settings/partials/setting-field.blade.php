@@ -7,7 +7,23 @@
         <small class="form-text text-muted d-block mb-2">{{ $setting->description }}</small>
     @endif
 
-    @if($setting->type === 'boolean')
+    @if($setting->key === 'phone_verification_method')
+        <select
+            class="form-select"
+            id="setting_{{ $setting->key }}"
+            name="settings[{{ $setting->key }}]"
+        >
+            <option value="backend_otp" {{ $setting->value === 'backend_otp' ? 'selected' : '' }}>
+                {{ __('Backend OTP (WhatsApp)') }}
+            </option>
+            <option value="firebase_otp" {{ $setting->value === 'firebase_otp' ? 'selected' : '' }}>
+                {{ __('Firebase Phone Auth') }}
+            </option>
+        </select>
+        <small class="form-text text-muted d-block mt-2">
+            {{ __('Choose how mobile apps verify phone numbers. Backend OTP uses the existing WhatsApp flow; Firebase Phone Auth uses client-side Firebase verification.') }}
+        </small>
+    @elseif($setting->type === 'boolean')
         <div class="form-check form-switch">
             <!-- Hidden input to ensure unchecked checkboxes send a value -->
             <input type="hidden" name="settings[{{ $setting->key }}]" value="0">
