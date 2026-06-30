@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\Driver;
 
 use App\Http\Controllers\Concerns\HandlesFirebasePhoneLogin;
 use App\Http\Controllers\Controller;
@@ -27,8 +27,8 @@ class FirebasePhoneAuthController extends Controller
             return $verifiedPhone;
         }
 
-        $user = $phoneVerification->findOrCreateUserByPhone($verifiedPhone);
+        $user = $phoneVerification->findOrCreateDriverByPhone($verifiedPhone);
 
-        return $phoneVerification->finalizePhoneVerification($user);
+        return $phoneVerification->finalizeDriverPhoneVerification($user);
     }
 }

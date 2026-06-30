@@ -54,6 +54,33 @@ class PhoneVerificationService
         ]);
     }
 
+    public function findOrCreateDriverByPhone(string $phone): User
+    {
+        $phone = $this->normalizePhone($phone);
+        $rawPhone = ltrim($phone, '+');
+        $defaultOtpLimit = OtpLimit::where('type', 'driver')->value('otp_limit');
+
+        $user = User::where('phone', $phone)
+            ->orWhere('phone', $rawPhone)
+            ->first();
+
+        if ($user) {
+            if ($user->phone !== $phone) {
+                $user->update(['phone' => $phone]);
+            }
+
+            return $user;
+        }
+
+        return User::create([
+            'phone'          => $phone,
+            'role'           => 'driver',
+            'otp_limit'      => $defaultOtpLimit ?? 5,
+            'activity'       => 'in_progress',
+            'phone_verified' => false,
+        ]);
+    }
+
     public function finalizePhoneVerification(User $user): JsonResponse
     {
         $user->update([
@@ -69,6 +96,22 @@ class PhoneVerificationService
             'message'        => 'OTP verified successfully',
             'token'          => $token,
             'user_otp_limit' => $user->otp_limit,
+        ]);
+    }
+
+    public function finalizeDriverPhoneVerification(User $user): JsonResponse
+    {
+        $user->update([
+            'phone_verified' => true,
+            'otp_code'       => null,
+            'otp_expires_at' => null,
+        ]);
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Phone number verified successfully',
+            'token'   => $token,
         ]);
     }
 }

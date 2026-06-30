@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\PhoneVerificationController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\DeleteAccountController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
+use App\Http\Controllers\Api\Driver\FirebasePhoneAuthController as DriverFirebasePhoneAuthController;
+use App\Http\Controllers\Api\Driver\PhoneVerificationController as DriverPhoneVerificationController;
 use App\Http\Controllers\Api\Driver\CancelationReasonController as DriverCancelationReasonController;
 use App\Http\Controllers\Api\Driver\DriverActivtyController;
 use App\Http\Controllers\Api\Driver\DriverLeaderboardController;
@@ -83,6 +85,8 @@ Route::domain(config('app.api_domain'))->group(function () {
     Route::post('/driver/send-otp', [DriverAuthController::class, 'sendOtp']);
     Route::post('/driver/verify-otp', [DriverAuthController::class, 'verifyOtp']);
     Route::post('/driver/resend-otp', [DriverAuthController::class, 'resendOtp']);
+    Route::get('/driver/auth/otp-method', [DriverPhoneVerificationController::class, 'otpMethod']);
+    Route::post('/driver/firebase-phone-login', [DriverFirebasePhoneAuthController::class, 'login']);
 
     //email otp
     Route::post('/driver/send-email-otp', [DriverAuthController::class, 'sendEmailVerificationCode']);

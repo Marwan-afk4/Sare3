@@ -180,4 +180,100 @@ class FirebasePhoneAuthTest extends TestCase
 
         $response->assertStatus(422);
     }
+
+    public function test_driver_otp_method_returns_backend_otp_by_default(): void
+    {
+        $response = $this->getJson('/driver/auth/otp-method');
+
+        $response->assertOk()
+            ->assertJson(['method' => 'backend_otp']);
+    }
+
+    public function test_driver_firebase_login_creates_driver_and_returns_verify_otp_response_shape(): void
+    {
+        AppSetting::setPhoneVerificationMethod('firebase_otp');
+
+        $this->mock(FirebasePhoneAuthService::class, function ($mock) {
+            $mock->shouldReceive('isConfigured')->andReturn(true);
+            $mock->shouldReceive('verifyIdTokenAndGetPhone')
+                ->once()
+                ->with('valid-firebase-token')
+                ->andReturn('+962791234568');
+        });
+
+        $response = $this->postJson('/driver/firebase-phone-login', [
+            'firebase_id_token' => 'valid-firebase-token',
+            'phone'             => '962791234568',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'message',
+                'token',
+            ])
+            ->assertJson([
+                'message' => 'Phone number verified successfully',
+            ])
+            ->assertJsonMissing(['user_otp_limit']);
+
+        $this->assertDatabaseHas('users', [
+            'phone'          => '+962791234568',
+            'role'           => 'driver',
+            'phone_verified' => true,
+            'activity'       => 'in_progress',
+        ]);
+    }
+
+    public function test_driver_firebase_login_verifies_existing_driver(): void
+    {
+        AppSetting::setPhoneVerificationMethod('firebase_otp');
+
+        $driver = User::factory()->create([
+            'phone'          => '+962791234568',
+            'role'           => 'driver',
+            'activity'       => 'in_progress',
+            'phone_verified' => false,
+            'otp_code'       => '123456',
+            'otp_expires_at' => now()->addMinutes(10),
+        ]);
+
+        $this->mock(FirebasePhoneAuthService::class, function ($mock) {
+            $mock->shouldReceive('isConfigured')->andReturn(true);
+            $mock->shouldReceive('verifyIdTokenAndGetPhone')
+                ->once()
+                ->andReturn('+962791234568');
+        });
+
+        $response = $this->postJson('/driver/firebase-phone-login', [
+            'firebase_id_token' => 'valid-firebase-token',
+            'phone'             => '+962791234568',
+        ]);
+
+        $response->assertOk()
+            ->assertJson([
+                'message' => 'Phone number verified successfully',
+            ]);
+
+        $driver->refresh();
+        $this->assertTrue($driver->phone_verified);
+        $this->assertNull($driver->otp_code);
+        $this->assertNull($driver->otp_expires_at);
+    }
+
+    public function test_driver_firebase_login_rejects_when_backend_otp_is_active(): void
+    {
+        AppSetting::setPhoneVerificationMethod('backend_otp');
+
+        $this->mock(FirebasePhoneAuthService::class, function ($mock) {
+            $mock->shouldReceive('isConfigured')->andReturn(true);
+            $mock->shouldNotReceive('verifyIdTokenAndGetPhone');
+        });
+
+        $response = $this->postJson('/driver/firebase-phone-login', [
+            'firebase_id_token' => 'valid-firebase-token',
+            'phone'             => '+962791234568',
+        ]);
+
+        $response->assertStatus(403);
+    }
 }
