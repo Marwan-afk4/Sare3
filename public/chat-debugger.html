@@ -374,6 +374,11 @@
         const $ = id => document.getElementById(id);
         const lContainer = $('logs');
         $('reverbHost').value = window.location.hostname;
+        
+        // Auto-detect production HTTPS and set port to 443
+        if (window.location.protocol === 'https:') {
+            $('reverbPort').value = 443;
+        }
 
         // Auto-update the visual channel representation based on the user & driver IDs
         const updateChannelDisplay = () => {
