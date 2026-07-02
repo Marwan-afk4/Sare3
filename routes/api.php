@@ -46,6 +46,7 @@ use App\Http\Controllers\Api\User\ReferralController;
 use App\Http\Controllers\Api\User\RideActionsController as UserRideActionsController;
 use App\Http\Controllers\Api\User\TransactionController as UserTransactionController;
 use App\Http\Controllers\Api\User\UserNotificatonController;
+use App\Http\Controllers\Api\UserDriverChatController;
 use App\Models\AppSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -292,6 +293,13 @@ Route::domain(config('app.api_domain'))->group(function () {
     //Delete Account
         Route::delete('/delete-account', [DeleteAccountController::class, 'deleteAccount']);
 
+    });
+
+    //======= USER-DRIVER CHAT ========
+    Route::middleware(['auth:sanctum'])->prefix('chat/user-driver')->group(function () {
+        Route::post('/send', [UserDriverChatController::class, 'sendMessage']);
+        Route::get('/messages', [UserDriverChatController::class, 'getMessages']);
+        Route::post('/read', [UserDriverChatController::class, 'markAsRead']);
     });
 
     //======= RIDE TRACKING (Public/Admin) ========
