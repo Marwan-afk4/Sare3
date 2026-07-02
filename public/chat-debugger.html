@@ -306,7 +306,11 @@
                     <input type="text" id="reverbHost" placeholder="Host">
                     <input type="number" id="reverbPort" value="8085" placeholder="Port">
                 </div>
-                <button id="connectBtn">Connect WebSocket</button>
+                <div class="form-group" style="margin-top: 0.5rem; margin-bottom: 0;">
+                    <label>App Key</label>
+                    <input type="text" id="reverbKey" value="2eqkhunwlke2ea0t5oaz" placeholder="App Key">
+                </div>
+                <button id="connectBtn" style="margin-top: 0.5rem;">Connect WebSocket</button>
             </div>
 
             <div class="card">
@@ -420,9 +424,10 @@
 
             try {
                 const EchoConstructor = window.Echo || window.LaravelEcho;
+                const appKey = $('reverbKey').value.trim();
                 echo = new EchoConstructor({
                     broadcaster: 'reverb',
-                    key: '2eqkhunwlke2ea0t5oaz',
+                    key: appKey,
                     wsHost: $('reverbHost').value,
                     wsPort: parseInt($('reverbPort').value),
                     forceTLS: (window.location.protocol === 'https:'),
