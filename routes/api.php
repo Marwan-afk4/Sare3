@@ -335,7 +335,7 @@ Route::domain(config('app.api_domain'))->group(function () {
         Route::get('/profit-statistics/daily', [ProfitStatisticsController::class, 'getDailyProfitBreakdown']);
         Route::get('/profit-statistics/top-drivers', [ProfitStatisticsController::class, 'getTopEarningDrivers']);
         Route::get('/profit-history', [ProfitStatisticsController::class, 'getProfitHistory']);
-
+ 
         // Referral Management
         Route::get('/referrals/settings', [AdminReferralController::class, 'getSettings']);
         Route::post('/referrals/settings', [AdminReferralController::class, 'updateSettings']);
