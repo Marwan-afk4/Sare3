@@ -354,6 +354,10 @@
             <div class="card">
                 <h2>4. Call HTTP APIs</h2>
                 <div class="form-group">
+                    <label>API Base URL</label>
+                    <input id="apiBaseUrl" value="" placeholder="e.g. https://dashboard.2te.org">
+                </div>
+                <div class="form-group">
                     <label>Test Message Body</label>
                     <input type="text" id="testMessage" value="Hello! This is a WebSocket test message.">
                 </div>
@@ -383,6 +387,9 @@
         if (window.location.protocol === 'https:') {
             $('reverbPort').value = 443;
         }
+
+        // Initialize API Base URL
+        $('apiBaseUrl').value = window.location.origin;
 
         // Auto-update the visual channel representation based on the user & driver IDs
         const updateChannelDisplay = () => {
@@ -535,11 +542,12 @@
             const selfRole = $('selfRole').value;
             const receiverId = selfRole === 'user' ? parseInt($('driverId').value) : parseInt($('userId').value);
             const message = $('testMessage').value;
+            const apiBase = $('apiBaseUrl').value.trim().replace(/\/$/, '');
             
-            addLog('info', `Calling Send API (Receiver ID: ${receiverId})...`);
+            addLog('info', `Calling Send API to ${apiBase} (Receiver ID: ${receiverId})...`);
             
             try {
-                const response = await fetch('/api/chat/user-driver/send', {
+                const response = await fetch(`${apiBase}/api/chat/user-driver/send`, {
                     method: 'POST',
                     headers: getApiHeaders(),
                     body: JSON.stringify({
@@ -558,11 +566,12 @@
         $('readBtn').onclick = async () => {
             const selfRole = $('selfRole').value;
             const receiverId = selfRole === 'user' ? parseInt($('driverId').value) : parseInt($('userId').value);
+            const apiBase = $('apiBaseUrl').value.trim().replace(/\/$/, '');
             
-            addLog('info', `Calling Read API (Receiver ID: ${receiverId})...`);
+            addLog('info', `Calling Read API to ${apiBase} (Receiver ID: ${receiverId})...`);
             
             try {
-                const response = await fetch('/api/chat/user-driver/read', {
+                const response = await fetch(`${apiBase}/api/chat/user-driver/read`, {
                     method: 'POST',
                     headers: getApiHeaders(),
                     body: JSON.stringify({
@@ -580,11 +589,12 @@
         $('historyBtn').onclick = async () => {
             const selfRole = $('selfRole').value;
             const receiverId = selfRole === 'user' ? parseInt($('driverId').value) : parseInt($('userId').value);
+            const apiBase = $('apiBaseUrl').value.trim().replace(/\/$/, '');
             
-            addLog('info', `Calling Get History API (Receiver ID: ${receiverId})...`);
+            addLog('info', `Calling Get History API to ${apiBase} (Receiver ID: ${receiverId})...`);
             
             try {
-                const response = await fetch(`/api/chat/user-driver/messages?receiver_id=${receiverId}`, {
+                const response = await fetch(`${apiBase}/api/chat/user-driver/messages?receiver_id=${receiverId}`, {
                     method: 'GET',
                     headers: getApiHeaders()
                 });
