@@ -4,7 +4,7 @@
     $groupMap = [
         'main'        => ['home', 'leaderboard', 'support-chat', 'ads', 'notifications'],
         'users'       => ['users', 'drivers', 'admins', 'roles'],
-        'rides'       => ['rides', 'cancelation-rides', 'zones', 'abnormal-rides'],
+        'rides'       => ['rides', 'cancelation-rides', 'zones', 'abnormal-rides', 'cities'],
         'fleet'       => ['car-categories', 'car-models', 'car-types'],
         'finance'     => ['wallet-requests', 'financial-reports', 'profit-statistics', 'profit-history', 'referrals', 'coupons', 'paymenent-methods'],
         'settings'    => ['document-types', 'cancellation-policies', 'cancellation-reasons', 'ride-request-time-limits', 'otp-limits', 'settings'],
@@ -160,7 +160,7 @@
                 {{-- ═══════════════════════════════════════════════ --}}
                 {{-- SECTION: RIDES                                  --}}
                 {{-- ═══════════════════════════════════════════════ --}}
-                @canany(['إدارة الرحلات', 'إدارة الرحلات الملغاة', 'إدارة المناطق'])
+                @canany(['إدارة الرحلات', 'إدارة الرحلات الملغاة', 'إدارة المناطق', 'إدارة المدن'])
                 <li class="nav-item mt-3">
                     <p class="navbar-vertical-label">{{ __('Operations') }}</p>
                     <hr class="navbar-vertical-line"/>
@@ -205,6 +205,18 @@
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="map-pin"></span></span>
                                 <span class="nav-link-text-wrapper"><span class="nav-link-text">{{ __('Zones') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+                    @endcan
+
+                    @can('إدارة المدن')
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'cities' ? 'active' : '' }}"
+                            href="{{ route('cities.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="map"></span></span>
+                                <span class="nav-link-text-wrapper"><span class="nav-link-text">{{ __('Cities') }}</span></span>
                             </div>
                         </a>
                     </div>

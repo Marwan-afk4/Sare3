@@ -667,7 +667,6 @@
     "Fill only when you want to set a new password for this driver.": "املأ الحقول فقط عند رغبتك في تعيين كلمة مرور جديدة لهذا السائق.",
     "Remove password": "إزالة كلمة المرور",
     "Driver will sign in using OTP only.": "سيسجل السائق الدخول عبر رمز التحقق فقط.",
-    "Password": "كلمة المرور",
     "This driver currently has a password set.": "هذا السائق لديه كلمة مرور حالياً.",
     "This driver has no password and signs in using OTP only.": "هذا السائق ليس لديه كلمة مرور ويسجل الدخول عبر رمز التحقق فقط.",
     "Update Password": "تحديث كلمة المرور",
@@ -1120,5 +1119,16 @@
     "Greater than or equal to": "أكبر من أو يساوي",
     "Balance Amount (JOD)": "مبلغ الرصيد (دينار)",
     "Quick Balance Filter": "تصفية الرصيد السريع",
-    "Custom": "مخصص"
+    "Custom": "مخصص",
+    "Create City": "إنشاء مدينة",
+    "Cities": "المدن",
+    "Edit City": "تعديل المدينة",
+    "Backend OTP (WhatsApp)": "رمز التحقق من الخادم (واتساب)",
+    "Firebase Phone Auth": "مصادقة الهاتف عبر Firebase",
+    "Choose how mobile apps verify phone numbers. Backend OTP uses the existing WhatsApp flow; Firebase Phone Auth uses client-side Firebase verification.": "اختر كيفية التحقق من أرقام الهواتف في تطبيقات الهاتف. يستخدم رمز التحقق من الخادم (واتساب) آلية واتساب الحالية، بينما تستخدم مصادقة الهاتف عبر Firebase التحقق من جهة العميل باستخدام Firebase.",
+    "The Name field already exists.": "حقل الاسم موجود بالفعل.",
+    "The Status field must be active or inactive.": "يجب أن تكون حالة الحقل إما نشط أو غير نشط.",
+    "The Password confirmation does not match.": "تأكيد كلمة المرور غير متطابق.",
+    "The Status must be one of the following: approved, rejected, pending.": "يجب أن تكون الحالة إحدى القيم التالية: مقبول، مرفوض، قيد الانتظار.",
+    "The Activity must be one of the following: active, inactive, in progress, rejected.": "يجب أن يكون النشاط إحدى القيم التالية: نشط، غير نشط، قيد التنفيذ، مرفوض."
 }

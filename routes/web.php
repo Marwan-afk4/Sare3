@@ -15,6 +15,7 @@ use App\Http\Controllers\{
     CarCategoryController,
     CarModelController,
     CarTypeController,
+    CityController,
     DocumentTypeController,
     DriverCarController,
     DriverDocumentController,
@@ -90,6 +91,7 @@ Route::domain(config('app.dashboard_domain'))->group(function () {
             Route::middleware(['can:إدارة حدود OTP'])->resource('/otp-limits', OtpLimitController::class);
             Route::middleware(['can:إدارة الإشعارات'])->resource('/notifications', NotificationController::class);
             Route::middleware(['can:إدارة المناطق'])->resource('/zones', ZoneController::class);
+            Route::middleware(['can:إدارة المدن'])->resource('/cities', CityController::class);
 
             Route::middleware(['can:إدارة الدورات'])->resource('/roles', RoleController::class);
             Route::post('/admins/{admin}/update-wallet-limit', [WalletRequestController::class, 'updateAdminLimit'])->name('admins.update-wallet-limit');
