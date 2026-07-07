@@ -64,6 +64,28 @@
             </div>
         </div>
 
+        {{-- City Filter Buttons --}}
+        <div class="mb-3">
+            <label class="form-label fw-bold">{{ __('Filter by City') }}</label>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ route('drivers.index', request()->except('city')) }}" class="btn btn-outline-primary btn-sm">
+                    {{ __('All Cities') }}
+                </a>
+                @foreach ($cities as $city)
+                    @if ($city->driver_count > 0)
+                        <a href="{{ route('drivers.index', array_merge(request()->except('city'), ['city' => $city->id])) }}"
+                            class="btn btn-sm {{ request('city') == $city->id ? 'btn-primary' : 'btn-outline-primary' }}">
+                            {{ $city->name }} ({{ $city->driver_count }})
+                        </a>
+                    @endif
+                @endforeach
+                <a href="{{ route('drivers.index', array_merge(request()->except('city'), ['city' => 'no_city'])) }}"
+                    class="btn btn-sm {{ request('city') === 'no_city' ? 'btn-warning' : 'btn-outline-warning' }}">
+                    {{ __('No City') }} ({{ $driversWithNoCityCount }})
+                </a>
+            </div>
+        </div>
+
     {{-- Car Year Filter Buttons --}}
     <div class="mb-3">
         <label class="form-label fw-bold">{{ __('Filter by Car Year') }}</label>
@@ -209,6 +231,7 @@
                         </a>
                     </th>
                     <th>{{ __('Zone') }}</th>
+                    <th>{{ __('City') }}</th>
                     <th>{{ __('Availability') }}</th>
                     <th>
 						<a href="{{ route('drivers.index', array_merge(request()->except(['sort', 'order']), ['sort' => 'activity', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc'])) }}">
@@ -255,6 +278,13 @@
                                 <span class="badge bg-info">{{ $driver->zone->name }}</span>
                             @else
                                 <span class="text-muted">{{ __('No Zone') }}</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($driver->city)
+                                <span class="badge bg-primary">{{ $driver->city->name }}</span>
+                            @else
+                                <span class="text-muted">{{ __('No City') }}</span>
                             @endif
                         </td>
                         <td>

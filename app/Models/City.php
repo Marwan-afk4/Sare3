@@ -18,5 +18,8 @@ class City extends Model
     
     public $timestamps = true;
 
-    
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
 }

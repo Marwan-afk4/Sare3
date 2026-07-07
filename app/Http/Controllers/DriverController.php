@@ -28,10 +28,11 @@ class DriverController extends Controller
     public function index(Request $request)
     {
         $sortField = $request->get('sort', 'id');
-        $sortOrder = $request->get('order', 'DESC');
+        $sortOrder = $request->get('order', 'ASC');
         $keyword = $request->get('keyword');
         $activity = $request->get('activity');
         $zoneId = $request->get('zone');
+        $cityId = $request->get('city');
         $carYear = $request->get('car_year');
         $status = $request->get('status');
         $balanceOperator = $request->get('balance_operator');
@@ -57,6 +58,16 @@ class DriverController extends Controller
         // Count drivers with no zone
         $driversWithNoZoneCount = User::where('role', 'driver')
             ->whereNull('zone_id')
+            ->count();
+
+        // Get city counts (including drivers with no city)
+        $cities = \App\Models\City::withCount(['users as driver_count' => function ($query) {
+            $query->where('role', 'driver');
+        }])->get();
+
+        // Count drivers with no city
+        $driversWithNoCityCount = User::where('role', 'driver')
+            ->whereNull('city_id')
             ->count();
 
         // 👇 Get all car types that have drivers
@@ -89,7 +100,7 @@ class DriverController extends Controller
         }
 
         $drivers = User::where('role', 'driver')
-            ->with(['zone', 'driverCars.carType']) // 👈 Load car relationships
+            ->with(['zone', 'city', 'driverCars.carType']) // 👈 Load car and city relationships
             ->when($activity, function ($query, $activity) {
                 $query->where('activity', $activity); // 👈 Filter by activity
             })
@@ -98,6 +109,13 @@ class DriverController extends Controller
                     $query->whereNull('zone_id'); // 👈 Filter drivers with no zone
                 } else {
                     $query->where('zone_id', $zoneId); // 👈 Filter by zone
+                }
+            })
+            ->when($cityId !== null, function ($query) use ($cityId) {
+                if ($cityId === 'no_city') {
+                    $query->whereNull('city_id'); // 👈 Filter drivers with no city
+                } else {
+                    $query->where('city_id', $cityId); // 👈 Filter by city
                 }
             })
             ->when($carYear, function ($query, $carYear) {
@@ -128,7 +146,7 @@ class DriverController extends Controller
         $driverActivtyStatus = ActivtyType::cases();
         $driverStatusCases = DriverStatus::cases();
 
-        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'driverStatusCases', 'driverStatusCounts', 'zones', 'driversWithNoZoneCount', 'carYears', 'carYearCounts', 'balanceOperator', 'balanceAmount'));
+        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'driverStatusCases', 'driverStatusCounts', 'zones', 'driversWithNoZoneCount', 'cities', 'driversWithNoCityCount', 'carYears', 'carYearCounts', 'balanceOperator', 'balanceAmount'));
     }
 
     public function documents(User $driver)

@@ -53,6 +53,70 @@
         </div>
     </div>
 
+    <!-- Drivers by City Section -->
+    <div class="main-card mb-3 card">
+        <div class="card-header border-bottom py-3">
+            <h4 class="mb-0">{{ __('Drivers by City') }}</h4>
+            <p class="text-body-tertiary mb-0 mt-1">{{ __('Distribution of drivers across Jordan cities') }}</p>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                @php $hasDrivers = false; @endphp
+                @foreach ($citiesWithDriverCount as $city)
+                    @if ($city->driver_count > 0)
+                        @php $hasDrivers = true; @endphp
+                        <div class="col-xl-3 col-md-4 col-sm-6 col-12">
+                            <a href="{{ route('drivers.index', ['city' => $city->id]) }}" class="text-decoration-none card h-100 city-card border rounded-3 p-3 bg-body-highlight">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar avatar-l bg-primary-subtle rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 42px; height: 42px;">
+                                            <i class="fa fa-map-marker-alt fs-7"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0 text-body-emphasis fw-bold" style="font-size: 0.95rem;">{{ $city->name }}</h5>
+                                            <span class="fs-10 text-body-tertiary">{{ __('Jordan') }}</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-primary-subtle text-primary fs-8 px-3 py-2 rounded-pill fw-bold">{{ $city->driver_count }}</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endif
+                @endforeach
+                
+                @if ($driversWithNoCityCount > 0)
+                    @php $hasDrivers = true; @endphp
+                    <div class="col-xl-3 col-md-4 col-sm-6 col-12">
+                        <a href="{{ route('drivers.index', ['city' => 'no_city']) }}" class="text-decoration-none card h-100 city-card city-card-no-city border border-warning-subtle rounded-3 p-3 bg-body-highlight">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar avatar-l bg-warning-subtle rounded-circle d-flex align-items-center justify-content-center text-warning" style="width: 42px; height: 42px;">
+                                        <i class="fa fa-question-circle fs-7"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-0 text-warning fw-bold" style="font-size: 0.95rem;">{{ __('No City') }}</h5>
+                                        <span class="fs-10 text-body-tertiary">{{ __('Unassigned') }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="badge bg-warning-subtle text-warning fs-8 px-3 py-2 rounded-pill fw-bold">{{ $driversWithNoCityCount }}</span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                @endif
+
+                @if (!$hasDrivers)
+                    <div class="col-12 text-center py-4">
+                        <p class="text-muted mb-0">{{ __('No drivers registered in any city yet.') }}</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
     <!-- Available Drivers Map Section -->
     <div class="main-card mb-3 card">
         <div class="card-header">
@@ -146,6 +210,18 @@
         text-align: center;
         font-weight: bold;
     }
+    .city-card {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+    }
+    .city-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+        border-color: var(--bs-primary, #4f46e5) !important;
+    }
+    .city-card-no-city:hover {
+        border-color: var(--bs-warning, #f59e0b) !important;
+    }
 </style>
 @endpush
 
@@ -165,7 +241,7 @@
     @endphp
 
     <script>
-        function renderLineChart(selector, seriesName, seriesData) {
+        function renderLineChart(selector, seriesName, seriesData, themeColor) {
             const months = [
                 "January", "February", "March", "April", "May", "June",
                 "July", "August", "September", "October", "November", "December"
@@ -178,55 +254,85 @@
                 echarts.getInstanceByDom(el).dispose();
             }
 
-            // ✅ detect dark mode (لو فيه كلاس اسمه dark-mode في body)
+            // ✅ detect dark mode
             const isDark = localStorage.getItem('phoenixTheme') === 'dark';
 
             const chart = echarts.init(el, null, {
                 backgroundColor: 'transparent'
             });
 
+            // Premium Color Schemes
+            let lineColor, areaColor, shadowColor;
+            if (themeColor === 'blue') {
+                lineColor = isDark ? '#6366f1' : '#4f46e5';
+                areaColor = isDark ? 'rgba(99, 102, 241, 0.2)' : 'rgba(79, 70, 229, 0.15)';
+                shadowColor = isDark ? 'rgba(99, 102, 241, 0.3)' : 'rgba(79, 70, 229, 0.2)';
+            } else {
+                lineColor = isDark ? '#34d399' : '#10b981';
+                areaColor = isDark ? 'rgba(52, 211, 153, 0.2)' : 'rgba(16, 185, 129, 0.15)';
+                shadowColor = isDark ? 'rgba(52, 211, 153, 0.3)' : 'rgba(16, 185, 129, 0.2)';
+            }
+
             chart.setOption({
+                grid: {
+                    left: '2%',
+                    right: '2%',
+                    bottom: '3%',
+                    top: '10%',
+                    containLabel: true
+                },
                 tooltip: {
                     trigger: 'axis',
-                    backgroundColor: isDark ? '#333' : '#fff',
+                    backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                    borderColor: isDark ? '#334155' : '#e2e8f0',
+                    borderWidth: 1,
+                    padding: [8, 12],
                     textStyle: {
-                        color: isDark ? '#fff' : '#000'
+                        color: isDark ? '#f8fafc' : '#0f172a',
+                        fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+                        fontSize: 12
                     },
-                    borderWidth: 0,
+                    extraCssText: 'box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); border-radius: 8px;',
                     formatter: function(params) {
                         return `
-                        <div>
-                            <h6 class="fs-9 mb-0" style="color:${isDark ? '#fff' : '#333'}">
-                                <span class="fas fa-circle me-1" style='color:${params[0].color}'></span>
-                                ${params[0].seriesName} : ${params[0].value}
-                            </h6>
-                        </div>
-                    `;
+                            <div style="font-weight: 600; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; color: ${isDark ? '#94a3b8' : '#64748b'};">${params[0].name}</div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: ${lineColor};"></span>
+                                <span style="color: ${isDark ? '#e2e8f0' : '#334155'};">${params[0].seriesName}: <strong style="color: ${isDark ? '#ffffff' : '#0f172a'};">${params[0].value}</strong></span>
+                            </div>
+                        `;
                     }
                 },
                 xAxis: {
                     type: 'category',
                     data: months,
+                    boundaryGap: false,
+                    axisLine: { show: false },
+                    axisTick: { show: false },
                     axisLabel: {
-                        color: isDark ? '#ddd' : '#333', // ✅ ألوان الأرقام
-                        formatter: value => value.substring(0, 3)
-                    },
-                    axisLine: {
-                        lineStyle: {
-                            color: isDark ? '#555' : '#ccc'
-                        }
+                        color: isDark ? '#94a3b8' : '#64748b',
+                        formatter: value => value.substring(0, 3),
+                        fontFamily: 'inherit',
+                        fontSize: 11,
+                        margin: 10
                     }
                 },
                 yAxis: {
                     type: 'value',
                     min: 0,
-                    axisLabel: {
-                        color: isDark ? '#ddd' : '#333' // ✅ ألوان الأرقام
-                    },
+                    axisLine: { show: false },
+                    axisTick: { show: false },
                     splitLine: {
                         lineStyle: {
-                            color: isDark ? '#444' : '#eee'
+                            color: isDark ? '#334155' : '#f1f5f9',
+                            type: 'dashed'
                         }
+                    },
+                    axisLabel: {
+                        color: isDark ? '#94a3b8' : '#64748b',
+                        fontFamily: 'inherit',
+                        fontSize: 11,
+                        margin: 10
                     }
                 },
                 series: [{
@@ -234,15 +340,33 @@
                     type: 'line',
                     data: seriesData,
                     smooth: true,
+                    showSymbol: false,
                     symbol: 'circle',
                     symbolSize: 8,
                     lineStyle: {
-                        width: 3,
-                        color: isDark ? '#4dabf7' : '#1971c2'
+                        width: 3.5,
+                        color: lineColor,
+                        shadowColor: shadowColor,
+                        shadowBlur: 10,
+                        shadowOffsetY: 5
                     },
                     itemStyle: {
+                        color: lineColor,
                         borderWidth: 2,
-                        color: isDark ? '#74c0fc' : '#228be6'
+                        borderColor: isDark ? '#1e293b' : '#ffffff'
+                    },
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [
+                                { offset: 0, color: areaColor },
+                                { offset: 1, color: 'rgba(255, 255, 255, 0)' }
+                            ]
+                        }
                     }
                 }]
             });
@@ -254,8 +378,8 @@
             const userMonthlyCounts = @json($safeUserCounts);
             const driverMonthlyCounts = @json($safeDriverCounts);
 
-            renderLineChart('.echarts-new-users', 'Users', userMonthlyCounts);
-            renderLineChart('.echarts-new-drivers', 'Drivers', driverMonthlyCounts);
+            renderLineChart('.echarts-new-users', 'Users', userMonthlyCounts, 'blue');
+            renderLineChart('.echarts-new-drivers', 'Drivers', driverMonthlyCounts, 'emerald');
         }
 
         if (document.readyState === 'loading') {
