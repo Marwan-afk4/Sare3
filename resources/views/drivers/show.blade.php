@@ -350,11 +350,26 @@
 
                 // Custom driver icon (Green for online, Red for offline)
                 const isOnline = {{ $isAvailable ? 'true' : 'false' }};
+                const color = isOnline ? '#2ecc71' : '#e74c3c';
+                const initialBearing = {{ $driverLocation['bearing'] !== null ? $driverLocation['bearing'] : 'null' }};
+                const rotateStyle = initialBearing !== null ? `transform: rotate(${initialBearing}deg);` : '';
+                const carSvg = `
+                    <svg width="36" height="36" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="25" y="10" width="50" height="80" rx="15" fill="${color}" stroke="#fff" stroke-width="4"/>
+                        <rect x="30" y="25" width="40" height="25" rx="5" fill="#333" opacity="0.8"/>
+                        <rect x="30" y="60" width="40" height="15" rx="3" fill="#333" opacity="0.8"/>
+                        <rect x="20" y="20" width="5" height="15" rx="2" fill="#fff" opacity="0.5"/>
+                        <rect x="75" y="20" width="5" height="15" rx="2" fill="#fff" opacity="0.5"/>
+                        <rect x="20" y="70" width="5" height="10" rx="2" fill="red" opacity="0.8"/>
+                        <rect x="75" y="70" width="5" height="10" rx="2" fill="red" opacity="0.8"/>
+                    </svg>
+                `;
+
                 const driverIcon = L.divIcon({
-                    className: isOnline ? 'driver-marker' : 'unavailable-driver-marker',
-                    html: `<div style="background-color: ${isOnline ? '#4CAF50' : '#f44336'}; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>`,
-                    iconSize: [26, 26],
-                    iconAnchor: [13, 13]
+                    html: `<div class="car-icon-wrapper" style="width:36px;height:36px;transition: transform 0.2s;${rotateStyle}">${carSvg}</div>`,
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 18],
+                    className: ''
                 });
 
                 // Add driver marker
@@ -408,12 +423,20 @@
                     }
 
                     // Function to update marker position
-                    function updateMarkerPosition(lat, lng, timestamp) {
+                    function updateMarkerPosition(lat, lng, timestamp, bearing = null) {
                         const newLat = parseFloat(lat);
                         const newLng = parseFloat(lng);
 
                         // Update marker position with smooth animation
                         driverMarker.setLatLng([newLat, newLng]);
+
+                        // Rotate the car icon wrapper div if bearing is available
+                        if (bearing !== null && bearing !== undefined) {
+                            const wrapper = driverMarker.getElement()?.querySelector('.car-icon-wrapper');
+                            if (wrapper) {
+                                wrapper.style.transform = `rotate(${bearing}deg)`;
+                            }
+                        }
 
                         // Smoothly pan map to new location (only if significant movement)
                         const currentCenter = map.getCenter();
@@ -451,7 +474,7 @@
                         .listen('.driver.location.updated', (e) => {
                             if (String(e.driver_id) === '{{ $driver->id }}') {
                                 console.log('📡 Real-time location update received:', e);
-                                updateMarkerPosition(e.latitude, e.longitude, e.updated_at);
+                                updateMarkerPosition(e.latitude, e.longitude, e.updated_at, e.bearing);
                             }
                         });
 
