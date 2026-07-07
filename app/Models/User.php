@@ -49,6 +49,7 @@ class User extends Authenticatable
         'is_referrer',
         'referral_code',
         'zone_id',
+        'city_id',
         'pending_coupon_id',
         'otp_code',
         'otp_expires_at',
@@ -290,6 +291,11 @@ class User extends Authenticatable
     public function zone()
     {
         return $this->belongsTo(Zone::class);
+    }
+
+    public function city()
+    {
+        return $this->belongsTo(City::class);
     }
 
     public function bonusGrants()

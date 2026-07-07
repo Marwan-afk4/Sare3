@@ -100,6 +100,9 @@ Route::domain(config('app.api_domain'))->group(function () {
     //post name
     Route::post('/driver/post-name', [DriverAuthController::class, 'postName']);
 
+    //Cities
+        Route::get('/driver/cities', [DriverAuthController::class, 'getActiveCities']);
+
     //google auth
     Route::post('/driver/google-auth', [DriverAuthController::class, 'googleAuth']);
 
