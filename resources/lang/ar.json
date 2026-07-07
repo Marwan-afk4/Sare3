@@ -794,6 +794,8 @@
     "Online & Available": "متصل ومتاح",
     "Current Location": "الموقع الحالي",
     "Location updates in real-time via Firebase": "تحديث الموقع في الوقت الحقيقي عبر Firebase",
+    "Location updates in real-time via WebSocket": "تحديث الموقع في الوقت الحقيقي عبر WebSocket",
+    "Location updates in real-time when driver is online.": "تحديث الموقع في الوقت الحقيقي عندما يكون السائق متصلاً.",
     "seconds ago": "منذ ثوانٍ",
     "minutes ago": "منذ دقائق",
     "Last updated": "آخر تحديث",
