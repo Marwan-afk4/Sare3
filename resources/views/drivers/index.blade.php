@@ -44,6 +44,24 @@
             </div>
         </div>
 
+        {{-- Availability Filter Buttons --}}
+        <div class="mb-3">
+            <label class="form-label fw-bold">{{ __('Filter by Availability') }}</label>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ route('drivers.index', request()->except('availability')) }}" class="btn btn-outline-dark btn-sm">
+                    {{ __('All') }}
+                </a>
+                <a href="{{ route('drivers.index', array_merge(request()->except('availability'), ['availability' => '1'])) }}"
+                    class="btn btn-sm {{ request('availability') === '1' ? 'btn-success' : 'btn-outline-success' }}">
+                    {{ __('الحالة: متصل ومتاح') }} 🟢 ({{ $onlineDriversCount }})
+                </a>
+                <a href="{{ route('drivers.index', array_merge(request()->except('availability'), ['availability' => '0'])) }}"
+                    class="btn btn-sm {{ request('availability') === '0' ? 'btn-secondary' : 'btn-outline-secondary' }}">
+                    {{ __('غير متصل') }} ⚫ ({{ $offlineDriversCount }})
+                </a>
+            </div>
+        </div>
+
         {{-- Zone Filter Buttons --}}
         <div class="mb-3">
             <label class="form-label fw-bold">{{ __('Filter by Zone') }}</label>
