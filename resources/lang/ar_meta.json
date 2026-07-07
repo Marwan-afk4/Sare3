@@ -3592,7 +3592,7 @@
     "Offline": {
         "0": "resources\/views\/drivers\/index.blade.php",
         "1": "resources\/views\/drivers\/show.blade.php",
-        "3": "resources\/views\/home\/welcome.blade.php"
+        "4": "resources\/views\/home\/welcome.blade.php"
     },
     "Online & Available": [
         "resources\/views\/drivers\/show.blade.php"
@@ -4758,5 +4758,17 @@
     ],
     "No drivers registered in any city yet.": [
         "resources\/views\/home\/welcome.blade.php"
+    ],
+    "Last Known Location": [
+        "resources\/views\/drivers\/show.blade.php"
+    ],
+    "Location updates in real-time via WebSocket": [
+        "resources\/views\/drivers\/show.blade.php"
+    ],
+    "Location updates in real-time when driver is online.": [
+        "resources\/views\/drivers\/show.blade.php"
+    ],
+    "Last known location": [
+        "resources\/views\/drivers\/show.blade.php"
     ]
 }

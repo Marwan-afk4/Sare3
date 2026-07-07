@@ -1145,5 +1145,7 @@
     "Distribution of drivers across Jordan cities": "توزيع السائقين عبر مدن الأردن",
     "Jordan": "الأردن",
     "Unassigned": "غير معين",
-    "No drivers registered in any city yet.": "لا يوجد سائقين مسجلين في أي مدينة حتى الآن."
+    "No drivers registered in any city yet.": "لا يوجد سائقين مسجلين في أي مدينة حتى الآن.",
+    "Last Known Location": "آخر موقع معروف",
+    "Last known location": "آخر موقع معروف"
 }
