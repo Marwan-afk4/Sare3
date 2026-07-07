@@ -1132,5 +1132,16 @@
     "The Status field must be active or inactive.": "يجب أن تكون حالة الحقل إما نشط أو غير نشط.",
     "The Password confirmation does not match.": "تأكيد كلمة المرور غير متطابق.",
     "The Status must be one of the following: approved, rejected, pending.": "يجب أن تكون الحالة إحدى القيم التالية: مقبول، مرفوض، قيد الانتظار.",
-    "The Activity must be one of the following: active, inactive, in progress, rejected.": "يجب أن يكون النشاط إحدى القيم التالية: نشط، غير نشط، قيد التنفيذ، مرفوض."
+    "The Activity must be one of the following: active, inactive, in progress, rejected.": "يجب أن يكون النشاط إحدى القيم التالية: نشط، غير نشط، قيد التنفيذ، مرفوض.",
+    "Filter by Availability": "فلترة حسب التوفر",
+    "غير متصل": "غير متصل",
+    "Filter by City": "فلترة حسب المدينة",
+    "All Cities": "جميع المدن",
+    "No City": "لا يوجد مدينة",
+    "City": "مدينة",
+    "Drivers by City": "السائقين حسب المدينة",
+    "Distribution of drivers across Jordan cities": "توزيع السائقين عبر مدن الأردن",
+    "Jordan": "الأردن",
+    "Unassigned": "غير معين",
+    "No drivers registered in any city yet.": "لا يوجد سائقين مسجلين في أي مدينة حتى الآن."
 }

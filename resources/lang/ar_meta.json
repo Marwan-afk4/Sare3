@@ -732,7 +732,7 @@
     "All": {
         "0": "resources\/views\/admin\/support-chat\/realtime.blade.php",
         "1": "resources\/views\/drivers\/index.blade.php",
-        "3": "resources\/views\/rides\/index.blade.php"
+        "4": "resources\/views\/rides\/index.blade.php"
     },
     "New Users & Drivers": [
         "resources\/views\/home\/welcome.blade.php"
@@ -3456,6 +3456,7 @@
         "resources\/views\/zones\/edit.blade.php"
     ],
     "Please draw a polygon on the map to define the zone area.": [
+        "resources\/views\/zones\/create.blade.php",
         "resources\/views\/zones\/edit.blade.php"
     ],
     "Please add GOOGLE_MAPS_API_KEY to your .env file to enable map editing.": [
@@ -4300,10 +4301,10 @@
     "Categories:": [
         "resources\/views\/drivers\/cars.blade.php"
     ],
-    "الحالة: متصل ومتاح": [
-        "resources\/views\/drivers\/index.blade.php",
-        "resources\/views\/drivers\/show.blade.php"
-    ],
+    "الحالة: متصل ومتاح": {
+        "0": "resources\/views\/drivers\/index.blade.php",
+        "2": "resources\/views\/drivers\/show.blade.php"
+    },
     "pending drivers": [
         "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     ],
@@ -4717,5 +4718,45 @@
     ],
     "The Activity must be one of the following: active, inactive, in progress, rejected.": [
         "app\/Http\/Requests\/UpdateDriverRequest.php"
+    ],
+    "Personal Photo": [
+        "resources\/views\/drivers\/documents.blade.php"
+    ],
+    "Uploaded at registration": [
+        "resources\/views\/drivers\/documents.blade.php"
+    ],
+    "Filter by Availability": [
+        "resources\/views\/drivers\/index.blade.php"
+    ],
+    "غير متصل": [
+        "resources\/views\/drivers\/index.blade.php"
+    ],
+    "Filter by City": [
+        "resources\/views\/drivers\/index.blade.php"
+    ],
+    "All Cities": [
+        "resources\/views\/drivers\/index.blade.php"
+    ],
+    "No City": {
+        "0": "resources\/views\/drivers\/index.blade.php",
+        "2": "resources\/views\/home\/welcome.blade.php"
+    },
+    "City": [
+        "resources\/views\/drivers\/index.blade.php"
+    ],
+    "Drivers by City": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "Distribution of drivers across Jordan cities": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "Jordan": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "Unassigned": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "No drivers registered in any city yet.": [
+        "resources\/views\/home\/welcome.blade.php"
     ]
 }
