@@ -424,12 +424,12 @@ document.getElementById('zoneEditForm').addEventListener('submit', function(e) {
 });
 </script>
 
-@if(env('GOOGLE_MAPS_API_KEY'))
+@if(config('services.google_maps.api_key'))
 <script>
     // Load Google Maps API dynamically with proper async loading
     (function() {
         const script = document.createElement('script');
-        script.src = 'https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=drawing&loading=async&callback=initMap';
+        script.src = 'https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.api_key') }}&libraries=drawing&v=3.64&loading=async&callback=initMap';
         script.async = true;
         script.defer = true;
         script.onerror = function() {
