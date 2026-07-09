@@ -9,6 +9,7 @@ use App\Mail\EmailVerificationCode;
 use App\Models\CarCategory;
 use App\Models\CarModel;
 use App\Models\CarType;
+use App\Models\City;
 use App\Models\DocumentType;
 use App\Models\DriverCar;
 use App\Models\DriverDocument;
@@ -288,6 +289,15 @@ class AuthController extends Controller
         ], 401);
     }
 
+    public function getActiveCities()
+    {
+        $cities = City::where('status', 'active')->get();
+        return response()->json([
+            'message' => 'Active cities retrieved successfully',
+            'data' => $cities,
+        ]);
+    }
+
     public function Postname(Request $request)
     {
         $this->normalizePhoneRequest($request);
@@ -489,6 +499,7 @@ class AuthController extends Controller
             'selfie_image' => 'required|string',
             'documents'    => 'required|array',
             'documents.*'  => 'required',
+            'city_id'      => 'required|exists:cities,id',
         ]);
 
         if ($validation->fails()) {
@@ -550,7 +561,10 @@ class AuthController extends Controller
         if ($selfiePath === null) {
             return response()->json(['errors' => 'Invalid base64 image string'], 400);
         }
-        $driver->update(['image' => $selfiePath]);
+        $driver->update([
+            'image' => $selfiePath,
+            'city_id' => $request->city_id,
+        ]);
 
         return response()->json([
             'message' => 'Documents uploaded successfully',

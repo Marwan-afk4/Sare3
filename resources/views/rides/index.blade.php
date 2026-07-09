@@ -84,7 +84,7 @@
                         <form action="{{ route('rides.index') }}" method="GET" id="filterForm">
                             <div class="row g-3 align-items-end">
                                 {{-- Keyword Search --}}
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold">{{ __('Search') }}</label>
                                     <div class="input-group">
                                         <input type="text" name="keyword" class="form-control" autocomplete="off"
@@ -95,15 +95,29 @@
                                     </div>
                                 </div>
 
-                                {{-- Min KM Filter --}}
+                                {{-- Date From Filter --}}
                                 <div class="col-md-2">
+                                    <label class="form-label fw-bold">{{ __('From Date') }}</label>
+                                    <input type="date" name="date_from" class="form-control"
+                                        value="{{ request('date_from') }}">
+                                </div>
+
+                                {{-- Date To Filter --}}
+                                <div class="col-md-2">
+                                    <label class="form-label fw-bold">{{ __('To Date') }}</label>
+                                    <input type="date" name="date_to" class="form-control"
+                                        value="{{ request('date_to') }}">
+                                </div>
+
+                                {{-- Min KM Filter --}}
+                                <div class="col-md-1">
                                     <label class="form-label fw-bold">{{ __('Min KM') }}</label>
                                     <input type="number" name="min_km" class="form-control" step="0.1" min="0"
                                         placeholder="{{ __('Min') }}" value="{{ request('min_km') }}">
                                 </div>
 
                                 {{-- Max KM Filter --}}
-                                <div class="col-md-2">
+                                <div class="col-md-1">
                                     <label class="form-label fw-bold">{{ __('Max KM') }}</label>
                                     <input type="number" name="max_km" class="form-control" step="0.1" min="0"
                                         placeholder="{{ __('Max') }}" value="{{ request('max_km') }}">
@@ -117,10 +131,10 @@
                                 </div>
 
                                 {{-- Clear Filter Button --}}
-                                <div class="col-md-2">
-                                    @if (request('keyword') || request('min_km') || request('max_km') || request('status') || request('accepted_after_seconds') || request('cancelled_before_accept') || request('min_offers'))
-                                        <a href="{{ route('rides.index') }}" class="btn btn-secondary w-100">
-                                            <i class="fa fa-times"></i> {{ __('Clear All') }}
+                                <div class="col-md-1">
+                                    @if (request('keyword') || request('date_from') || request('date_to') || request('min_km') || request('max_km') || request('status') || request('accepted_after_seconds') || request('cancelled_before_accept') || request('min_offers'))
+                                        <a href="{{ route('rides.index') }}" class="btn btn-secondary w-100" title="{{ __('Clear All') }}">
+                                            <i class="fa fa-times"></i>
                                         </a>
                                     @endif
                                 </div>

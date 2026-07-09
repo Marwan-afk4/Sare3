@@ -238,36 +238,35 @@ document.querySelectorAll('input[name="selection_method"]').forEach(radio => {
 
 // Form validation
 document.getElementById('zoneForm').addEventListener('submit', function(e) {
-    const selectionMethod = document.querySelector('input[name="selection_method"]:checked').value;
+    const polygonData = document.getElementById('polygon_coordinates').value;
+    const hasPolygon = polygonData && polygonData !== '[]' && polygonData !== '';
 
-    if (selectionMethod === 'polygon') {
-        if (!polygonCoordinates.length) {
-            e.preventDefault();
-            alert('{{ __("Please draw a polygon on the map or switch to manual coordinates.") }}');
-            return false;
-        }
-    } else {
-        // Validate manual coordinates
-        const fromLat = document.querySelector('input[name="from_lat"]').value;
-        const fromLng = document.querySelector('input[name="from_lng"]').value;
-        const toLat = document.querySelector('input[name="to_lat"]').value;
-        const toLng = document.querySelector('input[name="to_lng"]').value;
+    // Check if we have manual coordinates (if they are visible/used)
+    const fromLatInput = document.querySelector('input[name="from_lat"]');
+    const fromLngInput = document.querySelector('input[name="from_lng"]');
+    const toLatInput = document.querySelector('input[name="to_lat"]');
+    const toLngInput = document.querySelector('input[name="to_lng"]');
 
-        if (!fromLat || !fromLng || !toLat || !toLng) {
-            e.preventDefault();
-            alert('{{ __("Please fill in all coordinate fields or switch to polygon drawing.") }}');
-            return false;
-        }
+    const fromLat = fromLatInput ? fromLatInput.value : '';
+    const fromLng = fromLngInput ? fromLngInput.value : '';
+    const toLat = toLatInput ? toLatInput.value : '';
+    const toLng = toLngInput ? toLngInput.value : '';
+    const hasManualCoords = fromLat && fromLng && toLat && toLng;
+
+    if (!hasPolygon && !hasManualCoords) {
+        e.preventDefault();
+        alert('{{ __("Please draw a polygon on the map to define the zone area.") }}');
+        return false;
     }
 });
 </script>
 
-@if(env('GOOGLE_MAPS_API_KEY'))
+@if(config('services.google_maps.api_key'))
 <script>
     // Load Google Maps API dynamically with proper async loading
     (function() {
         const script = document.createElement('script');
-        script.src = 'https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=drawing&loading=async&callback=initMap';
+        script.src = 'https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.api_key') }}&libraries=drawing&v=3.64&loading=async&callback=initMap';
         script.async = true;
         script.defer = true;
         script.onerror = function() {

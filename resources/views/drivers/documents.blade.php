@@ -28,7 +28,41 @@
     @endif
 
     <div class="row">
-        @forelse ($documents as $document)
+        @if ($driver->image)
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 border border-primary">
+                    <img src="{{ $driver->image_link }}" class="card-img-top" alt="{{ __('Personal Photo') }}" style="height: 200px; object-fit: cover;">
+
+                    <div class="card-body">
+                        <h5 class="card-title">{{ __('Personal Photo') }}</h5>
+                        <p class="card-text"><small class="text-muted">{{ __('Uploaded at registration') }}</small></p>
+
+                        <div class="d-flex gap-1 flex-wrap">
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#selfieModal">
+                                {{ __('View Full Image') }} <i class="fa fa-image"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selfie Modal -->
+            <div class="modal fade" id="selfieModal" tabindex="-1" aria-labelledby="selfieModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="selfieModalLabel">{{ __('Personal Photo') }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <img src="{{ $driver->image_link }}" class="img-fluid" alt="{{ __('Personal Photo') }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @foreach ($documents as $document)
             @php
                 $imageUrl = $document->image_link ?? 'https://archive.org/download/placeholder-image/placeholder-image.jpg';
             @endphp
@@ -72,11 +106,13 @@
                     </div>
                 </div>
             </div>
-        @empty
+        @endforeach
+
+        @if (!$driver->image && $documents->isEmpty())
             <div class="col-12">
                 <div class="alert alert-info">{{ __('No documents found for this driver.') }}</div>
             </div>
-        @endforelse
+        @endif
     </div>
 </div>
 @endsection

@@ -44,6 +44,24 @@
             </div>
         </div>
 
+        {{-- Availability Filter Buttons --}}
+        <div class="mb-3">
+            <label class="form-label fw-bold">{{ __('Filter by Availability') }}</label>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ route('drivers.index', request()->except('availability')) }}" class="btn btn-outline-dark btn-sm">
+                    {{ __('All') }}
+                </a>
+                <a href="{{ route('drivers.index', array_merge(request()->except('availability'), ['availability' => '1'])) }}"
+                    class="btn btn-sm {{ request('availability') === '1' ? 'btn-success' : 'btn-outline-success' }}">
+                    {{ __('الحالة: متصل ومتاح') }} 🟢 ({{ $onlineDriversCount }})
+                </a>
+                <a href="{{ route('drivers.index', array_merge(request()->except('availability'), ['availability' => '0'])) }}"
+                    class="btn btn-sm {{ request('availability') === '0' ? 'btn-secondary' : 'btn-outline-secondary' }}">
+                    {{ __('غير متصل') }} ⚫ ({{ $offlineDriversCount }})
+                </a>
+            </div>
+        </div>
+
         {{-- Zone Filter Buttons --}}
         <div class="mb-3">
             <label class="form-label fw-bold">{{ __('Filter by Zone') }}</label>
@@ -60,6 +78,28 @@
                 <a href="{{ route('drivers.index', array_merge(request()->except('zone'), ['zone' => 'no_zone'])) }}"
                     class="btn btn-sm {{ request('zone') === 'no_zone' ? 'btn-warning' : 'btn-outline-warning' }}">
                     {{ __('No Zone') }} ({{ $driversWithNoZoneCount }})
+                </a>
+            </div>
+        </div>
+
+        {{-- City Filter Buttons --}}
+        <div class="mb-3">
+            <label class="form-label fw-bold">{{ __('Filter by City') }}</label>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ route('drivers.index', request()->except('city')) }}" class="btn btn-outline-primary btn-sm">
+                    {{ __('All Cities') }}
+                </a>
+                @foreach ($cities as $city)
+                    @if ($city->driver_count > 0)
+                        <a href="{{ route('drivers.index', array_merge(request()->except('city'), ['city' => $city->id])) }}"
+                            class="btn btn-sm {{ request('city') == $city->id ? 'btn-primary' : 'btn-outline-primary' }}">
+                            {{ $city->name }} ({{ $city->driver_count }})
+                        </a>
+                    @endif
+                @endforeach
+                <a href="{{ route('drivers.index', array_merge(request()->except('city'), ['city' => 'no_city'])) }}"
+                    class="btn btn-sm {{ request('city') === 'no_city' ? 'btn-warning' : 'btn-outline-warning' }}">
+                    {{ __('No City') }} ({{ $driversWithNoCityCount }})
                 </a>
             </div>
         </div>
@@ -209,6 +249,7 @@
                         </a>
                     </th>
                     <th>{{ __('Zone') }}</th>
+                    <th>{{ __('City') }}</th>
                     <th>{{ __('Availability') }}</th>
                     <th>
 						<a href="{{ route('drivers.index', array_merge(request()->except(['sort', 'order']), ['sort' => 'activity', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc'])) }}">
@@ -255,6 +296,13 @@
                                 <span class="badge bg-info">{{ $driver->zone->name }}</span>
                             @else
                                 <span class="text-muted">{{ __('No Zone') }}</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($driver->city)
+                                <span class="badge bg-primary">{{ $driver->city->name }}</span>
+                            @else
+                                <span class="text-muted">{{ __('No City') }}</span>
                             @endif
                         </td>
                         <td>

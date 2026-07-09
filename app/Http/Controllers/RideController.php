@@ -32,6 +32,8 @@ class RideController extends Controller
         $keyword   = $request->get('keyword');
         $minKm     = $request->get('min_km');
         $maxKm     = $request->get('max_km');
+        $dateFrom  = $request->get('date_from');
+        $dateTo    = $request->get('date_to');
 
         // New filters for requirements 12 & 13.
         // - accepted_after_seconds: rides where the accepting captain took at
@@ -78,6 +80,12 @@ class RideController extends Controller
             ->when($maxKm !== null && $maxKm !== '', function ($query) use ($maxKm) {
                 $query->whereRaw('CAST(total_distance_in_km AS DECIMAL(10,2)) <= ?', [$maxKm]);
             })
+            ->when($dateFrom, function ($query, $dateFrom) {
+                $query->whereDate('created_at', '>=', $dateFrom);
+            })
+            ->when($dateTo, function ($query, $dateTo) {
+                $query->whereDate('created_at', '<=', $dateTo);
+            })
             ->when($acceptedAfterSeconds !== null && $acceptedAfterSeconds !== '', function ($query) use ($acceptedAfterSeconds) {
                 $query->acceptedAfterSeconds((int) $acceptedAfterSeconds);
             })
@@ -110,7 +118,9 @@ class RideController extends Controller
             'sortOrder',
             'ridesStatusCounts',
             'rideStatuses',
-            'cancelledBeforeAcceptCount'
+            'cancelledBeforeAcceptCount',
+            'dateFrom',
+            'dateTo'
         ));
     }
 

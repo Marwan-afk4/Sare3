@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\City;
 use App\Models\User;
 use App\Models\Ride;
 
@@ -64,6 +65,13 @@ class HomePageController extends Controller
                 }
             }
         }
+        $citiesWithDriverCount = City::withCount(['users as driver_count' => function ($query) {
+            $query->where('role', 'driver');
+        }])->orderBy('driver_count', 'desc')->get();
+
+        $driversWithNoCityCount = User::where('role', 'driver')
+            ->whereNull('city_id')
+            ->count();
 
         return view('home.welcome', compact(
             'userCount',
@@ -75,7 +83,9 @@ class HomePageController extends Controller
             'availableDriversCount',
             'unavailableDrivers',
             'unavailableDriversCount',
-            'driverNames'
+            'driverNames',
+            'citiesWithDriverCount',
+            'driversWithNoCityCount'
         ));
     }
 

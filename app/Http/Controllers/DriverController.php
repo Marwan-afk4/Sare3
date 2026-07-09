@@ -28,10 +28,12 @@ class DriverController extends Controller
     public function index(Request $request)
     {
         $sortField = $request->get('sort', 'id');
-        $sortOrder = $request->get('order', 'DESC');
+        $sortOrder = $request->get('order', 'ASC');
         $keyword = $request->get('keyword');
         $activity = $request->get('activity');
         $zoneId = $request->get('zone');
+        $cityId = $request->get('city');
+        $availability = $request->get('availability');
         $carYear = $request->get('car_year');
         $status = $request->get('status');
         $balanceOperator = $request->get('balance_operator');
@@ -57,6 +59,25 @@ class DriverController extends Controller
         // Count drivers with no zone
         $driversWithNoZoneCount = User::where('role', 'driver')
             ->whereNull('zone_id')
+            ->count();
+
+        // Get city counts (including drivers with no city)
+        $cities = \App\Models\City::withCount(['users as driver_count' => function ($query) {
+            $query->where('role', 'driver');
+        }])->get();
+
+        // Count drivers with no city
+        $driversWithNoCityCount = User::where('role', 'driver')
+            ->whereNull('city_id')
+            ->count();
+
+        // Count online/offline drivers
+        $onlineDriversCount = User::where('role', 'driver')
+            ->where('is_available', true)
+            ->count();
+
+        $offlineDriversCount = User::where('role', 'driver')
+            ->where('is_available', false)
             ->count();
 
         // 👇 Get all car types that have drivers
@@ -89,7 +110,7 @@ class DriverController extends Controller
         }
 
         $drivers = User::where('role', 'driver')
-            ->with(['zone', 'driverCars.carType']) // 👈 Load car relationships
+            ->with(['zone', 'city', 'driverCars.carType']) // 👈 Load car and city relationships
             ->when($activity, function ($query, $activity) {
                 $query->where('activity', $activity); // 👈 Filter by activity
             })
@@ -99,6 +120,16 @@ class DriverController extends Controller
                 } else {
                     $query->where('zone_id', $zoneId); // 👈 Filter by zone
                 }
+            })
+            ->when($cityId !== null, function ($query) use ($cityId) {
+                if ($cityId === 'no_city') {
+                    $query->whereNull('city_id'); // 👈 Filter drivers with no city
+                } else {
+                    $query->where('city_id', $cityId); // 👈 Filter by city
+                }
+            })
+            ->when($availability !== null && $availability !== '', function ($query) use ($availability) {
+                $query->where('is_available', $availability == '1');
             })
             ->when($carYear, function ($query, $carYear) {
                 // 👇 Filter by car type year range
@@ -128,7 +159,7 @@ class DriverController extends Controller
         $driverActivtyStatus = ActivtyType::cases();
         $driverStatusCases = DriverStatus::cases();
 
-        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'driverStatusCases', 'driverStatusCounts', 'zones', 'driversWithNoZoneCount', 'carYears', 'carYearCounts', 'balanceOperator', 'balanceAmount'));
+        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'driverStatusCases', 'driverStatusCounts', 'zones', 'driversWithNoZoneCount', 'cities', 'driversWithNoCityCount', 'onlineDriversCount', 'offlineDriversCount', 'carYears', 'carYearCounts', 'balanceOperator', 'balanceAmount'));
     }
 
     public function documents(User $driver)

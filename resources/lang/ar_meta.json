@@ -13,6 +13,7 @@
         "resources\/views\/auth\/confirm-password.blade.php",
         "resources\/views\/auth\/login.blade.php",
         "resources\/views\/drivers\/create.blade.php",
+        "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/users\/create.blade.php"
     ],
     "Confirm": [
@@ -64,6 +65,9 @@
         "resources\/views\/car-types\/create.blade.php",
         "resources\/views\/car-types\/edit.blade.php",
         "resources\/views\/car-types\/show.blade.php",
+        "resources\/views\/cities\/create.blade.php",
+        "resources\/views\/cities\/edit.blade.php",
+        "resources\/views\/cities\/show.blade.php",
         "resources\/views\/document-types\/create.blade.php",
         "resources\/views\/document-types\/edit.blade.php",
         "resources\/views\/document-types\/show.blade.php",
@@ -131,6 +135,10 @@
         "resources\/views\/car-models\/edit.blade.php",
         "resources\/views\/car-models\/index.blade.php",
         "resources\/views\/car-models\/show.blade.php",
+        "resources\/views\/cities\/create.blade.php",
+        "resources\/views\/cities\/edit.blade.php",
+        "resources\/views\/cities\/index.blade.php",
+        "resources\/views\/cities\/show.blade.php",
         "resources\/views\/document-types\/create.blade.php",
         "resources\/views\/document-types\/edit.blade.php",
         "resources\/views\/document-types\/index.blade.php",
@@ -178,6 +186,7 @@
         "resources\/views\/car-categories\/create.blade.php",
         "resources\/views\/car-models\/create.blade.php",
         "resources\/views\/car-types\/create.blade.php",
+        "resources\/views\/cities\/create.blade.php",
         "resources\/views\/document-types\/create.blade.php",
         "resources\/views\/driver-documents\/create.blade.php",
         "resources\/views\/drivers\/create.blade.php",
@@ -213,6 +222,8 @@
         "resources\/views\/car-models\/index.blade.php",
         "resources\/views\/car-types\/edit.blade.php",
         "resources\/views\/car-types\/index.blade.php",
+        "resources\/views\/cities\/edit.blade.php",
+        "resources\/views\/cities\/index.blade.php",
         "resources\/views\/components\/active-rides-widget.blade.php",
         "resources\/views\/document-types\/edit.blade.php",
         "resources\/views\/document-types\/index.blade.php",
@@ -247,26 +258,28 @@
         "2": "resources\/views\/admin\/referrals\/list.blade.php",
         "4": "resources\/views\/cancellation-reasons\/create.blade.php",
         "5": "resources\/views\/cancellation-reasons\/edit.blade.php",
-        "6": "resources\/views\/document-types\/create.blade.php",
-        "7": "resources\/views\/document-types\/edit.blade.php",
-        "8": "resources\/views\/drivers\/edit.blade.php",
-        "9": "resources\/views\/leaderboard\/index.blade.php",
-        "10": "resources\/views\/livewire\/coupon-manager.blade.php",
-        "13": "resources\/views\/users\/edit.blade.php",
-        "14": "app\/Enums\/ActiveStatuses.php",
-        "15": "app\/Enums\/ActivtyType.php"
+        "6": "resources\/views\/cities\/index.blade.php",
+        "7": "resources\/views\/cities\/show.blade.php",
+        "8": "resources\/views\/document-types\/create.blade.php",
+        "9": "resources\/views\/document-types\/edit.blade.php",
+        "10": "resources\/views\/leaderboard\/index.blade.php",
+        "11": "resources\/views\/livewire\/coupon-manager.blade.php",
+        "14": "resources\/views\/users\/edit.blade.php",
+        "15": "app\/Enums\/ActiveStatuses.php",
+        "16": "app\/Enums\/ActivtyType.php"
     },
     "Inactive": {
         "0": "resources\/views\/cancellation-reasons\/create.blade.php",
         "1": "resources\/views\/cancellation-reasons\/edit.blade.php",
-        "2": "resources\/views\/document-types\/create.blade.php",
-        "3": "resources\/views\/document-types\/edit.blade.php",
-        "4": "resources\/views\/drivers\/edit.blade.php",
-        "5": "resources\/views\/leaderboard\/index.blade.php",
-        "6": "resources\/views\/livewire\/coupon-manager.blade.php",
-        "8": "resources\/views\/users\/edit.blade.php",
-        "9": "app\/Enums\/ActiveStatuses.php",
-        "10": "app\/Enums\/ActivtyType.php"
+        "2": "resources\/views\/cities\/index.blade.php",
+        "3": "resources\/views\/cities\/show.blade.php",
+        "4": "resources\/views\/document-types\/create.blade.php",
+        "5": "resources\/views\/document-types\/edit.blade.php",
+        "6": "resources\/views\/leaderboard\/index.blade.php",
+        "7": "resources\/views\/livewire\/coupon-manager.blade.php",
+        "9": "resources\/views\/users\/edit.blade.php",
+        "10": "app\/Enums\/ActiveStatuses.php",
+        "11": "app\/Enums\/ActivtyType.php"
     },
     "Activity": [
         "resources\/views\/drivers\/edit.blade.php",
@@ -285,6 +298,7 @@
         "resources\/views\/car-categories\/edit.blade.php",
         "resources\/views\/car-models\/edit.blade.php",
         "resources\/views\/car-types\/edit.blade.php",
+        "resources\/views\/cities\/edit.blade.php",
         "resources\/views\/document-types\/edit.blade.php",
         "resources\/views\/driver-documents\/edit.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
@@ -318,6 +332,8 @@
         "resources\/views\/car-models\/show.blade.php",
         "resources\/views\/car-types\/index.blade.php",
         "resources\/views\/car-types\/show.blade.php",
+        "resources\/views\/cities\/index.blade.php",
+        "resources\/views\/cities\/show.blade.php",
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/document-types\/show.blade.php",
         "resources\/views\/driver-documents\/index.blade.php",
@@ -380,6 +396,8 @@
         "resources\/views\/car-models\/show.blade.php",
         "resources\/views\/car-types\/index.blade.php",
         "resources\/views\/car-types\/show.blade.php",
+        "resources\/views\/cities\/index.blade.php",
+        "resources\/views\/cities\/show.blade.php",
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/document-types\/show.blade.php",
         "resources\/views\/driver-cars\/index.blade.php",
@@ -415,24 +433,25 @@
         "8": "resources\/views\/car-categories\/index.blade.php",
         "9": "resources\/views\/car-models\/index.blade.php",
         "10": "resources\/views\/car-types\/index.blade.php",
-        "11": "resources\/views\/document-types\/index.blade.php",
-        "12": "resources\/views\/driver-cars\/index.blade.php",
-        "13": "resources\/views\/driver-documents\/index.blade.php",
-        "14": "resources\/views\/drivers\/index.blade.php",
-        "15": "resources\/views\/drivers\/show.blade.php",
-        "16": "resources\/views\/leaderboard\/index.blade.php",
-        "17": "resources\/views\/livewire\/coupon-manager.blade.php",
-        "18": "resources\/views\/livewire\/zone-car-categories.blade.php",
-        "19": "resources\/views\/notifications\/index.blade.php",
-        "20": "resources\/views\/otp-limits\/index.blade.php",
-        "21": "resources\/views\/paymenent-methods\/index.blade.php",
-        "22": "resources\/views\/ride-request-time-limits\/index.blade.php",
-        "23": "resources\/views\/rides\/abnormal.blade.php",
-        "25": "resources\/views\/rides\/index.blade.php",
-        "26": "resources\/views\/users\/index.blade.php",
-        "27": "resources\/views\/wallet-requests\/admin-limits.blade.php",
-        "28": "resources\/views\/wallet-requests\/index.blade.php",
-        "29": "resources\/views\/zones\/index.blade.php"
+        "11": "resources\/views\/cities\/index.blade.php",
+        "12": "resources\/views\/document-types\/index.blade.php",
+        "13": "resources\/views\/driver-cars\/index.blade.php",
+        "14": "resources\/views\/driver-documents\/index.blade.php",
+        "15": "resources\/views\/drivers\/index.blade.php",
+        "16": "resources\/views\/drivers\/show.blade.php",
+        "17": "resources\/views\/leaderboard\/index.blade.php",
+        "18": "resources\/views\/livewire\/coupon-manager.blade.php",
+        "19": "resources\/views\/livewire\/zone-car-categories.blade.php",
+        "20": "resources\/views\/notifications\/index.blade.php",
+        "21": "resources\/views\/otp-limits\/index.blade.php",
+        "22": "resources\/views\/paymenent-methods\/index.blade.php",
+        "23": "resources\/views\/ride-request-time-limits\/index.blade.php",
+        "24": "resources\/views\/rides\/abnormal.blade.php",
+        "26": "resources\/views\/rides\/index.blade.php",
+        "27": "resources\/views\/users\/index.blade.php",
+        "28": "resources\/views\/wallet-requests\/admin-limits.blade.php",
+        "29": "resources\/views\/wallet-requests\/index.blade.php",
+        "30": "resources\/views\/zones\/index.blade.php"
     },
     "Edit": {
         "0": "resources\/views\/admin\/admins\/index.blade.php",
@@ -447,27 +466,29 @@
         "11": "resources\/views\/car-categories\/show.blade.php",
         "13": "resources\/views\/car-models\/show.blade.php",
         "15": "resources\/views\/car-types\/show.blade.php",
-        "17": "resources\/views\/document-types\/index.blade.php",
-        "18": "resources\/views\/driver-cars\/index.blade.php",
-        "19": "resources\/views\/driver-cars\/show.blade.php",
-        "20": "resources\/views\/driver-documents\/index.blade.php",
-        "21": "resources\/views\/driver-documents\/show.blade.php",
-        "22": "resources\/views\/drivers\/cars.blade.php",
-        "23": "resources\/views\/drivers\/documents.blade.php",
-        "24": "resources\/views\/drivers\/index.blade.php",
-        "25": "resources\/views\/drivers\/show.blade.php",
-        "28": "resources\/views\/leaderboard\/index.blade.php",
-        "29": "resources\/views\/notifications\/show.blade.php",
-        "30": "resources\/views\/otp-limits\/show.blade.php",
-        "32": "resources\/views\/paymenent-methods\/index.blade.php",
-        "33": "resources\/views\/paymenent-methods\/show.blade.php",
-        "34": "resources\/views\/ride-request-time-limits\/show.blade.php",
-        "36": "resources\/views\/rides\/show.blade.php",
-        "37": "resources\/views\/users\/index.blade.php",
-        "38": "resources\/views\/users\/show.blade.php",
-        "40": "resources\/views\/wallet-requests\/show.blade.php",
-        "41": "resources\/views\/zones\/index.blade.php",
-        "42": "resources\/views\/zones\/show.blade.php"
+        "17": "resources\/views\/cities\/index.blade.php",
+        "18": "resources\/views\/cities\/show.blade.php",
+        "19": "resources\/views\/document-types\/index.blade.php",
+        "20": "resources\/views\/driver-cars\/index.blade.php",
+        "21": "resources\/views\/driver-cars\/show.blade.php",
+        "22": "resources\/views\/driver-documents\/index.blade.php",
+        "23": "resources\/views\/driver-documents\/show.blade.php",
+        "24": "resources\/views\/drivers\/cars.blade.php",
+        "25": "resources\/views\/drivers\/documents.blade.php",
+        "26": "resources\/views\/drivers\/index.blade.php",
+        "27": "resources\/views\/drivers\/show.blade.php",
+        "30": "resources\/views\/leaderboard\/index.blade.php",
+        "31": "resources\/views\/notifications\/show.blade.php",
+        "32": "resources\/views\/otp-limits\/show.blade.php",
+        "34": "resources\/views\/paymenent-methods\/index.blade.php",
+        "35": "resources\/views\/paymenent-methods\/show.blade.php",
+        "36": "resources\/views\/ride-request-time-limits\/show.blade.php",
+        "38": "resources\/views\/rides\/show.blade.php",
+        "39": "resources\/views\/users\/index.blade.php",
+        "40": "resources\/views\/users\/show.blade.php",
+        "42": "resources\/views\/wallet-requests\/show.blade.php",
+        "43": "resources\/views\/zones\/index.blade.php",
+        "44": "resources\/views\/zones\/show.blade.php"
     },
     "Delete": {
         "0": "resources\/views\/admin\/admins\/index.blade.php",
@@ -482,25 +503,27 @@
         "10": "resources\/views\/car-categories\/index.blade.php",
         "12": "resources\/views\/car-models\/index.blade.php",
         "13": "resources\/views\/car-types\/index.blade.php",
-        "14": "resources\/views\/document-types\/index.blade.php",
-        "16": "resources\/views\/driver-cars\/index.blade.php",
-        "17": "resources\/views\/driver-documents\/index.blade.php",
-        "18": "resources\/views\/driver-documents\/show.blade.php",
-        "19": "resources\/views\/drivers\/cars.blade.php",
-        "20": "resources\/views\/drivers\/documents.blade.php",
-        "21": "resources\/views\/drivers\/index.blade.php",
-        "22": "resources\/views\/drivers\/show.blade.php",
-        "23": "resources\/views\/leaderboard\/index.blade.php",
-        "24": "resources\/views\/livewire\/coupon-manager.blade.php",
-        "25": "resources\/views\/notifications\/index.blade.php",
-        "26": "resources\/views\/notifications\/show.blade.php",
-        "27": "resources\/views\/otp-limits\/index.blade.php",
-        "28": "resources\/views\/paymenent-methods\/index.blade.php",
-        "29": "resources\/views\/paymenent-methods\/show.blade.php",
-        "30": "resources\/views\/ride-request-time-limits\/index.blade.php",
-        "31": "resources\/views\/users\/index.blade.php",
-        "33": "resources\/views\/wallet-requests\/show.blade.php",
-        "34": "resources\/views\/zones\/index.blade.php"
+        "14": "resources\/views\/cities\/index.blade.php",
+        "15": "resources\/views\/cities\/show.blade.php",
+        "16": "resources\/views\/document-types\/index.blade.php",
+        "18": "resources\/views\/driver-cars\/index.blade.php",
+        "19": "resources\/views\/driver-documents\/index.blade.php",
+        "20": "resources\/views\/driver-documents\/show.blade.php",
+        "21": "resources\/views\/drivers\/cars.blade.php",
+        "22": "resources\/views\/drivers\/documents.blade.php",
+        "23": "resources\/views\/drivers\/index.blade.php",
+        "24": "resources\/views\/drivers\/show.blade.php",
+        "25": "resources\/views\/leaderboard\/index.blade.php",
+        "26": "resources\/views\/livewire\/coupon-manager.blade.php",
+        "27": "resources\/views\/notifications\/index.blade.php",
+        "28": "resources\/views\/notifications\/show.blade.php",
+        "29": "resources\/views\/otp-limits\/index.blade.php",
+        "30": "resources\/views\/paymenent-methods\/index.blade.php",
+        "31": "resources\/views\/paymenent-methods\/show.blade.php",
+        "32": "resources\/views\/ride-request-time-limits\/index.blade.php",
+        "33": "resources\/views\/users\/index.blade.php",
+        "35": "resources\/views\/wallet-requests\/show.blade.php",
+        "36": "resources\/views\/zones\/index.blade.php"
     },
     "Updated At": [
         "resources\/views\/ads\/show.blade.php",
@@ -510,6 +533,7 @@
         "resources\/views\/car-categories\/show.blade.php",
         "resources\/views\/car-models\/show.blade.php",
         "resources\/views\/car-types\/show.blade.php",
+        "resources\/views\/cities\/show.blade.php",
         "resources\/views\/document-types\/show.blade.php",
         "resources\/views\/driver-cars\/show.blade.php",
         "resources\/views\/driver-documents\/show.blade.php",
@@ -635,12 +659,14 @@
         "app\/Http\/Requests\/StoreCancellationPolicyRequest.php",
         "app\/Http\/Requests\/StoreCarCategoryRequest.php",
         "app\/Http\/Requests\/StoreCarModelRequest.php",
+        "app\/Http\/Requests\/StoreCityRequest.php",
         "app\/Http\/Requests\/StoreDocumentTypeRequest.php",
         "app\/Http\/Requests\/StoreDriverRequest.php",
         "app\/Http\/Requests\/StorePaymenentMethodRequest.php",
         "app\/Http\/Requests\/StoreUserRequest.php",
         "app\/Http\/Requests\/StoreZoneRequest.php",
-        "app\/Http\/Requests\/UpdateCarModelRequest.php"
+        "app\/Http\/Requests\/UpdateCarModelRequest.php",
+        "app\/Http\/Requests\/UpdateCityRequest.php"
     ],
     "The Name must be a string.": [
         "app\/Http\/Requests\/StoreCancellationPolicyRequest.php",
@@ -668,11 +694,11 @@
         "app\/Http\/Requests\/UpdateDriverRequest.php"
     ],
     "The Password field is required.": [
-        "app\/Http\/Requests\/StoreDriverRequest.php"
-    ],
-    "The Password must be a string.": [
         "app\/Http\/Requests\/StoreDriverRequest.php",
         "app\/Http\/Requests\/UpdateDriverRequest.php"
+    ],
+    "The Password must be a string.": [
+        "app\/Http\/Requests\/StoreDriverRequest.php"
     ],
     "The Password must be at least 8 characters.": [
         "app\/Http\/Requests\/StoreDriverRequest.php",
@@ -706,7 +732,7 @@
     "All": {
         "0": "resources\/views\/admin\/support-chat\/realtime.blade.php",
         "1": "resources\/views\/drivers\/index.blade.php",
-        "3": "resources\/views\/rides\/index.blade.php"
+        "4": "resources\/views\/rides\/index.blade.php"
     },
     "New Users & Drivers": [
         "resources\/views\/home\/welcome.blade.php"
@@ -982,6 +1008,7 @@
         "app\/Http\/Controllers\/CancellationReasonController.php",
         "app\/Http\/Controllers\/CarCategoryController.php",
         "app\/Http\/Controllers\/CarTypeController.php",
+        "app\/Http\/Controllers\/CityController.php",
         "app\/Http\/Controllers\/DocumentTypeController.php",
         "app\/Http\/Controllers\/DriverCarController.php",
         "app\/Http\/Controllers\/DriverController.php",
@@ -1003,6 +1030,7 @@
         "app\/Http\/Controllers\/CarCategoryController.php",
         "app\/Http\/Controllers\/CarModelController.php",
         "app\/Http\/Controllers\/CarTypeController.php",
+        "app\/Http\/Controllers\/CityController.php",
         "app\/Http\/Controllers\/DocumentTypeController.php",
         "app\/Http\/Controllers\/DriverCarController.php",
         "app\/Http\/Controllers\/DriverDocumentController.php",
@@ -1250,28 +1278,32 @@
         "7": "resources\/views\/cancellation-policies\/edit.blade.php",
         "8": "resources\/views\/cancellation-policies\/index.blade.php",
         "9": "resources\/views\/cancellation-policies\/show.blade.php",
-        "10": "resources\/views\/drivers\/create.blade.php",
-        "11": "resources\/views\/drivers\/edit.blade.php",
-        "12": "resources\/views\/drivers\/index.blade.php",
-        "13": "resources\/views\/drivers\/ride-history.blade.php",
-        "15": "resources\/views\/drivers\/show.blade.php",
-        "17": "resources\/views\/leaderboard\/index.blade.php",
-        "18": "resources\/views\/livewire\/coupon-manager.blade.php",
-        "19": "resources\/views\/paymenent-methods\/create.blade.php",
-        "20": "resources\/views\/paymenent-methods\/edit.blade.php",
-        "21": "resources\/views\/paymenent-methods\/index.blade.php",
-        "22": "resources\/views\/paymenent-methods\/show.blade.php",
-        "23": "resources\/views\/rides\/abnormal.blade.php",
-        "25": "resources\/views\/rides\/create.blade.php",
-        "26": "resources\/views\/rides\/edit.blade.php",
-        "27": "resources\/views\/rides\/index.blade.php",
-        "28": "resources\/views\/rides\/show.blade.php",
-        "29": "resources\/views\/users\/ride-history.blade.php",
-        "31": "resources\/views\/users\/show.blade.php",
-        "32": "resources\/views\/wallet-requests\/create.blade.php",
-        "33": "resources\/views\/wallet-requests\/edit.blade.php",
-        "34": "resources\/views\/wallet-requests\/history.blade.php",
-        "35": "resources\/views\/wallet-requests\/show.blade.php"
+        "10": "resources\/views\/cities\/create.blade.php",
+        "11": "resources\/views\/cities\/edit.blade.php",
+        "12": "resources\/views\/cities\/index.blade.php",
+        "13": "resources\/views\/cities\/show.blade.php",
+        "14": "resources\/views\/drivers\/create.blade.php",
+        "15": "resources\/views\/drivers\/edit.blade.php",
+        "16": "resources\/views\/drivers\/index.blade.php",
+        "17": "resources\/views\/drivers\/ride-history.blade.php",
+        "19": "resources\/views\/drivers\/show.blade.php",
+        "21": "resources\/views\/leaderboard\/index.blade.php",
+        "22": "resources\/views\/livewire\/coupon-manager.blade.php",
+        "23": "resources\/views\/paymenent-methods\/create.blade.php",
+        "24": "resources\/views\/paymenent-methods\/edit.blade.php",
+        "25": "resources\/views\/paymenent-methods\/index.blade.php",
+        "26": "resources\/views\/paymenent-methods\/show.blade.php",
+        "27": "resources\/views\/rides\/abnormal.blade.php",
+        "29": "resources\/views\/rides\/create.blade.php",
+        "30": "resources\/views\/rides\/edit.blade.php",
+        "31": "resources\/views\/rides\/index.blade.php",
+        "32": "resources\/views\/rides\/show.blade.php",
+        "33": "resources\/views\/users\/ride-history.blade.php",
+        "35": "resources\/views\/users\/show.blade.php",
+        "36": "resources\/views\/wallet-requests\/create.blade.php",
+        "37": "resources\/views\/wallet-requests\/edit.blade.php",
+        "38": "resources\/views\/wallet-requests\/history.blade.php",
+        "39": "resources\/views\/wallet-requests\/show.blade.php"
     },
     "Edit Ride": [
         "resources\/views\/rides\/edit.blade.php"
@@ -1335,8 +1367,10 @@
     ],
     "The Status field is required.": [
         "app\/Http\/Requests\/StoreCancellationPolicyRequest.php",
+        "app\/Http\/Requests\/StoreCityRequest.php",
         "app\/Http\/Requests\/StorePaymenentMethodRequest.php",
         "app\/Http\/Requests\/StoreRideRequest.php",
+        "app\/Http\/Requests\/UpdateCityRequest.php",
         "app\/Http\/Requests\/UpdateRideRequest.php"
     ],
     "The Estimated Km field is required.": [
@@ -2658,12 +2692,14 @@
     ],
     "Apply Filters": [
         "resources\/views\/admin\/financial-reports\/index.blade.php",
-        "resources\/views\/admin\/referrals\/list.blade.php"
+        "resources\/views\/admin\/referrals\/list.blade.php",
+        "resources\/views\/drivers\/index.blade.php"
     ],
     "Clear Filters": {
         "0": "resources\/views\/admin\/financial-reports\/index.blade.php",
         "1": "resources\/views\/admin\/referrals\/list.blade.php",
-        "3": "resources\/views\/wallet-requests\/index.blade.php"
+        "3": "resources\/views\/drivers\/index.blade.php",
+        "4": "resources\/views\/wallet-requests\/index.blade.php"
     },
     "Referred User": [
         "resources\/views\/admin\/referrals\/list.blade.php"
@@ -3126,7 +3162,8 @@
     },
     "Confirm Password": [
         "resources\/views\/admin\/admins\/create.blade.php",
-        "resources\/views\/admin\/admins\/edit.blade.php"
+        "resources\/views\/admin\/admins\/edit.blade.php",
+        "resources\/views\/drivers\/create.blade.php"
     ],
     "Select Role": [
         "resources\/views\/admin\/admins\/create.blade.php",
@@ -3419,6 +3456,7 @@
         "resources\/views\/zones\/edit.blade.php"
     ],
     "Please draw a polygon on the map to define the zone area.": [
+        "resources\/views\/zones\/create.blade.php",
         "resources\/views\/zones\/edit.blade.php"
     ],
     "Please add GOOGLE_MAPS_API_KEY to your .env file to enable map editing.": [
@@ -3554,7 +3592,7 @@
     "Offline": {
         "0": "resources\/views\/drivers\/index.blade.php",
         "1": "resources\/views\/drivers\/show.blade.php",
-        "3": "resources\/views\/home\/welcome.blade.php"
+        "4": "resources\/views\/home\/welcome.blade.php"
     },
     "Online & Available": [
         "resources\/views\/drivers\/show.blade.php"
@@ -3631,8 +3669,7 @@
         "app\/Http\/Requests\/UpdateCarTypeRequest.php"
     ],
     "The Activity must be one of the following: active, inactive.": [
-        "app\/Http\/Requests\/StoreDriverRequest.php",
-        "app\/Http\/Requests\/UpdateDriverRequest.php"
+        "app\/Http\/Requests\/StoreDriverRequest.php"
     ],
     "The Wallet must be a number.": [
         "app\/Http\/Requests\/StoreDriverRequest.php",
@@ -4264,10 +4301,10 @@
     "Categories:": [
         "resources\/views\/drivers\/cars.blade.php"
     ],
-    "الحالة: متصل ومتاح": [
-        "resources\/views\/drivers\/index.blade.php",
-        "resources\/views\/drivers\/show.blade.php"
-    ],
+    "الحالة: متصل ومتاح": {
+        "0": "resources\/views\/drivers\/index.blade.php",
+        "2": "resources\/views\/drivers\/show.blade.php"
+    },
     "pending drivers": [
         "resources\/views\/elements\/phoenix\/sidebar.blade.php"
     ],
@@ -4486,6 +4523,7 @@
     ],
     "All Balances": [
         "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "Positive Balance": [
@@ -4569,30 +4607,37 @@
     ],
     "Balance Condition": [
         "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "Less than": [
         "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "Equal to": [
         "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "Greater than": [
         "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "Less than or equal to": [
         "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "Greater than or equal to": [
         "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "Balance Amount (JOD)": [
         "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/wallet-requests\/index.blade.php"
     ],
     "Quick Balance Filter": [
@@ -4600,5 +4645,130 @@
     ],
     "Custom": [
         "resources\/views\/admin\/financial-reports\/index.blade.php"
+    ],
+    "Create City": {
+        "0": "resources\/views\/cities\/create.blade.php",
+        "2": "resources\/views\/cities\/index.blade.php"
+    },
+    "Cities": {
+        "0": "resources\/views\/cities\/create.blade.php",
+        "1": "resources\/views\/cities\/edit.blade.php",
+        "2": "resources\/views\/cities\/index.blade.php",
+        "4": "resources\/views\/cities\/show.blade.php",
+        "5": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    },
+    "Edit City": [
+        "resources\/views\/cities\/edit.blade.php"
+    ],
+    "This driver currently has a password set.": [
+        "resources\/views\/drivers\/edit.blade.php"
+    ],
+    "This driver has no password and signs in using OTP only.": [
+        "resources\/views\/drivers\/edit.blade.php"
+    ],
+    "Remove password": [
+        "resources\/views\/drivers\/edit.blade.php"
+    ],
+    "Driver will sign in using OTP only.": [
+        "resources\/views\/drivers\/edit.blade.php"
+    ],
+    "New Password": [
+        "resources\/views\/drivers\/edit.blade.php"
+    ],
+    "Confirm New Password": [
+        "resources\/views\/drivers\/edit.blade.php"
+    ],
+    "Update Password": [
+        "resources\/views\/drivers\/edit.blade.php"
+    ],
+    "Backend OTP (WhatsApp)": [
+        "resources\/views\/settings\/partials\/setting-field.blade.php",
+        "app\/Enums\/PhoneVerificationMethod.php"
+    ],
+    "Firebase Phone Auth": [
+        "resources\/views\/settings\/partials\/setting-field.blade.php",
+        "app\/Enums\/PhoneVerificationMethod.php"
+    ],
+    "Choose how mobile apps verify phone numbers. Backend OTP uses the existing WhatsApp flow; Firebase Phone Auth uses client-side Firebase verification.": [
+        "resources\/views\/settings\/partials\/setting-field.blade.php"
+    ],
+    "Password removed successfully.": [
+        "app\/Http\/Controllers\/DriverController.php"
+    ],
+    "Failed to save password. Please try again.": [
+        "app\/Http\/Controllers\/DriverController.php"
+    ],
+    "Password updated successfully.": [
+        "app\/Http\/Controllers\/DriverController.php"
+    ],
+    "The Name field already exists.": [
+        "app\/Http\/Requests\/StoreCityRequest.php",
+        "app\/Http\/Requests\/UpdateCityRequest.php"
+    ],
+    "The Status field must be active or inactive.": [
+        "app\/Http\/Requests\/StoreCityRequest.php",
+        "app\/Http\/Requests\/UpdateCityRequest.php"
+    ],
+    "The Password confirmation does not match.": [
+        "app\/Http\/Requests\/StoreDriverRequest.php",
+        "app\/Http\/Requests\/UpdateDriverRequest.php"
+    ],
+    "The Status must be one of the following: approved, rejected, pending.": [
+        "app\/Http\/Requests\/UpdateDriverRequest.php"
+    ],
+    "The Activity must be one of the following: active, inactive, in progress, rejected.": [
+        "app\/Http\/Requests\/UpdateDriverRequest.php"
+    ],
+    "Personal Photo": [
+        "resources\/views\/drivers\/documents.blade.php"
+    ],
+    "Uploaded at registration": [
+        "resources\/views\/drivers\/documents.blade.php"
+    ],
+    "Filter by Availability": [
+        "resources\/views\/drivers\/index.blade.php"
+    ],
+    "غير متصل": [
+        "resources\/views\/drivers\/index.blade.php"
+    ],
+    "Filter by City": [
+        "resources\/views\/drivers\/index.blade.php"
+    ],
+    "All Cities": [
+        "resources\/views\/drivers\/index.blade.php"
+    ],
+    "No City": {
+        "0": "resources\/views\/drivers\/index.blade.php",
+        "2": "resources\/views\/home\/welcome.blade.php"
+    },
+    "City": [
+        "resources\/views\/drivers\/index.blade.php"
+    ],
+    "Drivers by City": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "Distribution of drivers across Jordan cities": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "Jordan": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "Unassigned": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "No drivers registered in any city yet.": [
+        "resources\/views\/home\/welcome.blade.php"
+    ],
+    "Last Known Location": [
+        "resources\/views\/drivers\/show.blade.php"
+    ],
+    "Location updates in real-time via WebSocket": [
+        "resources\/views\/drivers\/show.blade.php"
+    ],
+    "Location updates in real-time when driver is online.": [
+        "resources\/views\/drivers\/show.blade.php"
+    ],
+    "Last known location": [
+        "resources\/views\/drivers\/show.blade.php"
     ]
 }

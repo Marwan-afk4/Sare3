@@ -89,7 +89,7 @@
                         </div> --}}
                     </div>
                     <div class="card-body p-0">
-                        @if (env('GOOGLE_MAPS_API_KEY'))
+                        @if (config('services.google_maps.api_key'))
                             <div id="zoneMap" style="height: 500px; width: 100%; position: relative;">
                                 <div id="mapLoading"
                                     style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
@@ -117,7 +117,7 @@
         <livewire:zone-car-categories :zone="$zone" />
     </div>
 
-    @if (env('GOOGLE_MAPS_API_KEY'))
+    @if (config('services.google_maps.api_key'))
         @push('scripts')
             <script>
                 let map;
@@ -407,7 +407,7 @@
             </script>
 
             <script async defer
-                src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&callback=initZoneMap"
+                src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.api_key') }}&callback=initZoneMap"
                 onerror="console.error('Failed to load Google Maps script'); document.getElementById('zoneMap').innerHTML = '<div class=\'alert alert-danger m-3\'>Failed to load Google Maps. Please check your internet connection.</div>';">
             </script>
         @endpush
