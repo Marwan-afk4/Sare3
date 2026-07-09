@@ -107,27 +107,27 @@ class DriverLocationController extends Controller
         // 3. Throttled DB write for driver's position
         $this->throttledDbWrite($driver, $lat, $lng, $bearing);
 
-        // 4. Determine ride phase
-        $status = $ride->status->value;
-        $phase  = in_array($status, ['accepted', 'waiting_user']) ? 'to_pickup' : 'trip';
+        // 4. Append to route_points only during the actual trip (in_progress).
+        // Points while heading to the rider are tracked via driver_accept_lat/lng
+        // and live driver location, not stored in route_points.
+        if ($ride->status->value === 'in_progress') {
+            $points   = $ride->route_points ?? [];
+            $points[] = [
+                'lat'       => $lat,
+                'lng'       => $lng,
+                'bearing'   => (float) ($request->bearing ?? 0),
+                'timestamp' => now()->timestamp,
+                'seq'       => $request->seq ?? null,
+                'phase'     => 'trip',
+            ];
 
-        // 5. Append to route_points (always — this is the ride history record)
-        $points   = $ride->route_points ?? [];
-        $points[] = [
-            'lat'       => $lat,
-            'lng'       => $lng,
-            'bearing'   => (float) ($request->bearing ?? 0),
-            'timestamp' => now()->timestamp,
-            'seq'       => $request->seq ?? null,
-            'phase'     => $phase,
-        ];
-
-        $ride->route_points = $points;
-        $ride->save();
+            $ride->route_points = $points;
+            $ride->save();
+        }
 
         return response()->json([
             'message'      => 'Driver location updated successfully',
-            'total_points' => count($points),
+            'total_points' => count($ride->route_points ?? []),
         ]);
     }
 

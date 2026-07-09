@@ -93,6 +93,35 @@ class RideHelper
     }
 
     /**
+     * Keep only GPS points recorded during the actual trip leg.
+     * Excludes to_pickup phase points (legacy data) and pre-trip timestamps.
+     */
+    public static function filterTripRoutePoints(array $points, ?\App\Models\Ride $ride = null): array
+    {
+        if (empty($points)) {
+            return [];
+        }
+
+        return array_values(array_filter($points, function ($p) use ($ride) {
+            $phase = $p['phase'] ?? null;
+
+            if ($phase === 'to_pickup') {
+                return false;
+            }
+
+            if ($phase === 'trip') {
+                return true;
+            }
+
+            if ($ride && $ride->trip_started_at && isset($p['timestamp'])) {
+                return (int) $p['timestamp'] >= $ride->trip_started_at->timestamp;
+            }
+
+            return $phase === null;
+        }));
+    }
+
+    /**
      * Just sum haversine distances after snapping & filtering.
      */
     public static function calculateTotalDistanceAccurate(array $points): float

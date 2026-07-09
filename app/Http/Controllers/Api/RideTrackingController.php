@@ -84,22 +84,32 @@ class RideTrackingController extends Controller
             return response()->json(['error' => 'Ride is not in trackable status'], 400);
         }
 
-        // Get the latest location from route_points
+        // Get the latest location from route_points, or fall back to the
+        // driver's live position while heading to pickup (no trip points yet).
         $routePoints = $ride->route_points ?? [];
-        
-        if (empty($routePoints)) {
-            return response()->json(['error' => 'No location data available'], 404);
+
+        if (!empty($routePoints)) {
+            $latestPoint = end($routePoints);
+
+            return response()->json([
+                'lat' => $latestPoint['lat'],
+                'lng' => $latestPoint['lng'],
+                'timestamp' => $latestPoint['timestamp'] ?? null,
+                'status' => $ride->status->value
+            ]);
         }
 
-        // Get the most recent point
-        $latestPoint = end($routePoints);
-        
-        return response()->json([
-            'lat' => $latestPoint['lat'],
-            'lng' => $latestPoint['lng'],
-            'timestamp' => $latestPoint['timestamp'] ?? null,
-            'status' => $ride->status->value
-        ]);
+        $driver = $ride->driver;
+        if ($driver && $driver->latitude && $driver->longitude) {
+            return response()->json([
+                'lat' => (float) $driver->latitude,
+                'lng' => (float) $driver->longitude,
+                'timestamp' => $driver->updated_at?->timestamp,
+                'status' => $ride->status->value
+            ]);
+        }
+
+        return response()->json(['error' => 'No location data available'], 404);
     }
 
     /**

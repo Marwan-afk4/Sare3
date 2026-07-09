@@ -100,19 +100,6 @@ class RideActionsController extends Controller
         if ($acceptLat !== null && $acceptLng !== null) {
             $updateData['driver_accept_lat'] = (float) $acceptLat;
             $updateData['driver_accept_lng'] = (float) $acceptLng;
-
-            // Seed route_points with the first "to pickup" point so the admin
-            // dashboard can render the path from moment of acceptance.
-            $points = $ride->route_points ?? [];
-            $points[] = [
-                'lat' => (float) $acceptLat,
-                'lng' => (float) $acceptLng,
-                'timestamp' => $startTime->timestamp,
-                'phase' => 'to_pickup',
-                'seq' => 0,
-                'source' => 'accept',
-            ];
-            $updateData['route_points'] = $points;
         }
 
         $ride->update($updateData);
@@ -146,6 +133,7 @@ class RideActionsController extends Controller
     public function arrived(Request $request)
     {
         $ride = $this->validateRide($request);
+        $driver = $request->user();
 
         // Capture driver's GPS at the moment they marked "arrived at pickup".
         // Used by the admin dashboard as the end-point of the "to pickup" path.
@@ -153,19 +141,8 @@ class RideActionsController extends Controller
         $arrivedLng = $request->input('lng');
 
         if ($arrivedLat === null || $arrivedLng === null) {
-            // Fall back to the last recorded route point if the app did not
-            // send coordinates (old mobile versions).
-            $points = $ride->route_points ?? [];
-            if (!empty($points)) {
-                $last = end($points);
-                $arrivedLat = $last['lat'] ?? null;
-                $arrivedLng = $last['lng'] ?? null;
-            }
-
-            if ($arrivedLat === null || $arrivedLng === null) {
-                $arrivedLat = $driver->latitude ?? null;
-                $arrivedLng = $driver->longitude ?? null;
-            }
+            $arrivedLat = $driver->latitude ?? null;
+            $arrivedLng = $driver->longitude ?? null;
         }
 
         $updateData = [
@@ -176,20 +153,6 @@ class RideActionsController extends Controller
         if ($arrivedLat !== null && $arrivedLng !== null) {
             $updateData['driver_arrived_lat'] = (float) $arrivedLat;
             $updateData['driver_arrived_lng'] = (float) $arrivedLng;
-
-            // Append arrival point to route_points as the final "to_pickup"
-            // marker so the dashboard renders a complete pickup leg.
-            $points = $ride->route_points ?? [];
-            $nextSeq = !empty($points) ? (int)(end($points)['seq'] ?? count($points)) + 1 : 1;
-            $points[] = [
-                'lat' => (float) $arrivedLat,
-                'lng' => (float) $arrivedLng,
-                'timestamp' => now()->timestamp,
-                'phase' => 'to_pickup',
-                'seq' => $nextSeq,
-                'source' => 'arrived',
-            ];
-            $updateData['route_points'] = $points;
         }
 
         $ride->update($updateData);
@@ -313,8 +276,9 @@ class RideActionsController extends Controller
         }
 
         $points = is_array($ride->route_points) ? $ride->route_points : json_decode($ride->route_points, true);
+        $points = RideHelper::filterTripRoutePoints(is_array($points) ? $points : [], $ride);
 
-        if (!is_array($points) || count($points) < 2) {
+        if (count($points) < 2) {
             return response()->json(['message' => 'Not enough points to calculate distance'], 400);
         }
 
