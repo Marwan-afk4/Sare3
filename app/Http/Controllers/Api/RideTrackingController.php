@@ -214,14 +214,27 @@ class RideTrackingController extends Controller
 
         // Get filtered points for display
         $status = is_object($ride->status) ? $ride->status->value : $ride->status;
-        $isCompleted = in_array($status, ['completed', 'finshed']);
-        $snap = $isCompleted;
 
-        // Split by phase BEFORE filtering/snapping so each leg is processed
-        // independently (snap-to-roads works best on a single continuous leg).
-        $segments = $this->splitRoutePointsByPhase($ride);
-        $toPickupDisplay = \App\Helpers\RideHelper::makeDisplayPath($segments['to_pickup'], $snap);
-        $tripDisplay = \App\Helpers\RideHelper::makeDisplayPath($segments['trip'], $snap);
+        // Cost control: do NOT snap-to-roads on display. Snapping calls the
+        // Google Roads API on every view, which is expensive. We render the
+        // raw (filtered) GPS polyline instead. Snapping is only done once
+        // during fare calculation in RideActionsController::completeRide().
+        $snap = false;
+
+        // The "to pickup" leg now comes from its own dedicated column. For
+        // legacy rides that stored to_pickup points inside route_points, fall
+        // back to phase-splitting so old rides still render correctly.
+        $toPickupRaw = $ride->to_pickup_route_points ?? [];
+        if (empty($toPickupRaw)) {
+            $segments = $this->splitRoutePointsByPhase($ride);
+            $toPickupRaw = $segments['to_pickup'];
+            $tripRaw = $segments['trip'];
+        } else {
+            $tripRaw = $routePoints;
+        }
+
+        $toPickupDisplay = \App\Helpers\RideHelper::makeDisplayPath($toPickupRaw, $snap);
+        $tripDisplay = \App\Helpers\RideHelper::makeDisplayPath($tripRaw, $snap);
 
         // Flat list (legacy consumers).
         $displayPoints = \App\Helpers\RideHelper::makeDisplayPath($routePoints, $snap);

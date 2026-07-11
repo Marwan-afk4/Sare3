@@ -107,28 +107,86 @@ class DriverLocationController extends Controller
         // 3. Throttled DB write for driver's position
         $this->throttledDbWrite($driver, $lat, $lng, $bearing);
 
-        // 4. Append to route_points only during the actual trip (in_progress).
-        // Points while heading to the rider are tracked via driver_accept_lat/lng
-        // and live driver location, not stored in route_points.
-        if ($ride->status->value === 'in_progress') {
-            $points   = $ride->route_points ?? [];
-            $points[] = [
-                'lat'       => $lat,
-                'lng'       => $lng,
-                'bearing'   => (float) ($request->bearing ?? 0),
-                'timestamp' => now()->timestamp,
-                'seq'       => $request->seq ?? null,
-                'phase'     => 'trip',
-            ];
+        // 4. Append the GPS point to the correct leg of the ride, throttled so
+        // we don't store every single ping (keeps the JSON small and cheap).
+        //   - `accepted`    -> to_pickup_route_points (captain heading to rider)
+        //   - `in_progress` -> route_points (actual trip pickup -> destination)
+        // The `waiting_user` leg is finalized by RideActionsController::arrived().
+        //
+        // NOTE: The driver app must stream location from the moment it accepts
+        // (status `accepted`), not only after starting the trip, for the
+        // "on the way to passenger" path to be recorded.
+        $bearingValue = (float) ($request->bearing ?? 0);
 
-            $ride->route_points = $points;
-            $ride->save();
+        if ($ride->status->value === 'accepted') {
+            $this->appendRoutePoint($ride, 'to_pickup_route_points', $lat, $lng, $bearingValue, $request->seq, 'to_pickup');
+        } elseif ($ride->status->value === 'in_progress') {
+            $this->appendRoutePoint($ride, 'route_points', $lat, $lng, $bearingValue, $request->seq, 'trip');
         }
 
         return response()->json([
             'message'      => 'Driver location updated successfully',
             'total_points' => count($ride->route_points ?? []),
         ]);
+    }
+
+    /**
+     * Append a GPS point to one of the ride's route-point columns, throttled
+     * by time and distance so we only persist meaningful movement.
+     *
+     * Uses the same thresholds as the driver-location DB write
+     * (DB_WRITE_INTERVAL_SECONDS / DB_WRITE_MIN_DISTANCE_METERS). The very
+     * first point of a leg is always stored so the polyline has an anchor.
+     */
+    private function appendRoutePoint(Ride $ride, string $column, float $lat, float $lng, ?float $bearing, ?int $seq, string $phase): void
+    {
+        $cacheKey  = "ride_route_point_write:{$ride->id}:{$phase}";
+        $lastWrite = Cache::get($cacheKey);
+
+        $shouldWrite = false;
+
+        if ($lastWrite === null) {
+            // First point of this leg — always store it.
+            $shouldWrite = true;
+        } else {
+            $secondsSinceLast = now()->diffInSeconds($lastWrite['time']);
+
+            if ($secondsSinceLast >= self::DB_WRITE_INTERVAL_SECONDS) {
+                $shouldWrite = true;
+            } else {
+                $distance = $this->haversineMeters(
+                    $lastWrite['lat'], $lastWrite['lng'],
+                    $lat, $lng
+                );
+
+                if ($distance >= self::DB_WRITE_MIN_DISTANCE_METERS) {
+                    $shouldWrite = true;
+                }
+            }
+        }
+
+        if (! $shouldWrite) {
+            return;
+        }
+
+        $points   = $ride->{$column} ?? [];
+        $points[] = [
+            'lat'       => $lat,
+            'lng'       => $lng,
+            'bearing'   => $bearing ?? 0.0,
+            'timestamp' => now()->timestamp,
+            'seq'       => $seq,
+            'phase'     => $phase,
+        ];
+
+        $ride->{$column} = $points;
+        $ride->save();
+
+        Cache::put($cacheKey, [
+            'lat'  => $lat,
+            'lng'  => $lng,
+            'time' => now(),
+        ], now()->addHour());
     }
 
     // ─────────────────────────────────────────────────────────────────────────

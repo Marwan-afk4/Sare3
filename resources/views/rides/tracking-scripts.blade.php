@@ -154,6 +154,21 @@ class SimpleRideTracker {
     }
 
     showCompletedRoute() {
+        const bounds = new google.maps.LatLngBounds();
+        let hasAnyPath = false;
+
+        // Draw the "on the way to passenger" leg (dashed orange) if we have it.
+        const toPickupPoints = this.rideData.toPickupRoutePoints || [];
+        if (toPickupPoints.length > 1) {
+            this.renderToPickupPolyline(toPickupPoints);
+            toPickupPoints.forEach(point => bounds.extend({
+                lat: parseFloat(point.lat),
+                lng: parseFloat(point.lng)
+            }));
+            hasAnyPath = true;
+        }
+
+        // Draw the actual trip leg (solid green).
         if (this.rideData.routePoints && this.rideData.routePoints.length > 0) {
             const routePath = this.rideData.routePoints.map(point => ({
                 lat: parseFloat(point.lat),
@@ -169,8 +184,11 @@ class SimpleRideTracker {
             });
             this.tripPolyline.setMap(this.map);
 
-            const bounds = new google.maps.LatLngBounds();
             routePath.forEach(point => bounds.extend(point));
+            hasAnyPath = true;
+        }
+
+        if (hasAnyPath) {
             this.map.fitBounds(bounds);
         } else {
             this.showStaticRoute();

@@ -429,6 +429,7 @@
                     address: '{{ addslashes($ride->dropoff_address ?? '') }}'
                 },
                 routePoints: @json($ride->route_points ?? []),
+                toPickupRoutePoints: @json($ride->to_pickup_route_points ?? []),
                 driverId: {{ $ride->driver_id ?? 'null' }},
                 driverAcceptLocation: @json($ride->driver_accept_lat && $ride->driver_accept_lng ? ['lat' => (float) $ride->driver_accept_lat, 'lng' => (float) $ride->driver_accept_lng, 'recorded_at' => optional($ride->accepted_at)->toIso8601String()] : null),
                 driverArrivedLocation: @json($ride->driver_arrived_lat && $ride->driver_arrived_lng ? ['lat' => (float) $ride->driver_arrived_lat, 'lng' => (float) $ride->driver_arrived_lng, 'recorded_at' => optional($ride->arrived_at)->toIso8601String()] : null)

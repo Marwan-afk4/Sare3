@@ -100,6 +100,17 @@ class RideActionsController extends Controller
         if ($acceptLat !== null && $acceptLng !== null) {
             $updateData['driver_accept_lat'] = (float) $acceptLat;
             $updateData['driver_accept_lng'] = (float) $acceptLng;
+
+            // Seed the "on the way to passenger" polyline with the accept
+            // location so the path has an anchor even before the first GPS ping.
+            $updateData['to_pickup_route_points'] = [[
+                'lat'       => (float) $acceptLat,
+                'lng'       => (float) $acceptLng,
+                'bearing'   => (float) ($driver->bearing ?? 0),
+                'timestamp' => now()->timestamp,
+                'seq'       => 1,
+                'phase'     => 'to_pickup',
+            ]];
         }
 
         $ride->update($updateData);
@@ -153,6 +164,19 @@ class RideActionsController extends Controller
         if ($arrivedLat !== null && $arrivedLng !== null) {
             $updateData['driver_arrived_lat'] = (float) $arrivedLat;
             $updateData['driver_arrived_lng'] = (float) $arrivedLng;
+
+            // Close the "on the way to passenger" polyline with the arrival
+            // location as its final point.
+            $toPickupPoints = $ride->to_pickup_route_points ?? [];
+            $toPickupPoints[] = [
+                'lat'       => (float) $arrivedLat,
+                'lng'       => (float) $arrivedLng,
+                'bearing'   => (float) ($driver->bearing ?? 0),
+                'timestamp' => now()->timestamp,
+                'seq'       => count($toPickupPoints) + 1,
+                'phase'     => 'to_pickup',
+            ];
+            $updateData['to_pickup_route_points'] = $toPickupPoints;
         }
 
         $ride->update($updateData);

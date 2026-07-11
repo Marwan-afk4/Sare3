@@ -27,6 +27,7 @@ class Ride extends Model
         'estimated_time',
         'calculated_initial_price',
         'route_points',
+        'to_pickup_route_points',
         'calculated_final_price',
         'original_price',
         'discount_amount',
@@ -62,6 +63,7 @@ class Ride extends Model
 
     protected $casts = [
         'route_points' => 'array',
+        'to_pickup_route_points' => 'array',
         'rejected_drivers' => 'array',
         'status' => RideStatus::class,
         'verification_code_generated_at' => 'datetime',
