@@ -78,8 +78,12 @@
                         <div class="small text-muted d-flex flex-wrap gap-3 mt-1">
                             <span><span class="badge" style="background:#FF9800">A</span> {{ __('Captain accept location') }}</span>
                             <span><span style="display:inline-block;width:24px;border-top:3px dashed #FF9800;vertical-align:middle"></span> {{ __('On the way to passenger') }}</span>
+                            <span><span class="badge" style="background:#FF9800">S</span> {{ __('To-pickup start') }}</span>
+                            <span><span class="badge" style="background:#FF9800">E</span> {{ __('To-pickup end') }}</span>
                             <span><span class="badge" style="background:#4CAF50">P</span> {{ __('Pickup') }}</span>
                             <span><span style="display:inline-block;width:24px;border-top:3px solid #4CAF50;vertical-align:middle"></span> {{ __('Trip path') }}</span>
+                            <span><span class="badge" style="background:#4CAF50">S</span> {{ __('Trip start') }}</span>
+                            <span><span class="badge" style="background:#4CAF50">E</span> {{ __('Trip end') }}</span>
                             <span><span class="badge" style="background:#2196F3"><i class="fa fa-location-arrow"></i></span> {{ __('Captain live') }}</span>
                         </div>
                     </div>

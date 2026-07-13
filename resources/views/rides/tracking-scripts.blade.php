@@ -9,7 +9,9 @@
  * Renders on the map:
  *   - Orange "A" marker at the captain's accept location
  *   - Dashed orange polyline: captain → passenger (to_pickup leg)
+ *   - Orange "S"/"E": first / last point of to_pickup_route_points
  *   - Solid green polyline: passenger → destination (trip leg)
+ *   - Green "S"/"E": first / last point of route_points
  *   - Live blue driver marker, updated via WebSocket in real time
  *   - Live dashed/solid line showing current driver movement
  */
@@ -29,6 +31,11 @@ class SimpleRideTracker {
         this.toPickupPolyline = null;
         this.tripPolyline = null;
         this.liveDriverLine = null;   // live segment: driver→pickup or pickup→driver
+        // Start/end of each GPS polyline (first / last point in the column)
+        this.toPickupStartMarker = null;
+        this.toPickupEndMarker = null;
+        this.tripStartMarker = null;
+        this.tripEndMarker = null;
         this.trackingInterval = null;
         this.echoChannel = null;
         this.echoStatusChannel = null;
@@ -168,23 +175,13 @@ class SimpleRideTracker {
             hasAnyPath = true;
         }
 
-        // Draw the actual trip leg (solid green).
+        // Draw the actual trip leg (solid green) + start/end markers.
         if (this.rideData.routePoints && this.rideData.routePoints.length > 0) {
-            const routePath = this.rideData.routePoints.map(point => ({
+            this.renderTripPolyline(this.rideData.routePoints);
+            this.rideData.routePoints.forEach(point => bounds.extend({
                 lat: parseFloat(point.lat),
                 lng: parseFloat(point.lng)
             }));
-
-            this.tripPolyline = new google.maps.Polyline({
-                path: routePath,
-                geodesic: true,
-                strokeColor: '#4CAF50',
-                strokeOpacity: 1.0,
-                strokeWeight: 4
-            });
-            this.tripPolyline.setMap(this.map);
-
-            routePath.forEach(point => bounds.extend(point));
             hasAnyPath = true;
         }
 
@@ -322,7 +319,7 @@ class SimpleRideTracker {
     }
 
     renderToPickupPolyline(points) {
-        if (!points || points.length < 2) return;
+        if (!points || points.length < 1) return;
         if (this.toPickupPolyline) this.toPickupPolyline.setMap(null);
 
         const path = points.map(p => ({
@@ -330,28 +327,33 @@ class SimpleRideTracker {
             lng: parseFloat(p.lng)
         }));
 
-        this.toPickupPolyline = new google.maps.Polyline({
-            path,
-            geodesic: true,
-            strokeColor: '#FF9800',
-            strokeOpacity: 0,
-            strokeWeight: 4,
-            icons: [{
-                icon: {
-                    path: 'M 0,-1 0,1',
-                    strokeOpacity: 1,
-                    strokeColor: '#FF9800',
-                    scale: 3
-                },
-                offset: '0',
-                repeat: '12px'
-            }]
-        });
-        this.toPickupPolyline.setMap(this.map);
+        if (path.length >= 2) {
+            this.toPickupPolyline = new google.maps.Polyline({
+                path,
+                geodesic: true,
+                strokeColor: '#FF9800',
+                strokeOpacity: 0,
+                strokeWeight: 4,
+                icons: [{
+                    icon: {
+                        path: 'M 0,-1 0,1',
+                        strokeOpacity: 1,
+                        strokeColor: '#FF9800',
+                        scale: 3
+                    },
+                    offset: '0',
+                    repeat: '12px'
+                }]
+            });
+            this.toPickupPolyline.setMap(this.map);
+        }
+
+        // First saved point = start, last saved point = end
+        this.renderRouteEndpointMarkers(points, 'to_pickup');
     }
 
     renderTripPolyline(points) {
-        if (!points || points.length < 2) return;
+        if (!points || points.length < 1) return;
         if (this.tripPolyline) this.tripPolyline.setMap(null);
 
         const path = points.map(p => ({
@@ -359,14 +361,121 @@ class SimpleRideTracker {
             lng: parseFloat(p.lng)
         }));
 
-        this.tripPolyline = new google.maps.Polyline({
-            path,
-            geodesic: true,
-            strokeColor: '#4CAF50',
-            strokeOpacity: 1.0,
-            strokeWeight: 4
+        if (path.length >= 2) {
+            this.tripPolyline = new google.maps.Polyline({
+                path,
+                geodesic: true,
+                strokeColor: '#4CAF50',
+                strokeOpacity: 1.0,
+                strokeWeight: 4
+            });
+            this.tripPolyline.setMap(this.map);
+        }
+
+        // First saved point = start, last saved point = end
+        this.renderRouteEndpointMarkers(points, 'trip');
+    }
+
+    /**
+     * Place start (first point) and end (last point) markers for a GPS path.
+     * @param {Array} points - route points from to_pickup_route_points or route_points
+     * @param {'to_pickup'|'trip'} leg
+     */
+    renderRouteEndpointMarkers(points, leg) {
+        if (!points || points.length < 1 || !this.map) return;
+
+        const start = points[0];
+        const end = points[points.length - 1];
+        const isToPickup = leg === 'to_pickup';
+        const color = isToPickup ? '#FF9800' : '#4CAF50';
+        const startKey = isToPickup ? 'toPickupStartMarker' : 'tripStartMarker';
+        const endKey = isToPickup ? 'toPickupEndMarker' : 'tripEndMarker';
+        const startTitle = isToPickup
+            ? 'Start of to-pickup path (first GPS point)'
+            : 'Start of trip path (first GPS point)';
+        const endTitle = isToPickup
+            ? 'End of to-pickup path (last GPS point)'
+            : 'End of trip path (last GPS point)';
+        const startInfo = isToPickup
+            ? 'بداية مسار الوصول للراكب (أول نقطة)'
+            : 'بداية مسار الرحلة (أول نقطة)';
+        const endInfo = isToPickup
+            ? 'نهاية مسار الوصول للراكب (آخر نقطة)'
+            : 'نهاية مسار الرحلة (آخر نقطة)';
+
+        if (this[startKey]) this[startKey].setMap(null);
+        if (this[endKey]) this[endKey].setMap(null);
+
+        this[startKey] = this.createEndpointMarker(
+            start,
+            color,
+            'S',
+            startTitle,
+            startInfo,
+            950
+        );
+
+        // Only draw a separate end marker when there is more than one distinct point
+        const samePoint =
+            points.length === 1 ||
+            (Math.abs(parseFloat(start.lat) - parseFloat(end.lat)) < 1e-7 &&
+                Math.abs(parseFloat(start.lng) - parseFloat(end.lng)) < 1e-7);
+
+        if (!samePoint) {
+            this[endKey] = this.createEndpointMarker(
+                end,
+                color,
+                'E',
+                endTitle,
+                endInfo,
+                960
+            );
+        }
+    }
+
+    createEndpointMarker(point, color, label, title, infoHtml, zIndex) {
+        if (!point || point.lat == null || point.lng == null) return null;
+
+        const position = {
+            lat: parseFloat(point.lat),
+            lng: parseFloat(point.lng)
+        };
+
+        const marker = new google.maps.Marker({
+            position,
+            map: this.map,
+            title,
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 11,
+                fillColor: color,
+                fillOpacity: 1,
+                strokeColor: 'white',
+                strokeWeight: 2
+            },
+            label: {
+                text: label,
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: '11px'
+            },
+            zIndex
         });
-        this.tripPolyline.setMap(this.map);
+
+        const when = point.timestamp
+            ? new Date(
+                typeof point.timestamp === 'number'
+                    ? point.timestamp * 1000
+                    : point.timestamp
+            ).toLocaleString()
+            : '';
+
+        const info = new google.maps.InfoWindow({
+            content: `<div><strong>${infoHtml}</strong>${when ? `<br><small>${when}</small>` : ''}<br><small>${position.lat.toFixed(6)}, ${position.lng.toFixed(6)}</small></div>`
+        });
+        marker.addListener('click', () => info.open(this.map, marker));
+
+        return marker;
     }
 
     /**

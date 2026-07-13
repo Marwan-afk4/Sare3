@@ -797,13 +797,13 @@
         "32": "resources\/views\/rides\/edit.blade.php",
         "33": "resources\/views\/rides\/index.blade.php",
         "35": "resources\/views\/rides\/show.blade.php",
-        "36": "resources\/views\/rides\/track.blade.php",
-        "37": "resources\/views\/users\/ride-history.blade.php",
-        "38": "resources\/views\/users\/show.blade.php",
-        "39": "resources\/views\/wallet-requests\/create.blade.php",
-        "40": "resources\/views\/wallet-requests\/show.blade.php",
-        "46": "app\/Http\/Controllers\/CancellationPolicyController.php",
-        "48": "app\/Enums\/OtpTypes.php"
+        "38": "resources\/views\/rides\/track.blade.php",
+        "39": "resources\/views\/users\/ride-history.blade.php",
+        "40": "resources\/views\/users\/show.blade.php",
+        "41": "resources\/views\/wallet-requests\/create.blade.php",
+        "42": "resources\/views\/wallet-requests\/show.blade.php",
+        "48": "app\/Http\/Controllers\/CancellationPolicyController.php",
+        "50": "app\/Enums\/OtpTypes.php"
     },
     "Document Type": [
         "resources\/views\/driver-documents\/create.blade.php",
@@ -1198,7 +1198,7 @@
         "9": "resources\/views\/rides\/edit.blade.php",
         "10": "resources\/views\/rides\/index.blade.php",
         "11": "resources\/views\/rides\/show.blade.php",
-        "12": "app\/Enums\/OtpTypes.php"
+        "14": "app\/Enums\/OtpTypes.php"
     },
     "Pickup Lat": [
         "resources\/views\/rides\/create.blade.php",
@@ -2684,11 +2684,13 @@
     ],
     "From Date": [
         "resources\/views\/admin\/financial-reports\/index.blade.php",
-        "resources\/views\/admin\/referrals\/list.blade.php"
+        "resources\/views\/admin\/referrals\/list.blade.php",
+        "resources\/views\/rides\/index.blade.php"
     ],
     "To Date": [
         "resources\/views\/admin\/financial-reports\/index.blade.php",
-        "resources\/views\/admin\/referrals\/list.blade.php"
+        "resources\/views\/admin\/referrals\/list.blade.php",
+        "resources\/views\/rides\/index.blade.php"
     ],
     "Apply Filters": [
         "resources\/views\/admin\/financial-reports\/index.blade.php",
@@ -4770,5 +4772,26 @@
     ],
     "Last known location": [
         "resources\/views\/drivers\/show.blade.php"
+    ],
+    "To-pickup start": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "To-pickup end": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Trip start": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Trip end": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Ride Chat": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "messages": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "No chat messages for this ride.": [
+        "resources\/views\/rides\/show.blade.php"
     ]
 }

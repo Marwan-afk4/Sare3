@@ -1043,6 +1043,10 @@
     "On the way to passenger": "في الطريق إلى الراكب",
     "Pickup": "الاستلام",
     "Trip path": "مسار الرحلة",
+    "To-pickup start": "بداية مسار الوصول",
+    "To-pickup end": "نهاية مسار الوصول",
+    "Trip start": "بداية مسار الرحلة",
+    "Trip end": "نهاية مسار الرحلة",
     "Captain live": "الكابتن في الوقت الفعلي",
     "Captain Tracking": "تتبع الكابتن",
     "Accept Location": "موقع القبول",
@@ -1147,5 +1151,8 @@
     "Unassigned": "غير معين",
     "No drivers registered in any city yet.": "لا يوجد سائقين مسجلين في أي مدينة حتى الآن.",
     "Last Known Location": "آخر موقع معروف",
-    "Last known location": "آخر موقع معروف"
+    "Last known location": "آخر موقع معروف",
+    "Ride Chat": "شات الرحلة",
+    "messages": "الرسائل",
+    "No chat messages for this ride.": "لا توجد رسائل في المحادثة لهذه الرحلة."
 }
