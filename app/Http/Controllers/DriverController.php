@@ -223,6 +223,7 @@ class DriverController extends Controller
                     ->orderBy('created_at', 'desc');
             },
             'zone',
+            'city',
             'driverCars.carType',
             'driverCars.carCategory',
             'driverCars.carCategories',
@@ -280,9 +281,10 @@ class DriverController extends Controller
         $diverActivityStatus = ActivtyType::labels();
         $driverStatus = DriverStatus::labels();
         $zones = Zone::orderBy('name')->pluck('name', 'id')->toArray();
+        $cities = \App\Models\City::orderBy('name')->pluck('name', 'id')->toArray();
         $hasPassword = ! empty($driver->getAttributes()['password']);
 
-        return view('drivers.edit', compact('driver', 'diverActivityStatus', 'driverStatus', 'zones', 'hasPassword'));
+        return view('drivers.edit', compact('driver', 'diverActivityStatus', 'driverStatus', 'zones', 'cities', 'hasPassword'));
     }
 
 
@@ -325,7 +327,7 @@ class DriverController extends Controller
 
         $driver->update($data);
 
-        return redirect()->route('drivers.edit', $driver)->with('success', __('Driver updated successfully.'));
+        return redirect()->route('drivers.index', $driver)->with('success', __('Driver updated successfully.'));
     }
 
     public function destroy(User $driver)

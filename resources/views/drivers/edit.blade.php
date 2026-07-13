@@ -77,6 +77,14 @@
                     :options="$zones"
                     placeholder="{{__('Select Zone')}}"
                 />
+                <x-form-select
+                    name="city_id"
+                    type="select"
+                    label="{{__('City')}}"
+                    :selected="$driver->city_id ?? ''"
+                    :options="$cities"
+                    placeholder="{{__('Select City')}}"
+                />
 
                 <div class="mb-3">
                     <label for="image" class="form-label">{{ __('Profile Image') }}</label>

@@ -1154,5 +1154,7 @@
     "Last known location": "آخر موقع معروف",
     "Ride Chat": "شات الرحلة",
     "messages": "الرسائل",
-    "No chat messages for this ride.": "لا توجد رسائل في المحادثة لهذه الرحلة."
+    "No chat messages for this ride.": "لا توجد رسائل في المحادثة لهذه الرحلة.",
+    "Select City": "اختر المدينة",
+    "The selected city does not exist.": "المدينة المحددة غير موجودة"
 }

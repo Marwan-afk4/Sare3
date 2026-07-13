@@ -43,6 +43,7 @@ class UpdateDriverRequest extends FormRequest
             'wallet' => 'nullable|numeric|min:0',
             'activity' => ['required', Rule::in(ActivtyType::values())],
             'zone_id' => 'nullable|exists:zones,id',
+            'city_id' => 'nullable|exists:cities,id',
         ];
     }
 
@@ -57,6 +58,7 @@ class UpdateDriverRequest extends FormRequest
             'driver_password.confirmed' => __('The Password confirmation does not match.'),
             'status.in' => __('The Status must be one of the following: approved, rejected, pending.'),
             'zone_id.exists' => __('The selected zone does not exist.'),
+            'city_id.exists' => __('The selected city does not exist.'),
             'activity.in'=> __('The Activity must be one of the following: active, inactive, in progress, rejected.'),
             'wallet.numeric'=> __('The Wallet must be a number.'),
             'wallet.min'=> __('The Wallet must be at least 0.'),

@@ -60,6 +60,13 @@
                                     <span class="text-muted">{{ __('We do not know yet') }}</span>
                                 @endif
                             </li>
+                            <li class="list-group-item"><strong>{{ __('City') }}:</strong>
+                                @if ($driver->city)
+                                    <span class="badge bg-primary">{{ $driver->city->name }}</span>
+                                @else
+                                    <span class="text-muted">{{ __('We do not know yet') }}</span>
+                                @endif
+                            </li>
                             <li class="list-group-item"><strong>{{ __('Driver Rating') }}:</strong>
                                 @if ($driverRating)
                                     <span class="badge bg-warning">{{ number_format($driverRating, 1) }} ⭐</span>
