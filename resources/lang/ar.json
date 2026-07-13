@@ -1156,5 +1156,8 @@
     "messages": "الرسائل",
     "No chat messages for this ride.": "لا توجد رسائل في المحادثة لهذه الرحلة.",
     "Select City": "اختر المدينة",
-    "The selected city does not exist.": "المدينة المحددة غير موجودة"
+    "The selected city does not exist.": "المدينة المحددة غير موجودة",
+    "Are you sure you want to delete this city?": "هل أنت متأكد أنك تريد حذف هذه المدينة؟",
+    "City deleted successfully.": "تم حذف المدينة بنجاح.",
+    "Failed to delete city. Please try again.": "فشل في حذف المدينة. يرجى المحاولة مرة أخرى."
 }

@@ -49,4 +49,19 @@ class CityController extends Controller
         $city->update($request->validated());
         return redirect()->route('cities.index')->with('success',  __('Updated successfully.'));
     }
+
+    public function destroy(City $city)
+    {
+        try {
+            $city->delete();
+
+            return redirect()
+                ->route('cities.index')
+                ->with('success', __('City deleted successfully.'));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('cities.index')
+                ->with('error', __('Failed to delete city. Please try again.'));
+        }
+    }
 }
