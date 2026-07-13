@@ -41,6 +41,7 @@ class UserDriverChatMessageSent implements ShouldBroadcastNow
         return [
             'id' => $this->message->id,
             'chat_id' => $this->message->chat_id,
+            'ride_id' => $this->message->chat->ride_id,
             'room_id' => $this->message->chat->room_id,
             'sender_id' => $this->message->sender_id,
             'sender_type' => $this->message->sender_type,

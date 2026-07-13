@@ -301,7 +301,7 @@ Route::domain(config('app.api_domain'))->group(function () {
     //======= USER-DRIVER CHAT ========
     Route::middleware(['auth:sanctum'])->prefix('chat/user-driver')->group(function () {
         Route::post('/send', [UserDriverChatController::class, 'sendMessage']);
-        Route::get('/messages', [UserDriverChatController::class, 'getMessages']);
+        Route::get('/messages/{id}', [UserDriverChatController::class, 'getMessages']);
         Route::post('/read', [UserDriverChatController::class, 'markAsRead']);
     });
 

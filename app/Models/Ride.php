@@ -135,6 +135,11 @@ class Ride extends Model
         return $this->hasMany(RideOffer::class)->orderBy('offered_at');
     }
 
+    public function chats()
+    {
+        return $this->hasMany(Chat::class);
+    }
+
     public function acceptedOffer()
     {
         return $this->hasOne(RideOffer::class)->where('response', RideOffer::RESPONSE_ACCEPTED);
@@ -228,5 +233,24 @@ class Ride extends Model
             // If database is not available, allow ride to start (feature disabled)
             return true;
         }
+    }
+
+    protected static function booted(): void
+    {
+        static::updated(function (Ride $ride) {
+            $shouldCloseChat = false;
+
+            if ($ride->wasChanged('status')) {
+                $shouldCloseChat = in_array($ride->status->value, ['completed', 'finshed', 'cancelled'], true);
+            }
+
+            if ($ride->wasChanged('driver_id')) {
+                $shouldCloseChat = true;
+            }
+
+            if ($shouldCloseChat) {
+                Chat::closeForRide($ride->id);
+            }
+        });
     }
 }

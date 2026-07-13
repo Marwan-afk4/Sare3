@@ -53,25 +53,50 @@ Broadcast::channel('user.{userId}', function ($user, $userId) {
 
 // ─── Presence Channel: chat.{roomId} ──────────────────────────────────────
 // Both the passenger and the driver can subscribe to the chat channel.
+// Room ID formats:
+//   - user-driver (per ride): {userId}_{driverId}_{rideId}
+//   - legacy user-driver:     {userId}_{driverId}
 Broadcast::channel('chat.{roomId}', function ($user, $roomId) {
     if (! $user) {
         return false;
     }
 
     $parts = explode('_', $roomId);
-    if (count($parts) !== 2) {
-        return false;
-    }
 
-    $userId = (int) $parts[0];
-    $driverId = (int) $parts[1];
+    if (count($parts) === 3) {
+        [$userId, $driverId, $rideId] = array_map('intval', $parts);
 
-    if ((int) $user->id === $userId || (int) $user->id === $driverId) {
+        $ride = Ride::find($rideId);
+        if (! $ride) {
+            return false;
+        }
+
+        if ((int) $user->id !== $userId && (int) $user->id !== $driverId) {
+            return false;
+        }
+
+        if (! in_array((int) $user->id, [(int) $ride->user_id, (int) $ride->driver_id], true)) {
+            return false;
+        }
+
         return [
             'id' => $user->id,
             'name' => $user->getDisplayName(),
             'role' => $user->isDriver() ? 'driver' : 'user',
         ];
+    }
+
+    if (count($parts) === 2) {
+        $userId = (int) $parts[0];
+        $driverId = (int) $parts[1];
+
+        if ((int) $user->id === $userId || (int) $user->id === $driverId) {
+            return [
+                'id' => $user->id,
+                'name' => $user->getDisplayName(),
+                'role' => $user->isDriver() ? 'driver' : 'user',
+            ];
+        }
     }
 
     return false;

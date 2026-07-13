@@ -340,7 +340,11 @@
                         <input type="number" id="driverId" value="12">
                     </div>
                 </div>
-                <div id="channelDisplay" class="highlight-box" style="margin-top:0.75rem;">presence-chat.5_12</div>
+                <div class="form-group" style="margin-top: 0.75rem; margin-bottom:0;">
+                    <label>Ride ID (required — chat is scoped per ride)</label>
+                    <input type="number" id="rideId" value="1">
+                </div>
+                <div id="channelDisplay" class="highlight-box" style="margin-top:0.75rem;">presence-chat.5_12_1</div>
                 <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
                     <input type="checkbox" id="typingToggle" style="width: auto;">
                     <label style="margin-bottom: 0;">Simulate Typing...</label>
@@ -395,10 +399,12 @@
         const updateChannelDisplay = () => {
             const userId = parseInt($('userId').value) || 0;
             const driverId = parseInt($('driverId').value) || 0;
-            $('channelDisplay').textContent = `presence-chat.${userId}_${driverId}`;
+            const rideId = parseInt($('rideId').value) || 0;
+            $('channelDisplay').textContent = `presence-chat.${userId}_${driverId}_${rideId}`;
         };
         $('userId').oninput = updateChannelDisplay;
         $('driverId').oninput = updateChannelDisplay;
+        $('rideId').oninput = updateChannelDisplay;
 
         function addLog(type, label, data = null) {
             const entry = document.createElement('div');
@@ -474,7 +480,8 @@
 
             const userId = parseInt($('userId').value) || 0;
             const driverId = parseInt($('driverId').value) || 0;
-            const channelName = `chat.${userId}_${driverId}`;
+            const rideId = parseInt($('rideId').value) || 0;
+            const channelName = `chat.${userId}_${driverId}_${rideId}`;
 
             addLog('info', `Attempting to join presence channel: ${channelName}`);
             
@@ -541,16 +548,18 @@
         $('sendBtn').onclick = async () => {
             const selfRole = $('selfRole').value;
             const receiverId = selfRole === 'user' ? parseInt($('driverId').value) : parseInt($('userId').value);
+            const rideId = parseInt($('rideId').value);
             const message = $('testMessage').value;
             const apiBase = $('apiBaseUrl').value.trim().replace(/\/$/, '');
             
-            addLog('info', `Calling Send API to ${apiBase} (Receiver ID: ${receiverId})...`);
+            addLog('info', `Calling Send API to ${apiBase} (Ride ID: ${rideId}, Receiver ID: ${receiverId})...`);
             
             try {
                 const response = await fetch(`${apiBase}/api/chat/user-driver/send`, {
                     method: 'POST',
                     headers: getApiHeaders(),
                     body: JSON.stringify({
+                        ride_id: rideId,
                         receiver_id: receiverId,
                         message: message
                     })
@@ -566,15 +575,17 @@
         $('readBtn').onclick = async () => {
             const selfRole = $('selfRole').value;
             const receiverId = selfRole === 'user' ? parseInt($('driverId').value) : parseInt($('userId').value);
+            const rideId = parseInt($('rideId').value);
             const apiBase = $('apiBaseUrl').value.trim().replace(/\/$/, '');
             
-            addLog('info', `Calling Read API to ${apiBase} (Receiver ID: ${receiverId})...`);
+            addLog('info', `Calling Read API to ${apiBase} (Ride ID: ${rideId}, Receiver ID: ${receiverId})...`);
             
             try {
                 const response = await fetch(`${apiBase}/api/chat/user-driver/read`, {
                     method: 'POST',
                     headers: getApiHeaders(),
                     body: JSON.stringify({
+                        ride_id: rideId,
                         receiver_id: receiverId
                     })
                 });
@@ -589,12 +600,13 @@
         $('historyBtn').onclick = async () => {
             const selfRole = $('selfRole').value;
             const receiverId = selfRole === 'user' ? parseInt($('driverId').value) : parseInt($('userId').value);
+            const rideId = parseInt($('rideId').value);
             const apiBase = $('apiBaseUrl').value.trim().replace(/\/$/, '');
             
-            addLog('info', `Calling Get History API to ${apiBase} (Receiver ID: ${receiverId})...`);
+            addLog('info', `Calling Get History API to ${apiBase} (Ride ID: ${rideId}, Receiver ID: ${receiverId})...`);
             
             try {
-                const response = await fetch(`${apiBase}/api/chat/user-driver/messages?receiver_id=${receiverId}`, {
+                const response = await fetch(`${apiBase}/api/chat/user-driver/messages/${rideId}`, {
                     method: 'GET',
                     headers: getApiHeaders()
                 });

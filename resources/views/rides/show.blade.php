@@ -310,6 +310,51 @@
             </div>
         @endif
 
+        <!-- Ride Chat History -->
+        @if($ride->user_id && $ride->driver_id)
+            <div class="card mt-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fa fa-comments"></i> {{ __('Ride Chat') }}</h5>
+                    <span class="badge bg-secondary">{{ $rideChatMessages->count() }} {{ __('messages') }}</span>
+                </div>
+                <div class="card-body p-0">
+                    @if($rideChatMessages->isEmpty())
+                        <div class="p-4 text-center text-muted">
+                            <i class="fa fa-comment-slash fa-2x mb-2"></i>
+                            <p class="mb-0">{{ __('No chat messages for this ride.') }}</p>
+                        </div>
+                    @else
+                        <div class="list-group list-group-flush" style="max-height: 420px; overflow-y: auto;">
+                            @foreach($rideChatMessages as $chatMessage)
+                                @php
+                                    $isUserMessage = $chatMessage->sender_type === 'user';
+                                    $senderName = $isUserMessage
+                                        ? ($ride->user->name ?? __('User'))
+                                        : ($ride->driver->name ?? __('Driver'));
+                                @endphp
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start gap-3">
+                                        <div>
+                                            <strong class="{{ $isUserMessage ? 'text-primary' : 'text-success' }}">
+                                                {{ $senderName }}
+                                            </strong>
+                                            <span class="badge bg-light text-dark ms-1">
+                                                {{ $isUserMessage ? __('User') : __('Driver') }}
+                                            </span>
+                                            <div class="mt-1">{{ $chatMessage->message }}</div>
+                                        </div>
+                                        <small class="text-muted text-nowrap">
+                                            {{ $chatMessage->created_at->format('M d, Y h:i A') }}
+                                        </small>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @endif
+
         <!-- Trip Timeline -->
         @if($ride->accepted_at || $ride->arrived_at || $ride->trip_started_at || $ride->completed_at)
             <div class="card mt-3">
