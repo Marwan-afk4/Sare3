@@ -17,11 +17,45 @@ class RideHelper
     private static int $maxGapSeconds = 360; // if gap > 60s, use interpolation
 
     /**
-     * Sort points by seq field if available, otherwise maintain original order
+     * Order points chronologically.
+     *
+     * We prefer `timestamp` because it is written server-side and is reliably
+     * monotonic. The client-supplied `seq` counter can reset mid-ride (e.g. the
+     * app restarts its counter), and sorting by it scrambles the polyline into
+     * a back-and-forth zigzag. `seq` is only used as a fallback when timestamps
+     * are missing entirely. PHP 8+ usort is stable, so points sharing a
+     * timestamp keep their original insertion order.
      */
     private static function sortPointsBySeq(array $points): array
     {
-        // Check if any point has seq field
+        $normalizeTs = function ($p) {
+            if (!isset($p['timestamp']) || $p['timestamp'] === null) {
+                return null;
+            }
+            return is_string($p['timestamp']) ? strtotime($p['timestamp']) : (int) $p['timestamp'];
+        };
+
+        // Primary ordering: timestamp (server-generated, monotonic).
+        $hasTimestamp = false;
+        foreach ($points as $point) {
+            if ($normalizeTs($point) !== null) {
+                $hasTimestamp = true;
+                break;
+            }
+        }
+
+        if ($hasTimestamp) {
+            usort($points, function ($a, $b) use ($normalizeTs) {
+                $ta = $normalizeTs($a) ?? PHP_INT_MAX;
+                $tb = $normalizeTs($b) ?? PHP_INT_MAX;
+                return $ta <=> $tb;
+            });
+
+            Log::info('[SortPoints] Sorted ' . count($points) . ' points by timestamp');
+            return $points;
+        }
+
+        // Fallback: seq (only when no timestamps exist at all).
         $hasSeq = false;
         foreach ($points as $point) {
             if (isset($point['seq']) && $point['seq'] !== null) {
@@ -31,18 +65,17 @@ class RideHelper
         }
 
         if (!$hasSeq) {
-            Log::info('[SortPoints] No seq field found, maintaining original order');
+            Log::info('[SortPoints] No timestamp/seq found, maintaining original order');
             return $points;
         }
 
-        // Sort by seq, handling null values by putting them at the end
         usort($points, function ($a, $b) {
             $seqA = $a['seq'] ?? PHP_INT_MAX;
             $seqB = $b['seq'] ?? PHP_INT_MAX;
             return $seqA <=> $seqB;
         });
 
-        Log::info('[SortPoints] Sorted ' . count($points) . ' points by seq field');
+        Log::info('[SortPoints] Sorted ' . count($points) . ' points by seq field (no timestamps)');
         return $points;
     }
 
