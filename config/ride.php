@@ -22,4 +22,17 @@ return [
     |
     */
     'max_driver_rejections' => env('RIDE_MAX_DRIVER_REJECTIONS', 10),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Captains Under Monitoring Thresholds
+    |--------------------------------------------------------------------------
+    |
+    | Drivers who meet either threshold (within the selected date range)
+    | appear on the "كباتن تحت المراقبة" admin page.
+    |
+    */
+    'monitoring_min_rejections' => env('RIDE_MONITORING_MIN_REJECTIONS', 5),
+    'monitoring_min_cancel_after_accept' => env('RIDE_MONITORING_MIN_CANCEL_AFTER_ACCEPT', 3),
 ];
+

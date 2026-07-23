@@ -11,7 +11,9 @@ use App\Models\DriverDocument;
 use App\Models\DocumentType;
 use App\Models\User;
 use App\Models\Rating;
+use App\Models\RideOffer;
 use App\Models\Zone;
+use App\Models\City;
 use App\Helpers\RideHelper;
 use App\Helpers\ExcelExportHelper;
 use App\trait\ImageUpload;
@@ -213,6 +215,107 @@ class DriverController extends Controller
                 });
             })
             ->filterByWalletBalance($balanceOperator, $balanceAmount);
+    }
+
+    public function underMonitoring(Request $request)
+    {
+        $minRejections = (int) $request->get(
+            'min_rejections',
+            config('ride.monitoring_min_rejections', 5)
+        );
+        $minCancelAfterAccept = (int) $request->get(
+            'min_cancel_after_accept',
+            config('ride.monitoring_min_cancel_after_accept', 3)
+        );
+        $dateFrom = $request->get('date_from');
+        $dateTo = $request->get('date_to');
+        $keyword = $request->get('keyword');
+        $cityId = $request->get('city');
+        $sortField = $request->get('sort', 'cancel_after_accept_count');
+        $sortOrder = $request->get('order', 'desc');
+
+        $allowedSorts = [
+            'id',
+            'name',
+            'phone',
+            'rejected_count',
+            'cancel_after_accept_count',
+            'ignored_count',
+            'accepted_count',
+            'problem_count',
+        ];
+        if (! in_array($sortField, $allowedSorts, true)) {
+            $sortField = 'cancel_after_accept_count';
+        }
+        $sortOrder = strtolower($sortOrder) === 'asc' ? 'asc' : 'desc';
+
+        $offerDateFilter = function ($query) use ($dateFrom, $dateTo) {
+            if ($dateFrom) {
+                $query->whereDate('offered_at', '>=', $dateFrom);
+            }
+            if ($dateTo) {
+                $query->whereDate('offered_at', '<=', $dateTo);
+            }
+        };
+
+        $drivers = User::where('role', 'driver')
+            ->with(['zone', 'city'])
+            ->withCount([
+                'rideOffers as rejected_count' => function ($query) use ($offerDateFilter) {
+                    $query->where('response', RideOffer::RESPONSE_REJECTED);
+                    $offerDateFilter($query);
+                },
+                'rideOffers as cancel_after_accept_count' => function ($query) use ($offerDateFilter) {
+                    $query->where('response', RideOffer::RESPONSE_CANCELLED_AFTER_ACCEPT);
+                    $offerDateFilter($query);
+                },
+                'rideOffers as ignored_count' => function ($query) use ($offerDateFilter) {
+                    $query->where('response', RideOffer::RESPONSE_IGNORED);
+                    $offerDateFilter($query);
+                },
+                'rideOffers as accepted_count' => function ($query) use ($offerDateFilter) {
+                    $query->where('response', RideOffer::RESPONSE_ACCEPTED);
+                    $offerDateFilter($query);
+                },
+            ])
+            ->when($keyword, function ($query, $keyword) {
+                $query->where(function ($q) use ($keyword) {
+                    $q->where('name', 'LIKE', "%{$keyword}%")
+                        ->orWhere('email', 'LIKE', "%{$keyword}%")
+                        ->orWhere('phone', 'LIKE', "%{$keyword}%");
+                });
+            })
+            ->when($cityId !== null && $cityId !== '', function ($query) use ($cityId) {
+                if ($cityId === 'no_city') {
+                    $query->whereNull('city_id');
+                } else {
+                    $query->where('city_id', $cityId);
+                }
+            })
+            ->havingRaw(
+                '(rejected_count >= ? OR cancel_after_accept_count >= ?)',
+                [$minRejections, $minCancelAfterAccept]
+            )
+            ->when(
+                $sortField === 'problem_count',
+                fn ($query) => $query->orderByRaw('(rejected_count + cancel_after_accept_count) ' . $sortOrder),
+                fn ($query) => $query->orderBy($sortField, $sortOrder)
+            )
+            ->paginate(30)
+            ->withQueryString();
+
+        $cities = City::orderBy('name')->get(['id', 'name']);
+
+        return view('drivers.under-monitoring', compact(
+            'drivers',
+            'minRejections',
+            'minCancelAfterAccept',
+            'dateFrom',
+            'dateTo',
+            'cities',
+            'sortField',
+            'sortOrder'
+        ));
     }
 
     public function documents(User $driver)

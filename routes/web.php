@@ -73,6 +73,7 @@ Route::domain(config('app.dashboard_domain'))->group(function () {
             });
             Route::middleware(['can:إدارة السائقين'])->group(function () {
                 Route::get('/drivers/export', [DriverController::class, 'export'])->name('drivers.export');
+                Route::get('/drivers/under-monitoring', [DriverController::class, 'underMonitoring'])->name('drivers.under-monitoring');
                 Route::resource('/drivers', DriverController::class);
                 Route::put('/drivers/{driver}/notes', [DriverController::class, 'updateNotes'])->name('drivers.notes.update');
                 Route::get('/drivers/{driver}/documents', [DriverController::class, 'documents'])->name('drivers.documents');

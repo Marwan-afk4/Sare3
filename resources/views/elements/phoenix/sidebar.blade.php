@@ -3,7 +3,7 @@
     $activeGroup = null;
     $groupMap = [
         'main'        => ['home', 'leaderboard', 'support-chat', 'ads', 'notifications'],
-        'users'       => ['users', 'drivers', 'admins', 'roles'],
+        'users'       => ['users', 'drivers', 'drivers-under-monitoring', 'admins', 'roles'],
         'rides'       => ['rides', 'cancelation-rides', 'zones', 'abnormal-rides', 'cities'],
         'fleet'       => ['car-categories', 'car-models', 'car-types'],
         'finance'     => ['wallet-requests', 'financial-reports', 'profit-statistics', 'profit-history', 'referrals', 'coupons', 'paymenent-methods'],
@@ -126,6 +126,15 @@
                                        title="{{ $pendingDriversCount }} {{ __('pending drivers') }}"
                                        onclick="event.stopPropagation();">{{ $pendingDriversCount }}</a>
                                 @endif
+                            </div>
+                        </a>
+                    </div>
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'drivers-under-monitoring' ? 'active' : '' }}"
+                            href="{{ route('drivers.under-monitoring') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="eye"></span></span>
+                                <span class="nav-link-text-wrapper"><span class="nav-link-text">{{ __('Captains Under Monitoring') }}</span></span>
                             </div>
                         </a>
                     </div>

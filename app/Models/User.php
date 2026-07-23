@@ -305,6 +305,11 @@ class User extends Authenticatable
         return $this->hasMany(DriverBonusGrant::class, 'driver_id');
     }
 
+    public function rideOffers()
+    {
+        return $this->hasMany(RideOffer::class, 'driver_id');
+    }
+
     /**
      * Check if driver can go online based on wallet balance
      */
