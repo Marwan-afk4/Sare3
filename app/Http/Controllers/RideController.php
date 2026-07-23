@@ -7,6 +7,7 @@ use App\Models\Ride;
 use App\Models\User;
 use App\Models\Driver;
 use App\Models\CarCategory;
+use App\Models\City;
 
 
 use Illuminate\Http\Request;
@@ -44,8 +45,9 @@ class RideController extends Controller
         $acceptedAfterSeconds = $request->get('accepted_after_seconds');
         $cancelledBeforeAccept = $request->boolean('cancelled_before_accept');
         $minOffers = $request->get('min_offers');
+        $cityId = $request->get('city');
 
-        $ridesQuery = Ride::with(['user', 'driver', 'carCategory', 'coupon'])
+        $ridesQuery = Ride::with(['user', 'driver.city', 'carCategory', 'coupon'])
             ->withCount([
                 'offers',
                 'offers as rejected_count' => function ($query) {
@@ -95,6 +97,20 @@ class RideController extends Controller
             ->when($minOffers !== null && $minOffers !== '', function ($query) use ($minOffers) {
                 $query->has('offers', '>=', (int) $minOffers);
             })
+            ->when($cityId !== null && $cityId !== '', function ($query) use ($cityId) {
+                if ($cityId === 'no_city') {
+                    $query->where(function ($q) {
+                        $q->whereNull('driver_id')
+                            ->orWhereHas('driver', function ($driverQuery) {
+                                $driverQuery->whereNull('city_id');
+                            });
+                    });
+                } else {
+                    $query->whereHas('driver', function ($driverQuery) use ($cityId) {
+                        $driverQuery->where('city_id', $cityId);
+                    });
+                }
+            })
             ->orderBy($sortField, $sortOrder);
 
         $rides = $ridesQuery->paginate(30)->appends($request->query());
@@ -111,6 +127,7 @@ class RideController extends Controller
         $cancelledBeforeAcceptCount = Ride::cancelledBeforeAccept()->count();
 
         $rideStatuses = \App\Enums\RideStatus::cases();
+        $cities = City::orderBy('name')->get(['id', 'name']);
 
         return view('rides.index', compact(
             'rides',
@@ -120,7 +137,8 @@ class RideController extends Controller
             'rideStatuses',
             'cancelledBeforeAcceptCount',
             'dateFrom',
-            'dateTo'
+            'dateTo',
+            'cities'
         ));
     }
 

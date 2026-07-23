@@ -123,16 +123,32 @@
                                         placeholder="{{ __('Max') }}" value="{{ request('max_km') }}">
                                 </div>
 
-                                {{-- Apply Filter Button --}}
+                                {{-- Driver City Filter --}}
                                 <div class="col-md-2">
-                                    <button type="submit" class="btn btn-success w-100">
-                                        <i class="fa fa-filter"></i> {{ __('Apply Filter') }}
+                                    <label class="form-label fw-bold">{{ __('Driver City') }}</label>
+                                    <select name="city" class="form-select">
+                                        <option value="">{{ __('All Cities') }}</option>
+                                        @foreach ($cities as $city)
+                                            <option value="{{ $city->id }}" @selected(request('city') == $city->id)>
+                                                {{ $city->name }}
+                                            </option>
+                                        @endforeach
+                                        <option value="no_city" @selected(request('city') === 'no_city')>
+                                            {{ __('No City') }}
+                                        </option>
+                                    </select>
+                                </div>
+
+                                {{-- Apply Filter Button --}}
+                                <div class="col-md-1">
+                                    <button type="submit" class="btn btn-success w-100" title="{{ __('Apply Filter') }}">
+                                        <i class="fa fa-filter"></i>
                                     </button>
                                 </div>
 
                                 {{-- Clear Filter Button --}}
                                 <div class="col-md-1">
-                                    @if (request('keyword') || request('date_from') || request('date_to') || request('min_km') || request('max_km') || request('status') || request('accepted_after_seconds') || request('cancelled_before_accept') || request('min_offers'))
+                                    @if (request('keyword') || request('date_from') || request('date_to') || request('min_km') || request('max_km') || request('status') || request('accepted_after_seconds') || request('cancelled_before_accept') || request('min_offers') || request('city'))
                                         <a href="{{ route('rides.index') }}" class="btn btn-secondary w-100" title="{{ __('Clear All') }}">
                                             <i class="fa fa-times"></i>
                                         </a>
