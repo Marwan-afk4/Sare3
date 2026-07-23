@@ -86,6 +86,13 @@
                     placeholder="{{__('Select City')}}"
                 />
 
+                <x-form-textarea
+                    name="admin_notes"
+                    label="{{ __('Admin Notes') }}"
+                    :value="$driver->admin_notes"
+                />
+                <small class="text-muted d-block mb-3">{{ __('These notes are never shown to the driver or in the mobile app.') }}</small>
+
                 <div class="mb-3">
                     <label for="image" class="form-label">{{ __('Profile Image') }}</label>
                     @if($driver->image)

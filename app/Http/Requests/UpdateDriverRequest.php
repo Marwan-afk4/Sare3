@@ -44,6 +44,7 @@ class UpdateDriverRequest extends FormRequest
             'activity' => ['required', Rule::in(ActivtyType::values())],
             'zone_id' => 'nullable|exists:zones,id',
             'city_id' => 'nullable|exists:cities,id',
+            'admin_notes' => 'nullable|string|max:5000',
         ];
     }
 

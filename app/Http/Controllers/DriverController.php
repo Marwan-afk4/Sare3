@@ -340,6 +340,24 @@ class DriverController extends Controller
         return view('drivers.edit', compact('driver', 'diverActivityStatus', 'driverStatus', 'zones', 'cities', 'hasPassword'));
     }
 
+    public function updateNotes(Request $request, User $driver)
+    {
+        if ($driver->role !== 'driver') {
+            abort(404);
+        }
+
+        $request->validate([
+            'admin_notes' => 'nullable|string|max:5000',
+        ]);
+
+        $notes = $request->input('admin_notes');
+        $driver->admin_notes = filled($notes) ? $notes : null;
+        $driver->save();
+
+        return redirect()
+            ->route('drivers.show', $driver)
+            ->with('success', __('Notes saved successfully.'));
+    }
 
     public function update(UpdateDriverRequest $request, User $driver)
     {
@@ -376,6 +394,10 @@ class DriverController extends Controller
             $data['image'] = $this->uploadFile($request->file('image'), 'driver/profiles');
         } else {
             unset($data['image']);
+        }
+
+        if (array_key_exists('admin_notes', $data)) {
+            $data['admin_notes'] = filled($data['admin_notes']) ? $data['admin_notes'] : null;
         }
 
         $driver->update($data);

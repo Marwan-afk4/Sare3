@@ -13,7 +13,7 @@
                 {{ $attribute }}="{{ $v }}"
             @endif
         @endforeach
-    ></textarea>
+    >{{ old($name, $value) }}</textarea>
 
     <label for="{{ $name }}">{{ $label }}</label>
 

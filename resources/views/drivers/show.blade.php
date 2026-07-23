@@ -92,6 +92,41 @@
                 </div>
             </div>
 
+            {{-- Admin-only notes --}}
+            <div class="card-body border-top">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">
+                        <i class="fa fa-sticky-note me-2"></i>{{ __('Admin Notes') }}
+                    </h5>
+                    <span class="badge bg-secondary">{{ __('Visible to admins only') }}</span>
+                </div>
+
+                @if (session('success'))
+                    <div class="alert alert-success py-2">{{ session('success') }}</div>
+                @endif
+
+                <form method="POST" action="{{ route('drivers.notes.update', $driver) }}">
+                    @csrf
+                    @method('PUT')
+                    <div class="mb-3">
+                        <textarea
+                            name="admin_notes"
+                            id="admin_notes"
+                            class="form-control @error('admin_notes') is-invalid @enderror"
+                            rows="4"
+                            placeholder="{{ __('Add internal notes about this driver...') }}"
+                        >{{ old('admin_notes', $driver->admin_notes) }}</textarea>
+                        @error('admin_notes')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted">{{ __('These notes are never shown to the driver or in the mobile app.') }}</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fa fa-save me-1"></i>{{ __('Save Notes') }}
+                    </button>
+                </form>
+            </div>
+
             {{-- Driver Location Map --}}
             @if ($driverLocation)
                 <div class="card-body border-top">

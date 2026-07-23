@@ -23,6 +23,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'admin_notes',
     ];
 
     protected $fillable = [
@@ -58,6 +59,7 @@ class User extends Authenticatable
         'longitude',
         'bearing',
         'phone_verified',
+        'admin_notes',
     ];
 
     protected $casts = [
