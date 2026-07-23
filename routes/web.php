@@ -67,10 +67,12 @@ Route::domain(config('app.dashboard_domain'))->group(function () {
     Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')
         ->group(function () {
             Route::middleware(['can:إدارة المستخدمين'])->group(function () {
+                Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
                 Route::resource('/users', UserController::class);
                 Route::get('/users/{user}/ride-history', [UserController::class, 'rideHistory'])->name('users.ride-history');
             });
             Route::middleware(['can:إدارة السائقين'])->group(function () {
+                Route::get('/drivers/export', [DriverController::class, 'export'])->name('drivers.export');
                 Route::resource('/drivers', DriverController::class);
                 Route::get('/drivers/{driver}/documents', [DriverController::class, 'documents'])->name('drivers.documents');
                 Route::get('/drivers/{driver}/cars', [DriverController::class, 'cars'])->name('drivers.cars');

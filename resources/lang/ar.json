@@ -46,6 +46,8 @@
     "This device is currently offline.": "هذا الجهاز غير متصل حاليًا.",
     "Supplier": "المورد",
     "Create User": "إنشاء مستخدم",
+    "Export to Excel": "تصدير إلى Excel",
+    "Gender": "الجنس",
     "The selected Driver is invalid.": "السائق المحدد غير صالح.",
     "The Car Image field is required.": "حقل صورة السيارة مطلوب.",
     "The Car Type field is required.": "حقل نوع السيارة مطلوب.",

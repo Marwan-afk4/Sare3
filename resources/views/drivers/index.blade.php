@@ -7,9 +7,14 @@
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="mb-0">{{ __('Drivers') }}</h1>
-            <a href="{{ route('drivers.create') }}" class="btn btn-primary">
-                <i class="fa fa-plus me-2"></i>{{ __('Create Driver') }}
-            </a>
+            <div class="d-flex gap-2">
+                <a href="{{ route('drivers.export', request()->query()) }}" class="btn btn-success">
+                    <i class="fa fa-file-excel me-2"></i>{{ __('Export to Excel') }}
+                </a>
+                <a href="{{ route('drivers.create') }}" class="btn btn-primary">
+                    <i class="fa fa-plus me-2"></i>{{ __('Create Driver') }}
+                </a>
+            </div>
         </div>
 
         {{-- Activity Filter Buttons --}}

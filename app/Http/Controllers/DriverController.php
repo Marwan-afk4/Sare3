@@ -13,9 +13,11 @@ use App\Models\User;
 use App\Models\Rating;
 use App\Models\Zone;
 use App\Helpers\RideHelper;
+use App\Helpers\ExcelExportHelper;
 use App\trait\ImageUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DriverController extends Controller
 {
@@ -29,13 +31,6 @@ class DriverController extends Controller
     {
         $sortField = $request->get('sort', 'id');
         $sortOrder = $request->get('order', 'ASC');
-        $keyword = $request->get('keyword');
-        $activity = $request->get('activity');
-        $zoneId = $request->get('zone');
-        $cityId = $request->get('city');
-        $availability = $request->get('availability');
-        $carYear = $request->get('car_year');
-        $status = $request->get('status');
         $balanceOperator = $request->get('balance_operator');
         $balanceAmount = $request->get('balance_amount');
 
@@ -109,30 +104,96 @@ class DriverController extends Controller
                 ->count();
         }
 
-        $drivers = User::where('role', 'driver')
-            ->with(['zone', 'city', 'driverCars.carType']) // 👈 Load car and city relationships
+        $drivers = $this->filteredDriversQuery($request)
+            ->orderBy($sortField, $sortOrder)
+            ->paginate(30)
+            ->withQueryString();
+
+        $driverActivtyStatus = ActivtyType::cases();
+        $driverStatusCases = DriverStatus::cases();
+
+        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'driverStatusCases', 'driverStatusCounts', 'zones', 'driversWithNoZoneCount', 'cities', 'driversWithNoCityCount', 'onlineDriversCount', 'offlineDriversCount', 'carYears', 'carYearCounts', 'balanceOperator', 'balanceAmount'));
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        $sortField = $request->get('sort', 'id');
+        $sortOrder = $request->get('order', 'ASC');
+
+        $drivers = $this->filteredDriversQuery($request)
+            ->orderBy($sortField, $sortOrder)
+            ->get();
+
+        $headers = [
+            __('Id'),
+            __('Name'),
+            __('Email'),
+            __('Phone'),
+            __('Wallet'),
+            __('Zone'),
+            __('City'),
+            __('Availability'),
+            __('Activity'),
+            __('Status'),
+            __('Gender'),
+            __('Created At'),
+        ];
+
+        $rows = $drivers->map(function (User $driver) {
+            return [
+                $driver->id,
+                $driver->name,
+                $driver->email,
+                $driver->phone,
+                $driver->wallet,
+                $driver->zone?->name,
+                $driver->city?->name,
+                $driver->is_available ? __('Online') : __('Offline'),
+                $driver->activity?->label(),
+                $driver->status?->label(),
+                $driver->gender,
+                optional($driver->created_at)->format('Y-m-d H:i:s'),
+            ];
+        });
+
+        return ExcelExportHelper::download('drivers_' . now()->format('Y-m-d_His'), $headers, $rows);
+    }
+
+    protected function filteredDriversQuery(Request $request)
+    {
+        $keyword = $request->get('keyword');
+        $activity = $request->get('activity');
+        $zoneId = $request->get('zone');
+        $cityId = $request->get('city');
+        $availability = $request->get('availability');
+        $carYear = $request->get('car_year');
+        $status = $request->get('status');
+        $balanceOperator = $request->get('balance_operator');
+        $balanceAmount = $request->get('balance_amount');
+
+        return User::where('role', 'driver')
+            ->with(['zone', 'city', 'driverCars.carType'])
             ->when($activity, function ($query, $activity) {
-                $query->where('activity', $activity); // 👈 Filter by activity
+                $query->where('activity', $activity);
             })
             ->when($zoneId !== null, function ($query) use ($zoneId) {
                 if ($zoneId === 'no_zone') {
-                    $query->whereNull('zone_id'); // 👈 Filter drivers with no zone
+                    $query->whereNull('zone_id');
                 } else {
-                    $query->where('zone_id', $zoneId); // 👈 Filter by zone
+                    $query->where('zone_id', $zoneId);
                 }
             })
             ->when($cityId !== null, function ($query) use ($cityId) {
                 if ($cityId === 'no_city') {
-                    $query->whereNull('city_id'); // 👈 Filter drivers with no city
+                    $query->whereNull('city_id');
                 } else {
-                    $query->where('city_id', $cityId); // 👈 Filter by city
+                    $query->where('city_id', $cityId);
                 }
             })
             ->when($availability !== null && $availability !== '', function ($query) use ($availability) {
                 $query->where('is_available', $availability == '1');
             })
             ->when($carYear, function ($query, $carYear) {
-                // 👇 Filter by car type year range
                 $query->whereHas('driverCars.carType', function ($carQuery) use ($carYear) {
                     $carQuery->where('year_from', '<=', $carYear)
                         ->where(function ($q) use ($carYear) {
@@ -151,15 +212,7 @@ class DriverController extends Controller
                         ->orWhere('phone', 'LIKE', "%{$keyword}%");
                 });
             })
-            ->filterByWalletBalance($balanceOperator, $balanceAmount)
-            ->orderBy($sortField, $sortOrder)
-            ->paginate(30)
-            ->withQueryString();
-
-        $driverActivtyStatus = ActivtyType::cases();
-        $driverStatusCases = DriverStatus::cases();
-
-        return view('drivers.index', compact('drivers', 'sortField', 'sortOrder', 'driverActivtyStatus', 'driverActivityCounts', 'driverStatusCases', 'driverStatusCounts', 'zones', 'driversWithNoZoneCount', 'cities', 'driversWithNoCityCount', 'onlineDriversCount', 'offlineDriversCount', 'carYears', 'carYearCounts', 'balanceOperator', 'balanceAmount'));
+            ->filterByWalletBalance($balanceOperator, $balanceAmount);
     }
 
     public function documents(User $driver)

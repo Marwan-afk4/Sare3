@@ -8,9 +8,14 @@
         <h1 class="mb-3">{{ __('Users') }}</h1>
 
         <div class="mb-3 d-flex justify-content-between align-items-center">
-        <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm me-1">
-            {{ __('Create User') }} <i class="fa fa-plus"></i>
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm">
+                {{ __('Create User') }} <i class="fa fa-plus"></i>
+            </a>
+            <a href="{{ route('users.export', request()->query()) }}" class="btn btn-success btn-sm">
+                <i class="fa fa-file-excel me-1"></i>{{ __('Export to Excel') }}
+            </a>
+        </div>
 
         <div class="search-wrapper">
             <form action="{{ route(Route::currentRouteName(),[],false) }}" method="GET" class="d-inline-block">

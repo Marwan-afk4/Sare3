@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Rating;
 use App\Helpers\RideHelper;
+use App\Helpers\ExcelExportHelper;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Controllers\Controller;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class UserController extends Controller
 {
@@ -16,19 +18,65 @@ class UserController extends Controller
     {
         $sortField = $request->get('sort', 'id');
         $sortOrder = $request->get('order', 'DESC');
+
+        $users = $this->filteredUsersQuery($request)
+            ->orderBy($sortField, $sortOrder)
+            ->paginate(30);
+
+        return view('users.index', compact('users', 'sortField', 'sortOrder'));
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        $sortField = $request->get('sort', 'id');
+        $sortOrder = $request->get('order', 'DESC');
+
+        $users = $this->filteredUsersQuery($request)
+            ->orderBy($sortField, $sortOrder)
+            ->get();
+
+        $headers = [
+            __('Id'),
+            __('Name'),
+            __('Email'),
+            __('Phone'),
+            __('Wallet'),
+            __('Activity'),
+            __('Zone'),
+            __('Gender'),
+            __('Created At'),
+        ];
+
+        $rows = $users->map(function (User $user) {
+            return [
+                $user->id,
+                $user->name,
+                $user->email,
+                $user->phone,
+                $user->wallet,
+                $user->activity?->label(),
+                $user->zone?->name,
+                $user->gender,
+                optional($user->created_at)->format('Y-m-d H:i:s'),
+            ];
+        });
+
+        return ExcelExportHelper::download('users_' . now()->format('Y-m-d_His'), $headers, $rows);
+    }
+
+    protected function filteredUsersQuery(Request $request)
+    {
         $keyword = $request->get('keyword');
 
-        $users = User::where('role', 'user')
+        return User::where('role', 'user')
             ->with('zone')
             ->when($keyword, function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->where('name', 'LIKE', "%{$keyword}%")
-                    ->orWhere('email', 'LIKE', "%{$keyword}%")
-                    ->orWhere('phone', 'LIKE', "%{$keyword}%");
+                        ->orWhere('email', 'LIKE', "%{$keyword}%")
+                        ->orWhere('phone', 'LIKE', "%{$keyword}%");
                 });
-            })
-        ->orderBy($sortField, $sortOrder)->paginate(30);
-        return view('users.index', compact('users', 'sortField', 'sortOrder'));
+            });
     }
 
     public function create()
