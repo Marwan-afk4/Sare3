@@ -60,6 +60,11 @@ class SimpleRideTracker {
         try {
             this.initMap();
             this.setupMarkers();
+
+            // Render stored accept/arrived positions immediately (don't wait for API).
+            this.renderAcceptMarker(this.rideData.driverAcceptLocation);
+            this.renderArrivedMarker(this.rideData.driverArrivedLocation);
+
             this.handleRideStatus();
 
             // Pull the enriched tracking payload once on init.
@@ -148,7 +153,15 @@ class SimpleRideTracker {
         switch (this.rideData.status) {
             case 'completed':
             case 'finshed':
-                this.showCompletedRoute();
+                this.showHistoricalRoute();
+                break;
+            case 'cancelled':
+            case 'rejected':
+                if (this.hasStoredTrackingData()) {
+                    this.showHistoricalRoute();
+                } else {
+                    this.showStaticRoute();
+                }
                 break;
             case 'in_progress':
             case 'accepted':
@@ -160,13 +173,45 @@ class SimpleRideTracker {
         }
     }
 
-    showCompletedRoute() {
+    hasStoredTrackingData() {
+        const accept = this.rideData.driverAcceptLocation;
+        const toPickup = this.rideData.toPickupRoutePoints || [];
+        const trip = this.rideData.routePoints || [];
+        return (accept && accept.lat != null && accept.lng != null)
+            || toPickup.length > 0
+            || trip.length > 0;
+    }
+
+    /**
+     * Draw stored GPS paths and fit the map to pickup, dropoff, accept point, etc.
+     * Used for completed, cancelled, and rejected rides.
+     */
+    showHistoricalRoute() {
         const bounds = new google.maps.LatLngBounds();
         let hasAnyPath = false;
 
-        // Draw the "on the way to passenger" leg (dashed orange) if we have it.
+        const accept = this.rideData.driverAcceptLocation;
+        if (accept && accept.lat != null && accept.lng != null) {
+            this.renderAcceptMarker(accept);
+            bounds.extend({
+                lat: parseFloat(accept.lat),
+                lng: parseFloat(accept.lng)
+            });
+            hasAnyPath = true;
+        }
+
+        const arrived = this.rideData.driverArrivedLocation;
+        if (arrived && arrived.lat != null && arrived.lng != null) {
+            this.renderArrivedMarker(arrived);
+            bounds.extend({
+                lat: parseFloat(arrived.lat),
+                lng: parseFloat(arrived.lng)
+            });
+            hasAnyPath = true;
+        }
+
         const toPickupPoints = this.rideData.toPickupRoutePoints || [];
-        if (toPickupPoints.length > 1) {
+        if (toPickupPoints.length > 0) {
             this.renderToPickupPolyline(toPickupPoints);
             toPickupPoints.forEach(point => bounds.extend({
                 lat: parseFloat(point.lat),
@@ -175,7 +220,6 @@ class SimpleRideTracker {
             hasAnyPath = true;
         }
 
-        // Draw the actual trip leg (solid green) + start/end markers.
         if (this.rideData.routePoints && this.rideData.routePoints.length > 0) {
             this.renderTripPolyline(this.rideData.routePoints);
             this.rideData.routePoints.forEach(point => bounds.extend({
@@ -185,11 +229,24 @@ class SimpleRideTracker {
             hasAnyPath = true;
         }
 
+        if (this.rideData.pickup.lat) {
+            bounds.extend({ lat: this.rideData.pickup.lat, lng: this.rideData.pickup.lng });
+            hasAnyPath = true;
+        }
+        if (this.rideData.dropoff.lat) {
+            bounds.extend({ lat: this.rideData.dropoff.lat, lng: this.rideData.dropoff.lng });
+            hasAnyPath = true;
+        }
+
         if (hasAnyPath) {
             this.map.fitBounds(bounds);
         } else {
             this.showStaticRoute();
         }
+    }
+
+    showCompletedRoute() {
+        this.showHistoricalRoute();
     }
 
     showLiveTracking() {
@@ -248,8 +305,8 @@ class SimpleRideTracker {
             if (!resp.ok) return;
             const data = await resp.json();
 
-            this.renderAcceptMarker(data.driver_accept_location);
-            this.renderArrivedMarker(data.driver_arrived_location);
+            this.renderAcceptMarker(data.driver_accept_location || this.rideData.driverAcceptLocation);
+            this.renderArrivedMarker(data.driver_arrived_location || this.rideData.driverArrivedLocation);
             this.renderToPickupPolyline(data.to_pickup_route_points || []);
             this.renderTripPolyline(data.trip_route_points || []);
 
@@ -542,10 +599,19 @@ class SimpleRideTracker {
                 bounds.extend({ lat: this.rideData.dropoff.lat, lng: this.rideData.dropoff.lng });
                 has = true;
             }
-            if (data.driver_accept_location) {
+            const acceptLoc = data.driver_accept_location || this.rideData.driverAcceptLocation;
+            if (acceptLoc && acceptLoc.lat != null) {
                 bounds.extend({
-                    lat: parseFloat(data.driver_accept_location.lat),
-                    lng: parseFloat(data.driver_accept_location.lng)
+                    lat: parseFloat(acceptLoc.lat),
+                    lng: parseFloat(acceptLoc.lng)
+                });
+                has = true;
+            }
+            const arrivedLoc = data.driver_arrived_location || this.rideData.driverArrivedLocation;
+            if (arrivedLoc && arrivedLoc.lat != null) {
+                bounds.extend({
+                    lat: parseFloat(arrivedLoc.lat),
+                    lng: parseFloat(arrivedLoc.lng)
                 });
                 has = true;
             }

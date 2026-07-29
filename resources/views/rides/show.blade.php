@@ -61,6 +61,11 @@
                 <h5><i class="fa fa-route"></i> {{ __('Trip Route') }}</h5>
                 <p>{{ __('Showing the completed trip route') }}</p>
             </div>
+        @elseif(in_array($ride->status->value, ['cancelled', 'rejected']) && $ride->driver_accept_lat && $ride->driver_accept_lng)
+            <div class="tracking-status tracking-completed">
+                <h5><i class="fa fa-map-marker-alt"></i> {{ __('Ride Route History') }}</h5>
+                <p>{{ __('Showing pickup, dropoff, and where the captain accepted the ride') }}</p>
+            </div>
         @endif
 
         <!-- Map Container -->
