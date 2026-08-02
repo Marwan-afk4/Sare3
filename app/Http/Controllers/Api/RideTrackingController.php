@@ -199,7 +199,7 @@ class RideTrackingController extends Controller
      */
     public function getRideTrackingData(Request $request, $rideId): JsonResponse
     {
-        $ride = Ride::with(['user', 'driver', 'carCategory', 'offers.driver'])->find($rideId);
+        $ride = Ride::with(['user', 'driver', 'carCategory', 'offers.driver', 'driverCancelledBy'])->find($rideId);
         
         if (!$ride) {
             return response()->json(['error' => 'Ride not found'], 404);
@@ -291,6 +291,19 @@ class RideTrackingController extends Controller
             ];
         }
 
+        // Where the captain was when they cancelled the ride (whether they
+        // rejected it outright or cancelled after already accepting).
+        $driverCancelLocation = null;
+        if ($ride->driver_cancel_lat !== null && $ride->driver_cancel_lng !== null) {
+            $driverCancelLocation = [
+                'lat' => (float) $ride->driver_cancel_lat,
+                'lng' => (float) $ride->driver_cancel_lng,
+                'recorded_at' => $ride->driver_cancelled_at,
+                'driver_name' => $ride->driverCancelledBy?->name,
+                'cancelled_after_accept' => $ride->accepted_at !== null,
+            ];
+        }
+
         // Pull the driver's current live position from the database.
         // This powers the "track the captain on his way to the passenger" view
         // on the dashboard. Only meaningful for rides that are still active.
@@ -326,6 +339,7 @@ class RideTrackingController extends Controller
             'trip_route_points' => $tripDisplay,
             'driver_accept_location' => $driverAcceptLocation,
             'driver_arrived_location' => $driverArrivedLocation,
+            'driver_cancel_location' => $driverCancelLocation,
             'live_driver_location' => $liveDriverLocation,
             'total_points' => count($routePoints),
             'filtered_points' => count($displayPoints),

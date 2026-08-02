@@ -170,6 +170,18 @@ class CancelationRide extends Controller
     private function handleDriverCancellation(Ride $ride, $driver, Request $request)
     {
         $currentDriverId = $driver->id;
+        $now = now();
+
+        // Capture the captain's exact GPS at the moment of cancelling — even
+        // if this happens long after they accepted — so the admin dashboard
+        // can show where the driver backed out. Prefer the mobile app's
+        // lat/lng, fall back to the driver's last known location.
+        $cancelLat = $request->input('lat');
+        $cancelLng = $request->input('lng');
+        if ($cancelLat === null || $cancelLng === null) {
+            $cancelLat = $driver->latitude;
+            $cancelLng = $driver->longitude;
+        }
 
         // Record this captain's response in the offer audit trail. If the
         // ride had already been accepted this is a cancellation-after-accept,
@@ -192,6 +204,30 @@ class CancelationRide extends Controller
         if ($currentDriverId) {
             \Illuminate\Support\Facades\Cache::put("ride_cooldown:{$ride->id}:{$currentDriverId}", 'manual', now()->addMinutes(1));
         }
+
+        // Save cancellation record and persist the cancel location on the
+        // ride itself so the map can show it alongside the accept/arrived
+        // markers regardless of whether the ride later gets reassigned.
+        ModelsCancelationRide::create([
+            'ride_id' => $ride->id,
+            'user_id' => $ride->user_id,
+            'driver_id' => $currentDriverId,
+            'canceled_by' => 'driver',
+            'canceled_at' => $now,
+            'penalty_applied' => 'no',
+            'penalty_amount' => 0,
+            'reason' => $request->input('reason'),
+        ]);
+
+        $cancelLocationUpdate = [
+            'driver_cancelled_at' => $now,
+            'driver_cancelled_by' => $currentDriverId,
+        ];
+        if ($cancelLat !== null && $cancelLng !== null) {
+            $cancelLocationUpdate['driver_cancel_lat'] = (float) $cancelLat;
+            $cancelLocationUpdate['driver_cancel_lng'] = (float) $cancelLng;
+        }
+        $ride->update($cancelLocationUpdate);
 
         DB::beginTransaction();
 

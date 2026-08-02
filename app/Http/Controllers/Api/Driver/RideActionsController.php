@@ -662,6 +662,17 @@ class RideActionsController extends Controller
         $driver = $request->user();
         $now = now();
 
+        // Capture the captain's exact GPS at the moment of cancelling — even
+        // if this happens long after they accepted — so the admin dashboard
+        // can show where the driver backed out. Prefer the mobile app's
+        // lat/lng, fall back to the driver's last known location.
+        $cancelLat = $request->input('lat');
+        $cancelLng = $request->input('lng');
+        if ($cancelLat === null || $cancelLng === null) {
+            $cancelLat = $driver->latitude;
+            $cancelLng = $driver->longitude;
+        }
+
         // Calculate time since ride was created/accepted
         $rideCreatedAt = $ride->accepted_at ? Carbon::parse($ride->accepted_at) : Carbon::parse($ride->created_at);
         $minutesSinceBooking = ceil($rideCreatedAt->floatDiffInMinutes($now));
@@ -719,6 +730,19 @@ class RideActionsController extends Controller
             'penalty_amount' => round($penaltyAmount, 2),
             'reason' => $request->reason ?? null,
         ]);
+
+        // Persist the cancel location on the ride itself so the map can show
+        // it alongside the accept/arrived markers regardless of whether the
+        // ride later gets reassigned to another captain.
+        $cancelLocationUpdate = [
+            'driver_cancelled_at' => $now,
+            'driver_cancelled_by' => $driver->id,
+        ];
+        if ($cancelLat !== null && $cancelLng !== null) {
+            $cancelLocationUpdate['driver_cancel_lat'] = (float) $cancelLat;
+            $cancelLocationUpdate['driver_cancel_lng'] = (float) $cancelLng;
+        }
+        $ride->update($cancelLocationUpdate);
 
         // Add current driver to rejected drivers list
         $rejectedDrivers = $ride->rejected_drivers ?? [];

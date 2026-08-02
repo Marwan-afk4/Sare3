@@ -164,7 +164,7 @@ class RideController extends Controller
         $rideStatuses = RideStatus::labels();
         // Eager-load the offer audit trail so the show page can render
         // "which captain saw the request + what they did" without N+1.
-        $ride->load(['offers.driver', 'user', 'driver']);
+        $ride->load(['offers.driver', 'user', 'driver', 'driverCancelledBy']);
 
         $rideChatMessages = \App\Models\ChatMessage::query()
             ->whereHas('chat', fn ($query) => $query->where('ride_id', $ride->id))

@@ -28,6 +28,7 @@ class SimpleRideTracker {
         this.dropoffMarker = null;
         this.acceptMarker = null;
         this.arrivedMarker = null;
+        this.cancelMarker = null;
         this.toPickupPolyline = null;
         this.tripPolyline = null;
         this.liveDriverLine = null;   // live segment: driver→pickup or pickup→driver
@@ -61,9 +62,10 @@ class SimpleRideTracker {
             this.initMap();
             this.setupMarkers();
 
-            // Render stored accept/arrived positions immediately (don't wait for API).
+            // Render stored accept/arrived/cancel positions immediately (don't wait for API).
             this.renderAcceptMarker(this.rideData.driverAcceptLocation);
             this.renderArrivedMarker(this.rideData.driverArrivedLocation);
+            this.renderCancelMarker(this.rideData.driverCancelLocation);
 
             this.handleRideStatus();
 
@@ -175,9 +177,11 @@ class SimpleRideTracker {
 
     hasStoredTrackingData() {
         const accept = this.rideData.driverAcceptLocation;
+        const cancel = this.rideData.driverCancelLocation;
         const toPickup = this.rideData.toPickupRoutePoints || [];
         const trip = this.rideData.routePoints || [];
         return (accept && accept.lat != null && accept.lng != null)
+            || (cancel && cancel.lat != null && cancel.lng != null)
             || toPickup.length > 0
             || trip.length > 0;
     }
@@ -206,6 +210,16 @@ class SimpleRideTracker {
             bounds.extend({
                 lat: parseFloat(arrived.lat),
                 lng: parseFloat(arrived.lng)
+            });
+            hasAnyPath = true;
+        }
+
+        const cancel = this.rideData.driverCancelLocation;
+        if (cancel && cancel.lat != null && cancel.lng != null) {
+            this.renderCancelMarker(cancel);
+            bounds.extend({
+                lat: parseFloat(cancel.lat),
+                lng: parseFloat(cancel.lng)
             });
             hasAnyPath = true;
         }
@@ -307,6 +321,7 @@ class SimpleRideTracker {
 
             this.renderAcceptMarker(data.driver_accept_location || this.rideData.driverAcceptLocation);
             this.renderArrivedMarker(data.driver_arrived_location || this.rideData.driverArrivedLocation);
+            this.renderCancelMarker(data.driver_cancel_location || this.rideData.driverCancelLocation);
             this.renderToPickupPolyline(data.to_pickup_route_points || []);
             this.renderTripPolyline(data.trip_route_points || []);
 
@@ -373,6 +388,45 @@ class SimpleRideTracker {
             },
             zIndex: 900
         });
+    }
+
+    /**
+     * Where the captain was standing when they cancelled the ride — whether
+     * they rejected it outright or backed out after already accepting
+     * (possibly a long time later). Distinct red "X" marker so it's never
+     * confused with the orange accept marker.
+     */
+    renderCancelMarker(cancel) {
+        if (!cancel || cancel.lat == null || cancel.lng == null) return;
+        if (this.cancelMarker) this.cancelMarker.setMap(null);
+
+        this.cancelMarker = new google.maps.Marker({
+            position: { lat: parseFloat(cancel.lat), lng: parseFloat(cancel.lng) },
+            map: this.map,
+            title: 'Driver Cancel Location',
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: '#E53935',
+                fillOpacity: 1,
+                strokeColor: 'white',
+                strokeWeight: 2
+            },
+            label: { text: 'X', color: 'white', fontWeight: 'bold' },
+            zIndex: 910
+        });
+
+        const when = cancel.recorded_at
+            ? new Date(cancel.recorded_at).toLocaleString()
+            : '';
+        const afterAccept = cancel.cancelled_after_accept
+            ? 'Cancelled after accepting the ride'
+            : 'Rejected before accepting the ride';
+        const driverName = cancel.driver_name ? `<br><small>${cancel.driver_name}</small>` : '';
+        const info = new google.maps.InfoWindow({
+            content: `<div><strong>${afterAccept}</strong>${driverName}<br><small>${when}</small></div>`
+        });
+        this.cancelMarker.addListener('click', () => info.open(this.map, this.cancelMarker));
     }
 
     renderToPickupPolyline(points) {
@@ -612,6 +666,14 @@ class SimpleRideTracker {
                 bounds.extend({
                     lat: parseFloat(arrivedLoc.lat),
                     lng: parseFloat(arrivedLoc.lng)
+                });
+                has = true;
+            }
+            const cancelLoc = data.driver_cancel_location || this.rideData.driverCancelLocation;
+            if (cancelLoc && cancelLoc.lat != null) {
+                bounds.extend({
+                    lat: parseFloat(cancelLoc.lat),
+                    lng: parseFloat(cancelLoc.lng)
                 });
                 has = true;
             }

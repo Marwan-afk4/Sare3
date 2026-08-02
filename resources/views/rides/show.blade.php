@@ -82,6 +82,7 @@
                         </h5>
                         <div class="small text-muted d-flex flex-wrap gap-3 mt-1">
                             <span><span class="badge" style="background:#FF9800">A</span> {{ __('Captain accept location') }}</span>
+                            <span><span class="badge" style="background:#E53935">X</span> {{ __('Captain cancel location') }}</span>
                             <span><span style="display:inline-block;width:24px;border-top:3px dashed #FF9800;vertical-align:middle"></span> {{ __('On the way to passenger') }}</span>
                             <span><span class="badge" style="background:#FF9800">S</span> {{ __('To-pickup start') }}</span>
                             <span><span class="badge" style="background:#FF9800">E</span> {{ __('To-pickup end') }}</span>
@@ -189,7 +190,7 @@
         @endif
 
         <!-- Captain Tracking Details -->
-        @if($ride->driver_accept_lat || $ride->driver_arrived_lat)
+        @if($ride->driver_accept_lat || $ride->driver_arrived_lat || $ride->driver_cancel_lat)
             <div class="card mt-3">
                 <div class="card-header">
                     <h5 class="mb-0"><i class="fa fa-map-marked-alt"></i> {{ __('Captain Tracking') }}</h5>
@@ -220,6 +221,29 @@
                                     @endif
                                 </div>
                                 <a href="https://www.google.com/maps?q={{ $ride->driver_arrived_lat }},{{ $ride->driver_arrived_lng }}" target="_blank" class="small">
+                                    <i class="fa fa-external-link-alt"></i> {{ __('Open in Google Maps') }}
+                                </a>
+                            </div>
+                        @endif
+                        @if($ride->driver_cancel_lat && $ride->driver_cancel_lng)
+                            <div class="col-md-6 mb-3">
+                                <strong><i class="fa fa-times-circle text-danger"></i> {{ __('Cancel Location') }}</strong>
+                                <div class="small text-muted">
+                                    {{ $ride->driver_cancel_lat }}, {{ $ride->driver_cancel_lng }}
+                                    @if($ride->driverCancelledBy)
+                                        <br><i class="fa fa-user"></i> {{ $ride->driverCancelledBy->name }}
+                                    @endif
+                                    @if($ride->driver_cancelled_at)
+                                        <br><i class="fa fa-clock"></i> {{ $ride->driver_cancelled_at->format('M d, Y h:i A') }}
+                                    @endif
+                                    <br>
+                                    @if($ride->accepted_at)
+                                        <span class="badge bg-danger">{{ __('Cancelled after accepting') }}</span>
+                                    @else
+                                        <span class="badge bg-secondary">{{ __('Rejected before accepting') }}</span>
+                                    @endif
+                                </div>
+                                <a href="https://www.google.com/maps?q={{ $ride->driver_cancel_lat }},{{ $ride->driver_cancel_lng }}" target="_blank" class="small">
                                     <i class="fa fa-external-link-alt"></i> {{ __('Open in Google Maps') }}
                                 </a>
                             </div>
@@ -472,7 +496,8 @@ const rideData = {
     driverId: {{ $ride->driver_id ?? 'null' }},
     firebaseRideId: '{{ $ride->firebase_ride_id ?? '' }}',
     driverAcceptLocation: @json($ride->driver_accept_lat && $ride->driver_accept_lng ? ['lat' => (float) $ride->driver_accept_lat, 'lng' => (float) $ride->driver_accept_lng, 'recorded_at' => optional($ride->accepted_at)->toIso8601String()] : null),
-    driverArrivedLocation: @json($ride->driver_arrived_lat && $ride->driver_arrived_lng ? ['lat' => (float) $ride->driver_arrived_lat, 'lng' => (float) $ride->driver_arrived_lng, 'recorded_at' => optional($ride->arrived_at)->toIso8601String()] : null)
+    driverArrivedLocation: @json($ride->driver_arrived_lat && $ride->driver_arrived_lng ? ['lat' => (float) $ride->driver_arrived_lat, 'lng' => (float) $ride->driver_arrived_lng, 'recorded_at' => optional($ride->arrived_at)->toIso8601String()] : null),
+    driverCancelLocation: @json($ride->driver_cancel_lat && $ride->driver_cancel_lng ? ['lat' => (float) $ride->driver_cancel_lat, 'lng' => (float) $ride->driver_cancel_lng, 'recorded_at' => optional($ride->driver_cancelled_at)->toIso8601String(), 'cancelled_after_accept' => $ride->accepted_at !== null] : null)
 };
 
 let rideTracker;

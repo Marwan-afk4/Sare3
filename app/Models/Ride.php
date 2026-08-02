@@ -56,6 +56,10 @@ class Ride extends Model
         'driver_accept_lng',
         'driver_arrived_lat',
         'driver_arrived_lng',
+        'driver_cancel_lat',
+        'driver_cancel_lng',
+        'driver_cancelled_at',
+        'driver_cancelled_by',
         'cancelled_before_accept',
     ];
 
@@ -82,8 +86,16 @@ class Ride extends Model
         'driver_accept_lng' => 'float',
         'driver_arrived_lat' => 'float',
         'driver_arrived_lng' => 'float',
+        'driver_cancel_lat' => 'float',
+        'driver_cancel_lng' => 'float',
+        'driver_cancelled_at' => 'datetime',
         'cancelled_before_accept' => 'boolean',
     ];
+
+    public function driverCancelledBy()
+    {
+        return $this->belongsTo(User::class, 'driver_cancelled_by');
+    }
 
     public function zone()
     {
