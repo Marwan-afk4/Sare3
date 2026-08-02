@@ -476,6 +476,30 @@
 
 @include('rides.tracking-scripts')
 
+@php
+    // Built as plain PHP (not one giant inline @json expression) — a long
+    // nested ternary/array literal inside a single @json(...) directive can
+    // exceed Blade's directive-parsing regex limits and get silently
+    // truncated, producing invalid JS/PHP on render.
+    $driverAcceptLocationData = ($ride->driver_accept_lat && $ride->driver_accept_lng) ? [
+        'lat' => (float) $ride->driver_accept_lat,
+        'lng' => (float) $ride->driver_accept_lng,
+        'recorded_at' => optional($ride->accepted_at)->toIso8601String(),
+    ] : null;
+
+    $driverArrivedLocationData = ($ride->driver_arrived_lat && $ride->driver_arrived_lng) ? [
+        'lat' => (float) $ride->driver_arrived_lat,
+        'lng' => (float) $ride->driver_arrived_lng,
+        'recorded_at' => optional($ride->arrived_at)->toIso8601String(),
+    ] : null;
+
+    $driverCancelLocationData = ($ride->driver_cancel_lat && $ride->driver_cancel_lng) ? [
+        'lat' => (float) $ride->driver_cancel_lat,
+        'lng' => (float) $ride->driver_cancel_lng,
+        'recorded_at' => optional($ride->driver_cancelled_at)->toIso8601String(),
+        'cancelled_after_accept' => $ride->accepted_at !== null,
+    ] : null;
+@endphp
 <script>
 // Ride data from Laravel
 const rideData = {
@@ -495,9 +519,9 @@ const rideData = {
     toPickupRoutePoints: @json($ride->to_pickup_route_points ?? []),
     driverId: {{ $ride->driver_id ?? 'null' }},
     firebaseRideId: '{{ $ride->firebase_ride_id ?? '' }}',
-    driverAcceptLocation: @json($ride->driver_accept_lat && $ride->driver_accept_lng ? ['lat' => (float) $ride->driver_accept_lat, 'lng' => (float) $ride->driver_accept_lng, 'recorded_at' => optional($ride->accepted_at)->toIso8601String()] : null),
-    driverArrivedLocation: @json($ride->driver_arrived_lat && $ride->driver_arrived_lng ? ['lat' => (float) $ride->driver_arrived_lat, 'lng' => (float) $ride->driver_arrived_lng, 'recorded_at' => optional($ride->arrived_at)->toIso8601String()] : null),
-    driverCancelLocation: @json($ride->driver_cancel_lat && $ride->driver_cancel_lng ? ['lat' => (float) $ride->driver_cancel_lat, 'lng' => (float) $ride->driver_cancel_lng, 'recorded_at' => optional($ride->driver_cancelled_at)->toIso8601String(), 'cancelled_after_accept' => $ride->accepted_at !== null] : null)
+    driverAcceptLocation: @json($driverAcceptLocationData),
+    driverArrivedLocation: @json($driverArrivedLocationData),
+    driverCancelLocation: @json($driverCancelLocationData)
 };
 
 let rideTracker;

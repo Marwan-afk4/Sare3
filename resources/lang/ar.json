@@ -1176,5 +1176,11 @@
     "The selected city does not exist.": "المدينة المحددة غير موجودة",
     "Are you sure you want to delete this city?": "هل أنت متأكد أنك تريد حذف هذه المدينة؟",
     "City deleted successfully.": "تم حذف المدينة بنجاح.",
-    "Failed to delete city. Please try again.": "فشل في حذف المدينة. يرجى المحاولة مرة أخرى."
+    "Failed to delete city. Please try again.": "فشل في حذف المدينة. يرجى المحاولة مرة أخرى.",
+    "Ride Route History": "سجل مسار الرحلة",
+    "Showing pickup, dropoff, and where the captain accepted the ride": "عرض الاستلام، الإنهاء، ومكان قبول الكابتن للرحلة",
+    "Captain cancel location": "موقع إلغاء الكابتن",
+    "Cancel Location": "موقع الإلغاء",
+    "Cancelled after accepting": "ألغيت بعد القبول",
+    "Rejected before accepting": "رفضت قبل القبول"
 }
