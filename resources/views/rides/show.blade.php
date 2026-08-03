@@ -287,6 +287,29 @@
                             {{ __('No offer records for this ride (likely created before offer tracking was enabled).') }}
                         </div>
                     @else
+                        @php
+                            // Group by driver so the admin can see, at a glance, how many
+                            // times this ride was offered to each captain in total.
+                            $offersByDriver = $offers->groupBy('driver_id');
+                        @endphp
+                        @if($offersByDriver->count() > 1)
+                            <div class="p-3 border-bottom bg-light">
+                                <strong class="d-block mb-2 small text-uppercase text-muted">
+                                    {{ __('Times offered per captain') }}
+                                </strong>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach($offersByDriver as $driverId => $driverOffers)
+                                        @php
+                                            $driverName = $driverOffers->first()->driver->name ?? ('#' . $driverId);
+                                            $wasAccepted = $driverOffers->contains('response', \App\Models\RideOffer::RESPONSE_ACCEPTED);
+                                        @endphp
+                                        <span class="badge {{ $wasAccepted ? 'bg-success' : 'bg-secondary' }} px-2 py-2">
+                                            {{ $driverName }} &times; {{ $driverOffers->count() }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                         <table class="table mb-0 table-sm align-middle">
                             <thead class="table-light">
                                 <tr>

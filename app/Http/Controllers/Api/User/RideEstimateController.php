@@ -351,13 +351,18 @@ class RideEstimateController extends Controller
         }
         // ─── END NOTIFICATION ─────────────────────────────────────────────────────
 
-        // Schedule auto-reject job
-        // $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
-        // AutoRejectRideJob::dispatch(
-        //     $ride->id,
-        //     $driverId,
-        //     $ride->updated_at->format('Y-m-d H:i:s')
-        // )->delay(now()->addSeconds($timeoutSeconds));
+        // Schedule auto-reject job. Without this, the ride's very first
+        // driver assignment had no queued timeout at all and relied solely
+        // on the `rides:auto-reject` scheduled command as a fallback — which
+        // does NOT record offer history (no markIgnored/recordOffer calls),
+        // causing drivers who timed out on their first offer to silently
+        // disappear from the admin's "Captain Offer History" audit trail.
+        $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
+        AutoRejectRideJob::dispatch(
+            $ride->id,
+            $driverId,
+            $ride->updated_at->format('Y-m-d H:i:s')
+        )->delay(now()->addSeconds($timeoutSeconds));
 
         $ride->load(['driver' => function ($q) {
             $q->with(['driverCars' => function ($q2) {

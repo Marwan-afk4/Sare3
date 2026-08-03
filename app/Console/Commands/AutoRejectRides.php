@@ -9,6 +9,7 @@ use App\Helpers\FcmHelper;
 use App\Http\Controllers\Api\User\RideEstimateController;
 use App\Events\RideStatusUpdated;
 use App\Events\NewRideRequest;
+use App\Services\RideOfferService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -80,6 +81,18 @@ class AutoRejectRides extends Command
                     'rejected_drivers' => $excludedDriverIds,
                 ]);
                 Log::info("Auto-rejected driver {$previousDriverId} for ride {$ride->id}, ride reset to pending.");
+
+                // Mark this captain's offer as "ignored" in the audit trail
+                // (they got the request but didn't respond in time). Without
+                // this, drivers cycled through by this fallback command
+                // silently disappear from the admin's offer history.
+                if ($previousDriverId) {
+                    try {
+                        app(RideOfferService::class)->markIgnored($ride, (int) $previousDriverId, 'auto_timeout_command');
+                    } catch (\Throwable $offerEx) {
+                        Log::warning("AutoRejectRides Command: offer bookkeeping failed: " . $offerEx->getMessage());
+                    }
+                }
 
 
 
@@ -257,6 +270,19 @@ class AutoRejectRides extends Command
                     'driver_assigned_at' => now(),
                     'reassigned_at' => now(),
                 ]);
+
+                // Audit trail: record that this driver has now been offered
+                // the ride, same as the queued AutoRejectRideJob does.
+                try {
+                    app(RideOfferService::class)->recordOffer(
+                        $ride,
+                        (int) $driver->id,
+                        null,
+                        $isCycling ? 'cycling_command' : 'reassignment_command'
+                    );
+                } catch (\Throwable $offerEx) {
+                    Log::warning("AutoRejectRides Command: recordOffer failed: " . $offerEx->getMessage());
+                }
 
                 // ✅ Broadcast new driver assignment to passenger
                 try {
