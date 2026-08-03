@@ -78,6 +78,8 @@ class Ride extends Model
         'arrived_at' => 'datetime',
         'trip_started_at' => 'datetime',
         'completed_at' => 'datetime',
+        'started_at' => 'datetime',
+        'ended_at' => 'datetime',
         'pickup_lat' => 'float',
         'pickup_lng' => 'float',
         'dropoff_lat' => 'float',
