@@ -295,11 +295,14 @@ class RideController extends Controller
         $multiCaptainCount = $multiCaptainQuery->count();
         $suspiciousCount   = $suspiciousQuery->count();
 
-        // Paginated results based on active tab
+        // Paginated results based on active tab. Always add `id desc` as a
+        // tiebreaker so rows with equal primary sort values (e.g. same
+        // offers_count) still come back newest-first and consistently
+        // ordered across page loads.
         if ($activeTab === 'suspicious') {
             $rides = $suspiciousQuery->orderBy('id', 'desc')->paginate(30)->appends($request->query());
         } else {
-            $rides = $multiCaptainQuery->orderBy('offers_count', 'desc')->paginate(30)->appends($request->query());
+            $rides = $multiCaptainQuery->orderBy('offers_count', 'desc')->orderBy('id', 'desc')->paginate(30)->appends($request->query());
         }
 
         return view('rides.abnormal', compact(
