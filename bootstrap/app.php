@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
 $defaultStoragePath = dirname(__DIR__) . '/storage';
+$tempStoragePath = null;
 
 // If storage is not writable (e.g. Apache with ProtectHome=read-only), redirect to a writable path in /tmp
 if (php_sapi_name() !== 'cli' && (!is_writable($defaultStoragePath) || !is_writable($defaultStoragePath . '/framework/views') || !is_writable($defaultStoragePath . '/logs'))) {
@@ -20,11 +21,9 @@ if (php_sapi_name() !== 'cli' && (!is_writable($defaultStoragePath) || !is_writa
             chmod($path, 0777);
         }
     }
-    $_ENV['LARAVEL_STORAGE_PATH'] = $tempStoragePath;
-    $_SERVER['LARAVEL_STORAGE_PATH'] = $tempStoragePath;
 }
 
-return Application::configure(basePath: dirname(__DIR__))
+$app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
@@ -59,3 +58,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
+
+if ($tempStoragePath !== null) {
+    $app->useStoragePath($tempStoragePath);
+}
+
+return $app;
