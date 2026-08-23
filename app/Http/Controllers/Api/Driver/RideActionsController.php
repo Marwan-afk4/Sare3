@@ -456,6 +456,19 @@ class RideActionsController extends Controller
                 // Deduct from user wallet
                 $user->decrement('wallet', $walletPaidAmount);
                 
+                // Credit the same amount to the driver so they receive the wallet portion
+                if ($driver && $walletPaidAmount > 0) {
+                    $driver->increment('wallet', $walletPaidAmount);
+
+                    WalletRequest::create([
+                        'driver_id' => $driver->id,
+                        'amount' => round($walletPaidAmount, 2),
+                        'type' => 'deposit',
+                        'status' => 'approved',
+                        'note' => "User wallet payment for ride #{$ride->id}",
+                    ]);
+                }
+
                 // Update ride with wallet payment amount
                 $ride->update(['wallet_paid_amount' => round($walletPaidAmount, 2)]);
                 
@@ -469,10 +482,12 @@ class RideActionsController extends Controller
                 
                 Log::info("Wallet payment processed for ride {$ride->id}", [
                     'user_id' => $user->id,
+                    'driver_id' => $driver?->id,
                     'wallet_paid' => $walletPaidAmount,
                     'remaining_amount' => $remainingAmount,
                     'final_fare' => $fare,
-                    'user_wallet_after' => $user->fresh()->wallet
+                    'user_wallet_after' => $user->fresh()->wallet,
+                    'driver_wallet_after' => $driver?->fresh()->wallet,
                 ]);
             }
 
@@ -589,7 +604,8 @@ class RideActionsController extends Controller
         $walletPaymentInfo = [
             'original_fare_before_wallet' => round($fare, 2), // Fare before wallet deduction
             'wallet_deduction' => round($walletPaidAmount, 2), // Amount deducted from user wallet
-            'remaining_amount_after_wallet' => round($remainingAmount, 2), // Amount remaining after wallet deduction
+            'transferred_to_driver' => round($walletPaidAmount, 2), // Same amount credited to driver wallet
+            'remaining_amount_after_wallet' => round($remainingAmount, 2), // Amount remaining after wallet deduction (cash)
         ];
 
         $pricing = [
