@@ -69,6 +69,10 @@
             <small class="form-text text-muted">
                 {{ __('This percentage will be deducted from driver earnings on each completed ride.') }}
             </small>
+        @elseif(str_contains($setting->key, 'user_wallet_payment'))
+            <small class="form-text text-muted">
+                {{ __('Maximum share of the ride fare that can be paid from the passenger wallet. Example: 50% of a 20 fare = 10. If the wallet has less, the full wallet is used. The rest is cash.') }}
+            </small>
         @elseif(str_contains($setting->key, 'referral_discount'))
             <small class="form-text text-success">
                 {{ __('Discount given to new users who use referral codes.') }}

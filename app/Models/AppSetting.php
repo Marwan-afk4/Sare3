@@ -119,6 +119,27 @@ class AppSetting extends Model
     }
 
     /**
+     * Max percentage of the ride fare that can be paid from the user wallet
+     */
+    public static function getUserWalletPaymentPercentage(): float
+    {
+        return (float) static::get('user_wallet_payment_percentage', 100);
+    }
+
+    /**
+     * Set max percentage of the ride fare that can be paid from the user wallet
+     */
+    public static function setUserWalletPaymentPercentage(float $percentage): void
+    {
+        static::set(
+            'user_wallet_payment_percentage',
+            $percentage,
+            'string',
+            'Maximum percentage of the ride fare that can be paid from the user wallet (0-100%)'
+        );
+    }
+
+    /**
      * Get referral discount percentage
      */
     public static function getReferralDiscountPercentage(): float

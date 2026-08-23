@@ -389,6 +389,8 @@ class RideActionsController extends Controller
         // Initialize wallet payment tracking
         $walletPaidAmount = 0;
         $remainingAmount = round($fare, 2);
+        $walletCapPercentage = max(0, min(100, AppSetting::getUserWalletPaymentPercentage()));
+        $maxFromWallet = round($fare * ($walletCapPercentage / 100), 2);
 
         // 9️⃣ Update Ride
         $updateData = [
@@ -448,9 +450,9 @@ class RideActionsController extends Controller
             }
 
             // 7️⃣ Process wallet payment if user has wallet balance
-            if ($user && $user->wallet > 0 && $fare > 0) {
-                // Calculate how much can be paid from wallet (up to the fare amount)
-                $walletPaidAmount = min($user->wallet, $fare);
+            if ($user && $user->wallet > 0 && $fare > 0 && $maxFromWallet > 0) {
+                // Cap wallet payment to the admin-configured share of the fare
+                $walletPaidAmount = min((float) $user->wallet, $maxFromWallet, (float) $fare);
                 $remainingAmount = round($fare - $walletPaidAmount, 2);
                 
                 // Deduct from user wallet
@@ -484,6 +486,8 @@ class RideActionsController extends Controller
                     'user_id' => $user->id,
                     'driver_id' => $driver?->id,
                     'wallet_paid' => $walletPaidAmount,
+                    'wallet_cap_percentage' => $walletCapPercentage,
+                    'max_from_wallet' => $maxFromWallet,
                     'remaining_amount' => $remainingAmount,
                     'final_fare' => $fare,
                     'user_wallet_after' => $user->fresh()->wallet,
@@ -603,6 +607,8 @@ class RideActionsController extends Controller
         // Remaining amount = amount to be paid by other payment method
         $walletPaymentInfo = [
             'original_fare_before_wallet' => round($fare, 2), // Fare before wallet deduction
+            'wallet_payment_percentage' => round($walletCapPercentage, 2),
+            'max_wallet_amount' => $maxFromWallet,
             'wallet_deduction' => round($walletPaidAmount, 2), // Amount deducted from user wallet
             'transferred_to_driver' => round($walletPaidAmount, 2), // Same amount credited to driver wallet
             'remaining_amount_after_wallet' => round($remainingAmount, 2), // Amount remaining after wallet deduction (cash)

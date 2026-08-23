@@ -86,6 +86,44 @@ class AdminSettingsController extends Controller
     }
 
     /**
+     * Get max percentage of fare payable from user wallet
+     */
+    public function getUserWalletPaymentPercentage()
+    {
+        $percentage = AppSetting::getUserWalletPaymentPercentage();
+
+        return response()->json([
+            'message' => 'User wallet payment percentage retrieved successfully.',
+            'user_wallet_payment_percentage' => $percentage
+        ]);
+    }
+
+    /**
+     * Set max percentage of fare payable from user wallet
+     */
+    public function setUserWalletPaymentPercentage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'percentage' => 'required|numeric|min:0|max:100'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $percentage = (float) $request->percentage;
+        AppSetting::setUserWalletPaymentPercentage($percentage);
+
+        return response()->json([
+            'message' => 'User wallet payment percentage updated successfully.',
+            'user_wallet_payment_percentage' => $percentage
+        ]);
+    }
+
+    /**
      * Get all admin settings
      */
     public function getAllSettings()
@@ -95,7 +133,8 @@ class AdminSettingsController extends Controller
             'settings' => [
                 'admin_profit_percentage' => AppSetting::getAdminProfitPercentage(),
                 'ride_verification_enabled' => AppSetting::isRideVerificationEnabled(),
-                'minimum_driver_wallet_balance' => AppSetting::getMinimumDriverWalletBalance()
+                'minimum_driver_wallet_balance' => AppSetting::getMinimumDriverWalletBalance(),
+                'user_wallet_payment_percentage' => AppSetting::getUserWalletPaymentPercentage()
             ]
         ]);
     }
