@@ -61,11 +61,31 @@ class KastanaOtpTest extends TestCase
             parse_str(parse_url($request->url(), PHP_URL_QUERY) ?? '', $query);
 
             return str_contains($request->url(), '/service/sms.asmx/SendSMS')
-                && ($query['Recipients'] ?? null) === '962791234567'
+                && ($query['Recipients'] ?? null) === '+962791234567'
                 && ($query['SenderID'] ?? null) === 'Sareea'
                 && ($query['Language'] ?? null) === 'English'
                 && filled($query['Body'] ?? null)
                 && str_contains($query['Body'], $user->otp_code);
+        });
+    }
+
+    public function test_kastana_decodes_url_encoded_password_and_keeps_plus_on_recipient(): void
+    {
+        config(['services.kastana.password' => 'S@ree@20%2B26']);
+
+        Http::fake([
+            'sms.kastana.mobi/*' => Http::response('<long xmlns="http://crownit.com/">18618626</long>', 200),
+        ]);
+
+        $response = app(\App\Services\KastanaSmsService::class)->send('+962775126712', 'test bel plus');
+
+        $this->assertTrue(app(\App\Services\KastanaSmsService::class)->succeeded($response));
+
+        Http::assertSent(function ($request) {
+            parse_str(parse_url($request->url(), PHP_URL_QUERY) ?? '', $query);
+
+            return ($query['Recipients'] ?? null) === '+962775126712'
+                && ($query['Password'] ?? null) === 'S@ree@20+26';
         });
     }
 

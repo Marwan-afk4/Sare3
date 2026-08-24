@@ -20,7 +20,7 @@ class OtpDeliveryService
         if ($channel === PhoneVerificationMethod::KastanaOtp->value) {
             $response = $this->kastanaSms->send($phone, $message);
 
-            if ($response->failed()) {
+            if (! $this->kastanaSms->succeeded($response)) {
                 Log::error('Failed to send Kastana SMS', [
                     'phone_number' => $phone,
                     'status'       => $response->status(),
