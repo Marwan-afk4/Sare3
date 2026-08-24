@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api\Driver;
 
 use App\Enums\ActiveStatuses;
 use App\Http\Controllers\Controller;
-use App\Jobs\SendWhatsappMessage;
 use App\Mail\EmailVerificationCode;
+use App\Services\OtpDeliveryService;
 use App\Models\CarCategory;
 use App\Models\CarModel;
 use App\Models\CarType;
@@ -90,7 +90,7 @@ class AuthController extends Controller
             'otp_limit'      => $userLimit,
         ]);
 
-        SendWhatsappMessage::dispatchSync(
+        app(OtpDeliveryService::class)->send(
             $user->phone,
             $this->getRandomOtpMessage($otpCode)
         );
@@ -209,7 +209,7 @@ class AuthController extends Controller
             'otp_limit'      => $userLimit,
         ]);
 
-        SendWhatsappMessage::dispatchSync(
+        app(OtpDeliveryService::class)->send(
             $user->phone,
             $this->getRandomOtpMessage($otpCode)
         );

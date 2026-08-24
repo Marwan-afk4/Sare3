@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\SendWhatsappMessage;
 use App\Mail\EmailVerificationCode;
+use App\Services\OtpDeliveryService;
 use App\Models\OtpLimit;
 use App\Models\User;
 use App\Services\PhoneVerificationService;
@@ -80,7 +80,7 @@ class AuthController extends Controller
             'otp_limit'      => $userLimit, // Ensure the limit is explicitly set if it was 0/null
         ]);
 
-        SendWhatsappMessage::dispatchSync(
+        app(OtpDeliveryService::class)->send(
             $user->phone,
             $this->getRandomOtpMessage($otpCode)
         );
@@ -179,7 +179,7 @@ class AuthController extends Controller
             'otp_limit'      => $userLimit, // Ensure the limit is explicitly set if it was 0/null
         ]);
 
-        SendWhatsappMessage::dispatchSync(
+        app(OtpDeliveryService::class)->send(
             $user->phone,
             $this->getRandomOtpMessage($otpCode)
         );

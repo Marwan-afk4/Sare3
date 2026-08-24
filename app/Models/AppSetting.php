@@ -203,7 +203,7 @@ class AppSetting extends Model
         static::set('referrer_reward_rides', $rides, 'integer', 'Number of rides with referrer rewards');
     }
 
-    public static function getPhoneVerificationMethod(): string
+    public static function getStoredPhoneVerificationMethod(): string
     {
         $method = static::get('phone_verification_method', PhoneVerificationMethod::BackendOtp->value);
 
@@ -212,13 +212,20 @@ class AppSetting extends Model
             : PhoneVerificationMethod::BackendOtp->value;
     }
 
+    public static function getPhoneVerificationMethod(): string
+    {
+        $method = PhoneVerificationMethod::tryFrom(static::getStoredPhoneVerificationMethod());
+
+        return $method?->appValue() ?? PhoneVerificationMethod::BackendOtp->value;
+    }
+
     public static function setPhoneVerificationMethod(string $method): void
     {
         static::set(
             'phone_verification_method',
             $method,
             'string',
-            'Active phone verification method for mobile apps (backend_otp or firebase_otp)'
+            'Active phone verification method (backend_otp, kastana, or firebase_otp). Mobile apps still receive backend_otp when Kastana is selected.'
         );
     }
 }
