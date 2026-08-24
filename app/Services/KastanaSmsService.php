@@ -14,37 +14,44 @@ class KastanaSmsService
         $recipients = $digits === '' ? $number : '+'.$digits;
         $passwordFromConfig = (string) config('services.kastana.password');
         $password = $this->rawPassword($passwordFromConfig);
+        // Kastana receives a timezone-less dateTime. UTC prevents the provider
+        // from interpreting the application's local time as a future schedule.
+        $sendingTime = now('UTC')->format('Y-m-d H:i:s');
         $query = [
             'UserName'    => config('services.kastana.username'),
             'Password'    => $password,
             'SenderID'    => config('services.kastana.sender_id'),
             'Body'        => $message,
             'Recipients'  => $recipients,
-            'SendingTime' => now()->format('Y-m-d H:i:s'),
+            'SendingTime' => $sendingTime,
             'Language'    => config('services.kastana.language', 'English'),
         ];
         $url = config('services.kastana.url');
+        $safeQuery = $this->redactQuery($query);
 
         Log::info('[otp-trace] Kastana request prepared', [
             'raw_number' => $number,
             'digits' => $digits,
             'recipients' => $recipients,
             'url' => $url,
-            'query' => $query,
-            'built_url' => $url.'?'.http_build_query($query),
-            'rfc3986_url' => $url.'?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986),
+            'query' => $safeQuery,
+            'built_url' => $this->redactUrl($url.'?'.http_build_query($query)),
+            'rfc3986_url' => $this->redactUrl($url.'?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986)),
+            'sending_time' => $sendingTime,
+            'sending_time_timezone' => 'UTC',
+            'application_timezone' => config('app.timezone'),
             'config' => [
                 'username' => config('services.kastana.username'),
                 'sender_id' => config('services.kastana.sender_id'),
                 'language' => config('services.kastana.language'),
-                'password_from_config' => $passwordFromConfig,
-                'password_after_rawPassword' => $password,
+                'password_from_config' => $this->maskSecret($passwordFromConfig),
+                'password_after_rawPassword' => $this->maskSecret($password),
                 'password_length' => strlen($password),
                 'password_has_plus' => str_contains($password, '+'),
                 'password_has_percent' => str_contains($passwordFromConfig, '%'),
                 'config_cached' => app()->configurationIsCached(),
                 'env_username' => env('KASTANA_USERNAME'),
-                'env_password' => env('KASTANA_PASSWORD'),
+                'env_password' => $this->maskSecret(env('KASTANA_PASSWORD')),
                 'env_sender_id' => env('KASTANA_SENDER_ID'),
                 'env_url' => env('KASTANA_SMS_URL'),
             ],
@@ -54,7 +61,7 @@ class KastanaSmsService
             ->beforeSending(function ($request) {
                 Log::info('[otp-trace] Kastana HTTP outgoing', [
                     'method' => $request->method(),
-                    'url' => (string) $request->url(),
+                    'url' => $this->redactUrl((string) $request->url()),
                     'headers' => $request->headers(),
                     'body' => $request->body(),
                 ]);
@@ -69,7 +76,7 @@ class KastanaSmsService
             'successful' => $response->successful(),
             'headers' => $response->headers(),
             'body' => $response->body(),
-            'effective_uri' => (string) $response->effectiveUri(),
+            'effective_uri' => $this->redactUrl((string) $response->effectiveUri()),
             'handler_stats' => $response->handlerStats(),
         ]);
 
@@ -102,5 +109,34 @@ class KastanaSmsService
         }
 
         return $password;
+    }
+
+    private function redactQuery(array $query): array
+    {
+        if (array_key_exists('Password', $query)) {
+            $query['Password'] = $this->maskSecret($query['Password']);
+        }
+
+        return $query;
+    }
+
+    private function redactUrl(string $url): string
+    {
+        return (string) preg_replace(
+            '/([?&]Password=)[^&]*/i',
+            '$1[redacted]',
+            $url
+        );
+    }
+
+    private function maskSecret(mixed $secret): string
+    {
+        $secret = (string) $secret;
+
+        if ($secret === '') {
+            return '[empty]';
+        }
+
+        return str_repeat('*', max(4, strlen($secret)));
     }
 }
