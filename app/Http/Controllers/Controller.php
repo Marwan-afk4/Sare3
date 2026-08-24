@@ -3,6 +3,8 @@
  namespace App\Http\Controllers;
  
  use Illuminate\Http\Request;
+ use Illuminate\Support\Facades\Log;
+ use Illuminate\Support\Str;
  
  abstract class Controller
  {
@@ -20,5 +22,23 @@
              }
              $request->merge(['phone' => $phone]);
          }
+     }
+
+     protected function startOtpTrace(Request $request, string $action): void
+     {
+         Log::withContext([
+             'otp_trace_id' => (string) Str::uuid(),
+             'otp_action' => $action,
+             'otp_path' => $request->path(),
+             'otp_ip' => $request->ip(),
+         ]);
+
+         Log::info('[otp-trace] incoming request', [
+             'phone_input' => $request->input('phone'),
+             'all_input' => $request->all(),
+             'query' => $request->query(),
+             'headers' => $request->headers->all(),
+             'user_agent' => $request->userAgent(),
+         ]);
      }
  }

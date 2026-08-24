@@ -17,26 +17,55 @@ class OtpDeliveryService
     {
         $channel = AppSetting::getStoredPhoneVerificationMethod();
 
-        if ($channel === PhoneVerificationMethod::KastanaOtp->value) {
-            $response = $this->kastanaSms->send($phone, $message);
+        Log::info('[otp-trace] delivery started', [
+            'phone' => $phone,
+            'message' => $message,
+            'channel' => $channel,
+            'kastana_enum' => PhoneVerificationMethod::KastanaOtp->value,
+            'will_use_kastana' => $channel === PhoneVerificationMethod::KastanaOtp->value,
+        ]);
 
-            if (! $this->kastanaSms->succeeded($response)) {
-                Log::error('Failed to send Kastana SMS', [
-                    'phone_number' => $phone,
-                    'status'       => $response->status(),
-                    'body'         => $response->body(),
+        if ($channel === PhoneVerificationMethod::KastanaOtp->value) {
+            try {
+                $response = $this->kastanaSms->send($phone, $message);
+            } catch (\Throwable $e) {
+                Log::error('[otp-trace] Kastana HTTP client exception', [
+                    'phone' => $phone,
+                    'exception' => $e::class,
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString(),
                 ]);
-            } else {
-                Log::info('Kastana SMS sent successfully', [
-                    'phone_number' => $phone,
-                    'status'       => $response->status(),
-                    'body'         => $response->body(),
-                ]);
+                throw $e;
             }
+
+            $succeeded = $this->kastanaSms->succeeded($response);
+
+            Log::log($succeeded ? 'info' : 'error', '[otp-trace] Kastana delivery result', [
+                'phone' => $phone,
+                'succeeded' => $succeeded,
+                'http_failed' => $response->failed(),
+                'status' => $response->status(),
+                'reason' => $response->reason(),
+                'headers' => $response->headers(),
+                'body' => $response->body(),
+                'effective_uri' => (string) $response->effectiveUri(),
+                'handler_stats' => $response->handlerStats(),
+            ]);
 
             return;
         }
 
+        Log::info('[otp-trace] dispatching WhatsApp OTP', [
+            'phone' => $phone,
+            'message' => $message,
+        ]);
+
         SendWhatsappMessage::dispatchSync($phone, $message);
+
+        Log::info('[otp-trace] WhatsApp dispatch finished', [
+            'phone' => $phone,
+        ]);
     }
 }
