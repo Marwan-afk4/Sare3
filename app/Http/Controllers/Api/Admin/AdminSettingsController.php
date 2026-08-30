@@ -134,7 +134,9 @@ class AdminSettingsController extends Controller
                 'admin_profit_percentage' => AppSetting::getAdminProfitPercentage(),
                 'ride_verification_enabled' => AppSetting::isRideVerificationEnabled(),
                 'minimum_driver_wallet_balance' => AppSetting::getMinimumDriverWalletBalance(),
-                'user_wallet_payment_percentage' => AppSetting::getUserWalletPaymentPercentage()
+                'user_wallet_payment_percentage' => AppSetting::getUserWalletPaymentPercentage(),
+                'signup_gift_enabled' => AppSetting::isSignupGiftEnabled(),
+                'signup_gift_amount' => AppSetting::getSignupGiftAmount(),
             ]
         ]);
     }

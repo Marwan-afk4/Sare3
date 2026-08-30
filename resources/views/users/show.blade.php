@@ -40,6 +40,19 @@
                                 <td>{!! $user->activity->badge() !!}</td>
                             </li>
                             <li class="list-group-item"><strong>{{ __('Wallet') }}:</strong> {{ $user->wallet }}</li>
+                            <li class="list-group-item">
+                                <strong>{{ __('Signup gift') }}:</strong>
+                                @if($user->hasReceivedSignupGift())
+                                    <span class="badge bg-success">
+                                        {{ __('Received') }} · {{ number_format((float) $user->signup_gift_amount, 2) }}
+                                    </span>
+                                    <small class="text-muted ms-2">
+                                        {{ optional($user->signup_gift_received_at)->diffForHumans() }}
+                                    </small>
+                                @else
+                                    <span class="badge bg-warning text-dark">{{ __('Not gifted yet') }}</span>
+                                @endif
+                            </li>
                             <li class="list-group-item"><strong>{{ __('User Rating') }}:</strong>
                                 @if ($userRating)
                                     <span class="badge bg-warning">{{ number_format($userRating, 1) }} ⭐</span>
@@ -62,6 +75,11 @@
                 <a href="{{ route('users.ride-history', $user->id) }}" class="btn btn-subtle-info btn-sm me-1">
                     {{ __('Ride History') }} <i class="fa fa-history"></i>
                 </a>
+                @if(! $user->hasReceivedSignupGift())
+                    <button type="button" class="btn btn-subtle-success btn-sm" data-bs-toggle="modal" data-bs-target="#grantSignupGiftModal">
+                        {{ __('Give signup gift') }} <i class="fa fa-gift"></i>
+                    </button>
+                @endif
             </div>
         </div>
 
@@ -187,4 +205,37 @@
             </div>
         @endif
     </div>
+
+    @if(! $user->hasReceivedSignupGift())
+        <div class="modal fade" id="grantSignupGiftModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <form method="POST" action="{{ route('signup-gifts.grant', $user) }}">
+                    @csrf
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="fas fa-gift me-2"></i>{{ __('Give signup gift') }}
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>{{ __('This will add the gift to the wallet of') }} <strong>{{ $user->name ?: $user->phone }}</strong>.</p>
+                            <label class="form-label fw-semibold">{{ __('Amount') }}</label>
+                            <div class="input-group">
+                                <input type="number" name="amount" class="form-control" min="0.01" max="999999"
+                                    step="0.01" value="{{ $signupGiftAmount }}" required>
+                                <span class="input-group-text">{{ __('JOD') }}</span>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-gift me-1"></i>{{ __('Give gift') }}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 @endsection

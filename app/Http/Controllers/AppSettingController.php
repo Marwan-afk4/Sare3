@@ -54,6 +54,14 @@ class AppSettingController extends Controller
             AppSetting::setPhoneVerificationMethod('backend_otp');
         }
 
+        if (!AppSetting::where('key', 'signup_gift_enabled')->exists()) {
+            AppSetting::setSignupGiftEnabled(false);
+        }
+
+        if (!AppSetting::where('key', 'signup_gift_amount')->exists()) {
+            AppSetting::setSignupGiftAmount(0);
+        }
+
         // Ensure referral settings exist
         $this->ensureReferralSettings();
     }
@@ -106,6 +114,8 @@ class AppSettingController extends Controller
             'settings.referral_discount_rides' => 'nullable|integer|min:1|max:50',
             'settings.referrer_reward_percentage' => 'nullable|numeric|min:0|max:100',
             'settings.referrer_reward_rides' => 'nullable|integer|min:1|max:100',
+            'settings.signup_gift_enabled' => 'nullable|in:0,1,on',
+            'settings.signup_gift_amount' => 'nullable|numeric|min:0|max:999999',
         ]);
 
         foreach ($request->settings as $key => $value) {

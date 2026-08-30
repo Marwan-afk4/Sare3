@@ -6,6 +6,7 @@ use App\Models\Ride;
 use App\Models\User;
 use App\Observers\RideObserver;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -33,7 +34,19 @@ class AppServiceProvider extends ServiceProvider
                 $pendingDriversCount = User::where('role', 'driver')
                     ->where('status', 'pending')
                     ->count();
+                $pendingSignupGiftsCount = 0;
+                if (Schema::hasColumn('users', 'signup_gift_received_at')) {
+                    $pendingSignupGiftsCount = User::where('role', 'user')
+                        ->whereNull('signup_gift_received_at')
+                        ->where(function ($q) {
+                            $q->where(function ($nameQuery) {
+                                $nameQuery->whereNotNull('name')->where('name', '!=', '');
+                            })->orWhereNotNull('email');
+                        })
+                        ->count();
+                }
                 $view->with('pendingDriversCount', $pendingDriversCount);
+                $view->with('pendingSignupGiftsCount', $pendingSignupGiftsCount);
             }
         });
     }

@@ -88,8 +88,8 @@ class AdminController extends Controller
             return redirect()->route('admins.index')->with('error', 'You cannot delete yourself.');
         }
 
-        if ($admin->phone === '01111679168') {
-            return redirect()->route('admins.index')->with('error', 'This main admin user cannot be deleted.');
+        if ($admin->hasRole('super-admin') || $admin->phone === '01111679168') {
+            return redirect()->route('admins.index')->with('error', __('This main admin user cannot be deleted.'));
         }
 
         $admin->delete();

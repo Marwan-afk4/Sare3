@@ -53,7 +53,7 @@
                                     <a href='{{ route('admins.edit', $admin) }}'
                                         class="btn btn-subtle-warning btn-sm me-1">{{ __('Edit') }} <i
                                             class="fa fa-edit"></i></a>
-                                    @if($admin->phone !== '01111679168')
+                                    @if($admin->phone !== '01111679168' && ! $admin->hasRole('super-admin'))
                                         <form action="{{ route('admins.destroy', $admin) }}" method="POST" class="d-inline"
                                             onsubmit="return confirm('{{ __('Are you sure you want to delete this admin?') }}')">
                                             @csrf

@@ -50,7 +50,7 @@
                                         </li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
-                                            @if($role->name !== 'admin')
+                                            @if(! in_array($role->name, ['admin', 'super-admin'], true))
                                                 <form action="{{ route('roles.destroy', $role) }}" method="POST" 
                                                     onsubmit="return confirm('{{ __('Are you sure you want to delete this role?') }}')">
                                                     @csrf

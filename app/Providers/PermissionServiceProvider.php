@@ -22,7 +22,7 @@ class PermissionServiceProvider extends ServiceProvider
     {
         // admin bypass - they can do everything
         Gate::before(function ($user, $ability) {
-            if ($user->hasRole('admin')) {
+            if ($user->hasRole(['admin', 'super-admin'])) {
                 return true;
             }
         });

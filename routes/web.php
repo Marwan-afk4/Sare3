@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\LeaderboardController;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Admin\SignupGiftController;
 use App\Http\Controllers\{
     AdController,
     AppSettingController,
@@ -70,6 +71,13 @@ Route::domain(config('app.dashboard_domain'))->group(function () {
                 Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
                 Route::resource('/users', UserController::class);
                 Route::get('/users/{user}/ride-history', [UserController::class, 'rideHistory'])->name('users.ride-history');
+
+                Route::prefix('signup-gifts')->name('signup-gifts.')->group(function () {
+                    Route::get('/', [SignupGiftController::class, 'index'])->name('index');
+                    Route::put('/settings', [SignupGiftController::class, 'updateSettings'])->name('settings');
+                    Route::post('/grant-bulk', [SignupGiftController::class, 'grantBulk'])->name('grant-bulk');
+                    Route::post('/{user}/grant', [SignupGiftController::class, 'grant'])->name('grant');
+                });
             });
             Route::middleware(['can:إدارة السائقين'])->group(function () {
                 Route::get('/drivers/export', [DriverController::class, 'export'])->name('drivers.export');

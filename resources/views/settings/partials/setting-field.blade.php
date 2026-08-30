@@ -1,6 +1,6 @@
 <div class="mb-3">
     <label for="setting_{{ $setting->key }}" class="form-label fw-bold">
-        {{ ucwords(str_replace(['_', 'referral', 'referrer'], [' ', 'Referral', 'Referrer'], $setting->key)) }}
+        {{ ucwords(str_replace(['_', 'referral', 'referrer', 'signup'], [' ', 'Referral', 'Referrer', 'Signup'], $setting->key)) }}
     </label>
 
     @if($setting->description)
@@ -50,6 +50,19 @@
                 min="1" max="{{ str_contains($setting->key, 'referrer') ? '100' : '50' }}"
             @endif
         >
+    @elseif(str_contains($setting->key, 'amount') || $setting->key === 'minimum_driver_wallet_balance')
+        <div class="input-group">
+            <input
+                type="number"
+                class="form-control"
+                id="setting_{{ $setting->key }}"
+                name="settings[{{ $setting->key }}]"
+                value="{{ $setting->value }}"
+                min="0"
+                step="0.01"
+            >
+            <span class="input-group-text">{{ __('JOD') }}</span>
+        </div>
     @elseif(str_contains($setting->key, 'percentage'))
         <div class="input-group">
             <input

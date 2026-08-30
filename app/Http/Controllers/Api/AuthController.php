@@ -8,6 +8,7 @@ use App\Mail\EmailVerificationCode;
 use App\Models\OtpLimit;
 use App\Models\User;
 use App\Services\PhoneVerificationService;
+use App\Services\SignupGiftService;
 use Google_Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -273,17 +274,35 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         if ($user) {
+            $isFirstProfileCompletion = blank($user->name);
+
             $user->name      = $request->name;
             $user->role      = 'user';
             $user->activity  = 'active';
             $user->gender    = $request->gender ?? null;
             $user->fcm_token = $request->input('fcm_token', $user->fcm_token);
-            $user->wallet    = 0;
+            if ($user->wallet === null) {
+                $user->wallet = 0;
+            }
             $user->save();
+
+            $signupGift = null;
+            if ($isFirstProfileCompletion) {
+                $signupGift = app(SignupGiftService::class)->grantIfEligible($user);
+                $user->refresh();
+            }
 
             return response()->json([
                 'token'   => $token,
                 'message' => 'You can login now',
+                'wallet'  => (float) ($user->wallet ?? 0),
+                'signup_gift' => $signupGift ? [
+                    'granted' => true,
+                    'amount'  => $signupGift['amount'],
+                ] : [
+                    'granted' => false,
+                    'amount'  => 0,
+                ],
             ]);
         }
 
@@ -429,7 +448,11 @@ class AuthController extends Controller
             'email_verified' => 'verified',
             'role'           => 'user',
             'status'         => 'approved',
+            'wallet'         => 0,
         ]);
+
+        $signupGift = app(SignupGiftService::class)->grantIfEligible($user);
+        $user->refresh();
 
         $token = $user->createToken('google_token')->plainTextToken;
 
@@ -437,6 +460,13 @@ class AuthController extends Controller
             'message' => 'Google account registered successfully.',
             'token'   => $token,
             'user'    => $user,
+            'signup_gift' => $signupGift ? [
+                'granted' => true,
+                'amount'  => $signupGift['amount'],
+            ] : [
+                'granted' => false,
+                'amount'  => 0,
+            ],
         ]);
     }
 
