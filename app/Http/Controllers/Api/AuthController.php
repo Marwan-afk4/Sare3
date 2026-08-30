@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\SendWhatsappMessage;
 use App\Mail\EmailVerificationCode;
+use App\Services\OtpDeliveryService;
 use App\Models\OtpLimit;
 use App\Models\User;
 use App\Services\PhoneVerificationService;
@@ -12,6 +12,7 @@ use App\Services\SignupGiftService;
 use Google_Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
@@ -24,7 +25,13 @@ class AuthController extends Controller
      */
     public function sendOtp(Request $request)
     {
+        $this->startOtpTrace($request, 'user.sendOtp');
+        $phoneBeforeNormalize = $request->input('phone');
         $this->normalizePhoneRequest($request);
+        Log::info('[otp-trace] phone after normalize', [
+            'before' => $phoneBeforeNormalize,
+            'after' => $request->input('phone'),
+        ]);
 
         $validation = Validator::make($request->all(), [
             // Must be international format with or without +
@@ -34,6 +41,9 @@ class AuthController extends Controller
         ]);
 
         if ($validation->fails()) {
+            Log::warning('[otp-trace] validation failed', [
+                'errors' => $validation->errors()->toArray(),
+            ]);
             return response()->json([
                 'message' => $validation->errors()->first(),
             ], 422);
@@ -44,15 +54,30 @@ class AuthController extends Controller
         $phone = $request->phone;
         $rawPhone = ltrim($phone, '+');
 
+        Log::info('[otp-trace] looking up user', [
+            'phone' => $phone,
+            'raw_phone' => $rawPhone,
+            'default_otp_limit' => $defaultOtpLimit,
+        ]);
+
         // Robust lookup to handle transition to '+' prefix and avoid duplicate accounts
         $user = User::where('phone', $phone)
                     ->orWhere('phone', $rawPhone)
                     ->first();
 
         if ($user) {
+            Log::info('[otp-trace] user found', [
+                'user_id' => $user->id,
+                'stored_phone' => $user->phone,
+                'otp_used' => $user->otp_used,
+                'otp_limit' => $user->otp_limit,
+                'role' => $user->role,
+                'phone_verified' => $user->phone_verified,
+            ]);
             // Ensure user has the standardized phone format with '+'
             if ($user->phone !== $phone) {
                 $user->update(['phone' => $phone]);
+                Log::info('[otp-trace] stored phone updated to normalized value', ['phone' => $phone]);
             }
         } else {
             // Create new user account
@@ -63,12 +88,22 @@ class AuthController extends Controller
                 'status'         => 'pending',
                 'phone_verified' => false,
             ]);
+            Log::info('[otp-trace] user created', [
+                'user_id' => $user->id,
+                'phone' => $user->phone,
+                'otp_limit' => $user->otp_limit,
+            ]);
         }
 
         $userLimit = $user->otp_limit > 0 ? $user->otp_limit : ($defaultOtpLimit ?? 5);
 
         // Check OTP limit
         if ($user->otp_used >= $userLimit) {
+            Log::warning('[otp-trace] otp limit reached', [
+                'user_id' => $user->id,
+                'otp_used' => $user->otp_used,
+                'user_limit' => $userLimit,
+            ]);
             return response()->json([
                 'message' => 'You have reached your OTP limit. Please contact support.',
             ], 429);
@@ -81,12 +116,36 @@ class AuthController extends Controller
             'otp_limit'      => $userLimit, // Ensure the limit is explicitly set if it was 0/null
         ]);
 
-        SendWhatsappMessage::dispatchSync(
-            $user->phone,
-            $this->getRandomOtpMessage($otpCode)
-        );
+        $message = $this->getRandomOtpMessage($otpCode);
+        Log::info('[otp-trace] otp generated, calling delivery', [
+            'user_id' => $user->id,
+            'delivery_phone' => $user->phone,
+            'otp_code' => $otpCode,
+            'otp_message' => $message,
+            'otp_used_after' => $user->otp_used,
+            'otp_expires_at' => optional($user->otp_expires_at)?->toDateTimeString(),
+        ]);
+
+        try {
+            app(OtpDeliveryService::class)->send($user->phone, $message);
+            Log::info('[otp-trace] delivery service returned');
+        } catch (\Throwable $e) {
+            Log::error('[otp-trace] delivery threw exception', [
+                'exception' => $e::class,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            throw $e;
+        }
 
         $exists = $user->wasRecentlyCreated ? false : true;
+
+        Log::info('[otp-trace] sendOtp json response', [
+            'isLogin' => $exists,
+            'message' => $exists ? 'OTP sent for login' : 'OTP sent for signup',
+        ]);
 
         return response()->json([
             'message' => $exists ? 'OTP sent for login' : 'OTP sent for signup',
@@ -134,13 +193,22 @@ class AuthController extends Controller
      */
     public function resendOtp(Request $request)
     {
+        $this->startOtpTrace($request, 'user.resendOtp');
+        $phoneBeforeNormalize = $request->input('phone');
         $this->normalizePhoneRequest($request);
+        Log::info('[otp-trace] phone after normalize', [
+            'before' => $phoneBeforeNormalize,
+            'after' => $request->input('phone'),
+        ]);
 
         $validation = Validator::make($request->all(), [
             'phone' => 'required|string|exists:users,phone',
         ]);
 
         if ($validation->fails()) {
+            Log::warning('[otp-trace] validation failed', [
+                'errors' => $validation->errors()->toArray(),
+            ]);
             return response()->json([
                 'message' => $validation->errors()->first(),
             ], 422);
@@ -152,11 +220,21 @@ class AuthController extends Controller
                     ->orWhere('phone', $rawPhone)
                     ->first();
 
+        Log::info('[otp-trace] looking up user for resend', [
+            'phone' => $phone,
+            'raw_phone' => $rawPhone,
+            'found' => (bool) $user,
+            'user_id' => $user?->id,
+            'stored_phone' => $user?->phone,
+        ]);
+
         if ($user && $user->phone !== $phone) {
             $user->update(['phone' => $phone]);
+            Log::info('[otp-trace] stored phone updated to normalized value', ['phone' => $phone]);
         }
 
         if (!$user) {
+            Log::warning('[otp-trace] no account for resend');
             return response()->json([
                 'message' => 'No account found with this phone number.',
             ], 422);
@@ -167,6 +245,11 @@ class AuthController extends Controller
 
         // Check OTP limit
         if ($user->otp_used >= $userLimit) {
+            Log::warning('[otp-trace] otp limit reached', [
+                'user_id' => $user->id,
+                'otp_used' => $user->otp_used,
+                'user_limit' => $userLimit,
+            ]);
             return response()->json([
                 'message' => 'You have reached your OTP limit. Please contact support.',
             ], 429);
@@ -180,10 +263,28 @@ class AuthController extends Controller
             'otp_limit'      => $userLimit, // Ensure the limit is explicitly set if it was 0/null
         ]);
 
-        SendWhatsappMessage::dispatchSync(
-            $user->phone,
-            $this->getRandomOtpMessage($otpCode)
-        );
+        $message = $this->getRandomOtpMessage($otpCode);
+        Log::info('[otp-trace] otp generated, calling delivery', [
+            'user_id' => $user->id,
+            'delivery_phone' => $user->phone,
+            'otp_code' => $otpCode,
+            'otp_message' => $message,
+            'otp_used_after' => $user->otp_used,
+        ]);
+
+        try {
+            app(OtpDeliveryService::class)->send($user->phone, $message);
+            Log::info('[otp-trace] delivery service returned');
+        } catch (\Throwable $e) {
+            Log::error('[otp-trace] delivery threw exception', [
+                'exception' => $e::class,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            throw $e;
+        }
 
         return response()->json([
             'message' => 'A new OTP has been sent to your WhatsApp.',

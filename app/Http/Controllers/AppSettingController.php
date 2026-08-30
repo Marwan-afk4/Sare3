@@ -109,7 +109,7 @@ class AppSettingController extends Controller
             'settings.user_wallet_payment_percentage' => 'nullable|numeric|min:0|max:100',
             'settings.minimum_driver_wallet_balance' => 'nullable|numeric|min:0',
             'settings.ride_verification_enabled' => 'nullable|in:0,1,on',
-            'settings.phone_verification_method' => 'nullable|in:backend_otp,firebase_otp',
+            'settings.phone_verification_method' => 'nullable|in:backend_otp,firebase_otp,kastana',
             'settings.referral_discount_percentage' => 'nullable|numeric|min:0|max:100',
             'settings.referral_discount_rides' => 'nullable|integer|min:1|max:50',
             'settings.referrer_reward_percentage' => 'nullable|numeric|min:0|max:100',

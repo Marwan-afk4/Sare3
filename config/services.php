@@ -56,4 +56,12 @@ return [
         'service_account' => env('FIREBASE_SERVICE_ACCOUNT_PATH'),
     ],
 
+    'kastana' => [
+        'url' => env('KASTANA_SMS_URL', 'https://sms.kastana.mobi/service/sms.asmx/SendSMS'),
+        'username' => env('KASTANA_USERNAME'),
+        'password' => env('KASTANA_PASSWORD'),
+        'sender_id' => env('KASTANA_SENDER_ID', 'Sareea'),
+        'language' => env('KASTANA_LANGUAGE', 'English'),
+    ],
+
 ];

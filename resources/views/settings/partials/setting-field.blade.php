@@ -16,12 +16,15 @@
             <option value="backend_otp" {{ $setting->value === 'backend_otp' ? 'selected' : '' }}>
                 {{ __('Backend OTP (WhatsApp)') }}
             </option>
+            <option value="kastana" {{ $setting->value === 'kastana' ? 'selected' : '' }}>
+                {{ __('Backend OTP (Kastana SMS)') }}
+            </option>
             <option value="firebase_otp" {{ $setting->value === 'firebase_otp' ? 'selected' : '' }}>
                 {{ __('Firebase Phone Auth') }}
             </option>
         </select>
         <small class="form-text text-muted d-block mt-2">
-            {{ __('Choose how mobile apps verify phone numbers. Backend OTP uses the existing WhatsApp flow; Firebase Phone Auth uses client-side Firebase verification.') }}
+            {{ __('Mobile apps keep using the same backend OTP or Firebase endpoints. Kastana only replaces WhatsApp delivery; /auth/otp-method still returns backend_otp.') }}
         </small>
     @elseif($setting->type === 'boolean')
         <div class="form-check form-switch">
