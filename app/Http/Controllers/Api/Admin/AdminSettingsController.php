@@ -86,25 +86,25 @@ class AdminSettingsController extends Controller
     }
 
     /**
-     * Get max percentage of fare payable from user wallet
+     * Get max amount of fare payable from user wallet
      */
-    public function getUserWalletPaymentPercentage()
+    public function getUserWalletPaymentAmount()
     {
-        $percentage = AppSetting::getUserWalletPaymentPercentage();
+        $amount = AppSetting::getUserWalletPaymentAmount();
 
         return response()->json([
-            'message' => 'User wallet payment percentage retrieved successfully.',
-            'user_wallet_payment_percentage' => $percentage
+            'message' => 'User wallet payment amount retrieved successfully.',
+            'user_wallet_payment_amount' => $amount,
         ]);
     }
 
     /**
-     * Set max percentage of fare payable from user wallet
+     * Set max amount of fare payable from user wallet
      */
-    public function setUserWalletPaymentPercentage(Request $request)
+    public function setUserWalletPaymentAmount(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'percentage' => 'required|numeric|min:0|max:100'
+            'amount' => 'required|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -114,12 +114,12 @@ class AdminSettingsController extends Controller
             ], 422);
         }
 
-        $percentage = (float) $request->percentage;
-        AppSetting::setUserWalletPaymentPercentage($percentage);
+        $amount = (float) $request->amount;
+        AppSetting::setUserWalletPaymentAmount($amount);
 
         return response()->json([
-            'message' => 'User wallet payment percentage updated successfully.',
-            'user_wallet_payment_percentage' => $percentage
+            'message' => 'User wallet payment amount updated successfully.',
+            'user_wallet_payment_amount' => $amount,
         ]);
     }
 
@@ -134,7 +134,7 @@ class AdminSettingsController extends Controller
                 'admin_profit_percentage' => AppSetting::getAdminProfitPercentage(),
                 'ride_verification_enabled' => AppSetting::isRideVerificationEnabled(),
                 'minimum_driver_wallet_balance' => AppSetting::getMinimumDriverWalletBalance(),
-                'user_wallet_payment_percentage' => AppSetting::getUserWalletPaymentPercentage()
+                'user_wallet_payment_amount' => AppSetting::getUserWalletPaymentAmount(),
             ]
         ]);
     }

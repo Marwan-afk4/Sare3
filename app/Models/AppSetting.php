@@ -119,23 +119,29 @@ class AppSetting extends Model
     }
 
     /**
-     * Max percentage of the ride fare that can be paid from the user wallet
+     * Max amount of the ride fare that can be paid from the user wallet
      */
-    public static function getUserWalletPaymentPercentage(): float
+    public static function getUserWalletPaymentAmount(): float
     {
-        return (float) static::get('user_wallet_payment_percentage', 100);
+        $amount = static::get('user_wallet_payment_amount');
+
+        if ($amount === null) {
+            $amount = static::get('user_wallet_payment_percentage', 0);
+        }
+
+        return (float) $amount;
     }
 
     /**
-     * Set max percentage of the ride fare that can be paid from the user wallet
+     * Set max amount of the ride fare that can be paid from the user wallet
      */
-    public static function setUserWalletPaymentPercentage(float $percentage): void
+    public static function setUserWalletPaymentAmount(float $amount): void
     {
         static::set(
-            'user_wallet_payment_percentage',
-            $percentage,
+            'user_wallet_payment_amount',
+            $amount,
             'string',
-            'Maximum percentage of the ride fare that can be paid from the user wallet (0-100%)'
+            'Maximum amount of the ride fare that can be paid from the user wallet'
         );
     }
 

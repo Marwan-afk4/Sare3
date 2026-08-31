@@ -330,8 +330,8 @@ Route::domain(config('app.api_domain'))->group(function () {
         // Wallet Settings
         Route::get('/minimum-driver-wallet-balance', [AdminSettingsController::class, 'getMinimumDriverWalletBalance']);
         Route::post('/minimum-driver-wallet-balance', [AdminSettingsController::class, 'setMinimumDriverWalletBalance']);
-        Route::get('/user-wallet-payment-percentage', [AdminSettingsController::class, 'getUserWalletPaymentPercentage']);
-        Route::post('/user-wallet-payment-percentage', [AdminSettingsController::class, 'setUserWalletPaymentPercentage']);
+        Route::get('/user-wallet-payment-amount', [AdminSettingsController::class, 'getUserWalletPaymentAmount']);
+        Route::post('/user-wallet-payment-amount', [AdminSettingsController::class, 'setUserWalletPaymentAmount']);
 
         Route::get('/settings', [AdminSettingsController::class, 'getAllSettings']);
 

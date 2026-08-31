@@ -35,14 +35,18 @@ class AppSettingController extends Controller
             AppSetting::set('minimum_driver_wallet_balance', 0, 'string', 'Minimum wallet balance required for drivers to go online');
         }
 
-        if (!AppSetting::where('key', 'user_wallet_payment_percentage')->exists()) {
+        if (!AppSetting::where('key', 'user_wallet_payment_amount')->exists()) {
+            $legacyPercentage = AppSetting::where('key', 'user_wallet_payment_percentage')->first();
+
             AppSetting::set(
-                'user_wallet_payment_percentage',
-                100,
+                'user_wallet_payment_amount',
+                $legacyPercentage?->value ?? 0,
                 'string',
-                'Maximum percentage of the ride fare that can be paid from the user wallet (0-100%)'
+                'Maximum amount of the ride fare that can be paid from the user wallet'
             );
         }
+
+        AppSetting::where('key', 'user_wallet_payment_percentage')->delete();
 
         // Ensure ride verification setting exists
         if (!AppSetting::where('key', 'ride_verification_enabled')->exists()) {
@@ -98,7 +102,7 @@ class AppSettingController extends Controller
         $request->validate([
             'settings' => 'array',
             'settings.admin_profit_percentage' => 'nullable|numeric|min:0|max:100',
-            'settings.user_wallet_payment_percentage' => 'nullable|numeric|min:0|max:100',
+            'settings.user_wallet_payment_amount' => 'nullable|numeric|min:0',
             'settings.minimum_driver_wallet_balance' => 'nullable|numeric|min:0',
             'settings.ride_verification_enabled' => 'nullable|in:0,1,on',
             'settings.phone_verification_method' => 'nullable|in:backend_otp,firebase_otp,kastana',
