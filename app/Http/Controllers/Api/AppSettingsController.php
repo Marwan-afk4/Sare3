@@ -17,7 +17,8 @@ class AppSettingsController extends Controller
             'message' => 'Settings retrieved successfully.',
             'settings' => [
                 'ride_verification_enabled' => AppSetting::isRideVerificationEnabled(),
-                // Add other settings here as needed
+                'signup_gift_enabled' => AppSetting::isSignupGiftEnabled(),
+                'signup_gift_amount' => AppSetting::getSignupGiftAmount(),
             ]
         ]);
     }

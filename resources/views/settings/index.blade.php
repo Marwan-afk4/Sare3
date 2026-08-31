@@ -3,19 +3,25 @@
     $currentPage = 'settings';
     
     // Group settings by category
+    $signupGiftSettings = $settings->filter(function($setting) {
+        return str_contains($setting->key, 'signup_gift');
+    });
+    
     $referralSettings = $settings->filter(function($setting) {
         return str_contains($setting->key, 'referral') || str_contains($setting->key, 'referrer');
     });
     
     $profitSettings = $settings->filter(function($setting) {
-        return str_contains($setting->key, 'profit') || str_contains($setting->key, 'wallet');
+        return (str_contains($setting->key, 'profit') || str_contains($setting->key, 'wallet'))
+            && !str_contains($setting->key, 'signup_gift');
     });
     
     $otherSettings = $settings->reject(function($setting) {
         return str_contains($setting->key, 'referral') || 
                str_contains($setting->key, 'referrer') || 
                str_contains($setting->key, 'profit') || 
-               str_contains($setting->key, 'wallet');
+               str_contains($setting->key, 'wallet') ||
+               str_contains($setting->key, 'signup_gift');
     });
 @endphp
 @section('title', __('App Settings'))
@@ -70,6 +76,34 @@
                         <i class="fas fa-info-circle me-2"></i>
                         <strong>{{ __('How it works:') }}</strong>
                         {{ __('When someone uses a referral code, the new user gets discount benefits and the referrer gets reward benefits. Both can be active simultaneously.') }}
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            <!-- Signup Gift Settings -->
+            @if($signupGiftSettings->count() > 0)
+            <div class='main-card mb-4 card'>
+                <div class='card-header d-flex justify-content-between align-items-center'>
+                    <div>
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-gift me-2"></i>{{ __('Signup Gift') }}
+                        </h5>
+                        <small class="text-muted">{{ __('Wallet gift given to passengers the first time they sign up') }}</small>
+                    </div>
+                    @can('إدارة المستخدمين')
+                    <a href="{{ route('signup-gifts.index') }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-users me-1"></i>{{ __('Manage pending gifts') }}
+                    </a>
+                    @endcan
+                </div>
+                <div class='card-body'>
+                    @foreach($signupGiftSettings as $setting)
+                        @include('settings.partials.setting-field', ['setting' => $setting])
+                    @endforeach
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {{ __('When enabled, every new passenger receives this amount in their wallet once. Users who signed up before this can be gifted from the Signup Gift page.') }}
                     </div>
                 </div>
             </div>

@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
 
         // Seed test drivers with cars and demo rides
         $this->call([
+            SuperAdminSeeder::class,
             CitySeeder::class,
             TestDriversSeeder::class,
             TestRidesSeeder::class,

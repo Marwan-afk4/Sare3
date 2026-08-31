@@ -38,6 +38,9 @@ class User extends Authenticatable
         'activity',
         'wallet',
         'wallet_limit',
+        'signup_gift_received_at',
+        'signup_gift_amount',
+        'signup_gift_granted_by',
         'role',
         'email_code',
         'email_verified',
@@ -66,6 +69,8 @@ class User extends Authenticatable
         'activity' => ActivtyType::class,
         'status' => DriverStatus::class,
         'is_available' => 'boolean',
+        'signup_gift_received_at' => 'datetime',
+        'signup_gift_amount' => 'decimal:2',
         'latitude' => 'float',
         'longitude' => 'float',
         'bearing' => 'float',
@@ -216,6 +221,26 @@ class User extends Authenticatable
     public function driverTransactions()
     {
         return $this->hasMany(Transaction::class, 'driver_id');
+    }
+
+    public function signupGiftGrantedBy()
+    {
+        return $this->belongsTo(User::class, 'signup_gift_granted_by');
+    }
+
+    public function hasReceivedSignupGift(): bool
+    {
+        return $this->signup_gift_received_at !== null;
+    }
+
+    public function scopeWithoutSignupGift($query)
+    {
+        return $query->whereNull('signup_gift_received_at');
+    }
+
+    public function scopeWithSignupGift($query)
+    {
+        return $query->whereNotNull('signup_gift_received_at');
     }
 
     public function driverRideSetting()

@@ -3,7 +3,7 @@
     $activeGroup = null;
     $groupMap = [
         'main'        => ['home', 'leaderboard', 'support-chat', 'ads', 'notifications'],
-        'users'       => ['users', 'drivers', 'drivers-under-monitoring', 'admins', 'roles'],
+        'users'       => ['users', 'drivers', 'drivers-under-monitoring', 'admins', 'roles', 'signup-gifts'],
         'rides'       => ['rides', 'cancelation-rides', 'zones', 'abnormal-rides', 'cities'],
         'fleet'       => ['car-categories', 'car-models', 'car-types'],
         'finance'     => ['wallet-requests', 'financial-reports', 'profit-statistics', 'profit-history', 'referrals', 'coupons', 'paymenent-methods'],
@@ -108,6 +108,23 @@
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="users"></span></span>
                                 <span class="nav-link-text-wrapper"><span class="nav-link-text">{{ __('Users') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'signup-gifts' ? 'active' : '' }}"
+                            href="{{ route('signup-gifts.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="gift"></span></span>
+                                <span class="nav-link-text-wrapper">
+                                    <span class="nav-link-text">{{ __('Signup Gift') }}</span>
+                                </span>
+                                @if(!empty($pendingSignupGiftsCount) && $pendingSignupGiftsCount > 0)
+                                    <span class="badge rounded-pill bg-warning text-dark ms-auto me-1"
+                                          title="{{ $pendingSignupGiftsCount }} {{ __('waiting for gift') }}">
+                                        {{ $pendingSignupGiftsCount > 99 ? '99+' : $pendingSignupGiftsCount }}
+                                    </span>
+                                @endif
                             </div>
                         </a>
                     </div>

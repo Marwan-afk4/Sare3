@@ -55,14 +55,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'name' => 'admin',
             'guard_name' => 'web'
         ]);
-        $adminRole->givePermissionTo(Permission::all());
+        $adminRole->syncPermissions(Permission::all());
 
-        ///// Create a Super Admin Role (optional, but good practice)
-        // $superAdminRole = Role::firstOrCreate([
-        //     'name' => 'super-admin',
-        //     'guard_name' => 'web'
-        // ]);
-        //// Super admin gets all permissions via Gate::before rule usually, but we can also assign them
-        // $superAdminRole->givePermissionTo(Permission::all());
+        $superAdminRole = Role::firstOrCreate([
+            'name' => 'super-admin',
+            'guard_name' => 'web'
+        ]);
+        $superAdminRole->syncPermissions(Permission::all());
     }
 }

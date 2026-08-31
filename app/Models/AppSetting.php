@@ -234,4 +234,34 @@ class AppSetting extends Model
             'Active phone verification method (backend_otp, kastana, or firebase_otp). Mobile apps still receive backend_otp when Kastana is selected.'
         );
     }
+
+    public static function isSignupGiftEnabled(): bool
+    {
+        return (bool) static::get('signup_gift_enabled', false);
+    }
+
+    public static function setSignupGiftEnabled(bool $enabled): void
+    {
+        static::set(
+            'signup_gift_enabled',
+            $enabled,
+            'boolean',
+            'Automatically add a welcome gift to a user wallet on first signup'
+        );
+    }
+
+    public static function getSignupGiftAmount(): float
+    {
+        return round((float) static::get('signup_gift_amount', 0), 2);
+    }
+
+    public static function setSignupGiftAmount(float $amount): void
+    {
+        static::set(
+            'signup_gift_amount',
+            round($amount, 2),
+            'string',
+            'Welcome gift amount added to the user wallet on first signup'
+        );
+    }
 }

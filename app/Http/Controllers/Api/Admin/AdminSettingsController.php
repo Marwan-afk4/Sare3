@@ -135,6 +135,8 @@ class AdminSettingsController extends Controller
                 'ride_verification_enabled' => AppSetting::isRideVerificationEnabled(),
                 'minimum_driver_wallet_balance' => AppSetting::getMinimumDriverWalletBalance(),
                 'user_wallet_payment_amount' => AppSetting::getUserWalletPaymentAmount(),
+                'signup_gift_enabled' => AppSetting::isSignupGiftEnabled(),
+                'signup_gift_amount' => AppSetting::getSignupGiftAmount(),
             ]
         ]);
     }

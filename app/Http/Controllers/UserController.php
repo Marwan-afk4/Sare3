@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Rating;
 use App\Helpers\RideHelper;
 use App\Helpers\ExcelExportHelper;
+use App\Models\AppSetting;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
@@ -112,8 +113,9 @@ class UserController extends Controller
 
         // Get recent rides (last 10)
         $recentRides = RideHelper::formatUserRideHistory($user->userRides->take(10));
+        $signupGiftAmount = AppSetting::getSignupGiftAmount();
 
-        return view('users.show', compact('user', 'userRating', 'rideStatistics', 'recentRides'));
+        return view('users.show', compact('user', 'userRating', 'rideStatistics', 'recentRides', 'signupGiftAmount'));
     }
 
     public function rideHistory(User $user, Request $request)
