@@ -66,6 +66,15 @@
             >
             <span class="input-group-text">{{ __('JOD') }}</span>
         </div>
+        @if($setting->key === 'user_wallet_payment_amount')
+            <small class="form-text text-muted">
+                {{ __('Maximum amount of the ride fare that can be paid from the passenger wallet. Example: 10 on a 20 fare = 10 from wallet. If the wallet has less, the full wallet is used. The rest is cash.') }}
+            </small>
+        @elseif($setting->key === 'signup_gift_amount')
+            <small class="form-text text-muted">
+                {{ __('When enabled, every new passenger receives this amount in their wallet once. Users who signed up before this can be gifted from the Signup Gift page.') }}
+            </small>
+        @endif
     @elseif(str_contains($setting->key, 'percentage'))
         <div class="input-group">
             <input
@@ -92,25 +101,6 @@
         @elseif(str_contains($setting->key, 'referrer_reward'))
             <small class="form-text text-primary">
                 {{ __('Reward given to users who successfully refer others.') }}
-            </small>
-        @endif
-    @elseif(in_array($setting->key, ['minimum_driver_wallet_balance', 'user_wallet_payment_amount'], true))
-        <div class="input-group">
-            <input
-                type="number"
-                class="form-control"
-                id="setting_{{ $setting->key }}"
-                name="settings[{{ $setting->key }}]"
-                value="{{ $setting->value }}"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-            >
-            <span class="input-group-text">{{ __('JOD') }}</span>
-        </div>
-        @if($setting->key === 'user_wallet_payment_amount')
-            <small class="form-text text-muted">
-                {{ __('Maximum amount of the ride fare that can be paid from the passenger wallet. Example: 10 on a 20 fare = 10 from wallet. If the wallet has less, the full wallet is used. The rest is cash.') }}
             </small>
         @endif
     @elseif($setting->type === 'json')
