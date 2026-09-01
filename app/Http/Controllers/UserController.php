@@ -65,6 +65,19 @@ class UserController extends Controller
         return ExcelExportHelper::download('users_' . now()->format('Y-m-d_His'), $headers, $rows);
     }
 
+    public function exportPhones(Request $request): StreamedResponse
+    {
+        $phones = $this->filteredUsersQuery($request)
+            ->whereNotNull('phone')
+            ->where('phone', '!=', '')
+            ->orderBy('id')
+            ->pluck('phone');
+
+        $rows = $phones->map(fn (string $phone) => [$phone]);
+
+        return ExcelExportHelper::download('users_phones_' . now()->format('Y-m-d_His'), [__('Phone')], $rows);
+    }
+
     protected function filteredUsersQuery(Request $request)
     {
         $keyword = $request->get('keyword');

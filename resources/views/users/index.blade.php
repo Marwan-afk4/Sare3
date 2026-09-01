@@ -15,6 +15,9 @@
             <a href="{{ route('users.export', request()->query()) }}" class="btn btn-success btn-sm">
                 <i class="fa fa-file-excel me-1"></i>{{ __('Export to Excel') }}
             </a>
+            <a href="{{ route('users.export-phones', request()->query()) }}" class="btn btn-outline-success btn-sm">
+                <i class="fa fa-phone me-1"></i>{{ __('Export Phone Numbers') }}
+            </a>
             <a href="{{ route('signup-gifts.index') }}" class="btn btn-outline-warning btn-sm">
                 <i class="fa fa-gift me-1"></i>{{ __('Signup Gift') }}
             </a>

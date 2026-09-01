@@ -11,6 +11,9 @@
                 <a href="{{ route('drivers.export', request()->query()) }}" class="btn btn-success">
                     <i class="fa fa-file-excel me-2"></i>{{ __('Export to Excel') }}
                 </a>
+                <a href="{{ route('drivers.export-phones', request()->query()) }}" class="btn btn-outline-success">
+                    <i class="fa fa-phone me-2"></i>{{ __('Export Phone Numbers') }}
+                </a>
                 <a href="{{ route('drivers.create') }}" class="btn btn-primary">
                     <i class="fa fa-plus me-2"></i>{{ __('Create Driver') }}
                 </a>

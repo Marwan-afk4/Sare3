@@ -161,6 +161,19 @@ class DriverController extends Controller
         return ExcelExportHelper::download('drivers_' . now()->format('Y-m-d_His'), $headers, $rows);
     }
 
+    public function exportPhones(Request $request): StreamedResponse
+    {
+        $phones = $this->filteredDriversQuery($request)
+            ->whereNotNull('phone')
+            ->where('phone', '!=', '')
+            ->orderBy('id')
+            ->pluck('phone');
+
+        $rows = $phones->map(fn (string $phone) => [$phone]);
+
+        return ExcelExportHelper::download('drivers_phones_' . now()->format('Y-m-d_His'), [__('Phone')], $rows);
+    }
+
     protected function filteredDriversQuery(Request $request)
     {
         $keyword = $request->get('keyword');

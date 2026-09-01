@@ -69,6 +69,7 @@ Route::domain(config('app.dashboard_domain'))->group(function () {
         ->group(function () {
             Route::middleware(['can:إدارة المستخدمين'])->group(function () {
                 Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
+                Route::get('/users/export-phones', [UserController::class, 'exportPhones'])->name('users.export-phones');
                 Route::resource('/users', UserController::class);
                 Route::get('/users/{user}/ride-history', [UserController::class, 'rideHistory'])->name('users.ride-history');
 
@@ -81,6 +82,7 @@ Route::domain(config('app.dashboard_domain'))->group(function () {
             });
             Route::middleware(['can:إدارة السائقين'])->group(function () {
                 Route::get('/drivers/export', [DriverController::class, 'export'])->name('drivers.export');
+                Route::get('/drivers/export-phones', [DriverController::class, 'exportPhones'])->name('drivers.export-phones');
                 Route::get('/drivers/under-monitoring', [DriverController::class, 'underMonitoring'])->name('drivers.under-monitoring');
                 Route::resource('/drivers', DriverController::class);
                 Route::put('/drivers/{driver}/notes', [DriverController::class, 'updateNotes'])->name('drivers.notes.update');
