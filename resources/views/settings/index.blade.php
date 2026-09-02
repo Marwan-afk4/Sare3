@@ -155,7 +155,7 @@
         document.querySelectorAll('.form-check-input[type="checkbox"]').forEach(function(checkbox) {
             checkbox.addEventListener('change', function() {
                 const label = this.nextElementSibling;
-                label.textContent = this.checked ? 'Enabled' : 'Disabled';
+                label.textContent = this.checked ? @json(__('Enabled')) : @json(__('Disabled'));
             });
         });
 
@@ -166,14 +166,14 @@
             
             if (referralPercentage && (referralPercentage.value < 0 || referralPercentage.value > 100)) {
                 e.preventDefault();
-                alert('Referral discount percentage must be between 0 and 100');
+                alert(@json(__('Referral discount percentage must be between 0 and 100')));
                 referralPercentage.focus();
                 return;
             }
             
             if (referrerPercentage && (referrerPercentage.value < 0 || referrerPercentage.value > 100)) {
                 e.preventDefault();
-                alert('Referrer reward percentage must be between 0 and 100');
+                alert(@json(__('Referrer reward percentage must be between 0 and 100')));
                 referrerPercentage.focus();
                 return;
             }

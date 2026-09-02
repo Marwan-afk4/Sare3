@@ -1,10 +1,13 @@
+@php
+    $settingLabel = ucwords(str_replace(['_', 'referral', 'referrer', 'signup'], [' ', 'Referral', 'Referrer', 'Signup'], $setting->key));
+@endphp
 <div class="mb-3">
     <label for="setting_{{ $setting->key }}" class="form-label fw-bold">
-        {{ ucwords(str_replace(['_', 'referral', 'referrer', 'signup'], [' ', 'Referral', 'Referrer', 'Signup'], $setting->key)) }}
+        {{ __($settingLabel) }}
     </label>
 
     @if($setting->description)
-        <small class="form-text text-muted d-block mb-2">{{ $setting->description }}</small>
+        <small class="form-text text-muted d-block mb-2">{{ __($setting->description) }}</small>
     @endif
 
     @if($setting->key === 'phone_verification_method')
@@ -39,7 +42,7 @@
                 {{ $setting->cast_value ? 'checked' : '' }}
             >
             <label class="form-check-label" for="setting_{{ $setting->key }}">
-                {{ $setting->cast_value ? 'Enabled' : 'Disabled' }}
+                {{ $setting->cast_value ? __('Enabled') : __('Disabled') }}
             </label>
         </div>
     @elseif($setting->type === 'integer')

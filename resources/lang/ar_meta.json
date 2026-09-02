@@ -22,26 +22,27 @@
     "Login": [
         "resources\/views\/auth\/login.blade.php"
     ],
-    "Phone": [
-        "resources\/views\/admin\/admins\/create.blade.php",
-        "resources\/views\/admin\/admins\/edit.blade.php",
-        "resources\/views\/admin\/admins\/index.blade.php",
-        "resources\/views\/admin\/financial-reports\/index.blade.php",
-        "resources\/views\/auth\/login.blade.php",
-        "resources\/views\/drivers\/create.blade.php",
-        "resources\/views\/drivers\/edit.blade.php",
-        "resources\/views\/drivers\/index.blade.php",
-        "resources\/views\/drivers\/show.blade.php",
-        "resources\/views\/drivers\/under-monitoring.blade.php",
-        "resources\/views\/users\/create.blade.php",
-        "resources\/views\/users\/edit.blade.php",
-        "resources\/views\/users\/index.blade.php",
-        "resources\/views\/users\/show.blade.php",
-        "resources\/views\/wallet-requests\/history.blade.php",
-        "resources\/views\/wallet-requests\/index.blade.php",
-        "app\/Http\/Controllers\/DriverController.php",
-        "app\/Http\/Controllers\/UserController.php"
-    ],
+    "Phone": {
+        "0": "resources\/views\/admin\/admins\/create.blade.php",
+        "1": "resources\/views\/admin\/admins\/edit.blade.php",
+        "2": "resources\/views\/admin\/admins\/index.blade.php",
+        "3": "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "4": "resources\/views\/admin\/signup-gifts\/index.blade.php",
+        "5": "resources\/views\/auth\/login.blade.php",
+        "6": "resources\/views\/drivers\/create.blade.php",
+        "7": "resources\/views\/drivers\/edit.blade.php",
+        "8": "resources\/views\/drivers\/index.blade.php",
+        "9": "resources\/views\/drivers\/show.blade.php",
+        "10": "resources\/views\/drivers\/under-monitoring.blade.php",
+        "11": "resources\/views\/users\/create.blade.php",
+        "12": "resources\/views\/users\/edit.blade.php",
+        "13": "resources\/views\/users\/index.blade.php",
+        "14": "resources\/views\/users\/show.blade.php",
+        "15": "resources\/views\/wallet-requests\/history.blade.php",
+        "16": "resources\/views\/wallet-requests\/index.blade.php",
+        "17": "app\/Http\/Controllers\/DriverController.php",
+        "19": "app\/Http\/Controllers\/UserController.php"
+    },
     "Create Driver": {
         "0": "resources\/views\/drivers\/create.blade.php",
         "2": "resources\/views\/drivers\/index.blade.php"
@@ -383,6 +384,7 @@
         "resources\/views\/users\/index.blade.php"
     ],
     "Wallet": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/drivers\/show.blade.php",
@@ -446,34 +448,35 @@
     "Actions": {
         "0": "resources\/views\/admin\/admins\/index.blade.php",
         "1": "resources\/views\/admin\/financial-reports\/index.blade.php",
-        "3": "resources\/views\/admin\/support-chat\/realtime.blade.php",
-        "4": "resources\/views\/ads\/index.blade.php",
-        "5": "resources\/views\/cancelation-rides\/index.blade.php",
-        "6": "resources\/views\/cancellation-policies\/index.blade.php",
-        "7": "resources\/views\/cancellation-reasons\/index.blade.php",
-        "8": "resources\/views\/car-categories\/index.blade.php",
-        "9": "resources\/views\/car-models\/index.blade.php",
-        "10": "resources\/views\/car-types\/index.blade.php",
-        "11": "resources\/views\/cities\/index.blade.php",
-        "12": "resources\/views\/document-types\/index.blade.php",
-        "13": "resources\/views\/driver-cars\/index.blade.php",
-        "14": "resources\/views\/driver-documents\/index.blade.php",
-        "15": "resources\/views\/drivers\/index.blade.php",
-        "16": "resources\/views\/drivers\/show.blade.php",
-        "17": "resources\/views\/drivers\/under-monitoring.blade.php",
-        "18": "resources\/views\/leaderboard\/index.blade.php",
-        "19": "resources\/views\/livewire\/coupon-manager.blade.php",
-        "20": "resources\/views\/livewire\/zone-car-categories.blade.php",
-        "21": "resources\/views\/notifications\/index.blade.php",
-        "22": "resources\/views\/otp-limits\/index.blade.php",
-        "23": "resources\/views\/paymenent-methods\/index.blade.php",
-        "24": "resources\/views\/ride-request-time-limits\/index.blade.php",
-        "25": "resources\/views\/rides\/abnormal.blade.php",
-        "27": "resources\/views\/rides\/index.blade.php",
-        "28": "resources\/views\/users\/index.blade.php",
-        "29": "resources\/views\/wallet-requests\/admin-limits.blade.php",
-        "30": "resources\/views\/wallet-requests\/index.blade.php",
-        "31": "resources\/views\/zones\/index.blade.php"
+        "3": "resources\/views\/admin\/signup-gifts\/index.blade.php",
+        "4": "resources\/views\/admin\/support-chat\/realtime.blade.php",
+        "5": "resources\/views\/ads\/index.blade.php",
+        "6": "resources\/views\/cancelation-rides\/index.blade.php",
+        "7": "resources\/views\/cancellation-policies\/index.blade.php",
+        "8": "resources\/views\/cancellation-reasons\/index.blade.php",
+        "9": "resources\/views\/car-categories\/index.blade.php",
+        "10": "resources\/views\/car-models\/index.blade.php",
+        "11": "resources\/views\/car-types\/index.blade.php",
+        "12": "resources\/views\/cities\/index.blade.php",
+        "13": "resources\/views\/document-types\/index.blade.php",
+        "14": "resources\/views\/driver-cars\/index.blade.php",
+        "15": "resources\/views\/driver-documents\/index.blade.php",
+        "16": "resources\/views\/drivers\/index.blade.php",
+        "17": "resources\/views\/drivers\/show.blade.php",
+        "18": "resources\/views\/drivers\/under-monitoring.blade.php",
+        "19": "resources\/views\/leaderboard\/index.blade.php",
+        "20": "resources\/views\/livewire\/coupon-manager.blade.php",
+        "21": "resources\/views\/livewire\/zone-car-categories.blade.php",
+        "22": "resources\/views\/notifications\/index.blade.php",
+        "23": "resources\/views\/otp-limits\/index.blade.php",
+        "24": "resources\/views\/paymenent-methods\/index.blade.php",
+        "25": "resources\/views\/ride-request-time-limits\/index.blade.php",
+        "26": "resources\/views\/rides\/abnormal.blade.php",
+        "28": "resources\/views\/rides\/index.blade.php",
+        "29": "resources\/views\/users\/index.blade.php",
+        "30": "resources\/views\/wallet-requests\/admin-limits.blade.php",
+        "31": "resources\/views\/wallet-requests\/index.blade.php",
+        "32": "resources\/views\/zones\/index.blade.php"
     },
     "Edit": {
         "0": "resources\/views\/admin\/admins\/index.blade.php",
@@ -1212,16 +1215,17 @@
         "resources\/views\/rides\/create.blade.php"
     ],
     "User": {
-        "0": "resources\/views\/cancelation-rides\/create.blade.php",
-        "1": "resources\/views\/cancelation-rides\/edit.blade.php",
-        "2": "resources\/views\/cancelation-rides\/index.blade.php",
-        "4": "resources\/views\/cancelation-rides\/show.blade.php",
-        "6": "resources\/views\/rides\/abnormal.blade.php",
-        "8": "resources\/views\/rides\/create.blade.php",
-        "9": "resources\/views\/rides\/edit.blade.php",
-        "10": "resources\/views\/rides\/index.blade.php",
-        "11": "resources\/views\/rides\/show.blade.php",
-        "14": "app\/Enums\/OtpTypes.php"
+        "0": "resources\/views\/admin\/signup-gifts\/index.blade.php",
+        "1": "resources\/views\/cancelation-rides\/create.blade.php",
+        "2": "resources\/views\/cancelation-rides\/edit.blade.php",
+        "3": "resources\/views\/cancelation-rides\/index.blade.php",
+        "5": "resources\/views\/cancelation-rides\/show.blade.php",
+        "7": "resources\/views\/rides\/abnormal.blade.php",
+        "9": "resources\/views\/rides\/create.blade.php",
+        "10": "resources\/views\/rides\/edit.blade.php",
+        "11": "resources\/views\/rides\/index.blade.php",
+        "12": "resources\/views\/rides\/show.blade.php",
+        "15": "app\/Enums\/OtpTypes.php"
     },
     "Pickup Lat": [
         "resources\/views\/rides\/create.blade.php",
@@ -1506,13 +1510,15 @@
     "Create Wallet Request": [
         "resources\/views\/wallet-requests\/create.blade.php"
     ],
-    "Amount": [
-        "resources\/views\/admin\/financial-reports\/index.blade.php",
-        "resources\/views\/leaderboard\/index.blade.php",
-        "resources\/views\/wallet-requests\/create.blade.php",
-        "resources\/views\/wallet-requests\/history.blade.php",
-        "resources\/views\/wallet-requests\/show.blade.php"
-    ],
+    "Amount": {
+        "0": "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "1": "resources\/views\/admin\/signup-gifts\/index.blade.php",
+        "3": "resources\/views\/leaderboard\/index.blade.php",
+        "4": "resources\/views\/users\/show.blade.php",
+        "5": "resources\/views\/wallet-requests\/create.blade.php",
+        "6": "resources\/views\/wallet-requests\/history.blade.php",
+        "7": "resources\/views\/wallet-requests\/show.blade.php"
+    },
     "Type": {
         "0": "resources\/views\/admin\/financial-reports\/index.blade.php",
         "2": "resources\/views\/admin\/referrals\/index.blade.php",
@@ -2810,7 +2816,8 @@
         "resources\/views\/admin\/referrals\/settings.blade.php"
     ],
     "Referrer reward percentage must be between 0 and 100": [
-        "resources\/views\/admin\/referrals\/settings.blade.php"
+        "resources\/views\/admin\/referrals\/settings.blade.php",
+        "resources\/views\/settings\/index.blade.php"
     ],
     "Referral System Settings": [
         "resources\/views\/settings\/index.blade.php"
@@ -3029,13 +3036,15 @@
         "1": "resources\/views\/admin\/admins\/edit.blade.php",
         "2": "resources\/views\/admin\/roles\/create.blade.php",
         "3": "resources\/views\/admin\/roles\/edit.blade.php",
-        "4": "resources\/views\/driver-cars\/create.blade.php",
-        "5": "resources\/views\/driver-cars\/edit.blade.php",
-        "6": "resources\/views\/leaderboard\/index.blade.php",
-        "9": "resources\/views\/livewire\/coupon-manager.blade.php",
-        "10": "resources\/views\/wallet-requests\/admin-limits.blade.php",
-        "13": "resources\/views\/wallet-requests\/index.blade.php",
-        "15": "resources\/views\/wallet-requests\/show.blade.php"
+        "4": "resources\/views\/admin\/signup-gifts\/index.blade.php",
+        "6": "resources\/views\/driver-cars\/create.blade.php",
+        "7": "resources\/views\/driver-cars\/edit.blade.php",
+        "8": "resources\/views\/leaderboard\/index.blade.php",
+        "11": "resources\/views\/livewire\/coupon-manager.blade.php",
+        "12": "resources\/views\/users\/show.blade.php",
+        "13": "resources\/views\/wallet-requests\/admin-limits.blade.php",
+        "16": "resources\/views\/wallet-requests\/index.blade.php",
+        "18": "resources\/views\/wallet-requests\/show.blade.php"
     },
     "Please select a valid supplier from the list.": [
         "resources\/views\/livewire\/supplier-autocomplete.blade.php"
@@ -3452,6 +3461,7 @@
         "resources\/views\/wallet-requests\/show.blade.php"
     ],
     "Admin": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php",
         "resources\/views\/wallet-requests\/show.blade.php"
     ],
     "Start a conversation with the driver by sending your first message.": [
@@ -4930,5 +4940,197 @@
     ],
     "The selected city does not exist.": [
         "app\/Http\/Requests\/UpdateDriverRequest.php"
+    ],
+    "Signup Gift": {
+        "0": "resources\/views\/admin\/signup-gifts\/index.blade.php",
+        "2": "resources\/views\/elements\/phoenix\/sidebar.blade.php",
+        "3": "resources\/views\/settings\/index.blade.php",
+        "4": "resources\/views\/users\/index.blade.php"
+    },
+    "Give new passengers a wallet gift on first signup, and catch up with anyone who missed it.": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "All Users": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Gift settings": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "This amount is added to the passenger wallet once, on first signup.": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Auto gift is on": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "On, but amount is zero": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Auto gift is off": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Automatic gift": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Enabled": {
+        "0": "resources\/views\/admin\/signup-gifts\/index.blade.php",
+        "2": "resources\/views\/settings\/index.blade.php",
+        "3": "resources\/views\/settings\/partials\/setting-field.blade.php"
+    },
+    "Disabled": {
+        "0": "resources\/views\/admin\/signup-gifts\/index.blade.php",
+        "2": "resources\/views\/settings\/index.blade.php",
+        "3": "resources\/views\/settings\/partials\/setting-field.blade.php"
+    },
+    "Gift amount": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "JOD": {
+        "0": "resources\/views\/admin\/signup-gifts\/index.blade.php",
+        "3": "resources\/views\/settings\/partials\/setting-field.blade.php",
+        "4": "resources\/views\/users\/show.blade.php"
+    },
+    "Save settings": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Turn this on and set an amount so new signups receive the gift automatically. You can still grant it manually to anyone in the pending list.": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Waiting for gift": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Already gifted": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Total gifted": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Did not get a gift": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Gifted users": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Include incomplete accounts": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Search name, phone, email...": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Give gift to selected": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Set a gift amount above before you can grant it.": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "No users match your search.": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Everyone who should have a gift already received one.": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "No signup gifts have been given yet.": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Given by": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Given at": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Joined": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Unnamed user": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Automatic": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Give gift": {
+        "0": "resources\/views\/admin\/signup-gifts\/index.blade.php",
+        "2": "resources\/views\/users\/show.blade.php"
+    },
+    "Give signup gift": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php",
+        "resources\/views\/users\/show.blade.php"
+    ],
+    "This will add the gift to the wallet of": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php",
+        "resources\/views\/users\/show.blade.php"
+    ],
+    "Give gift to selected users": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "This will add the gift to": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "selected users who have not received it yet.": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Give gifts": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "waiting for gift": [
+        "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    ],
+    "Times offered per captain": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Wallet gift given to passengers the first time they sign up": [
+        "resources\/views\/settings\/index.blade.php"
+    ],
+    "Manage pending gifts": [
+        "resources\/views\/settings\/index.blade.php"
+    ],
+    "When enabled, every new passenger receives this amount in their wallet once. Users who signed up before this can be gifted from the Signup Gift page.": [
+        "resources\/views\/settings\/index.blade.php",
+        "resources\/views\/settings\/partials\/setting-field.blade.php"
+    ],
+    "Backend OTP (Kastana SMS)": [
+        "resources\/views\/settings\/partials\/setting-field.blade.php",
+        "app\/Enums\/PhoneVerificationMethod.php"
+    ],
+    "Mobile apps keep using the same backend OTP or Firebase endpoints. Kastana only replaces WhatsApp delivery; \/auth\/otp-method still returns backend_otp.": [
+        "resources\/views\/settings\/partials\/setting-field.blade.php"
+    ],
+    "Maximum share of the ride fare that can be paid from the passenger wallet. Example: 50% of a 20 fare = 10. If the wallet has less, the full wallet is used. The rest is cash.": [
+        "resources\/views\/settings\/partials\/setting-field.blade.php"
+    ],
+    "Signup gift": [
+        "resources\/views\/users\/show.blade.php"
+    ],
+    "Received": [
+        "resources\/views\/users\/show.blade.php"
+    ],
+    "Not gifted yet": [
+        "resources\/views\/users\/show.blade.php"
+    ],
+    "This main admin user cannot be deleted.": [
+        "app\/Http\/Controllers\/Admin\/AdminController.php"
+    ],
+    "Signup gift settings updated successfully.": [
+        "app\/Http\/Controllers\/Admin\/SignupGiftController.php"
+    ],
+    "Set a gift amount greater than zero before granting.": [
+        "app\/Services\/SignupGiftService.php"
+    ],
+    "Signup gifts can only be given to passengers.": [
+        "app\/Services\/SignupGiftService.php"
+    ],
+    "This user has already received a signup gift.": [
+        "app\/Services\/SignupGiftService.php"
+    ],
+    "Export Phone Numbers": [
+        "resources\/views\/drivers\/index.blade.php",
+        "resources\/views\/users\/index.blade.php"
+    ],
+    "Referral discount percentage must be between 0 and 100": [
+        "resources\/views\/settings\/index.blade.php"
+    ],
+    "Maximum amount of the ride fare that can be paid from the passenger wallet. Example: 10 on a 20 fare = 10 from wallet. If the wallet has less, the full wallet is used. The rest is cash.": [
+        "resources\/views\/settings\/partials\/setting-field.blade.php"
+    ],
+    "Settings updated successfully.": [
+        "app\/Http\/Controllers\/AppSettingController.php"
     ]
 }

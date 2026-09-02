@@ -131,7 +131,7 @@ class AppSettingController extends Controller
             }
         }
 
-        return redirect()->route('settings.index')->with('success', 'Settings updated successfully.');
+        return redirect()->route('settings.index')->with('success', __('Settings updated successfully.'));
     }
 
     private function processValue($value, string $type)
