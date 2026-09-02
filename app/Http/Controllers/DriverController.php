@@ -32,7 +32,7 @@ class DriverController extends Controller
     public function index(Request $request)
     {
         $sortField = $request->get('sort', 'id');
-        $sortOrder = $request->get('order', 'ASC');
+        $sortOrder = $request->get('order', 'desc');
         $balanceOperator = $request->get('balance_operator');
         $balanceAmount = $request->get('balance_amount');
 
@@ -120,7 +120,7 @@ class DriverController extends Controller
     public function export(Request $request): StreamedResponse
     {
         $sortField = $request->get('sort', 'id');
-        $sortOrder = $request->get('order', 'ASC');
+        $sortOrder = $request->get('order', 'desc');
 
         $drivers = $this->filteredDriversQuery($request)
             ->orderBy($sortField, $sortOrder)
