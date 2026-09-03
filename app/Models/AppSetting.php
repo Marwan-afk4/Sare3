@@ -264,4 +264,19 @@ class AppSetting extends Model
             'Welcome gift amount added to the user wallet on first signup'
         );
     }
+
+    /**
+     * Persist signup gift settings together so amount and enabled stay in sync.
+     */
+    public static function configureSignupGift(float $amount, ?bool $enabled = null): void
+    {
+        $amount = round(max(0, $amount), 2);
+        static::setSignupGiftAmount($amount);
+
+        if ($enabled === null) {
+            $enabled = $amount > 0;
+        }
+
+        static::setSignupGiftEnabled($enabled && $amount > 0);
+    }
 }

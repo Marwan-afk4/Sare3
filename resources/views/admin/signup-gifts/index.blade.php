@@ -86,7 +86,7 @@
                     @if($giftEnabled && $giftAmount > 0)
                         {{ __('New passengers will receive :amount in their wallet when they finish signing up. Existing users stay in the pending list until you grant them.', ['amount' => $formattedAmount]) }}
                     @else
-                        {{ __('Turn this on and set an amount so new signups receive the gift automatically. You can still grant it manually to anyone in the pending list.') }}
+                        {{ __('Set an amount and save. The gift turns on automatically when the amount is greater than zero. You can still grant it manually to anyone in the pending list.') }}
                     @endif
                 </div>
             </div>

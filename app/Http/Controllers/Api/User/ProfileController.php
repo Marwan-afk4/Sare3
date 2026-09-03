@@ -8,6 +8,7 @@ use App\Models\OtpLimit;
 use App\Models\Rating;
 use App\Models\Ride;
 use App\Models\User;
+use App\Services\SignupGiftService;
 use App\trait\ImageUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -69,13 +70,32 @@ class ProfileController extends Controller
             return response()->json($validation->errors(), 422);
         }
 
+        $wasProfileIncomplete = blank($user->name);
+
         $user->name = $request->name ?? $user->name;
         $user->email = $request->email ?? $user->email;
         $user->phone = $request->phone ?? $user->phone;
+        if ($user->wallet === null) {
+            $user->wallet = 0;
+        }
         $user->save();
 
+        $signupGift = app(SignupGiftService::class)->grantOnRegistrationComplete(
+            $user->fresh(),
+            $wasProfileIncomplete && filled($request->name)
+        );
+        $user->refresh();
+
         return response()->json([
-            'message' => 'Profile updated successfully'
+            'message' => 'Profile updated successfully',
+            'wallet' => (float) ($user->wallet ?? 0),
+            'signup_gift' => $signupGift ? [
+                'granted' => true,
+                'amount' => $signupGift['amount'],
+            ] : [
+                'granted' => false,
+                'amount' => 0,
+            ],
         ]);
     }
 

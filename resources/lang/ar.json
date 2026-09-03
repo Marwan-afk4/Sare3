@@ -1238,6 +1238,7 @@
     "All Users": "جميع المستخدمين",
     "JOD": "د.أ",
     "Include incomplete accounts": "تضمين الحسابات غير المكتملة",
+    "Set an amount and save. The gift turns on automatically when the amount is greater than zero. You can still grant it manually to anyone in the pending list.": "حدّد المبلغ واحفظ. تُفعَّل الهدية تلقائياً عندما يكون المبلغ أكبر من صفر. يمكنك أيضاً منحها يدوياً لأي شخص في قائمة الانتظار.",
     "Times offered per captain": "عدد العروض لكل قائد",
     "Backend OTP (Kastana SMS)": "رمز التحقق من الخادم (كاستانا SMS)",
     "Mobile apps keep using the same backend OTP or Firebase endpoints. Kastana only replaces WhatsApp delivery; \/auth\/otp-method still returns backend_otp.": "تطبيقات الهاتف تستخدم نفس نقاط النهاية لرمز التحقق من الخادم أو Firebase. يستبدل كاستانا فقط التسليم عبر WhatsApp؛ \/auth\/otp-method لا يزال يعيد backend_otp.",

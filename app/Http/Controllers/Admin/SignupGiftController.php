@@ -72,10 +72,10 @@ class SignupGiftController extends Controller
             'signup_gift_amount' => 'required|numeric|min:0|max:999999',
         ]);
 
-        AppSetting::setSignupGiftEnabled(
-            in_array($request->input('signup_gift_enabled'), ['1', 'on', 1, true], true)
-        );
-        AppSetting::setSignupGiftAmount((float) $validated['signup_gift_amount']);
+        $amount = (float) $validated['signup_gift_amount'];
+        $toggleOn = in_array($request->input('signup_gift_enabled'), ['1', 'on', 1, true], true);
+
+        AppSetting::configureSignupGift($amount, $toggleOn || $amount > 0);
 
         return redirect()
             ->route('signup-gifts.index', $request->only('tab', 'keyword', 'incomplete'))

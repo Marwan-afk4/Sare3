@@ -38,16 +38,25 @@ class SignupGiftService
     }
 
     /**
+     * Gift is active when enabled and amount is greater than zero.
+     */
+    public function isConfigured(): bool
+    {
+        return $this->isEnabled() && $this->getAmount() > 0;
+    }
+
+    /**
      * Auto-grant only on a brand-new completed signup, when the feature is on.
      */
     public function grantIfEligible(User $user): ?array
     {
-        if (! $this->isEnabled()) {
-            return null;
-        }
+        if (! $this->isConfigured()) {
+            Log::debug('Signup gift skipped: not configured', [
+                'user_id' => $user->id,
+                'enabled' => $this->isEnabled(),
+                'amount' => $this->getAmount(),
+            ]);
 
-        $amount = $this->getAmount();
-        if ($amount <= 0) {
             return null;
         }
 
@@ -55,7 +64,19 @@ class SignupGiftService
             return null;
         }
 
-        return $this->grant($user, $amount, null);
+        return $this->grant($user, $this->getAmount(), null);
+    }
+
+    /**
+     * Call after a passenger completes their profile (name set for the first time).
+     */
+    public function grantOnRegistrationComplete(User $user, bool $wasProfileIncomplete): ?array
+    {
+        if (! $wasProfileIncomplete || blank($user->name)) {
+            return null;
+        }
+
+        return $this->grantIfEligible($user);
     }
 
     /**

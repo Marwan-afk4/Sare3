@@ -152,6 +152,41 @@ class SignupGiftTest extends TestCase
         $this->assertNotNull($user->signup_gift_received_at);
     }
 
+    public function test_update_profile_grants_signup_gift_on_first_name(): void
+    {
+        $this->enableGift(6);
+
+        $user = User::factory()->create([
+            'name' => null,
+            'role' => 'user',
+            'wallet' => 0,
+        ]);
+
+        $response = $this->actingAs($user)->putJson('/user/update-profile', [
+            'name' => 'Profile User',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('signup_gift.granted', true)
+            ->assertJsonPath('signup_gift.amount', 6)
+            ->assertJsonPath('wallet', 6);
+
+        $user->refresh();
+        $this->assertNotNull($user->signup_gift_received_at);
+    }
+
+    public function test_signup_gift_settings_auto_enable_when_amount_set(): void
+    {
+        AppSetting::configureSignupGift(8, false);
+
+        $this->assertFalse(AppSetting::isSignupGiftEnabled());
+
+        AppSetting::configureSignupGift(8, true);
+
+        $this->assertTrue(AppSetting::isSignupGiftEnabled());
+        $this->assertEquals(8, AppSetting::getSignupGiftAmount());
+    }
+
     public function test_admin_page_lists_users_without_a_gift(): void
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
@@ -164,7 +199,7 @@ class SignupGiftTest extends TestCase
         $admin->givePermissionTo('إدارة المستخدمين');
 
         $pending = User::factory()->create(['role' => 'user', 'name' => 'Pending Gift User']);
-        $gifted = User::factory()->create([
+        User::factory()->create([
             'role' => 'user',
             'name' => 'Already Gifted User',
             'signup_gift_received_at' => now(),

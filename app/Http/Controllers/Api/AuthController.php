@@ -353,7 +353,7 @@ class AuthController extends Controller
         ], 401);
     }
 
-    public function Postname(Request $request)
+    public function postName(Request $request)
     {
         $this->normalizePhoneRequest($request);
 
@@ -370,46 +370,49 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $user = User::where('phone', $request->phone)->first();
+        $phone = $request->phone;
+        $rawPhone = ltrim($phone, '+');
+        $user = User::where('phone', $phone)
+            ->orWhere('phone', $rawPhone)
+            ->first();
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        if ($user) {
-            $isFirstProfileCompletion = blank($user->name);
-
-            $user->name      = $request->name;
-            $user->role      = 'user';
-            $user->activity  = 'active';
-            $user->gender    = $request->gender ?? null;
-            $user->fcm_token = $request->input('fcm_token', $user->fcm_token);
-            if ($user->wallet === null) {
-                $user->wallet = 0;
-            }
-            $user->save();
-
-            $signupGift = null;
-            if ($isFirstProfileCompletion) {
-                $signupGift = app(SignupGiftService::class)->grantIfEligible($user);
-                $user->refresh();
-            }
-
+        if (! $user) {
             return response()->json([
-                'token'   => $token,
-                'message' => 'You can login now',
-                'wallet'  => (float) ($user->wallet ?? 0),
-                'signup_gift' => $signupGift ? [
-                    'granted' => true,
-                    'amount'  => $signupGift['amount'],
-                ] : [
-                    'granted' => false,
-                    'amount'  => 0,
-                ],
-            ]);
+                'message' => 'User not found',
+            ], 401);
         }
 
+        $isFirstProfileCompletion = blank($user->name);
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $user->name      = $request->name;
+        $user->role      = 'user';
+        $user->activity  = 'active';
+        $user->gender    = $request->gender ?? null;
+        $user->fcm_token = $request->input('fcm_token', $user->fcm_token);
+        if ($user->wallet === null) {
+            $user->wallet = 0;
+        }
+        $user->save();
+
+        $signupGift = app(SignupGiftService::class)->grantOnRegistrationComplete(
+            $user->fresh(),
+            $isFirstProfileCompletion
+        );
+        $user->refresh();
+
         return response()->json([
-            'message' => 'User not found',
-        ], 401);
+            'token'   => $token,
+            'message' => 'You can login now',
+            'wallet'  => (float) ($user->wallet ?? 0),
+            'signup_gift' => $signupGift ? [
+                'granted' => true,
+                'amount'  => $signupGift['amount'],
+            ] : [
+                'granted' => false,
+                'amount'  => 0,
+            ],
+        ]);
     }
 
     public function emailVerficationFirst(Request $request)

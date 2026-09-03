@@ -131,6 +131,13 @@ class AppSettingController extends Controller
             }
         }
 
+        if ($request->has('settings.signup_gift_amount')) {
+            AppSetting::configureSignupGift(
+                AppSetting::getSignupGiftAmount(),
+                filter_var($request->input('settings.signup_gift_enabled'), FILTER_VALIDATE_BOOLEAN)
+            );
+        }
+
         return redirect()->route('settings.index')->with('success', __('Settings updated successfully.'));
     }
 
