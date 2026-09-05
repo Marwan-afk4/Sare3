@@ -6,6 +6,7 @@ use App\Enums\ActiveStatuses;
 use App\Http\Controllers\Controller;
 use App\Mail\EmailVerificationCode;
 use App\Services\OtpDeliveryService;
+use App\Services\SignupGiftService;
 use App\Models\CarCategory;
 use App\Models\CarModel;
 use App\Models\CarType;
@@ -424,6 +425,9 @@ class AuthController extends Controller
         }
 
         if ($user) {
+            app(SignupGiftService::class)->revokeWhenBecomingDriver($user);
+            $user->refresh();
+
             $user->name      = $request->name;
             $user->role      = 'driver';
             $user->activity  = 'in_progress';
@@ -459,6 +463,8 @@ class AuthController extends Controller
 
         if ($existingUser) {
             if ($existingUser->email_verified == 'unverified') {
+                app(SignupGiftService::class)->revokeWhenBecomingDriver($existingUser);
+                $existingUser->refresh();
                 $existingUser->update([
                     'email_code'     => $code,
                     'email_verified' => 'unverified',
@@ -472,6 +478,8 @@ class AuthController extends Controller
                 ]);
             } else {
                 Mail::to($existingUser->email)->send(new EmailVerificationCode($code));
+                app(SignupGiftService::class)->revokeWhenBecomingDriver($existingUser);
+                $existingUser->refresh();
                 $existingUser->update([
                     'email_code'     => $code,
                     'email_verified' => 'unverified',
@@ -517,6 +525,8 @@ class AuthController extends Controller
             return response()->json(['error' => 'Invalid verification code.'], 401);
         }
 
+        app(SignupGiftService::class)->revokeWhenBecomingDriver($user);
+        $user->refresh();
         $user->update([
             'email_verified' => 'verified',
             'email_code'     => null,
@@ -743,6 +753,8 @@ class AuthController extends Controller
 
         $driverCar->carCategories()->sync($providedCategoryIds);
 
+        app(SignupGiftService::class)->revokeWhenBecomingDriver($driver);
+        $driver->refresh();
         $driver->update([
             'activity' => 'active',
             'role'     => 'driver',

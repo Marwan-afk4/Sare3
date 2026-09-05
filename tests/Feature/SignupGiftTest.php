@@ -187,6 +187,81 @@ class SignupGiftTest extends TestCase
         $this->assertEquals(8, AppSetting::getSignupGiftAmount());
     }
 
+    public function test_passenger_post_name_does_not_gift_or_convert_an_existing_driver(): void
+    {
+        $this->enableGift(5);
+
+        $driver = User::factory()->create([
+            'name' => null,
+            'phone' => '+962790000020',
+            'role' => 'driver',
+            'wallet' => 0,
+        ]);
+
+        $this->postJson('/post-name', [
+            'phone' => '+962790000020',
+            'name' => 'Driver Name',
+        ])->assertOk()
+            ->assertJsonPath('signup_gift.granted', false)
+            ->assertJsonPath('wallet', 0);
+
+        $driver->refresh();
+        $this->assertEquals('driver', $driver->role);
+        $this->assertEquals(0, (float) $driver->wallet);
+        $this->assertNull($driver->signup_gift_received_at);
+    }
+
+    public function test_becoming_a_driver_removes_only_the_signup_gift(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Ali',
+            'role' => 'user',
+            'wallet' => 12,
+            'signup_gift_received_at' => now(),
+            'signup_gift_amount' => 5,
+        ]);
+
+        $result = app(SignupGiftService::class)->revokeWhenBecomingDriver($user);
+
+        $this->assertEquals(5, $result['amount']);
+        $this->assertEquals(7, (float) $user->fresh()->wallet);
+        $this->assertDatabaseHas('transactions', [
+            'user_id' => $user->id,
+            'amount' => -5,
+            'description' => SignupGiftService::REVERSAL_DESCRIPTION,
+        ]);
+
+        $this->assertNull(app(SignupGiftService::class)->revokeWhenBecomingDriver($user->fresh()));
+        $this->assertEquals(7, (float) $user->fresh()->wallet);
+        $this->assertEquals(1, Transaction::where('description', SignupGiftService::REVERSAL_DESCRIPTION)->where('user_id', $user->id)->count());
+    }
+
+    public function test_driver_post_name_clears_a_carried_over_signup_gift(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Ali',
+            'phone' => '+962790000021',
+            'role' => 'user',
+            'wallet' => 5,
+            'signup_gift_received_at' => now(),
+            'signup_gift_amount' => 5,
+        ]);
+
+        $this->postJson('/driver/post-name', [
+            'phone' => '+962790000021',
+            'name' => 'Ali',
+            'fcm_token' => 'test-token',
+        ])->assertOk();
+
+        $user->refresh();
+        $this->assertEquals('driver', $user->role);
+        $this->assertEquals(0, (float) $user->wallet);
+        $this->assertDatabaseHas('transactions', [
+            'user_id' => $user->id,
+            'description' => SignupGiftService::REVERSAL_DESCRIPTION,
+        ]);
+    }
+
     public function test_admin_page_lists_users_without_a_gift(): void
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();

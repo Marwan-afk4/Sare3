@@ -14,6 +14,8 @@ class SignupGiftService
 {
     public const TRANSACTION_DESCRIPTION = 'Signup welcome gift';
 
+    public const REVERSAL_DESCRIPTION = 'Signup welcome gift reversed (became driver)';
+
     public function isEnabled(): bool
     {
         return (bool) AppSetting::isSignupGiftEnabled();
@@ -77,6 +79,69 @@ class SignupGiftService
         }
 
         return $this->grantIfEligible($user);
+    }
+
+    /**
+     * Take back leftover passenger welcome-gift credit when the same phone becomes a driver.
+     * Other wallet funds are left untouched. Safe to call more than once.
+     *
+     * @return array{amount: float, wallet: float}|null
+     */
+    public function revokeWhenBecomingDriver(User $user): ?array
+    {
+        $revoked = null;
+
+        DB::transaction(function () use ($user, &$revoked) {
+            $locked = User::where('id', $user->id)->lockForUpdate()->first();
+
+            if (! $locked || $locked->signup_gift_received_at === null) {
+                return;
+            }
+
+            $alreadyReversed = Transaction::where('user_id', $locked->id)
+                ->where('description', self::REVERSAL_DESCRIPTION)
+                ->exists();
+
+            if ($alreadyReversed) {
+                return;
+            }
+
+            $giftAmount = round((float) ($locked->signup_gift_amount ?? 0), 3);
+            $currentWallet = (float) ($locked->wallet ?? 0);
+            $deduct = $giftAmount > 0
+                ? round(min(max($currentWallet, 0), $giftAmount), 3)
+                : 0.0;
+
+            if ($deduct > 0) {
+                $locked->forceFill([
+                    'wallet' => round($currentWallet - $deduct, 3),
+                ])->save();
+            }
+
+            Transaction::create([
+                'user_id' => $locked->id,
+                'driver_id' => $locked->id,
+                'amount' => -$deduct,
+                'description' => self::REVERSAL_DESCRIPTION,
+            ]);
+
+            $user->setRawAttributes($locked->getAttributes());
+            $user->syncOriginal();
+
+            $revoked = [
+                'amount' => $deduct,
+                'wallet' => (float) ($locked->wallet ?? 0),
+            ];
+        });
+
+        if ($revoked !== null) {
+            Log::info("Signup gift reversed for user {$user->id} becoming a driver", [
+                'amount' => $revoked['amount'],
+                'wallet' => $revoked['wallet'],
+            ]);
+        }
+
+        return $revoked;
     }
 
     /**
