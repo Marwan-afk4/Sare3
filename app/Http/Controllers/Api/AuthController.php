@@ -383,11 +383,14 @@ class AuthController extends Controller
         }
 
         $isFirstProfileCompletion = blank($user->name);
+        $wasDriver = $user->isDriver();
         $token = $user->createToken('auth_token')->plainTextToken;
 
         $user->name      = $request->name;
-        $user->role      = 'user';
-        $user->activity  = 'active';
+        if (! $wasDriver) {
+            $user->role      = 'user';
+            $user->activity  = 'active';
+        }
         $user->gender    = $request->gender ?? null;
         $user->fcm_token = $request->input('fcm_token', $user->fcm_token);
         if ($user->wallet === null) {
@@ -395,10 +398,12 @@ class AuthController extends Controller
         }
         $user->save();
 
-        $signupGift = app(SignupGiftService::class)->grantOnRegistrationComplete(
-            $user->fresh(),
-            $isFirstProfileCompletion
-        );
+        $signupGift = $wasDriver
+            ? null
+            : app(SignupGiftService::class)->grantOnRegistrationComplete(
+                $user->fresh(),
+                $isFirstProfileCompletion
+            );
         $user->refresh();
 
         return response()->json([
