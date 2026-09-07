@@ -119,6 +119,13 @@ class CancelationRide extends Controller
         $wasNeverAccepted = is_null($ride->accepted_at)
             && in_array($ride->status->value, ['pending', 'rejected']);
 
+        $assignedDriver = $ride->driver;
+        $ride->recordDriverCancelLocation(
+            $assignedDriver,
+            $request->input('driver_lat'),
+            $request->input('driver_lng')
+        );
+
         // تحديث حالة الرحلة
         $ride->update([
             'status' => 'cancelled',
@@ -172,16 +179,11 @@ class CancelationRide extends Controller
         $currentDriverId = $driver->id;
         $now = now();
 
-        // Capture the captain's exact GPS at the moment of cancelling — even
-        // if this happens long after they accepted — so the admin dashboard
-        // can show where the driver backed out. Prefer the mobile app's
-        // lat/lng, fall back to the driver's last known location.
-        $cancelLat = $request->input('lat');
-        $cancelLng = $request->input('lng');
-        if ($cancelLat === null || $cancelLng === null) {
-            $cancelLat = $driver->latitude;
-            $cancelLng = $driver->longitude;
-        }
+        $ride->recordDriverCancelLocation(
+            $driver,
+            $request->input('lat'),
+            $request->input('lng')
+        );
 
         // Record this captain's response in the offer audit trail. If the
         // ride had already been accepted this is a cancellation-after-accept,
@@ -218,16 +220,6 @@ class CancelationRide extends Controller
             'penalty_amount' => 0,
             'reason' => $request->input('reason'),
         ]);
-
-        $cancelLocationUpdate = [
-            'driver_cancelled_at' => $now,
-            'driver_cancelled_by' => $currentDriverId,
-        ];
-        if ($cancelLat !== null && $cancelLng !== null) {
-            $cancelLocationUpdate['driver_cancel_lat'] = (float) $cancelLat;
-            $cancelLocationUpdate['driver_cancel_lng'] = (float) $cancelLng;
-        }
-        $ride->update($cancelLocationUpdate);
 
         DB::beginTransaction();
 

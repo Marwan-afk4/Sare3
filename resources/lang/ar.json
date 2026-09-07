@@ -1182,6 +1182,7 @@
     "Showing pickup, dropoff, and where the captain accepted the ride": "عرض الاستلام، الإنهاء، ومكان قبول الكابتن للرحلة",
     "Captain cancel location": "موقع إلغاء الكابتن",
     "Cancel Location": "موقع الإلغاء",
+    "Driver Cancel Location": "موقع إلغاء السائق",
     "Cancelled after accepting": "ألغيت بعد القبول",
     "Rejected before accepting": "رفضت قبل القبول",
     "Maximum amount of the ride fare that can be paid from the passenger wallet. Example: 10 on a 20 fare = 10 from wallet. If the wallet has less, the full wallet is used. The rest is cash.": "الحد الأقصى من أجرة الرحلة الذي يمكن دفعه من محفظة الراكب. مثال: 10 على أجرة 20 = 10 من المحفظة. إذا كان رصيد المحفظة أقل، يُستخدم الرصيد بالكامل. والباقي نقداً.",

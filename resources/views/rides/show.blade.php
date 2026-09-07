@@ -227,7 +227,7 @@
                         @endif
                         @if($ride->driver_cancel_lat && $ride->driver_cancel_lng)
                             <div class="col-md-6 mb-3">
-                                <strong><i class="fa fa-times-circle text-danger"></i> {{ __('Cancel Location') }}</strong>
+                                <strong><i class="fa fa-times-circle text-danger"></i> {{ __('Driver Cancel Location') }}</strong>
                                 <div class="small text-muted">
                                     {{ $ride->driver_cancel_lat }}, {{ $ride->driver_cancel_lng }}
                                     @if($ride->driverCancelledBy)
