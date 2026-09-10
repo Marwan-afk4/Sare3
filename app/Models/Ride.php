@@ -179,6 +179,25 @@ class Ride extends Model
         return $this->hasMany(RideOffer::class)->orderBy('offered_at');
     }
 
+    /**
+     * Captains who ignored this request, with the GPS they were at.
+     *
+     * @return array<int, array{lat: float, lng: float, recorded_at: ?string, driver_name: ?string}>
+     */
+    public function ignoreLocationPayload(): array
+    {
+        return $this->offers
+            ->filter(fn (RideOffer $offer) => $offer->response === RideOffer::RESPONSE_IGNORED && $offer->hasDriverLocation())
+            ->map(fn (RideOffer $offer) => [
+                'lat' => (float) $offer->driver_lat,
+                'lng' => (float) $offer->driver_lng,
+                'recorded_at' => optional($offer->responded_at)->toIso8601String(),
+                'driver_name' => $offer->driver?->name,
+            ])
+            ->values()
+            ->all();
+    }
+
     public function chats()
     {
         return $this->hasMany(Chat::class);

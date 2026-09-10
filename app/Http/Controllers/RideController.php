@@ -252,6 +252,8 @@ class RideController extends Controller
 
     public function track(Ride $ride)
     {
+        $ride->load(['offers.driver']);
+
         return view('rides.track', compact('ride'));
     }
 

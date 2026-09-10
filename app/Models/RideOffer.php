@@ -24,6 +24,8 @@ class RideOffer extends Model
         'response_seconds',
         'attempt',
         'note',
+        'driver_lat',
+        'driver_lng',
     ];
 
     protected $casts = [
@@ -31,7 +33,14 @@ class RideOffer extends Model
         'responded_at' => 'datetime',
         'attempt' => 'integer',
         'response_seconds' => 'integer',
+        'driver_lat' => 'float',
+        'driver_lng' => 'float',
     ];
+
+    public function hasDriverLocation(): bool
+    {
+        return $this->driver_lat !== null && $this->driver_lng !== null;
+    }
 
     public function ride()
     {

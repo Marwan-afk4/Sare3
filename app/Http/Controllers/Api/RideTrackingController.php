@@ -329,8 +329,12 @@ class RideTrackingController extends Controller
                 'response_color' => $offer->responseColor(),
                 'response_seconds' => $offer->response_seconds,
                 'offered_at' => $offer->offered_at ? $offer->offered_at->translatedFormat('h:i:s A') : null,
+                'lat' => $offer->driver_lat !== null ? (float) $offer->driver_lat : null,
+                'lng' => $offer->driver_lng !== null ? (float) $offer->driver_lng : null,
             ];
         }
+
+        $driverIgnoreLocations = $ride->ignoreLocationPayload();
 
         return response()->json([
             'ride' => $rideData,
@@ -340,6 +344,7 @@ class RideTrackingController extends Controller
             'driver_accept_location' => $driverAcceptLocation,
             'driver_arrived_location' => $driverArrivedLocation,
             'driver_cancel_location' => $driverCancelLocation,
+            'driver_ignore_locations' => $driverIgnoreLocations,
             'live_driver_location' => $liveDriverLocation,
             'total_points' => count($routePoints),
             'filtered_points' => count($displayPoints),

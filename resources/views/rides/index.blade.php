@@ -667,6 +667,9 @@ async function loadRouteDetails(rideId, pickupLat, pickupLng, dropoffLat, dropof
                 
                 const timeStr = offer.offered_at ? `<span class="text-muted float-end" style="font-size: 0.7rem;"><i class="fa fa-clock"></i> ${offer.offered_at}</span>` : '';
                 const durationStr = offer.response_seconds !== null ? `<div class="text-muted" style="font-size: 0.7rem;">{{ __('Response time') }}: ${offer.response_seconds}s</div>` : '';
+                const locationStr = (offer.lat != null && offer.lng != null)
+                    ? `<div><a href="https://www.google.com/maps?q=${offer.lat},${offer.lng}" target="_blank" class="small"><i class="fa fa-map-marker-alt"></i> {{ __('Location') }}</a></div>`
+                    : '';
                 
                 item.innerHTML = `
                     <div class="d-flex justify-content-between align-items-start mb-1">
@@ -677,6 +680,7 @@ async function loadRouteDetails(rideId, pickupLat, pickupLng, dropoffLat, dropof
                         <span class="badge ${badgeClass} p-1" style="font-size: 0.65rem;">${offer.response_label}</span>
                         ${durationStr}
                     </div>
+                    ${locationStr}
                 `;
                 listGroup.appendChild(item);
             });

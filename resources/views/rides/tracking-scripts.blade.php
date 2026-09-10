@@ -29,6 +29,7 @@ class SimpleRideTracker {
         this.acceptMarker = null;
         this.arrivedMarker = null;
         this.cancelMarker = null;
+        this.ignoreMarkers = [];
         this.toPickupPolyline = null;
         this.tripPolyline = null;
         this.liveDriverLine = null;   // live segment: driver→pickup or pickup→driver
@@ -66,6 +67,7 @@ class SimpleRideTracker {
             this.renderAcceptMarker(this.rideData.driverAcceptLocation);
             this.renderArrivedMarker(this.rideData.driverArrivedLocation);
             this.renderCancelMarker(this.rideData.driverCancelLocation);
+            this.renderIgnoreMarkers(this.rideData.driverIgnoreLocations);
 
             this.handleRideStatus();
 
@@ -180,8 +182,10 @@ class SimpleRideTracker {
         const cancel = this.rideData.driverCancelLocation;
         const toPickup = this.rideData.toPickupRoutePoints || [];
         const trip = this.rideData.routePoints || [];
+        const ignoreLocations = this.rideData.driverIgnoreLocations || [];
         return (accept && accept.lat != null && accept.lng != null)
             || (cancel && cancel.lat != null && cancel.lng != null)
+            || ignoreLocations.some(loc => loc && loc.lat != null && loc.lng != null)
             || toPickup.length > 0
             || trip.length > 0;
     }
@@ -222,6 +226,20 @@ class SimpleRideTracker {
                 lng: parseFloat(cancel.lng)
             });
             hasAnyPath = true;
+        }
+
+        const ignoreLocations = this.rideData.driverIgnoreLocations || [];
+        if (ignoreLocations.length) {
+            this.renderIgnoreMarkers(ignoreLocations);
+            ignoreLocations.forEach(loc => {
+                if (loc && loc.lat != null && loc.lng != null) {
+                    bounds.extend({
+                        lat: parseFloat(loc.lat),
+                        lng: parseFloat(loc.lng)
+                    });
+                    hasAnyPath = true;
+                }
+            });
         }
 
         const toPickupPoints = this.rideData.toPickupRoutePoints || [];
@@ -322,6 +340,7 @@ class SimpleRideTracker {
             this.renderAcceptMarker(data.driver_accept_location || this.rideData.driverAcceptLocation);
             this.renderArrivedMarker(data.driver_arrived_location || this.rideData.driverArrivedLocation);
             this.renderCancelMarker(data.driver_cancel_location || this.rideData.driverCancelLocation);
+            this.renderIgnoreMarkers(data.driver_ignore_locations || this.rideData.driverIgnoreLocations);
             this.renderToPickupPolyline(data.to_pickup_route_points || []);
             this.renderTripPolyline(data.trip_route_points || []);
 
@@ -427,6 +446,47 @@ class SimpleRideTracker {
             content: `<div><strong>${afterAccept}</strong>${driverName}<br><small>${when}</small></div>`
         });
         this.cancelMarker.addListener('click', () => info.open(this.map, this.cancelMarker));
+    }
+
+    /**
+     * Grey "I" pins for captains who let the request time out without answering.
+     */
+    renderIgnoreMarkers(locations) {
+        (this.ignoreMarkers || []).forEach(marker => marker.setMap(null));
+        this.ignoreMarkers = [];
+        if (!Array.isArray(locations) || !this.map) return;
+
+        locations.forEach(loc => {
+            if (!loc || loc.lat == null || loc.lng == null) return;
+
+            const marker = new google.maps.Marker({
+                position: { lat: parseFloat(loc.lat), lng: parseFloat(loc.lng) },
+                map: this.map,
+                title: loc.driver_name
+                    ? `Ignored by ${loc.driver_name}`
+                    : 'Driver Ignore Location',
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 10,
+                    fillColor: '#6B7280',
+                    fillOpacity: 1,
+                    strokeColor: 'white',
+                    strokeWeight: 2
+                },
+                label: { text: 'I', color: 'white', fontWeight: 'bold' },
+                zIndex: 905
+            });
+
+            const when = loc.recorded_at
+                ? new Date(loc.recorded_at).toLocaleString()
+                : '';
+            const driverName = loc.driver_name ? `<br><small>${loc.driver_name}</small>` : '';
+            const info = new google.maps.InfoWindow({
+                content: `<div><strong>Ignored the request</strong>${driverName}<br><small>${when}</small></div>`
+            });
+            marker.addListener('click', () => info.open(this.map, marker));
+            this.ignoreMarkers.push(marker);
+        });
     }
 
     renderToPickupPolyline(points) {
@@ -677,6 +737,16 @@ class SimpleRideTracker {
                 });
                 has = true;
             }
+            const ignoreLocs = data.driver_ignore_locations || this.rideData.driverIgnoreLocations || [];
+            ignoreLocs.forEach(loc => {
+                if (loc && loc.lat != null) {
+                    bounds.extend({
+                        lat: parseFloat(loc.lat),
+                        lng: parseFloat(loc.lng)
+                    });
+                    has = true;
+                }
+            });
             (data.to_pickup_route_points || []).forEach(p => {
                 bounds.extend({ lat: parseFloat(p.lat), lng: parseFloat(p.lng) });
                 has = true;
