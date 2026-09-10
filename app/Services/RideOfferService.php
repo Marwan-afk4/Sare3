@@ -23,8 +23,14 @@ class RideOfferService
                 ->latest('id')
                 ->first();
 
+            $location = $this->snapshotDriverLocation($driverId);
+
             if ($existingPending) {
-                return $existingPending;
+                if (! $existingPending->hasDriverLocation() && $location) {
+                    $existingPending->update($location);
+                }
+
+                return $existingPending->fresh();
             }
 
             if ($attempt === null) {
@@ -33,14 +39,14 @@ class RideOfferService
                     ->count() + 1;
             }
 
-            return RideOffer::create([
+            return RideOffer::create(array_merge([
                 'ride_id' => $ride->id,
                 'driver_id' => $driverId,
                 'offered_at' => now(),
                 'response' => RideOffer::RESPONSE_PENDING,
                 'attempt' => $attempt,
                 'note' => $note,
-            ]);
+            ], $location));
         } catch (\Throwable $e) {
             Log::warning("RideOfferService::recordOffer failed for ride {$ride->id}, driver {$driverId}: " . $e->getMessage());
             return null;
@@ -148,23 +154,32 @@ class RideOfferService
     }
 
     /**
-     * Last known captain GPS at ignore/timeout time. Only attached when the
-     * offer is marked ignored so each ignored captain keeps their own pin.
+     * Captain GPS: Redis live ping first, then users.latitude.
+     * When $response is set, only ignored/rejected offers get a snapshot.
+     * When omitted (recordOffer), always try so the pin exists even if ignore
+     * happens after the Redis TTL expires.
      */
-    protected function snapshotDriverLocation(int $driverId, string $response): array
+    protected function snapshotDriverLocation(int $driverId, ?string $response = null): array
     {
-        if ($response !== RideOffer::RESPONSE_IGNORED) {
+        if ($response !== null && ! in_array($response, [
+            RideOffer::RESPONSE_IGNORED,
+            RideOffer::RESPONSE_REJECTED,
+        ], true)) {
             return [];
         }
 
         $driver = User::find($driverId);
-        if (!$driver || $driver->latitude === null || $driver->longitude === null) {
+        $location = $driver?->latestKnownLocation();
+
+        if ($location === null) {
+            Log::info("RideOfferService: no GPS for driver {$driverId} while snapshotting".($response ? " ({$response})" : ' (offer)'));
+
             return [];
         }
 
         return [
-            'driver_lat' => (float) $driver->latitude,
-            'driver_lng' => (float) $driver->longitude,
+            'driver_lat' => $location['lat'],
+            'driver_lng' => $location['lng'],
         ];
     }
 }

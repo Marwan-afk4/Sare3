@@ -108,8 +108,9 @@ class Ride extends Model
     public function recordDriverCancelLocation(?User $driver, mixed $lat = null, mixed $lng = null): void
     {
         if ($lat === null || $lat === '' || $lng === null || $lng === '') {
-            $lat = $driver?->latitude;
-            $lng = $driver?->longitude;
+            $known = $driver?->latestKnownLocation();
+            $lat = $known['lat'] ?? $driver?->latitude;
+            $lng = $known['lng'] ?? $driver?->longitude;
         }
 
         if ($driver === null && ($lat === null || $lng === null)) {

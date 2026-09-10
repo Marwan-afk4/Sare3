@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
@@ -333,6 +334,34 @@ class User extends Authenticatable
     public function rideOffers()
     {
         return $this->hasMany(RideOffer::class, 'driver_id');
+    }
+
+    /**
+     * Live GPS from Redis (updated on every ping), then the last DB write.
+     * Driver location is cached for 5 minutes and only flushed to users.latitude
+     * every ~30 seconds, so ignore/cancel snapshots must read the cache first.
+     *
+     * @return array{lat: float, lng: float}|null
+     */
+    public function latestKnownLocation(): ?array
+    {
+        $cached = Cache::get("driver_location:{$this->id}");
+
+        if ($cached && isset($cached['latitude'], $cached['longitude'])) {
+            return [
+                'lat' => (float) $cached['latitude'],
+                'lng' => (float) $cached['longitude'],
+            ];
+        }
+
+        if ($this->latitude !== null && $this->longitude !== null) {
+            return [
+                'lat' => (float) $this->latitude,
+                'lng' => (float) $this->longitude,
+            ];
+        }
+
+        return null;
     }
 
     /**
