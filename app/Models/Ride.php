@@ -99,6 +99,36 @@ class Ride extends Model
         return $this->belongsTo(User::class, 'driver_cancelled_by');
     }
 
+    /**
+     * Persist the captain's GPS at cancel time (whether the passenger or the
+     * driver cancelled). Prefer coordinates from the request; otherwise use
+     * the driver's last known location. No-op when there is no driver and no
+     * coordinates, e.g. the passenger cancelled before anyone accepted.
+     */
+    public function recordDriverCancelLocation(?User $driver, mixed $lat = null, mixed $lng = null): void
+    {
+        if ($lat === null || $lat === '' || $lng === null || $lng === '') {
+            $lat = $driver?->latitude;
+            $lng = $driver?->longitude;
+        }
+
+        if ($driver === null && ($lat === null || $lng === null)) {
+            return;
+        }
+
+        $update = [
+            'driver_cancelled_at' => now(),
+            'driver_cancelled_by' => $driver?->id,
+        ];
+
+        if ($lat !== null && $lng !== null) {
+            $update['driver_cancel_lat'] = (float) $lat;
+            $update['driver_cancel_lng'] = (float) $lng;
+        }
+
+        $this->update($update);
+    }
+
     public function zone()
     {
         return $this->belongsTo(Zone::class);
