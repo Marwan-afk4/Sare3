@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Ride;
 use App\Models\RideOffer;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
 class RideOfferService
@@ -113,8 +114,10 @@ class RideOfferService
 
             $respondedAt = now();
 
+            $location = $this->snapshotDriverLocation($driverId, $response);
+
             if (!$offer) {
-                RideOffer::create([
+                RideOffer::create(array_merge([
                     'ride_id' => $ride->id,
                     'driver_id' => $driverId,
                     'offered_at' => $respondedAt,
@@ -125,7 +128,7 @@ class RideOfferService
                         ->where('driver_id', $driverId)
                         ->count() + 1,
                     'note' => $note,
-                ]);
+                ], $location));
                 return;
             }
 
@@ -133,14 +136,35 @@ class RideOfferService
                 ? max(0, $respondedAt->timestamp - $offer->offered_at->timestamp)
                 : null;
 
-            $offer->update([
+            $offer->update(array_merge([
                 'response' => $response,
                 'responded_at' => $respondedAt,
                 'response_seconds' => $responseSeconds,
                 'note' => $note,
-            ]);
+            ], $location));
         } catch (\Throwable $e) {
             Log::warning("RideOfferService::finalizeOffer failed for ride {$ride->id}, driver {$driverId}, response {$response}: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Last known captain GPS at ignore/timeout time. Only attached when the
+     * offer is marked ignored so each ignored captain keeps their own pin.
+     */
+    protected function snapshotDriverLocation(int $driverId, string $response): array
+    {
+        if ($response !== RideOffer::RESPONSE_IGNORED) {
+            return [];
+        }
+
+        $driver = User::find($driverId);
+        if (!$driver || $driver->latitude === null || $driver->longitude === null) {
+            return [];
+        }
+
+        return [
+            'driver_lat' => (float) $driver->latitude,
+            'driver_lng' => (float) $driver->longitude,
+        ];
     }
 }

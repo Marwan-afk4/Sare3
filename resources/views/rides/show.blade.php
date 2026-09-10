@@ -190,7 +190,12 @@
         @endif
 
         <!-- Captain Tracking Details -->
-        @if($ride->driver_accept_lat || $ride->driver_arrived_lat || $ride->driver_cancel_lat)
+        @php
+            $ignoredOffersWithLocation = ($ride->offers ?? collect())->filter(
+                fn ($offer) => $offer->response === \App\Models\RideOffer::RESPONSE_IGNORED && $offer->hasDriverLocation()
+            );
+        @endphp
+        @if($ride->driver_accept_lat || $ride->driver_arrived_lat || $ride->driver_cancel_lat || $ignoredOffersWithLocation->isNotEmpty())
             <div class="card mt-3">
                 <div class="card-header">
                     <h5 class="mb-0"><i class="fa fa-map-marked-alt"></i> {{ __('Captain Tracking') }}</h5>
@@ -248,6 +253,25 @@
                                 </a>
                             </div>
                         @endif
+                        @foreach($ignoredOffersWithLocation as $ignoredOffer)
+                            <div class="col-md-6 mb-3">
+                                <strong><i class="fa fa-clock text-warning"></i> {{ __('Driver Ignore Location') }}</strong>
+                                <div class="small text-muted">
+                                    {{ $ignoredOffer->driver_lat }}, {{ $ignoredOffer->driver_lng }}
+                                    @if($ignoredOffer->driver)
+                                        <br><i class="fa fa-user"></i> {{ $ignoredOffer->driver->name }}
+                                    @endif
+                                    @if($ignoredOffer->responded_at)
+                                        <br><i class="fa fa-clock"></i> {{ $ignoredOffer->responded_at->format('M d, Y h:i A') }}
+                                    @endif
+                                    <br>
+                                    <span class="badge bg-secondary">{{ __('Ignored the request') }}</span>
+                                </div>
+                                <a href="https://www.google.com/maps?q={{ $ignoredOffer->driver_lat }},{{ $ignoredOffer->driver_lng }}" target="_blank" class="small">
+                                    <i class="fa fa-external-link-alt"></i> {{ __('Open in Google Maps') }}
+                                </a>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -319,6 +343,7 @@
                                     <th>{{ __('Responded At') }}</th>
                                     <th>{{ __('Response Time') }}</th>
                                     <th>{{ __('Result') }}</th>
+                                    <th>{{ __('Location') }}</th>
                                     <th>{{ __('Attempt') }}</th>
                                     <th>{{ __('Note') }}</th>
                                 </tr>
@@ -355,6 +380,15 @@
                                             @endif
                                         </td>
                                         <td>{!! $offer->responseBadgeHtml() !!}</td>
+                                        <td>
+                                            @if($offer->hasDriverLocation())
+                                                <a href="https://www.google.com/maps?q={{ $offer->driver_lat }},{{ $offer->driver_lng }}" target="_blank" class="small">
+                                                    <i class="fa fa-map-marker-alt"></i> {{ number_format($offer->driver_lat, 5) }}, {{ number_format($offer->driver_lng, 5) }}
+                                                </a>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
                                         <td><small>#{{ $offer->attempt }}</small></td>
                                         <td><small class="text-muted">{{ $offer->note }}</small></td>
                                     </tr>
@@ -544,7 +578,8 @@ const rideData = {
     firebaseRideId: '{{ $ride->firebase_ride_id ?? '' }}',
     driverAcceptLocation: @json($driverAcceptLocationData),
     driverArrivedLocation: @json($driverArrivedLocationData),
-    driverCancelLocation: @json($driverCancelLocationData)
+    driverCancelLocation: @json($driverCancelLocationData),
+    driverIgnoreLocations: @json($ride->ignoreLocationPayload())
 };
 
 let rideTracker;

@@ -458,7 +458,8 @@
                 driverId: {{ $ride->driver_id ?? 'null' }},
                 driverAcceptLocation: @json($driverAcceptLocationData),
                 driverArrivedLocation: @json($driverArrivedLocationData),
-                driverCancelLocation: @json($driverCancelLocationData)
+                driverCancelLocation: @json($driverCancelLocationData),
+                driverIgnoreLocations: @json($ride->ignoreLocationPayload())
             };
 
             let rideTracker;
