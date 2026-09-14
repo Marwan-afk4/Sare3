@@ -6,6 +6,7 @@ use App\Helpers\FcmHelper;
 use Illuminate\Console\Command;
 use App\Models\Ride;
 use App\Events\RideStatusUpdated;
+use App\Services\RideOfferService;
 use Carbon\Carbon;
 
 use Illuminate\Support\Facades\Log;
@@ -49,6 +50,15 @@ class AutoCancelPendingRides extends Command
 
                 // ✅ 2. Update DB status to "cancelled"
                 $ride->update(['status' => 'cancelled']);
+
+                // Close the last captain's still-pending offer. Prior drivers
+                // were already marked ignored by rides:auto-reject; without
+                // this the current assignment stays "قيد الانتظار".
+                try {
+                    app(RideOfferService::class)->markAllPendingIgnored($ride, 'auto_cancel_command');
+                } catch (\Throwable $offerEx) {
+                    Log::warning("AutoCancelPendingRides: offer bookkeeping failed for ride {$ride->id}: " . $offerEx->getMessage());
+                }
 
                 // ✅ 3. Broadcast status update event to private-ride.{ride_id} channel
                 try {

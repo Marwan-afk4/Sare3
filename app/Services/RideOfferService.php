@@ -75,25 +75,33 @@ class RideOfferService
      */
     public function markAllPendingCancelledByUser(Ride $ride, ?string $note = null): void
     {
+        $this->closeAllPending($ride, RideOffer::RESPONSE_CANCELLED_BY_USER, $note);
+    }
+
+    /**
+     * Called when the system auto-cancels a ride that never found a driver.
+     * The last captain is still sitting on a pending offer (prior captains
+     * were already marked ignored by the timeout/reassignment loop).
+     */
+    public function markAllPendingIgnored(Ride $ride, ?string $note = null): void
+    {
+        $this->closeAllPending($ride, RideOffer::RESPONSE_IGNORED, $note);
+    }
+
+    /**
+     * Close every still-pending offer on the ride with the given response.
+     */
+    protected function closeAllPending(Ride $ride, string $response, ?string $note): void
+    {
         try {
             RideOffer::where('ride_id', $ride->id)
                 ->where('response', RideOffer::RESPONSE_PENDING)
                 ->get()
-                ->each(function (RideOffer $offer) use ($note) {
-                    $respondedAt = now();
-                    $responseSeconds = $offer->offered_at
-                        ? max(0, $respondedAt->timestamp - $offer->offered_at->timestamp)
-                        : null;
-
-                    $offer->update([
-                        'response' => RideOffer::RESPONSE_CANCELLED_BY_USER,
-                        'responded_at' => $respondedAt,
-                        'response_seconds' => $responseSeconds,
-                        'note' => $note,
-                    ]);
+                ->each(function (RideOffer $offer) use ($ride, $response, $note) {
+                    $this->finalizeOffer($ride, (int) $offer->driver_id, $response, $note);
                 });
         } catch (\Throwable $e) {
-            Log::warning("RideOfferService::markAllPendingCancelledByUser failed for ride {$ride->id}: " . $e->getMessage());
+            Log::warning("RideOfferService::closeAllPending failed for ride {$ride->id}: " . $e->getMessage());
         }
     }
 
