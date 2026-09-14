@@ -1310,13 +1310,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="row g-0 justify-content-between align-items-center h-100">
                     <div class="col-12 col-sm-auto text-center">
                         <p class="mb-0 mt-2 mt-sm-0 text-body">
-                            Developed by ConnectCode
+                            Developed by Soft-ora
                             <span class="d-none d-sm-inline-block"></span>
                             <span class="d-none d-sm-inline-block mx-1">|</span>
                             <br class="d-sm-none" />
                             {{ date('Y') }} &copy;
-                            <a class="mx-1" href="https://connectcode.darory.net/" target="_blank" rel="noopener noreferrer">
-                                ConnectCode
+                            <a class="mx-1" href="https://soft-ora.com" target="_blank" rel="noopener noreferrer">
+                                Soft-ora
                             </a>
                         </p>
                     </div>
