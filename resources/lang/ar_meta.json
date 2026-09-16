@@ -29,19 +29,21 @@
         "3": "resources\/views\/admin\/financial-reports\/index.blade.php",
         "4": "resources\/views\/admin\/signup-gifts\/index.blade.php",
         "5": "resources\/views\/auth\/login.blade.php",
-        "6": "resources\/views\/drivers\/create.blade.php",
-        "7": "resources\/views\/drivers\/edit.blade.php",
-        "8": "resources\/views\/drivers\/index.blade.php",
-        "9": "resources\/views\/drivers\/show.blade.php",
-        "10": "resources\/views\/drivers\/under-monitoring.blade.php",
-        "11": "resources\/views\/users\/create.blade.php",
-        "12": "resources\/views\/users\/edit.blade.php",
-        "13": "resources\/views\/users\/index.blade.php",
-        "14": "resources\/views\/users\/show.blade.php",
-        "15": "resources\/views\/wallet-requests\/history.blade.php",
-        "16": "resources\/views\/wallet-requests\/index.blade.php",
-        "17": "app\/Http\/Controllers\/DriverController.php",
-        "19": "app\/Http\/Controllers\/UserController.php"
+        "6": "resources\/views\/delivery-agents\/index.blade.php",
+        "7": "resources\/views\/delivery-agents\/show.blade.php",
+        "8": "resources\/views\/drivers\/create.blade.php",
+        "9": "resources\/views\/drivers\/edit.blade.php",
+        "10": "resources\/views\/drivers\/index.blade.php",
+        "11": "resources\/views\/drivers\/show.blade.php",
+        "12": "resources\/views\/drivers\/under-monitoring.blade.php",
+        "13": "resources\/views\/users\/create.blade.php",
+        "14": "resources\/views\/users\/edit.blade.php",
+        "15": "resources\/views\/users\/index.blade.php",
+        "16": "resources\/views\/users\/show.blade.php",
+        "17": "resources\/views\/wallet-requests\/history.blade.php",
+        "18": "resources\/views\/wallet-requests\/index.blade.php",
+        "19": "app\/Http\/Controllers\/DriverController.php",
+        "21": "app\/Http\/Controllers\/UserController.php"
     },
     "Create Driver": {
         "0": "resources\/views\/drivers\/create.blade.php",
@@ -122,7 +124,8 @@
         "8": "resources\/views\/drivers\/ride-history.blade.php",
         "9": "resources\/views\/drivers\/show.blade.php",
         "10": "resources\/views\/drivers\/under-monitoring.blade.php",
-        "11": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+        "11": "resources\/views\/elements\/phoenix\/sidebar.blade.php",
+        "12": "resources\/views\/wallet-requests\/index.blade.php"
     },
     "Name": [
         "resources\/views\/admin\/admins\/create.blade.php",
@@ -145,6 +148,7 @@
         "resources\/views\/cities\/edit.blade.php",
         "resources\/views\/cities\/index.blade.php",
         "resources\/views\/cities\/show.blade.php",
+        "resources\/views\/delivery-agents\/index.blade.php",
         "resources\/views\/document-types\/create.blade.php",
         "resources\/views\/document-types\/edit.blade.php",
         "resources\/views\/document-types\/index.blade.php",
@@ -175,6 +179,7 @@
         "resources\/views\/admin\/admins\/create.blade.php",
         "resources\/views\/admin\/admins\/edit.blade.php",
         "resources\/views\/admin\/admins\/index.blade.php",
+        "resources\/views\/delivery-agents\/show.blade.php",
         "resources\/views\/drivers\/create.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/index.blade.php",
@@ -236,6 +241,9 @@
         "resources\/views\/cities\/edit.blade.php",
         "resources\/views\/cities\/index.blade.php",
         "resources\/views\/components\/active-rides-widget.blade.php",
+        "resources\/views\/deliveries\/index.blade.php",
+        "resources\/views\/deliveries\/track.blade.php",
+        "resources\/views\/delivery-agents\/index.blade.php",
         "resources\/views\/document-types\/edit.blade.php",
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/driver-cars\/edit.blade.php",
@@ -313,6 +321,7 @@
         "resources\/views\/car-models\/edit.blade.php",
         "resources\/views\/car-types\/edit.blade.php",
         "resources\/views\/cities\/edit.blade.php",
+        "resources\/views\/delivery-agents\/show.blade.php",
         "resources\/views\/document-types\/edit.blade.php",
         "resources\/views\/driver-documents\/edit.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
@@ -349,6 +358,9 @@
         "resources\/views\/car-types\/show.blade.php",
         "resources\/views\/cities\/index.blade.php",
         "resources\/views\/cities\/show.blade.php",
+        "resources\/views\/deliveries\/index.blade.php",
+        "resources\/views\/delivery-agents\/index.blade.php",
+        "resources\/views\/delivery-agents\/show.blade.php",
         "resources\/views\/document-types\/index.blade.php",
         "resources\/views\/document-types\/show.blade.php",
         "resources\/views\/driver-documents\/index.blade.php",
@@ -385,6 +397,8 @@
     ],
     "Wallet": [
         "resources\/views\/admin\/signup-gifts\/index.blade.php",
+        "resources\/views\/delivery-agents\/index.blade.php",
+        "resources\/views\/delivery-agents\/show.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/drivers\/show.blade.php",
@@ -458,25 +472,27 @@
         "10": "resources\/views\/car-models\/index.blade.php",
         "11": "resources\/views\/car-types\/index.blade.php",
         "12": "resources\/views\/cities\/index.blade.php",
-        "13": "resources\/views\/document-types\/index.blade.php",
-        "14": "resources\/views\/driver-cars\/index.blade.php",
-        "15": "resources\/views\/driver-documents\/index.blade.php",
-        "16": "resources\/views\/drivers\/index.blade.php",
-        "17": "resources\/views\/drivers\/show.blade.php",
-        "18": "resources\/views\/drivers\/under-monitoring.blade.php",
-        "19": "resources\/views\/leaderboard\/index.blade.php",
-        "20": "resources\/views\/livewire\/coupon-manager.blade.php",
-        "21": "resources\/views\/livewire\/zone-car-categories.blade.php",
-        "22": "resources\/views\/notifications\/index.blade.php",
-        "23": "resources\/views\/otp-limits\/index.blade.php",
-        "24": "resources\/views\/paymenent-methods\/index.blade.php",
-        "25": "resources\/views\/ride-request-time-limits\/index.blade.php",
-        "26": "resources\/views\/rides\/abnormal.blade.php",
-        "28": "resources\/views\/rides\/index.blade.php",
-        "29": "resources\/views\/users\/index.blade.php",
-        "30": "resources\/views\/wallet-requests\/admin-limits.blade.php",
-        "31": "resources\/views\/wallet-requests\/index.blade.php",
-        "32": "resources\/views\/zones\/index.blade.php"
+        "13": "resources\/views\/deliveries\/index.blade.php",
+        "14": "resources\/views\/delivery-agents\/index.blade.php",
+        "15": "resources\/views\/document-types\/index.blade.php",
+        "16": "resources\/views\/driver-cars\/index.blade.php",
+        "17": "resources\/views\/driver-documents\/index.blade.php",
+        "18": "resources\/views\/drivers\/index.blade.php",
+        "19": "resources\/views\/drivers\/show.blade.php",
+        "20": "resources\/views\/drivers\/under-monitoring.blade.php",
+        "21": "resources\/views\/leaderboard\/index.blade.php",
+        "22": "resources\/views\/livewire\/coupon-manager.blade.php",
+        "23": "resources\/views\/livewire\/zone-car-categories.blade.php",
+        "24": "resources\/views\/notifications\/index.blade.php",
+        "25": "resources\/views\/otp-limits\/index.blade.php",
+        "26": "resources\/views\/paymenent-methods\/index.blade.php",
+        "27": "resources\/views\/ride-request-time-limits\/index.blade.php",
+        "28": "resources\/views\/rides\/abnormal.blade.php",
+        "30": "resources\/views\/rides\/index.blade.php",
+        "31": "resources\/views\/users\/index.blade.php",
+        "32": "resources\/views\/wallet-requests\/admin-limits.blade.php",
+        "33": "resources\/views\/wallet-requests\/index.blade.php",
+        "34": "resources\/views\/zones\/index.blade.php"
     },
     "Edit": {
         "0": "resources\/views\/admin\/admins\/index.blade.php",
@@ -531,25 +547,26 @@
         "13": "resources\/views\/car-types\/index.blade.php",
         "14": "resources\/views\/cities\/index.blade.php",
         "15": "resources\/views\/cities\/show.blade.php",
-        "16": "resources\/views\/document-types\/index.blade.php",
-        "18": "resources\/views\/driver-cars\/index.blade.php",
-        "19": "resources\/views\/driver-documents\/index.blade.php",
-        "20": "resources\/views\/driver-documents\/show.blade.php",
-        "21": "resources\/views\/drivers\/cars.blade.php",
-        "22": "resources\/views\/drivers\/documents.blade.php",
-        "23": "resources\/views\/drivers\/index.blade.php",
-        "24": "resources\/views\/drivers\/show.blade.php",
-        "25": "resources\/views\/leaderboard\/index.blade.php",
-        "26": "resources\/views\/livewire\/coupon-manager.blade.php",
-        "27": "resources\/views\/notifications\/index.blade.php",
-        "28": "resources\/views\/notifications\/show.blade.php",
-        "29": "resources\/views\/otp-limits\/index.blade.php",
-        "30": "resources\/views\/paymenent-methods\/index.blade.php",
-        "31": "resources\/views\/paymenent-methods\/show.blade.php",
-        "32": "resources\/views\/ride-request-time-limits\/index.blade.php",
-        "33": "resources\/views\/users\/index.blade.php",
-        "35": "resources\/views\/wallet-requests\/show.blade.php",
-        "36": "resources\/views\/zones\/index.blade.php"
+        "16": "resources\/views\/delivery-agents\/index.blade.php",
+        "17": "resources\/views\/document-types\/index.blade.php",
+        "19": "resources\/views\/driver-cars\/index.blade.php",
+        "20": "resources\/views\/driver-documents\/index.blade.php",
+        "21": "resources\/views\/driver-documents\/show.blade.php",
+        "22": "resources\/views\/drivers\/cars.blade.php",
+        "23": "resources\/views\/drivers\/documents.blade.php",
+        "24": "resources\/views\/drivers\/index.blade.php",
+        "25": "resources\/views\/drivers\/show.blade.php",
+        "26": "resources\/views\/leaderboard\/index.blade.php",
+        "27": "resources\/views\/livewire\/coupon-manager.blade.php",
+        "28": "resources\/views\/notifications\/index.blade.php",
+        "29": "resources\/views\/notifications\/show.blade.php",
+        "30": "resources\/views\/otp-limits\/index.blade.php",
+        "31": "resources\/views\/paymenent-methods\/index.blade.php",
+        "32": "resources\/views\/paymenent-methods\/show.blade.php",
+        "33": "resources\/views\/ride-request-time-limits\/index.blade.php",
+        "34": "resources\/views\/users\/index.blade.php",
+        "36": "resources\/views\/wallet-requests\/show.blade.php",
+        "37": "resources\/views\/zones\/index.blade.php"
     },
     "Updated At": [
         "resources\/views\/ads\/show.blade.php",
@@ -601,9 +618,11 @@
     "Delivery Vehicles": [
         "resources\/views\/elements\/sidebar.blade.php"
     ],
-    "Delivery Agents": [
-        "resources\/views\/elements\/sidebar.blade.php"
-    ],
+    "Delivery Agents": {
+        "0": "resources\/views\/delivery-agents\/index.blade.php",
+        "2": "resources\/views\/elements\/phoenix\/sidebar.blade.php",
+        "3": "resources\/views\/elements\/sidebar.blade.php"
+    },
     "Delivery Orders": [
         "resources\/views\/elements\/sidebar.blade.php"
     ],
@@ -780,6 +799,7 @@
     ],
     "Rejected": [
         "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "app\/Models\/DeliveryOffer.php",
         "app\/Models\/RideOffer.php",
         "app\/Enums\/ActivtyType.php",
         "app\/Enums\/DriverStatus.php",
@@ -866,6 +886,7 @@
         "resources\/views\/drivers\/documents.blade.php"
     ],
     "Documents": [
+        "resources\/views\/delivery-agents\/show.blade.php",
         "resources\/views\/drivers\/show.blade.php"
     ],
     "Create Document Type": {
@@ -1010,7 +1031,8 @@
         "resources\/views\/car-categories\/edit.blade.php",
         "resources\/views\/car-categories\/index.blade.php",
         "resources\/views\/car-categories\/show.blade.php",
-        "resources\/views\/livewire\/zone-car-categories.blade.php"
+        "resources\/views\/livewire\/zone-car-categories.blade.php",
+        "resources\/views\/zones\/edit.blade.php"
     ],
     "Price Per Km": [
         "resources\/views\/car-categories\/create.blade.php",
@@ -1057,6 +1079,7 @@
         "app\/Http\/Controllers\/CarModelController.php",
         "app\/Http\/Controllers\/CarTypeController.php",
         "app\/Http\/Controllers\/CityController.php",
+        "app\/Http\/Controllers\/DeliveryAgentController.php",
         "app\/Http\/Controllers\/DocumentTypeController.php",
         "app\/Http\/Controllers\/DriverCarController.php",
         "app\/Http\/Controllers\/DriverDocumentController.php",
@@ -1220,12 +1243,16 @@
         "2": "resources\/views\/cancelation-rides\/edit.blade.php",
         "3": "resources\/views\/cancelation-rides\/index.blade.php",
         "5": "resources\/views\/cancelation-rides\/show.blade.php",
-        "7": "resources\/views\/rides\/abnormal.blade.php",
-        "9": "resources\/views\/rides\/create.blade.php",
-        "10": "resources\/views\/rides\/edit.blade.php",
-        "11": "resources\/views\/rides\/index.blade.php",
-        "12": "resources\/views\/rides\/show.blade.php",
-        "15": "app\/Enums\/OtpTypes.php"
+        "7": "resources\/views\/deliveries\/index.blade.php",
+        "8": "resources\/views\/deliveries\/show.blade.php",
+        "9": "resources\/views\/deliveries\/track.blade.php",
+        "10": "resources\/views\/delivery-agents\/show.blade.php",
+        "11": "resources\/views\/rides\/abnormal.blade.php",
+        "13": "resources\/views\/rides\/create.blade.php",
+        "14": "resources\/views\/rides\/edit.blade.php",
+        "15": "resources\/views\/rides\/index.blade.php",
+        "16": "resources\/views\/rides\/show.blade.php",
+        "19": "app\/Enums\/OtpTypes.php"
     },
     "Pickup Lat": [
         "resources\/views\/rides\/create.blade.php",
@@ -1309,30 +1336,33 @@
         "11": "resources\/views\/cities\/edit.blade.php",
         "12": "resources\/views\/cities\/index.blade.php",
         "13": "resources\/views\/cities\/show.blade.php",
-        "14": "resources\/views\/drivers\/create.blade.php",
-        "15": "resources\/views\/drivers\/edit.blade.php",
-        "16": "resources\/views\/drivers\/index.blade.php",
-        "17": "resources\/views\/drivers\/ride-history.blade.php",
-        "19": "resources\/views\/drivers\/show.blade.php",
-        "21": "resources\/views\/drivers\/under-monitoring.blade.php",
-        "22": "resources\/views\/leaderboard\/index.blade.php",
-        "23": "resources\/views\/livewire\/coupon-manager.blade.php",
-        "24": "resources\/views\/paymenent-methods\/create.blade.php",
-        "25": "resources\/views\/paymenent-methods\/edit.blade.php",
-        "26": "resources\/views\/paymenent-methods\/index.blade.php",
-        "27": "resources\/views\/paymenent-methods\/show.blade.php",
-        "28": "resources\/views\/rides\/abnormal.blade.php",
-        "30": "resources\/views\/rides\/create.blade.php",
-        "31": "resources\/views\/rides\/edit.blade.php",
-        "32": "resources\/views\/rides\/index.blade.php",
-        "33": "resources\/views\/rides\/show.blade.php",
-        "34": "resources\/views\/users\/ride-history.blade.php",
-        "36": "resources\/views\/users\/show.blade.php",
-        "37": "resources\/views\/wallet-requests\/create.blade.php",
-        "38": "resources\/views\/wallet-requests\/edit.blade.php",
-        "39": "resources\/views\/wallet-requests\/history.blade.php",
-        "40": "resources\/views\/wallet-requests\/show.blade.php",
-        "41": "app\/Http\/Controllers\/DriverController.php"
+        "14": "resources\/views\/deliveries\/index.blade.php",
+        "15": "resources\/views\/delivery-agents\/index.blade.php",
+        "16": "resources\/views\/delivery-agents\/show.blade.php",
+        "18": "resources\/views\/drivers\/create.blade.php",
+        "19": "resources\/views\/drivers\/edit.blade.php",
+        "20": "resources\/views\/drivers\/index.blade.php",
+        "21": "resources\/views\/drivers\/ride-history.blade.php",
+        "23": "resources\/views\/drivers\/show.blade.php",
+        "25": "resources\/views\/drivers\/under-monitoring.blade.php",
+        "26": "resources\/views\/leaderboard\/index.blade.php",
+        "27": "resources\/views\/livewire\/coupon-manager.blade.php",
+        "28": "resources\/views\/paymenent-methods\/create.blade.php",
+        "29": "resources\/views\/paymenent-methods\/edit.blade.php",
+        "30": "resources\/views\/paymenent-methods\/index.blade.php",
+        "31": "resources\/views\/paymenent-methods\/show.blade.php",
+        "32": "resources\/views\/rides\/abnormal.blade.php",
+        "34": "resources\/views\/rides\/create.blade.php",
+        "35": "resources\/views\/rides\/edit.blade.php",
+        "36": "resources\/views\/rides\/index.blade.php",
+        "37": "resources\/views\/rides\/show.blade.php",
+        "38": "resources\/views\/users\/ride-history.blade.php",
+        "40": "resources\/views\/users\/show.blade.php",
+        "41": "resources\/views\/wallet-requests\/create.blade.php",
+        "42": "resources\/views\/wallet-requests\/edit.blade.php",
+        "43": "resources\/views\/wallet-requests\/history.blade.php",
+        "44": "resources\/views\/wallet-requests\/show.blade.php",
+        "45": "app\/Http\/Controllers\/DriverController.php"
     },
     "Edit Ride": [
         "resources\/views\/rides\/edit.blade.php"
@@ -1443,6 +1473,7 @@
         "resources\/views\/admin\/financial-reports\/index.blade.php",
         "resources\/views\/admin\/support-chat\/realtime.blade.php",
         "resources\/views\/components\/support-chat-widget.blade.php",
+        "app\/Models\/DeliveryOffer.php",
         "app\/Models\/RideOffer.php",
         "app\/Enums\/DriverStatus.php",
         "app\/Enums\/RideStatus.php"
@@ -1450,11 +1481,12 @@
     "Completed": {
         "0": "resources\/views\/admin\/referrals\/index.blade.php",
         "1": "resources\/views\/admin\/referrals\/list.blade.php",
-        "3": "resources\/views\/drivers\/ride-history.blade.php",
-        "5": "resources\/views\/drivers\/show.blade.php",
-        "6": "resources\/views\/users\/ride-history.blade.php",
-        "8": "resources\/views\/users\/show.blade.php",
-        "9": "app\/Enums\/RideStatus.php"
+        "3": "resources\/views\/deliveries\/show.blade.php",
+        "4": "resources\/views\/drivers\/ride-history.blade.php",
+        "6": "resources\/views\/drivers\/show.blade.php",
+        "7": "resources\/views\/users\/ride-history.blade.php",
+        "9": "resources\/views\/users\/show.blade.php",
+        "10": "app\/Enums\/RideStatus.php"
     },
     "Cancelled": {
         "0": "resources\/views\/drivers\/ride-history.blade.php",
@@ -1464,14 +1496,17 @@
         "6": "app\/Enums\/RideStatus.php"
     },
     "Arrived": [
+        "resources\/views\/deliveries\/show.blade.php",
         "app\/Enums\/RideStatus.php"
     ],
     "Waiting User": [
         "app\/Enums\/RideStatus.php"
     ],
     "Accepted": [
+        "resources\/views\/deliveries\/show.blade.php",
         "resources\/views\/drivers\/under-monitoring.blade.php",
         "resources\/views\/rides\/index.blade.php",
+        "app\/Models\/DeliveryOffer.php",
         "app\/Models\/RideOffer.php",
         "app\/Enums\/RideStatus.php"
     ],
@@ -2054,7 +2089,9 @@
         "resources\/views\/components\/active-rides-widget.blade.php"
     ],
     "Track": [
-        "resources\/views\/components\/active-rides-widget.blade.php"
+        "resources\/views\/components\/active-rides-widget.blade.php",
+        "resources\/views\/deliveries\/index.blade.php",
+        "resources\/views\/deliveries\/show.blade.php"
     ],
     "View All Active Rides": [
         "resources\/views\/components\/active-rides-widget.blade.php"
@@ -2165,6 +2202,8 @@
         "resources\/views\/rides\/track.blade.php"
     ],
     "Price": [
+        "resources\/views\/deliveries\/index.blade.php",
+        "resources\/views\/delivery-agents\/show.blade.php",
         "resources\/views\/rides\/track.blade.php",
         "resources\/views\/users\/ride-history.blade.php",
         "resources\/views\/users\/show.blade.php"
@@ -2307,6 +2346,7 @@
         "resources\/views\/zones\/create.blade.php"
     ],
     "Google Maps API Key Required": [
+        "resources\/views\/deliveries\/track.blade.php",
         "resources\/views\/zones\/create.blade.php",
         "resources\/views\/zones\/edit.blade.php",
         "resources\/views\/zones\/show.blade.php"
@@ -2358,6 +2398,7 @@
         "resources\/views\/zones\/show.blade.php"
     ],
     "Created": [
+        "resources\/views\/deliveries\/show.blade.php",
         "resources\/views\/zones\/show.blade.php"
     ],
     "Updated": [
@@ -2415,12 +2456,14 @@
         "0": "resources\/views\/admin\/financial-reports\/index.blade.php",
         "2": "resources\/views\/admin\/profit-statistics\/history.blade.php",
         "3": "resources\/views\/admin\/referrals\/index.blade.php",
-        "4": "resources\/views\/drivers\/ride-history.blade.php",
-        "5": "resources\/views\/drivers\/show.blade.php",
-        "6": "resources\/views\/leaderboard\/index.blade.php",
-        "7": "resources\/views\/users\/ride-history.blade.php",
-        "8": "resources\/views\/users\/show.blade.php",
-        "9": "resources\/views\/wallet-requests\/history.blade.php"
+        "4": "resources\/views\/deliveries\/index.blade.php",
+        "5": "resources\/views\/delivery-agents\/show.blade.php",
+        "6": "resources\/views\/drivers\/ride-history.blade.php",
+        "7": "resources\/views\/drivers\/show.blade.php",
+        "8": "resources\/views\/leaderboard\/index.blade.php",
+        "9": "resources\/views\/users\/ride-history.blade.php",
+        "10": "resources\/views\/users\/show.blade.php",
+        "11": "resources\/views\/wallet-requests\/history.blade.php"
     },
     "Total Fare": [
         "resources\/views\/admin\/profit-statistics\/history.blade.php",
@@ -2532,6 +2575,8 @@
     ],
     "Filter": [
         "resources\/views\/admin\/financial-reports\/index.blade.php",
+        "resources\/views\/deliveries\/index.blade.php",
+        "resources\/views\/delivery-agents\/index.blade.php",
         "resources\/views\/drivers\/ride-history.blade.php",
         "resources\/views\/users\/ride-history.blade.php"
     ],
@@ -3394,6 +3439,9 @@
         "resources\/views\/cancellation-policies\/edit.blade.php",
         "resources\/views\/cancellation-policies\/index.blade.php",
         "resources\/views\/cancellation-policies\/show.blade.php",
+        "resources\/views\/deliveries\/index.blade.php",
+        "resources\/views\/deliveries\/show.blade.php",
+        "resources\/views\/delivery-agents\/show.blade.php",
         "resources\/views\/drivers\/edit.blade.php",
         "resources\/views\/drivers\/index.blade.php",
         "resources\/views\/drivers\/show.blade.php",
@@ -3634,15 +3682,17 @@
         "app\/Http\/Controllers\/DriverController.php"
     ],
     "Online": {
-        "0": "resources\/views\/drivers\/show.blade.php",
-        "2": "resources\/views\/home\/welcome.blade.php",
-        "3": "app\/Http\/Controllers\/DriverController.php"
+        "0": "resources\/views\/delivery-agents\/index.blade.php",
+        "1": "resources\/views\/drivers\/show.blade.php",
+        "3": "resources\/views\/home\/welcome.blade.php",
+        "4": "app\/Http\/Controllers\/DriverController.php"
     },
     "Offline": {
-        "0": "resources\/views\/drivers\/index.blade.php",
-        "1": "resources\/views\/drivers\/show.blade.php",
-        "4": "resources\/views\/home\/welcome.blade.php",
-        "5": "app\/Http\/Controllers\/DriverController.php"
+        "0": "resources\/views\/delivery-agents\/index.blade.php",
+        "1": "resources\/views\/drivers\/index.blade.php",
+        "2": "resources\/views\/drivers\/show.blade.php",
+        "5": "resources\/views\/home\/welcome.blade.php",
+        "6": "app\/Http\/Controllers\/DriverController.php"
     },
     "Online & Available": [
         "resources\/views\/drivers\/show.blade.php"
@@ -3827,11 +3877,14 @@
         "resources\/views\/cancellation-policies\/index.blade.php",
         "resources\/views\/cancellation-policies\/show.blade.php"
     ],
-    "Rider": [
-        "resources\/views\/cancellation-policies\/index.blade.php",
-        "resources\/views\/cancellation-policies\/show.blade.php",
-        "app\/Http\/Controllers\/CancellationPolicyController.php"
-    ],
+    "Rider": {
+        "0": "resources\/views\/cancellation-policies\/index.blade.php",
+        "1": "resources\/views\/cancellation-policies\/show.blade.php",
+        "2": "resources\/views\/deliveries\/index.blade.php",
+        "3": "resources\/views\/deliveries\/show.blade.php",
+        "5": "resources\/views\/deliveries\/track.blade.php",
+        "7": "app\/Http\/Controllers\/CancellationPolicyController.php"
+    },
     "Year From": [
         "resources\/views\/car-types\/create.blade.php",
         "resources\/views\/car-types\/edit.blade.php"
@@ -4091,9 +4144,7 @@
         "resources\/views\/wallet-requests\/admin-limits.blade.php"
     ],
     "Driver Wallets Management": [
-        "resources\/views\/wallet-requests\/admin-limits.blade.php",
-        "resources\/views\/wallet-requests\/history.blade.php",
-        "resources\/views\/wallet-requests\/index.blade.php"
+        "resources\/views\/wallet-requests\/admin-limits.blade.php"
     ],
     "Manage wallet limits for admins who have the wallet management permission. When an admin adds money to a driver wallet, it will be deducted from their limit.": [
         "resources\/views\/wallet-requests\/admin-limits.blade.php"
@@ -4432,9 +4483,11 @@
     "On the way to passenger": [
         "resources\/views\/rides\/show.blade.php"
     ],
-    "Pickup": [
-        "resources\/views\/rides\/show.blade.php"
-    ],
+    "Pickup": {
+        "0": "resources\/views\/deliveries\/show.blade.php",
+        "1": "resources\/views\/deliveries\/track.blade.php",
+        "3": "resources\/views\/rides\/show.blade.php"
+    },
     "Trip path": [
         "resources\/views\/rides\/show.blade.php"
     ],
@@ -4497,12 +4550,15 @@
     ],
     "Ignored": [
         "resources\/views\/drivers\/under-monitoring.blade.php",
+        "app\/Models\/DeliveryOffer.php",
         "app\/Models\/RideOffer.php"
     ],
     "Cancelled after accept": [
+        "app\/Models\/DeliveryOffer.php",
         "app\/Models\/RideOffer.php"
     ],
     "Cancelled by user": [
+        "app\/Models\/DeliveryOffer.php",
         "app\/Models\/RideOffer.php"
     ],
     "Financial Reports": {
@@ -5132,5 +5188,202 @@
     ],
     "Settings updated successfully.": [
         "app\/Http\/Controllers\/AppSettingController.php"
+    ],
+    "Set an amount and save. The gift turns on automatically when the amount is greater than zero. You can still grant it manually to anyone in the pending list.": [
+        "resources\/views\/admin\/signup-gifts\/index.blade.php"
+    ],
+    "Deliveries": {
+        "0": "resources\/views\/deliveries\/index.blade.php",
+        "2": "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    },
+    "All statuses": [
+        "resources\/views\/deliveries\/index.blade.php",
+        "resources\/views\/delivery-agents\/index.blade.php"
+    ],
+    "All vehicles": [
+        "resources\/views\/deliveries\/index.blade.php"
+    ],
+    "Bike": [
+        "resources\/views\/deliveries\/index.blade.php",
+        "resources\/views\/zones\/edit.blade.php",
+        "app\/Enums\/VehicleType.php"
+    ],
+    "Motorcycle": [
+        "resources\/views\/deliveries\/index.blade.php",
+        "resources\/views\/zones\/edit.blade.php",
+        "app\/Enums\/VehicleType.php"
+    ],
+    "Vehicle": [
+        "resources\/views\/deliveries\/index.blade.php",
+        "resources\/views\/deliveries\/show.blade.php",
+        "resources\/views\/deliveries\/track.blade.php",
+        "resources\/views\/delivery-agents\/index.blade.php",
+        "resources\/views\/delivery-agents\/show.blade.php"
+    ],
+    "No deliveries found.": [
+        "resources\/views\/deliveries\/index.blade.php"
+    ],
+    "Delivery": {
+        "0": "resources\/views\/deliveries\/show.blade.php",
+        "2": "resources\/views\/deliveries\/track.blade.php"
+    },
+    "Back": [
+        "resources\/views\/deliveries\/show.blade.php",
+        "resources\/views\/deliveries\/track.blade.php",
+        "resources\/views\/delivery-agents\/show.blade.php"
+    ],
+    "Dropoff": [
+        "resources\/views\/deliveries\/show.blade.php",
+        "resources\/views\/deliveries\/track.blade.php"
+    ],
+    "Estimated km": [
+        "resources\/views\/deliveries\/show.blade.php"
+    ],
+    "Distance (km)": [
+        "resources\/views\/deliveries\/show.blade.php"
+    ],
+    "Duration (min)": [
+        "resources\/views\/deliveries\/show.blade.php"
+    ],
+    "Initial price": [
+        "resources\/views\/deliveries\/show.blade.php"
+    ],
+    "Final price": [
+        "resources\/views\/deliveries\/show.blade.php"
+    ],
+    "Timeline": [
+        "resources\/views\/deliveries\/show.blade.php"
+    ],
+    "Offer History": [
+        "resources\/views\/deliveries\/show.blade.php"
+    ],
+    "Response": [
+        "resources\/views\/deliveries\/show.blade.php"
+    ],
+    "Seconds": [
+        "resources\/views\/deliveries\/show.blade.php"
+    ],
+    "No offers recorded.": [
+        "resources\/views\/deliveries\/show.blade.php"
+    ],
+    "Track Delivery": [
+        "resources\/views\/deliveries\/track.blade.php"
+    ],
+    "No location data available for this delivery.": [
+        "resources\/views\/deliveries\/track.blade.php"
+    ],
+    "Search by name \/ phone \/ email": [
+        "resources\/views\/delivery-agents\/index.blade.php"
+    ],
+    "Available": [
+        "resources\/views\/delivery-agents\/index.blade.php"
+    ],
+    "Are you sure?": [
+        "resources\/views\/delivery-agents\/index.blade.php"
+    ],
+    "No delivery agents found.": [
+        "resources\/views\/delivery-agents\/index.blade.php"
+    ],
+    "Delivery Agent": [
+        "resources\/views\/delivery-agents\/show.blade.php"
+    ],
+    "Rejected reason": [
+        "resources\/views\/delivery-agents\/show.blade.php"
+    ],
+    "Set Status": [
+        "resources\/views\/delivery-agents\/show.blade.php"
+    ],
+    "Rejected reason (optional)": [
+        "resources\/views\/delivery-agents\/show.blade.php"
+    ],
+    "Rider photo": [
+        "resources\/views\/delivery-agents\/show.blade.php",
+        "app\/Enums\/VehicleType.php"
+    ],
+    "Identity": [
+        "resources\/views\/delivery-agents\/show.blade.php"
+    ],
+    "License": [
+        "resources\/views\/delivery-agents\/show.blade.php"
+    ],
+    "No vehicle documents uploaded.": [
+        "resources\/views\/delivery-agents\/show.blade.php"
+    ],
+    "Recent Deliveries": [
+        "resources\/views\/delivery-agents\/show.blade.php"
+    ],
+    "No deliveries yet.": [
+        "resources\/views\/delivery-agents\/show.blade.php"
+    ],
+    "pending delivery agents": [
+        "resources\/views\/elements\/phoenix\/sidebar.blade.php"
+    ],
+    "Location": [
+        "resources\/views\/rides\/index.blade.php",
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Driver Cancel Location": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Driver Ignore Location": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Ignored the request": [
+        "resources\/views\/rides\/show.blade.php"
+    ],
+    "Wallets Management": [
+        "resources\/views\/wallet-requests\/history.blade.php",
+        "resources\/views\/wallet-requests\/index.blade.php"
+    ],
+    "This account has no wallet transaction history": [
+        "resources\/views\/wallet-requests\/history.blade.php"
+    ],
+    "Riders": [
+        "resources\/views\/wallet-requests\/index.blade.php"
+    ],
+    "Rider Name": [
+        "resources\/views\/wallet-requests\/index.blade.php"
+    ],
+    "No riders found": [
+        "resources\/views\/wallet-requests\/index.blade.php"
+    ],
+    "Delivery Prices": [
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "Price per km": [
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "Price per minute": [
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "Minimum Price": [
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "Save Delivery Prices": [
+        "resources\/views\/zones\/edit.blade.php"
+    ],
+    "Deleted successfully": [
+        "app\/Http\/Controllers\/DeliveryAgentController.php"
+    ],
+    "Amount added successfully to wallet": [
+        "app\/Http\/Controllers\/WalletRequestController.php"
+    ],
+    "Amount deducted successfully from wallet": [
+        "app\/Http\/Controllers\/WalletRequestController.php"
+    ],
+    "Delivery prices updated.": [
+        "app\/Http\/Controllers\/ZoneController.php"
+    ],
+    "Identity photo": [
+        "app\/Enums\/VehicleType.php"
+    ],
+    "Motorcycle photo": [
+        "app\/Enums\/VehicleType.php"
+    ],
+    "Motorcycle license": [
+        "app\/Enums\/VehicleType.php"
+    ],
+    "Bike photo": [
+        "app\/Enums\/VehicleType.php"
     ]
 }
