@@ -23,8 +23,14 @@ class WalletRequestController extends Controller
         $keyword = $request->get('keyword');
         $balanceOperator = $request->get('balance_operator');
         $balanceAmount = $request->get('balance_amount');
+        $accountType = $request->get('account_type', 'drivers');
+        if (!in_array($accountType, ['drivers', 'riders'], true)) {
+            $accountType = 'drivers';
+        }
 
-        $drivers = User::where('role', 'driver')
+        $role = $accountType === 'riders' ? 'delivery' : 'driver';
+
+        $drivers = User::where('role', $role)
             ->when($keyword, function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->where('name', 'LIKE', "%{$keyword}%")
@@ -42,7 +48,8 @@ class WalletRequestController extends Controller
             'sortField',
             'sortOrder',
             'balanceOperator',
-            'balanceAmount'
+            'balanceAmount',
+            'accountType'
         ));
     }
 
@@ -191,8 +198,7 @@ class WalletRequestController extends Controller
             if ($admin->can('إدارة طلبات المحفظة')) {
                 // Check if admin has sufficient limit
                 if ($admin->wallet_limit < $validated['amount']) {
-                    return redirect()
-                        ->route('wallet-requests.index')
+                    return $this->walletRedirect($driver)
                         ->with('error', __('Insufficient wallet limit. Your current limit: ') . '$' . number_format($admin->wallet_limit, 2));
                 }
 
@@ -212,12 +218,10 @@ class WalletRequestController extends Controller
                 'note' => $validated['note'] ?? 'Admin added to wallet',
             ]);
 
-            return redirect()
-                ->route('wallet-requests.index')
-                ->with('success', __('Amount added successfully to driver wallet'));
+            return $this->walletRedirect($driver)
+                ->with('success', __('Amount added successfully to wallet'));
         } catch (\Exception $e) {
-            return redirect()
-                ->route('wallet-requests.index')
+            return $this->walletRedirect($driver)
                 ->with('error', __('Failed to add amount: ') . $e->getMessage());
         }
     }
@@ -232,8 +236,7 @@ class WalletRequestController extends Controller
         try {
             // Check if driver has sufficient balance
             if ($driver->wallet < $validated['amount']) {
-                return redirect()
-                    ->route('wallet-requests.index')
+                return $this->walletRedirect($driver)
                     ->with('error', __('Insufficient wallet balance. Current balance: ') . $driver->wallet);
             }
 
@@ -250,12 +253,10 @@ class WalletRequestController extends Controller
                 'driver_wallet' => $driver->fresh()->wallet
             ]);
 
-            return redirect()
-                ->route('wallet-requests.index')
-                ->with('success', __('Amount deducted successfully from driver wallet'));
+            return $this->walletRedirect($driver)
+                ->with('success', __('Amount deducted successfully from wallet'));
         } catch (\Exception $e) {
-            return redirect()
-                ->route('wallet-requests.index')
+            return $this->walletRedirect($driver)
                 ->with('error', __('Failed to deduct amount: ') . $e->getMessage());
         }
     }
@@ -267,6 +268,13 @@ class WalletRequestController extends Controller
             ->paginate(20);
 
         return view('wallet-requests.history', compact('driver', 'walletHistory'));
+    }
+
+    protected function walletRedirect(User $account)
+    {
+        $accountType = $account->isDelivery() ? 'riders' : 'drivers';
+
+        return redirect()->route('wallet-requests.index', ['account_type' => $accountType]);
     }
 
     public function adminLimits()

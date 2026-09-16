@@ -208,6 +208,27 @@ class User extends Authenticatable
         return $this->hasMany(Ride::class, 'driver_id');
     }
 
+    // ─── Delivery relations ──────────────────────────────────────────────
+    public function riderVehicle()
+    {
+        return $this->hasOne(RiderVehicle::class, 'rider_id');
+    }
+
+    public function userDeliveries()
+    {
+        return $this->hasMany(Delivery::class, 'user_id');
+    }
+
+    public function riderDeliveries()
+    {
+        return $this->hasMany(Delivery::class, 'rider_id');
+    }
+
+    public function deliveryOffers()
+    {
+        return $this->hasMany(DeliveryOffer::class, 'rider_id');
+    }
+
     public function walletRequests()
     {
         return $this->hasMany(WalletRequest::class, 'driver_id');
@@ -281,7 +302,15 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if this user is a regular user (not driver or admin)
+     * Check if this user is a delivery captain (bike / motorcycle rider).
+     */
+    public function isDelivery(): bool
+    {
+        return $this->role === 'delivery';
+    }
+
+    /**
+     * Check if this user is a regular user (not driver, delivery, or admin)
      */
     public function isUser(): bool
     {
@@ -340,8 +369,10 @@ class User extends Authenticatable
      */
     public function canGoOnline(): bool
     {
-        if (!$this->isDriver()) {
-            return true; // Non-drivers are not affected by this rule
+        // Drivers and delivery captains must keep a minimum wallet balance to
+        // go online / take work. Regular users are not affected.
+        if (!$this->isDriver() && !$this->isDelivery()) {
+            return true;
         }
 
         $minimumBalance = AppSetting::getMinimumDriverWalletBalance();

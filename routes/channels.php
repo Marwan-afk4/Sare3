@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Delivery;
 use App\Models\Ride;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -49,6 +50,33 @@ Broadcast::channel('user.{userId}', function ($user, $userId) {
     }
 
     return (int) $user->id === (int) $userId;
+});
+
+// ─── Private Channel: rider.{riderId} ─────────────────────────────────────
+// Only the delivery captain themselves can subscribe (mobile app connection).
+Broadcast::channel('rider.{userId}', function ($user, $userId) {
+    if (! $user) {
+        return false;
+    }
+
+    return (int) $user->id === (int) $userId
+        && strtolower($user->role) === 'delivery';
+});
+
+// ─── Private Channel: delivery.{deliveryId} ───────────────────────────────
+// Both the passenger and the assigned rider can subscribe to delivery updates.
+Broadcast::channel('delivery.{deliveryId}', function ($user, $deliveryId) {
+    if (! $user) {
+        return false;
+    }
+
+    $delivery = Delivery::find($deliveryId);
+    if (! $delivery) {
+        return false;
+    }
+
+    return (int) $user->id === (int) $delivery->user_id
+        || (int) $user->id === (int) $delivery->rider_id;
 });
 
 // ─── Presence Channel: chat.{roomId} ──────────────────────────────────────

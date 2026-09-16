@@ -1,0 +1,1129 @@
+openapi: 3.0.3
+info:
+  title: Sare3 Delivery API
+  version: 1.0.0
+  description: |
+    Delivery feature for the captain app (`role=delivery`) and the user app.
+
+    **Auth:** login or verify OTP as a captain/user to get a Sanctum bearer token.
+
+    Click **Authorize** and paste `Bearer {access_token}` or just the token.
+
+    Rider and user delivery endpoints require that token. Signup, required-docs, store-vehicle, and tracking do not.
+
+    **Status flow (reuse ride statuses, only these four are used):**
+    `pending` → `accepted` → `arrived` → `finshed`
+    also `rejected` (rider / timeout) and `cancelled` (user).
+    Do **not** use `waiting_user`, `in_progress`, `completed`, or `start`.
+
+    **Matching:** nearest available delivery rider to the **pickup** pin (shop / order), not to the user. The user does not choose bike vs motorcycle; the assigned rider’s vehicle type locks the price.
+
+    **Reverb / Echo (Laravel):**
+    - Rider listens `private-rider.{riderId}` for `.delivery.request.new`, `.delivery.status.updated`, `.rider.location.updated`
+    - User + rider listen `private-delivery.{deliveryId}` for `.delivery.status.updated`, `.rider.location.updated`
+    - User also gets `.delivery.status.updated` on `private-user.{userId}`
+    - Public: `active-riders` (`.active.rider.location.updated`), `rider-location` (`.rider.location.updated`)
+    - FCM: `msg_type=delivery_request`, payload includes `delivery_id`
+
+    Channel auth uses the same Sanctum token as HTTP (`/api/broadcasting/auth`).
+  contact:
+    name: Sare3
+
+servers:
+  - url: '{{API_BASE_URL}}'
+    description: Application URL from APP_URL
+
+tags:
+  - name: Captain Signup
+    description: Shared `/driver/*` OTP flow. Send `role=delivery` + `vehicle_type` instead of using car docs.
+  - name: Rider
+    description: Delivery captain app. Bearer token. Wallet-gated go-online.
+  - name: User Delivery
+    description: Passenger app delivery endpoints. Bearer token.
+  - name: Tracking
+    description: REST fallback if Reverb drops. No auth (same pattern as ride tracking).
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+      description: Token from `/driver/verify-otp` or `/driver/login`.
+
+  schemas:
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Success
+
+    WalletStatus:
+      type: object
+      properties:
+        current_balance:
+          type: number
+          example: 12.5
+        minimum_required_balance:
+          type: number
+          example: 5
+        can_go_online:
+          type: boolean
+          example: true
+        balance_deficit:
+          type: number
+          example: 0
+
+    VehicleType:
+      type: string
+      enum: [bike, motorcycle]
+
+    DeliveryStatus:
+      type: string
+      enum: [pending, accepted, arrived, finshed, rejected, cancelled]
+      description: Existing ride statuses. Delivery only uses these.
+
+    RequiredDoc:
+      type: object
+      properties:
+        key:
+          type: string
+          example: rider_image
+        name:
+          type: string
+          example: Rider photo
+
+    EstimateVehiclePrice:
+      type: object
+      properties:
+        vehicle_type:
+          $ref: '#/components/schemas/VehicleType'
+        label:
+          type: string
+          example: Motorcycle
+        available:
+          type: boolean
+        estimated_price:
+          type: number
+          nullable: true
+          example: 3.75
+
+    RiderSummary:
+      type: object
+      nullable: true
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        image_link:
+          type: string
+          nullable: true
+        vehicle:
+          type: object
+          nullable: true
+          properties:
+            type:
+              $ref: '#/components/schemas/VehicleType'
+            vehicle_image_link:
+              type: string
+              nullable: true
+
+    Delivery:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        user_id:
+          type: integer
+        rider_id:
+          type: integer
+          nullable: true
+        zone_id:
+          type: integer
+        vehicle_type:
+          $ref: '#/components/schemas/VehicleType'
+        pickup_lat:
+          type: number
+          format: float
+        pickup_lng:
+          type: number
+          format: float
+        pickup_address:
+          type: string
+          nullable: true
+        dropoff_lat:
+          type: number
+          format: float
+        dropoff_lng:
+          type: number
+          format: float
+        dropoff_address:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/DeliveryStatus'
+        estimated_km:
+          type: number
+        estimated_time:
+          type: number
+        calculated_initial_price:
+          type: number
+        calculated_final_price:
+          type: number
+          nullable: true
+        rider:
+          $ref: '#/components/schemas/RiderSummary'
+
+    RoutePoint:
+      type: object
+      properties:
+        lat:
+          type: number
+        lng:
+          type: number
+        bearing:
+          type: number
+        timestamp:
+          type: integer
+        seq:
+          type: integer
+          nullable: true
+        phase:
+          type: string
+          enum: [to_pickup, trip]
+
+    NewDeliveryRequestEvent:
+      type: object
+      description: Echo event `.delivery.request.new` on `private-rider.{id}`
+      properties:
+        delivery_id:
+          type: integer
+        vehicle_type:
+          $ref: '#/components/schemas/VehicleType'
+        user:
+          type: object
+          properties:
+            id: { type: integer }
+            name: { type: string }
+            phone: { type: string }
+            avatar: { type: string, nullable: true }
+            rating: { type: number }
+        pickup_lat: { type: number }
+        pickup_lng: { type: number }
+        pickup_address: { type: string, nullable: true }
+        dropoff_lat: { type: number }
+        dropoff_lng: { type: number }
+        dropoff_address: { type: string, nullable: true }
+        estimated_price: { type: number }
+        estimated_time: { type: number }
+        estimated_km: { type: number }
+
+    DeliveryStatusUpdatedEvent:
+      type: object
+      description: Echo event `.delivery.status.updated`
+      properties:
+        delivery_id: { type: integer }
+        status:
+          $ref: '#/components/schemas/DeliveryStatus'
+        rider_id: { type: integer, nullable: true }
+        user_id: { type: integer }
+        vehicle_type:
+          $ref: '#/components/schemas/VehicleType'
+        rider:
+          $ref: '#/components/schemas/RiderSummary'
+        completed_details:
+          type: object
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+
+    RiderLocationUpdatedEvent:
+      type: object
+      description: Echo event `.rider.location.updated`
+      properties:
+        rider_id: { type: integer }
+        delivery_id: { type: integer, nullable: true }
+        latitude: { type: number }
+        longitude: { type: number }
+        bearing: { type: number, nullable: true }
+        updated_at: { type: string, format: date-time }
+
+paths:
+  /driver/send-otp:
+    post:
+      tags: [Captain Signup]
+      summary: Send OTP (driver or delivery)
+      security: []
+      description: |
+        First signup screen. Existing driver OTP endpoint, now accepts `role` + `vehicle_type`.
+        For delivery, `vehicle_type` is required (`bike` or `motorcycle`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone]
+              properties:
+                phone:
+                  type: string
+                  example: "+9627XXXXXXXX"
+                role:
+                  type: string
+                  enum: [driver, delivery]
+                  default: driver
+                vehicle_type:
+                  $ref: '#/components/schemas/VehicleType'
+      responses:
+        "200":
+          description: OTP sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: OTP sent for signup }
+                  isLogin: { type: boolean }
+                  role: { type: string, example: delivery }
+                  vehicle_type:
+                    $ref: '#/components/schemas/VehicleType'
+        "422":
+          description: Validation / already registered as the other role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+
+  /driver/verify-otp:
+    post:
+      tags: [Captain Signup]
+      summary: Verify OTP
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, otp_code]
+              properties:
+                phone: { type: string }
+                otp_code: { type: string, example: "123456" }
+      responses:
+        "200":
+          description: Phone verified, Sanctum token issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  token: { type: string }
+                  role: { type: string, example: delivery }
+                  vehicle_type:
+                    $ref: '#/components/schemas/VehicleType'
+
+  /driver/login:
+    post:
+      tags: [Captain Signup]
+      summary: Captain login (driver or delivery)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                phone: { type: string }
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  token: { type: string }
+                  user: { type: object }
+                  role: { type: string, example: delivery }
+                  vehicle_type:
+                    $ref: '#/components/schemas/VehicleType'
+        "401":
+          description: Invalid credentials
+
+  /rider/required-docs:
+    get:
+      tags: [Captain Signup]
+      summary: Required delivery documents
+      security: []
+      description: |
+        Use this instead of `/driver/required-docs` when `role=delivery`.
+        Motorcycle: rider_image, identity_image, vehicle_image, license_image.
+        Bike: rider_image, identity_image, vehicle_image.
+      parameters:
+        - in: query
+          name: vehicle_type
+          schema:
+            $ref: '#/components/schemas/VehicleType'
+        - in: query
+          name: phone
+          schema:
+            type: string
+          description: Optional. Used to look up stored vehicle type if `vehicle_type` is omitted.
+      responses:
+        "200":
+          description: Document keys the app must upload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vehicle_type:
+                    $ref: '#/components/schemas/VehicleType'
+                  requiredDocs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RequiredDoc'
+        "422":
+          description: Missing / invalid vehicle_type
+
+  /rider/store-vehicle:
+    post:
+      tags: [Captain Signup]
+      summary: Upload delivery vehicle documents
+      security: []
+      description: |
+        Use this instead of `/driver/store-car`. Images are base64 data URIs.
+        `license_image` is required only for motorcycle. Account stays `pending` until admin approval.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, documents]
+              properties:
+                phone:
+                  type: string
+                  example: "+9627XXXXXXXX"
+                city_id:
+                  type: integer
+                  nullable: true
+                documents:
+                  type: object
+                  required: [rider_image, identity_image, vehicle_image]
+                  properties:
+                    rider_image:
+                      type: string
+                      example: "data:image/jpeg;base64,..."
+                    identity_image:
+                      type: string
+                    vehicle_image:
+                      type: string
+                    license_image:
+                      type: string
+                      description: Motorcycle only
+      responses:
+        "200":
+          description: Submitted, waiting for admin approval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        "400":
+          description: Invalid base64 image
+        "404":
+          description: Delivery account not found
+        "422":
+          description: Missing document / no vehicle type on file
+
+  /rider/get-profile:
+    get:
+      tags: [Rider]
+      summary: Rider profile
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer }
+                  name: { type: string }
+                  gender: { type: string, nullable: true }
+                  email: { type: string, nullable: true }
+                  phone: { type: string }
+                  image_link: { type: string, nullable: true }
+                  activity: { type: string }
+                  is_available: { type: boolean }
+                  status: { type: string, example: approved }
+                  rejected_reason: { type: string }
+                  wallet: { type: number }
+                  zone: { type: string, nullable: true }
+                  zone_id: { type: integer, nullable: true }
+                  vehicle:
+                    type: object
+                    nullable: true
+                    properties:
+                      type:
+                        $ref: '#/components/schemas/VehicleType'
+                      rider_image_link: { type: string, nullable: true }
+                      identity_image_link: { type: string, nullable: true }
+                      vehicle_image_link: { type: string, nullable: true }
+                      license_image_link: { type: string, nullable: true }
+
+  /rider/rider-status:
+    get:
+      tags: [Rider]
+      summary: Approval status + availability
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rider:
+                    type: object
+                    properties:
+                      id: { type: integer }
+                      name: { type: string }
+                      email: { type: string, nullable: true }
+                      phone: { type: string }
+                      status: { type: string }
+                      is_available: { type: boolean }
+                      vehicle_type:
+                        $ref: '#/components/schemas/VehicleType'
+
+  /rider/wallet-status:
+    get:
+      tags: [Rider]
+      summary: Wallet gate for going online
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  wallet_status:
+                    $ref: '#/components/schemas/WalletStatus'
+
+  /rider/update-availability:
+    post:
+      tags: [Rider]
+      summary: Go online / offline
+      description: Going online (`is_available=true`) requires minimum wallet balance. Otherwise `403`.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [is_available]
+              properties:
+                is_available:
+                  type: boolean
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  is_available: { type: boolean }
+        "403":
+          description: Insufficient wallet balance
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  message: { type: string }
+                  wallet_status:
+                    $ref: '#/components/schemas/WalletStatus'
+
+  /rider/rider-in-delivery:
+    get:
+      tags: [Rider]
+      summary: Active delivery for this rider
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  is_in_delivery:
+                    type: object
+                    nullable: true
+                    properties:
+                      id: { type: integer }
+                      status:
+                        $ref: '#/components/schemas/DeliveryStatus'
+
+  /rider/zones:
+    get:
+      tags: [Rider]
+      summary: List zones
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data:
+                    type: array
+                    items: { type: object }
+
+  /rider/add-zone:
+    post:
+      tags: [Rider]
+      summary: Set rider zone
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [zone_id]
+              properties:
+                zone_id: { type: integer }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+
+  /rider/update-location:
+    post:
+      tags: [Rider]
+      summary: Idle GPS ping
+      description: Broadcasts `.rider.location.updated` and `.active.rider.location.updated`.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lat, lng]
+              properties:
+                lat: { type: number, format: float, example: 31.95 }
+                lng: { type: number, format: float, example: 35.91 }
+                bearing: { type: number, minimum: 0, maximum: 360 }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  latitude: { type: number }
+                  longitude: { type: number }
+                  bearing: { type: number, nullable: true }
+
+  /rider/delivery/update-location:
+    post:
+      tags: [Rider]
+      summary: GPS ping during an active delivery
+      description: |
+        Trackable statuses: `accepted`, `arrived`.
+        `accepted` stores points on the pickup leg; `arrived` stores the trip to the user.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [delivery_id, lat, lng]
+              properties:
+                delivery_id: { type: integer }
+                lat: { type: number }
+                lng: { type: number }
+                bearing: { type: number }
+                seq: { type: integer }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  total_points: { type: integer }
+        "400":
+          description: Not in a trackable status
+        "403":
+          description: Not the assigned rider
+
+  /rider/delivery/accept:
+    post:
+      tags: [Rider]
+      summary: Accept delivery offer
+      description: Sets status to `accepted`. Wallet-gated. Optional lat/lng snapshot.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [delivery_id]
+              properties:
+                delivery_id: { type: integer }
+                lat: { type: number }
+                lng: { type: number }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        "403":
+          description: Insufficient wallet
+        "404":
+          description: Not available for acceptance
+
+  /rider/delivery/reject:
+    post:
+      tags: [Rider]
+      summary: Reject / cancel assignment
+      description: Reassigns to the next nearest rider, or marks the delivery `rejected` if none remain.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [delivery_id]
+              properties:
+                delivery_id: { type: integer }
+                lat: { type: number }
+                lng: { type: number }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+
+  /rider/delivery/arrived:
+    post:
+      tags: [Rider]
+      summary: Arrived at pickup
+      description: Sets status to `arrived` (pickup location, not the user).
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [delivery_id]
+              properties:
+                delivery_id: { type: integer }
+                lat: { type: number }
+                lng: { type: number }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+
+  /rider/delivery/finish:
+    post:
+      tags: [Rider]
+      summary: Finish at user destination
+      description: Sets status to `finshed`, calculates fare, deducts admin commission from rider wallet.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [delivery_id]
+              properties:
+                delivery_id: { type: integer }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: Delivery finished. }
+                  pricing:
+                    type: object
+                    properties:
+                      final_fare: { type: number }
+                      distance_km: { type: number }
+                      duration_minutes: { type: number }
+                  admin_profit:
+                    type: object
+                    properties:
+                      percentage: { type: number }
+                      amount: { type: number }
+                      rider_amount: { type: number }
+
+  /rider/fcm-token:
+    post:
+      tags: [Rider]
+      summary: Save FCM token
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fcm_token]
+              properties:
+                fcm_token: { type: string }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+
+  /rider/logout:
+    delete:
+      tags: [Rider]
+      summary: Logout (revoke current token)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+
+  /rider/delete-account:
+    delete:
+      tags: [Rider]
+      summary: Delete rider account
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+
+  /user/delivery/estimate:
+    post:
+      tags: [User Delivery]
+      summary: Estimate delivery prices
+      description: Returns km/time and prices for **both** bike and motorcycle in the zone. User does not pick a vehicle type.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [zone_id]
+              properties:
+                zone_id: { type: integer }
+                pickup_lat: { type: number }
+                pickup_lng: { type: number }
+                dropoff_lat: { type: number }
+                dropoff_lng: { type: number }
+                estimated_km: { type: number }
+                estimated_time: { type: number }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  estimated_km: { type: number }
+                  estimated_time: { type: number }
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EstimateVehiclePrice'
+
+  /user/delivery/create:
+    post:
+      tags: [User Delivery]
+      summary: Create delivery
+      description: |
+        Pickup = shop / order pin. Dropoff = where the user is.
+        Assigns the nearest eligible rider to pickup. Vehicle type and price come from that rider.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [zone_id, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng]
+              properties:
+                zone_id: { type: integer }
+                pickup_lat: { type: number, example: 31.95 }
+                pickup_lng: { type: number, example: 35.91 }
+                pickup_address: { type: string }
+                dropoff_lat: { type: number, example: 31.96 }
+                dropoff_lng: { type: number, example: 35.93 }
+                dropoff_address: { type: string }
+                estimated_km: { type: number }
+                estimated_time: { type: number }
+                payment_method_id: { type: integer, nullable: true }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: Delivery created successfully }
+                  data:
+                    $ref: '#/components/schemas/Delivery'
+        "404":
+          description: No riders available
+        "422":
+          description: Validation / zone pricing missing
+
+  /user/delivery/status:
+    post:
+      tags: [User Delivery]
+      summary: Get one delivery’s status
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [delivery_id]
+              properties:
+                delivery_id: { type: integer }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  delivery:
+                    type: object
+                    properties:
+                      id: { type: integer }
+                      status:
+                        $ref: '#/components/schemas/DeliveryStatus'
+                      vehicle_type:
+                        $ref: '#/components/schemas/VehicleType'
+                      rider:
+                        $ref: '#/components/schemas/RiderSummary'
+                      pickup_address: { type: string, nullable: true }
+                      dropoff_address: { type: string, nullable: true }
+                      estimated_price: { type: number }
+                      final_price: { type: number, nullable: true }
+                      created_at: { type: string, format: date-time }
+        "404":
+          description: Not found or not owned by user
+
+  /user/user-in-delivery:
+    get:
+      tags: [User Delivery]
+      summary: Active delivery for this user
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  is_in_delivery:
+                    type: object
+                    nullable: true
+                    properties:
+                      id: { type: integer }
+                      status:
+                        $ref: '#/components/schemas/DeliveryStatus'
+
+  /user/deliveries:
+    get:
+      tags: [User Delivery]
+      summary: User delivery history
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20 }
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Delivery'
+                  pagination:
+                    type: object
+                    properties:
+                      current_page: { type: integer }
+                      last_page: { type: integer }
+                      per_page: { type: integer }
+                      total: { type: integer }
+                      has_more_pages: { type: boolean }
+
+  /user/cancel-delivery:
+    post:
+      tags: [User Delivery]
+      summary: Cancel delivery
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [delivery_id]
+              properties:
+                delivery_id: { type: integer }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        "422":
+          description: Already finished / cancelled
+
+  /deliveries/{deliveryId}/rider-location:
+    get:
+      tags: [Tracking]
+      summary: Latest rider GPS
+      security: []
+      parameters:
+        - in: path
+          name: deliveryId
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lat: { type: number }
+                  lng: { type: number }
+                  timestamp: { type: integer, nullable: true }
+                  status:
+                    $ref: '#/components/schemas/DeliveryStatus'
+        "400":
+          description: Not trackable
+        "404":
+          description: Delivery / location missing
+
+  /deliveries/{deliveryId}/route-points:
+    get:
+      tags: [Tracking]
+      summary: Trip route points
+      security: []
+      parameters:
+        - in: path
+          name: deliveryId
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  points:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RoutePoint'
+                  total_points: { type: integer }
+
+  /deliveries/{deliveryId}/tracking-data:
+    get:
+      tags: [Tracking]
+      summary: Full map payload
+      security: []
+      parameters:
+        - in: path
+          name: deliveryId
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  delivery: { type: object }
+                  route_points:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RoutePoint'
+                  to_pickup_route_points:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RoutePoint'
+                  live_rider_location:
+                    type: object
+                    nullable: true
+                    properties:
+                      lat: { type: number }
+                      lng: { type: number }
+                      bearing: { type: number }
+                      timestamp: { type: integer }
+                  is_trackable: { type: boolean }
+                  offers:
+                    type: array
+                    items: { type: object }
+                  total_points: { type: integer }
+        "404":
+          description: Delivery not found

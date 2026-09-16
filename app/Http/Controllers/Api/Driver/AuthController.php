@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api\Driver;
 
 use App\Enums\ActiveStatuses;
+use App\Enums\VehicleType;
 use App\Http\Controllers\Controller;
 use App\Mail\EmailVerificationCode;
 use App\Services\OtpDeliveryService;
 use App\Services\SignupGiftService;
 use App\Models\CarCategory;
+use App\Models\RiderVehicle;
 use App\Models\CarModel;
 use App\Models\CarType;
 use App\Models\City;
@@ -46,8 +48,13 @@ class AuthController extends Controller
         $validation = Validator::make($request->all(), [
             // Must be international format with or without +
             'phone' => ['required', 'string', 'regex:/^\+?[1-9][0-9]{6,14}$/'],
+            // Captain type chosen on the first signup screen. Defaults to driver.
+            'role' => ['nullable', 'in:driver,delivery'],
+            // Required only when signing up as a delivery captain.
+            'vehicle_type' => ['nullable', 'required_if:role,delivery', 'in:bike,motorcycle'],
         ], [
             'phone.regex' => 'Phone must be in international format (e.g. +9627XXXXXXXX or 9627XXXXXXXX)',
+            'vehicle_type.required_if' => 'Please choose a vehicle type (bike or motorcycle) for delivery.',
         ]);
 
         if ($validation->fails()) {
@@ -58,6 +65,8 @@ class AuthController extends Controller
                 'message' => $validation->errors()->first(),
             ], 422);
         }
+
+        $requestedRole = $request->input('role', 'driver');
 
         $otpCode = rand(100000, 999999);
         $defaultOtpLimit = OtpLimit::where('type', 'driver')->value('otp_limit');
@@ -89,20 +98,48 @@ class AuthController extends Controller
                 $user->update(['phone' => $phone]);
                 Log::info('[otp-trace] stored phone updated to normalized value', ['phone' => $phone]);
             }
+
+            // Prevent switching an existing captain between driver and delivery.
+            if (
+                $request->filled('role')
+                && in_array($user->role, ['driver', 'delivery'], true)
+                && $user->role !== $requestedRole
+            ) {
+                return response()->json([
+                    'message' => 'This phone is already registered as a ' . $user->role . ' account.',
+                ], 422);
+            }
         } else {
-            // Create new driver account
+            // Create new captain account (driver or delivery).
             $user = User::create([
                 'phone'          => $phone,
-                'role'           => 'driver',
+                'role'           => $requestedRole,
                 'otp_limit'      => $defaultOtpLimit ?? 5,
                 'activity'       => 'in_progress',
                 'phone_verified' => false,
             ]);
-            Log::info('[otp-trace] driver created', [
+            Log::info('[otp-trace] captain created', [
                 'user_id' => $user->id,
                 'phone' => $user->phone,
+                'role' => $user->role,
                 'otp_limit' => $user->otp_limit,
             ]);
+
+            // Persist the chosen vehicle type right away so later steps do not
+            // depend on the client remembering it. Images are filled later.
+            if ($requestedRole === 'delivery' && $request->filled('vehicle_type')) {
+                RiderVehicle::firstOrCreate(
+                    ['rider_id' => $user->id],
+                    ['type' => $request->input('vehicle_type')]
+                );
+            }
+        }
+
+        if ($user->isDelivery() && $request->filled('vehicle_type') && !$user->riderVehicle) {
+            RiderVehicle::firstOrCreate(
+                ['rider_id' => $user->id],
+                ['type' => $request->input('vehicle_type')]
+            );
         }
 
         $userLimit = $user->otp_limit > 0 ? $user->otp_limit : ($defaultOtpLimit ?? 5);
@@ -156,9 +193,13 @@ class AuthController extends Controller
             'message' => $exists ? 'OTP sent for login' : 'OTP sent for signup',
         ]);
 
+        $user->loadMissing('riderVehicle');
+
         return response()->json([
             'message' => $exists ? 'OTP sent for login' : 'OTP sent for signup',
             'isLogin' => $exists,
+            'role' => $user->role,
+            'vehicle_type' => $user->riderVehicle?->type?->value,
         ]);
     }
 
@@ -210,10 +251,13 @@ class AuthController extends Controller
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
+        $user->loadMissing('riderVehicle');
 
         return response()->json([
             'message' => 'Phone number verified successfully',
             'token'   => $token,
+            'role'    => $user->role,
+            'vehicle_type' => $user->riderVehicle?->type?->value,
         ]);
     }
 
@@ -811,6 +855,116 @@ class AuthController extends Controller
         ]);
     }
 
+    // ===================== Delivery (Rider) Docs & Vehicle =====================
+
+    /**
+     * Return the hardcoded required document images for a delivery captain.
+     * The vehicle type comes from the query (`vehicle_type`) or, when a
+     * `phone` is provided, from the stored rider_vehicles row.
+     */
+    public function riderRequiredDocs(Request $request)
+    {
+        $type = $request->input('vehicle_type');
+
+        if (!$type && $request->filled('phone')) {
+            $this->normalizePhoneRequest($request);
+            $phone = $request->phone;
+            $rawPhone = ltrim($phone, '+');
+            $rider = User::where('phone', $phone)->orWhere('phone', $rawPhone)->first();
+            $type = $rider?->riderVehicle?->type?->value;
+        }
+
+        if (!in_array($type, VehicleType::values(), true)) {
+            return response()->json([
+                'message' => 'A valid vehicle_type (bike or motorcycle) is required.',
+            ], 422);
+        }
+
+        return response()->json([
+            'vehicle_type' => $type,
+            'requiredDocs' => VehicleType::requiredDocs($type),
+        ]);
+    }
+
+    /**
+     * Store a delivery captain's vehicle images. The vehicle type was chosen
+     * at signup (stored on rider_vehicles), so it is not sent again here.
+     */
+    public function storeRiderVehicle(Request $request)
+    {
+        $this->normalizePhoneRequest($request);
+
+        $validation = Validator::make($request->all(), [
+            'phone'       => 'required|string',
+            'documents'   => 'required|array',
+            'documents.*' => 'required|string',
+            'city_id'     => 'nullable|exists:cities,id',
+        ]);
+
+        if ($validation->fails()) {
+            return response()->json(['message' => $validation->errors()->first()], 422);
+        }
+
+        $phone = $request->phone;
+        $rawPhone = ltrim($phone, '+');
+        $rider = User::where('phone', $phone)->orWhere('phone', $rawPhone)->first();
+
+        if (!$rider || !$rider->isDelivery()) {
+            return response()->json(['message' => 'Delivery account not found.'], 404);
+        }
+
+        if ($rider->phone !== $phone) {
+            $rider->update(['phone' => $phone]);
+        }
+
+        $vehicle = $rider->riderVehicle;
+        if (!$vehicle) {
+            return response()->json([
+                'message' => 'No vehicle type on file. Please restart signup and choose bike or motorcycle.',
+            ], 422);
+        }
+
+        $type = $vehicle->type->value;
+        $required = VehicleType::requiredDocs($type);
+        $documents = $request->input('documents');
+
+        // 1) Verify all required images are present.
+        foreach ($required as $doc) {
+            if (empty($documents[$doc['key']])) {
+                return response()->json(['message' => 'missing document ' . $doc['name']], 422);
+            }
+        }
+
+        // 2) Store each required image.
+        $update = [];
+        foreach ($required as $doc) {
+            $path = $this->storeBase64Image($documents[$doc['key']], 'rider/documents');
+            if ($path === null) {
+                return response()->json(['errors' => "Invalid base64 image string for: {$doc['name']}"], 400);
+            }
+            $update[$doc['key']] = $path;
+        }
+
+        $vehicle->update($update);
+
+        // Selfie stored on the user profile mirrors the driver flow.
+        if (!empty($update['rider_image'])) {
+            $rider->image = $update['rider_image'];
+        }
+        if ($request->filled('city_id')) {
+            $rider->city_id = $request->city_id;
+        }
+
+        app(SignupGiftService::class)->revokeWhenBecomingDriver($rider);
+        $rider->activity = 'active';
+        $rider->role = 'delivery';
+        $rider->save();
+
+        return response()->json([
+            'message' => 'Waiting for admin approval, your vehicle details have been submitted successfully',
+        ]);
+    }
+
     public function login(Request $request)
     {
         $this->normalizePhoneRequest($request);
@@ -850,11 +1004,16 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
+        $user->loadMissing('riderVehicle');
+
+        $vehicleType = $user->isDelivery() ? $user->riderVehicle?->type?->value : null;
 
         return response()->json([
             'message' => 'Login successful',
             'token'   => $token,
             'user'    => $user,
+            'role'    => $user->role,
+            'vehicle_type' => $vehicleType,
         ]);
     }
 

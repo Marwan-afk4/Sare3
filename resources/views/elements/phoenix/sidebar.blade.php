@@ -155,6 +155,21 @@
                             </div>
                         </a>
                     </div>
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'delivery-agents' ? 'active' : '' }}"
+                            href="{{ route('delivery-agents.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="disc"></span></span>
+                                <span class="nav-link-text-wrapper"><span class="nav-link-text">{{ __('Delivery Agents') }}</span></span>
+                                @if(!empty($pendingDeliveryAgentsCount) && $pendingDeliveryAgentsCount > 0)
+                                    <a href="{{ route('delivery-agents.index', ['status' => 'pending']) }}"
+                                       class="badge rounded-pill bg-danger text-white text-decoration-none ms-auto me-1"
+                                       title="{{ $pendingDeliveryAgentsCount }} {{ __('pending delivery agents') }}"
+                                       onclick="event.stopPropagation();">{{ $pendingDeliveryAgentsCount }}</a>
+                                @endif
+                            </div>
+                        </a>
+                    </div>
                     @endcan
 
                     @can('إدارة المسؤولين')
@@ -207,6 +222,15 @@
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="alert-triangle"></span></span>
                                 <span class="nav-link-text-wrapper"><span class="nav-link-text">{{ __('Abnormal Rides') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'deliveries' ? 'active' : '' }}"
+                            href="{{ route('deliveries.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="package"></span></span>
+                                <span class="nav-link-text-wrapper"><span class="nav-link-text">{{ __('Deliveries') }}</span></span>
                             </div>
                         </a>
                     </div>

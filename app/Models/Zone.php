@@ -50,4 +50,14 @@ class Zone extends Model
         return $this->hasMany(Ride::class);
     }
 
+    public function deliveries()
+    {
+        return $this->hasMany(Delivery::class);
+    }
+
+    public function deliveryZonePrices()
+    {
+        return $this->hasMany(DeliveryZonePrice::class);
+    }
+
 }

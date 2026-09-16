@@ -30,6 +30,11 @@ use App\Http\Controllers\Api\Driver\RideRequestLimitController;
 use App\Http\Controllers\Api\Driver\RideSettingCOntroller;
 use App\Http\Controllers\Api\Driver\TransactionController;
 use App\Http\Controllers\Api\Driver\WalletRequestController;
+use App\Http\Controllers\Api\Rider\DeliveryActionsController;
+use App\Http\Controllers\Api\Rider\RiderActivityController;
+use App\Http\Controllers\Api\Rider\RiderLocationController;
+use App\Http\Controllers\Api\User\DeliveryController;
+use App\Http\Controllers\Api\DeliveryTrackingController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Paytabs\PaymentController;
 use App\Http\Controllers\Api\User\AdsController;
@@ -118,6 +123,12 @@ Route::domain(config('app.api_domain'))->group(function () {
 
     //login
     Route::post('/driver/login', [DriverAuthController::class, 'login']);
+
+    //======= DELIVERY (RIDER) SIGNUP ========
+    // Shares the same OTP / name / login flow as /driver/* (send `role=delivery`
+    // and `vehicle_type` to /driver/send-otp). Only the docs + vehicle differ.
+    Route::get('/rider/required-docs', [DriverAuthController::class, 'riderRequiredDocs']);
+    Route::post('/rider/store-vehicle', [DriverAuthController::class, 'storeRiderVehicle']);
 
 
     //======= DRIVER ========
@@ -219,6 +230,44 @@ Route::domain(config('app.api_domain'))->group(function () {
 
     });
 
+    //======= DELIVERY RIDER (authenticated) ========
+    Route::middleware(['auth:sanctum'])->prefix('rider')->group(function () {
+
+    //Zones (reuse ride zones)
+        Route::get('/zones', [RideEstimateController::class, 'zones']);
+
+    //Status / availability / wallet
+        Route::get('/rider-status', [RiderActivityController::class, 'getRiderStatus']);
+        Route::post('/update-availability', [RiderActivityController::class, 'updateAvailability']);
+        Route::get('/wallet-status', [RiderActivityController::class, 'checkWalletStatus']);
+
+    //Profile
+        Route::get('/get-profile', [RiderActivityController::class, 'getProfileData']);
+
+    //Delivery actions
+        Route::post('/delivery/accept', [DeliveryActionsController::class, 'accept']);
+        Route::post('/delivery/reject', [DeliveryActionsController::class, 'reject']);
+        Route::post('/delivery/arrived', [DeliveryActionsController::class, 'arrived']);
+        Route::post('/delivery/finish', [DeliveryActionsController::class, 'finish']);
+
+    //Location updates
+        Route::post('/update-location', [RiderLocationController::class, 'updateGeneralLocation']);
+        Route::post('/delivery/update-location', [RiderLocationController::class, 'updateDeliveryLocation']);
+
+    //Is in delivery
+        Route::get('/rider-in-delivery', [RiderActivityController::class, 'isInDelivery']);
+
+    //FCM Token
+        Route::post('/fcm-token', [NotificationController::class, 'fcmTOken']);
+
+    //Add zone
+        Route::post('/add-zone', [DriverProfileController::class, 'addZoneId']);
+
+    //Logout / delete
+        Route::delete('/logout', [DriverAuthController::class, 'logout']);
+        Route::delete('/delete-account', [DeleteAccountController::class, 'deleteAccount']);
+    });
+
 
     //======= USER ========
     Route::middleware(['auth:sanctum'])->prefix('user')->group(function () {
@@ -245,6 +294,14 @@ Route::domain(config('app.api_domain'))->group(function () {
         Route::post('/ride/create', [RideEstimateController::class,'createRide']);
         Route::get('/ride/verification-code', [UserRideActionsController::class, 'getVerificationCode']);
         Route::post('/ride/status', [UserRideActionsController::class, 'getRideStatus']);
+
+    //Delivery
+        Route::post('/delivery/estimate', [DeliveryController::class, 'estimate']);
+        Route::post('/delivery/create', [DeliveryController::class, 'createDelivery']);
+        Route::post('/delivery/status', [DeliveryController::class, 'getDeliveryStatus']);
+        Route::get('/user-in-delivery', [DeliveryController::class, 'userInDelivery']);
+        Route::get('/deliveries', [DeliveryController::class, 'myDeliveries']);
+        Route::post('/cancel-delivery', [DeliveryController::class, 'cancelDelivery']);
 
     //Raiting
         Route::post('/ride/rating', [RaitingController::class,'raiting']);
@@ -311,6 +368,13 @@ Route::domain(config('app.api_domain'))->group(function () {
         Route::get('/{rideId}/driver-location', [RideTrackingController::class, 'getDriverLocation']);
         Route::get('/{rideId}/route-points', [RideTrackingController::class, 'getRoutePoints']);
         Route::get('/{rideId}/tracking-data', [RideTrackingController::class, 'getRideTrackingData']);
+    });
+
+    //======= DELIVERY TRACKING (Public/Admin) ========
+    Route::prefix('deliveries')->group(function () {
+        Route::get('/{deliveryId}/rider-location', [DeliveryTrackingController::class, 'getRiderLocation']);
+        Route::get('/{deliveryId}/route-points', [DeliveryTrackingController::class, 'getRoutePoints']);
+        Route::get('/{deliveryId}/tracking-data', [DeliveryTrackingController::class, 'getTrackingData']);
     });
 
     //======= APP SETTINGS (Public) ========

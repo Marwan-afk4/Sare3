@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\ApiDocsController;
 use App\Http\Controllers\LeaderboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,6 +37,10 @@ use App\Http\Controllers\{
 };
 use App\Http\Controllers\Admin\ReferralController as AdminReferralController;
 use App\Http\Controllers\Admin\SupportChatController as AdminSupportChatController;
+
+// 📘 API documentation (Swagger UI)
+Route::get('/docs/api', [ApiDocsController::class, 'ui'])->name('docs.api');
+Route::get('/docs/openapi.yaml', [ApiDocsController::class, 'spec'])->name('docs.openapi');
 
 Route::domain(config('app.dashboard_domain'))->group(function () {
     Route::middleware(['auth:sanctum'])->group(function () {
@@ -192,6 +197,18 @@ Route::domain(config('app.dashboard_domain'))->group(function () {
             Route::post('/otp-limits/{otpLimit}/reset-users', [OtpLimitController::class, 'resetUsers'])->name('otp-limits.reset-users');
 
             Route::get('/drivers/{driver}/location', [DriverController::class, 'getLocation'])->name('drivers.location');
+
+            // ─── Delivery (agents + orders + zone prices) ───────────────────
+            Route::get('/delivery-agents', [\App\Http\Controllers\DeliveryAgentController::class, 'index'])->name('delivery-agents.index');
+            Route::get('/delivery-agents/{delivery_agent}', [\App\Http\Controllers\DeliveryAgentController::class, 'show'])->name('delivery-agents.show');
+            Route::patch('/delivery-agents/{delivery_agent}/status', [\App\Http\Controllers\DeliveryAgentController::class, 'updateStatus'])->name('delivery-agents.status');
+            Route::delete('/delivery-agents/{delivery_agent}', [\App\Http\Controllers\DeliveryAgentController::class, 'destroy'])->name('delivery-agents.destroy');
+
+            Route::get('/deliveries', [\App\Http\Controllers\DeliveryOrderController::class, 'index'])->name('deliveries.index');
+            Route::get('/deliveries/{delivery}', [\App\Http\Controllers\DeliveryOrderController::class, 'show'])->name('deliveries.show');
+            Route::get('/deliveries/{delivery}/track', [\App\Http\Controllers\DeliveryOrderController::class, 'track'])->name('deliveries.track');
+
+            Route::post('/zones/{zone}/delivery-prices', [ZoneController::class, 'updateDeliveryPrices'])->name('zones.delivery-prices');
 
             // Leaderboard & Bonus Management
             Route::prefix('leaderboard')->name('leaderboard.')->group(function () {

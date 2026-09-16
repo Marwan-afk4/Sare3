@@ -6,8 +6,8 @@
 @section('content')
     <div class="container-fluid">
         <div class="mb-3">
-            <a href="{{ route('wallet-requests.index') }}" class="btn btn-secondary btn-sm me-1">
-                <i class="fa fa-arrow-right"></i> {{ __('Back to') }} {{ __('Driver Wallets Management') }}
+            <a href="{{ route('wallet-requests.index', ['account_type' => $driver->isDelivery() ? 'riders' : 'drivers']) }}" class="btn btn-secondary btn-sm me-1">
+                <i class="fa fa-arrow-right"></i> {{ __('Back to') }} {{ __('Wallets Management') }}
             </a>
         </div>
 
@@ -111,7 +111,7 @@
                     <div class="text-center py-5">
                         <i class="fa fa-wallet fa-4x text-muted mb-3"></i>
                         <h5 class="text-muted">{{ __('No wallet transactions yet') }}</h5>
-                        <p class="text-muted">{{ __('This driver has no wallet transaction history') }}</p>
+                        <p class="text-muted">{{ __('This account has no wallet transaction history') }}</p>
                     </div>
                 @endif
             </div>

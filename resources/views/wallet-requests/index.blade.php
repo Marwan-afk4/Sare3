@@ -2,10 +2,10 @@
 @php
     $currentPage = 'wallet-requests';
 @endphp
-@section('title', __('Driver Wallets Management'))
+@section('title', __('Wallets Management'))
 @section('content')
     <div class="container-fluid">
-        <h1 class="mb-3">{{ __('Driver Wallets Management') }}</h1>
+        <h1 class="mb-3">{{ __('Wallets Management') }}</h1>
 
         @if (auth()->user()->can('إدارة طلبات المحفظة'))
             <div
@@ -20,6 +20,26 @@
             </div>
         @endif
 
+        @php
+            $accountType = $accountType ?? 'drivers';
+            $isRiders = $accountType === 'riders';
+        @endphp
+
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link {{ !$isRiders ? 'active' : '' }}"
+                    href="{{ route('wallet-requests.index', ['account_type' => 'drivers']) }}">
+                    {{ __('Drivers') }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ $isRiders ? 'active' : '' }}"
+                    href="{{ route('wallet-requests.index', ['account_type' => 'riders']) }}">
+                    {{ __('Riders') }}
+                </a>
+            </li>
+        </ul>
+
         <!-- Search & Filters -->
         <div class="card mb-3">
             <div class="card-body">
@@ -27,6 +47,7 @@
                     $queryParams = request()->except(['sort', 'order']);
                 @endphp
                 <form method="GET" action="{{ route('wallet-requests.index') }}" class="row g-3">
+                    <input type="hidden" name="account_type" value="{{ $accountType }}">
                     <div class="col-md-4">
                         <label for="keyword" class="form-label">{{ __('Keyword') }}</label>
                         <input type="text" name="keyword" id="keyword" class="form-control"
@@ -56,7 +77,7 @@
                     </div>
                     @if (request()->hasAny(['keyword', 'balance_operator', 'balance_amount']))
                         <div class="col-12">
-                            <a href="{{ route('wallet-requests.index') }}" class="btn btn-outline-secondary btn-sm">
+                            <a href="{{ route('wallet-requests.index', ['account_type' => $accountType]) }}" class="btn btn-outline-secondary btn-sm">
                                 <i class="fa fa-times"></i> {{ __('Clear Filters') }}
                             </a>
                         </div>
@@ -82,7 +103,7 @@
                             <th>
                                 <a
                                     href="{{ route('wallet-requests.index', array_merge($queryParams, ['sort' => 'name', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc'])) }}">
-                                    {{ __('Driver Name') }}
+                                    {{ $isRiders ? __('Rider Name') : __('Driver Name') }}
                                     @if ($sortField === 'name')
                                         <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
                                     @endif
@@ -114,7 +135,11 @@
                             <tr>
                                 <td>{{ $driver->id }}</td>
                                 <td>
-                                    <a href="{{ route('drivers.show', $driver) }}">{{ $driver->name }}</a>
+                                    @if ($isRiders)
+                                        <a href="{{ route('delivery-agents.show', $driver) }}">{{ $driver->name }}</a>
+                                    @else
+                                        <a href="{{ route('drivers.show', $driver) }}">{{ $driver->name }}</a>
+                                    @endif
                                 </td>
                                 <td>{{ $driver->phone }}</td>
                                 <td>
@@ -228,7 +253,7 @@
 
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center">{{ __('No drivers found') }}</td>
+                                <td colspan="5" class="text-center">{{ $isRiders ? __('No riders found') : __('No drivers found') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
