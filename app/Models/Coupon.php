@@ -70,11 +70,17 @@ class Coupon extends Model
     }
 
     /**
-     * Calculate discount amount for a ride
+     * Calculate discount amount for a ride.
+     * Coupons are not applied when the fare is already at the minimum price,
+     * and they cannot reduce the fare below that minimum.
      */
-    public function calculateDiscount(float $rideAmount): float
+    public function calculateDiscount(float $rideAmount, float $minPrice = 1.0): float
     {
         if ($this->minimum_ride_amount && $rideAmount < $this->minimum_ride_amount) {
+            return 0;
+        }
+
+        if ($minPrice > 0 && $rideAmount <= $minPrice) {
             return 0;
         }
 
@@ -91,8 +97,13 @@ class Coupon extends Model
             $discount = $this->maximum_discount;
         }
 
-        // Ensure discount doesn't exceed ride amount
-        return min($discount, $rideAmount);
+        $discount = min($discount, $rideAmount);
+
+        if ($minPrice > 0) {
+            $discount = min($discount, max(0, $rideAmount - $minPrice));
+        }
+
+        return $discount;
     }
 
     /**
@@ -104,8 +115,11 @@ class Coupon extends Model
             return false;
         }
 
-        $discountAmount = $this->calculateDiscount($ride->calculated_initial_price);
-        
+        $discountAmount = $this->calculateDiscount(
+            (float) $ride->calculated_initial_price,
+            $ride->minimumFare()
+        );
+
         if ($discountAmount <= 0) {
             return false;
         }

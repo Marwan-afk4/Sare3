@@ -60,6 +60,8 @@ class CouponController extends Controller
             $message = 'This coupon is not applicable for this ride';
             if ($coupon->minimum_ride_amount && $request->ride_amount < $coupon->minimum_ride_amount) {
                 $message = "Minimum ride amount of {$coupon->minimum_ride_amount} required for this coupon";
+            } elseif ($request->ride_amount <= 1) {
+                $message = 'Coupons cannot be applied when the ride is at the minimum fare';
             }
 
             return response()->json([

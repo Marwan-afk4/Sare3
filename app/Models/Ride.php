@@ -169,6 +169,20 @@ class Ride extends Model
         return $this->hasOne(CouponUsage::class);
     }
 
+    /**
+     * Zone/category minimum fare. Coupons cannot bring the price below this,
+     * and a ride already at this price does not receive a coupon discount.
+     */
+    public function minimumFare(): float
+    {
+        $this->loadMissing('zone.carCategories');
+
+        $category = $this->zone?->carCategories?->firstWhere('id', $this->car_category_id);
+        $zoneMin = (float) ($category?->pivot?->min_price ?? 0);
+
+        return max(1.0, $zoneMin);
+    }
+
     public function cancellationReason()
     {
         return $this->belongsTo(CancellationReason::class);
