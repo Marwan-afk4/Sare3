@@ -19,12 +19,12 @@ use Exception;
 class AutoRejectRides extends Command
 {
     protected $signature = 'rides:auto-reject';
-    protected $description = 'Automatically reject rides if the driver does not respond within 20 seconds';
+    protected $description = 'Automatically reject rides if the driver does not respond within 15 seconds';
 
     public function handle()
     {
         Log::info('🚀 Auto reject command started at ' . now());
-        $expiredTime = Carbon::now()->subSeconds(20);
+        $expiredTime = Carbon::now()->subSeconds(15);
 
         $rides = Ride::where('status', 'pending')
             ->whereNotNull('driver_assigned_at')

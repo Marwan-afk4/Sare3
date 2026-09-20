@@ -8,7 +8,7 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('rides:auto-reject')->everyTwentySeconds();
+Schedule::command('rides:auto-reject')->everyFifteenSeconds();
 
 schedule::command('auto:cancel-pending-rides')->everyFiveMinutes();
  
