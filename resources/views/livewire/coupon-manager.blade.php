@@ -93,8 +93,9 @@
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                                 <button wire:click="toggleStatus({{ $coupon->id }})"
-                                                    class="btn btn-sm btn-{{ $coupon->is_active ? 'warning' : 'success' }}">
-                                                    <i class="fas fa-{{ $coupon->is_active ? 'pause' : 'play' }}"></i>
+                                                    class="btn btn-sm {{ $coupon->is_active ? 'btn-success' : 'btn-secondary' }}"
+                                                    title="{{ $coupon->is_active ? __('Click to deactivate') : __('Click to activate') }}">
+                                                    {{ $coupon->is_active ? __('Active') : __('Inactive') }}
                                                 </button>
                                                 @if ($coupon->usages_count)
                                                     <button type="button" class="btn btn-sm btn-secondary" disabled

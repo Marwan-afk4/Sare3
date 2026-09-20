@@ -321,11 +321,12 @@ class RideEstimateController extends Controller
         if ($user->pending_coupon_id) {
             $pendingCoupon = Coupon::find($user->pending_coupon_id);
             if ($pendingCoupon && $pendingCoupon->isValid() && $pendingCoupon->canBeUsedByUser($user)) {
-                $pendingCoupon->applyToRide($ride);
-                // Clear the pending coupon from user
-                $user->update(['pending_coupon_id' => null]);
-                // Refresh ride to get updated data
-                $ride->refresh();
+                $applied = $pendingCoupon->applyToRide($ride);
+                if ($applied) {
+                    $user->update(['pending_coupon_id' => null]);
+                    $ride->refresh();
+                }
+                // If the ride is already at minimum fare, leave the coupon pending for a later ride
             } else {
                 // Clear invalid pending coupon
                 $user->update(['pending_coupon_id' => null]);

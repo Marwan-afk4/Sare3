@@ -359,7 +359,7 @@ class RideActionsController extends Controller
         $couponDiscountAmount = 0;
         if ($ride->coupon_id && $ride->coupon) {
             // Coupon discount is calculated based on the fare BEFORE applying coupon
-            $couponDiscountAmount = $ride->coupon->calculateDiscount($fareBeforeCoupon);
+            $couponDiscountAmount = $ride->coupon->calculateDiscount($fareBeforeCoupon, $ride->minimumFare());
             
             if ($couponDiscountAmount > 0) {
                 // Calculate final fare from rounded fareBeforeCoupon to ensure consistency
