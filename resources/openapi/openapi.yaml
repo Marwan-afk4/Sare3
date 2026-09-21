@@ -276,8 +276,9 @@ paths:
                   example: "+9627XXXXXXXX"
                 role:
                   type: string
-                  enum: [driver, delivery]
+                  enum: [driver, delivery, rider]
                   default: driver
+                  description: "`rider` is stored as `delivery`."
                 vehicle_type:
                   $ref: '#/components/schemas/VehicleType'
       responses:
@@ -299,6 +300,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Message'
+
+  /driver/post-name:
+    post:
+      tags: [Captain Signup]
+      summary: Save captain name (keeps delivery role)
+      security: []
+      description: |
+        Shared with driver signup. Send `role=delivery` (or `rider`) so the
+        account is not overwritten to `driver`. If the user was already created
+        as delivery at send-otp, the existing role is kept even when `role` is omitted.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, name, fcm_token]
+              properties:
+                phone: { type: string }
+                name: { type: string }
+                gender: { type: string, enum: [male, female], nullable: true }
+                fcm_token: { type: string }
+                role: { type: string, enum: [driver, delivery, rider] }
+                vehicle_type:
+                  $ref: '#/components/schemas/VehicleType'
+      responses:
+        "200":
+          description: Name saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  role: { type: string, example: delivery }
+                  vehicle_type:
+                    $ref: '#/components/schemas/VehicleType'
 
   /driver/verify-otp:
     post:
@@ -420,6 +458,9 @@ paths:
                 city_id:
                   type: integer
                   nullable: true
+                vehicle_type:
+                  $ref: '#/components/schemas/VehicleType'
+                  description: Required only if send-otp did not already store a rider_vehicles row.
                 documents:
                   type: object
                   required: [rider_image, identity_image, vehicle_image]

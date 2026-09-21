@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Driver;
 
 use App\Enums\ActiveStatuses;
+use App\Enums\ActivtyType;
 use App\Enums\VehicleType;
 use App\Http\Controllers\Controller;
 use App\Mail\EmailVerificationCode;
@@ -49,12 +50,12 @@ class AuthController extends Controller
             // Must be international format with or without +
             'phone' => ['required', 'string', 'regex:/^\+?[1-9][0-9]{6,14}$/'],
             // Captain type chosen on the first signup screen. Defaults to driver.
-            'role' => ['nullable', 'in:driver,delivery'],
+            // `rider` is accepted as an alias for `delivery`.
+            'role' => ['nullable', 'in:driver,delivery,rider'],
             // Required only when signing up as a delivery captain.
-            'vehicle_type' => ['nullable', 'required_if:role,delivery', 'in:bike,motorcycle'],
+            'vehicle_type' => ['nullable', 'in:bike,motorcycle'],
         ], [
             'phone.regex' => 'Phone must be in international format (e.g. +9627XXXXXXXX or 9627XXXXXXXX)',
-            'vehicle_type.required_if' => 'Please choose a vehicle type (bike or motorcycle) for delivery.',
         ]);
 
         if ($validation->fails()) {
@@ -66,7 +67,13 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $requestedRole = $request->input('role', 'driver');
+        $requestedRole = $this->captainRoleFromRequest($request);
+
+        if ($requestedRole === 'delivery' && !$request->filled('vehicle_type')) {
+            return response()->json([
+                'message' => 'Please choose a vehicle type (bike or motorcycle) for delivery.',
+            ], 422);
+        }
 
         $otpCode = rand(100000, 999999);
         $defaultOtpLimit = OtpLimit::where('type', 'driver')->value('otp_limit');
@@ -99,15 +106,26 @@ class AuthController extends Controller
                 Log::info('[otp-trace] stored phone updated to normalized value', ['phone' => $phone]);
             }
 
-            // Prevent switching an existing captain between driver and delivery.
+            $isLockedCaptain = in_array($user->role, ['driver', 'delivery'], true)
+                && !$this->isIncompleteCaptainSignup($user);
+
+            // Prevent switching a finished captain between driver and delivery.
             if (
                 $request->filled('role')
-                && in_array($user->role, ['driver', 'delivery'], true)
+                && $isLockedCaptain
                 && $user->role !== $requestedRole
             ) {
                 return response()->json([
                     'message' => 'This phone is already registered as a ' . $user->role . ' account.',
                 ], 422);
+            }
+
+            // Passenger accounts and unfinished signups must pick up the
+            // chosen captain role here, otherwise later steps store a driver.
+            if (!$isLockedCaptain && $request->filled('role') && $user->role !== $requestedRole) {
+                $user->role = $requestedRole;
+                $user->activity = 'in_progress';
+                $user->save();
             }
         } else {
             // Create new captain account (driver or delivery).
@@ -124,22 +142,11 @@ class AuthController extends Controller
                 'role' => $user->role,
                 'otp_limit' => $user->otp_limit,
             ]);
-
-            // Persist the chosen vehicle type right away so later steps do not
-            // depend on the client remembering it. Images are filled later.
-            if ($requestedRole === 'delivery' && $request->filled('vehicle_type')) {
-                RiderVehicle::firstOrCreate(
-                    ['rider_id' => $user->id],
-                    ['type' => $request->input('vehicle_type')]
-                );
-            }
         }
 
-        if ($user->isDelivery() && $request->filled('vehicle_type') && !$user->riderVehicle) {
-            RiderVehicle::firstOrCreate(
-                ['rider_id' => $user->id],
-                ['type' => $request->input('vehicle_type')]
-            );
+        if ($requestedRole === 'delivery') {
+            $this->ensureRiderVehicle($user, $request->input('vehicle_type'));
+            $user->unsetRelation('riderVehicle');
         }
 
         $userLimit = $user->otp_limit > 0 ? $user->otp_limit : ($defaultOtpLimit ?? 5);
@@ -389,7 +396,7 @@ class AuthController extends Controller
         if ($user) {
             $user->email_code    = $code;
             $user->email_verified = 'unverified';
-            $user->role          = 'driver';
+            $user->role          = $this->captainRoleFromRequest($request, $user);
             $user->activity      = 'in_progress';
             $user->email         = $request->email;
             $user->save();
@@ -420,7 +427,7 @@ class AuthController extends Controller
             $user->email_verified = 'verified';
             $user->email          = $request->email;
             $user->email_code     = null;
-            $user->role           = 'driver';
+            $user->role           = $this->captainRoleFromRequest($request, $user);
             $user->activity       = 'in_progress';
             $user->save();
 
@@ -448,10 +455,12 @@ class AuthController extends Controller
         $this->normalizePhoneRequest($request);
 
         $validation = Validator::make($request->all(), [
-            'phone'     => 'required|string',
-            'name'      => 'required|string|max:255',
-            'gender'    => 'nullable|string|in:male,female',
-            'fcm_token' => 'required|string',
+            'phone'         => 'required|string',
+            'name'          => 'required|string|max:255',
+            'gender'        => 'nullable|string|in:male,female',
+            'fcm_token'     => 'required|string',
+            'role'          => 'nullable|in:driver,delivery,rider',
+            'vehicle_type'  => 'nullable|in:bike,motorcycle',
         ]);
         if ($validation->fails()) {
             return response()->json([
@@ -472,16 +481,26 @@ class AuthController extends Controller
             app(SignupGiftService::class)->revokeWhenBecomingDriver($user);
             $user->refresh();
 
+            $role = $this->captainRoleFromRequest($request, $user);
+
             $user->name      = $request->name;
-            $user->role      = 'driver';
+            $user->role      = $role;
             $user->activity  = 'in_progress';
             $user->gender    = $request->gender ?? null;
             $user->fcm_token = $request->fcm_token;
             $user->wallet    = 0;
             $user->save();
 
+            if ($role === 'delivery') {
+                $this->ensureRiderVehicle($user, $request->input('vehicle_type'));
+            }
+
+            $user->load('riderVehicle');
+
             return response()->json([
                 'message' => 'Name updated successfully',
+                'role' => $user->role,
+                'vehicle_type' => $user->riderVehicle?->type?->value,
             ]);
         }
 
@@ -513,7 +532,7 @@ class AuthController extends Controller
                     'email_code'     => $code,
                     'email_verified' => 'unverified',
                     'activity'       => 'in_progress',
-                    'role'           => 'driver',
+                    'role'           => $this->captainRoleFromRequest($request, $existingUser),
                 ]);
                 Mail::to($existingUser->email)->send(new EmailVerificationCode($code));
 
@@ -528,7 +547,7 @@ class AuthController extends Controller
                     'email_code'     => $code,
                     'email_verified' => 'unverified',
                     'activity'       => 'in_progress',
-                    'role'           => 'driver',
+                    'role'           => $this->captainRoleFromRequest($request, $existingUser),
                 ]);
 
                 return response()->json([
@@ -539,7 +558,7 @@ class AuthController extends Controller
 
         $user = User::create([
             'email'          => $request->email,
-            'role'           => 'driver',
+            'role'           => $this->captainRoleFromRequest($request),
             'email_code'     => $code,
             'email_verified' => 'unverified',
             'activity'       => 'in_progress',
@@ -575,7 +594,7 @@ class AuthController extends Controller
             'email_verified' => 'verified',
             'email_code'     => null,
             'activity'       => 'in_progress',
-            'role'           => 'driver',
+            'role'           => $this->captainRoleFromRequest($request, $user),
         ]);
 
         if ($user->phone) {
@@ -895,10 +914,11 @@ class AuthController extends Controller
         $this->normalizePhoneRequest($request);
 
         $validation = Validator::make($request->all(), [
-            'phone'       => 'required|string',
-            'documents'   => 'required|array',
-            'documents.*' => 'required|string',
-            'city_id'     => 'nullable|exists:cities,id',
+            'phone'         => 'required|string',
+            'documents'     => 'required|array',
+            'documents.*'   => 'required|string',
+            'city_id'       => 'nullable|exists:cities,id',
+            'vehicle_type'  => 'nullable|in:bike,motorcycle',
         ]);
 
         if ($validation->fails()) {
@@ -909,8 +929,18 @@ class AuthController extends Controller
         $rawPhone = ltrim($phone, '+');
         $rider = User::where('phone', $phone)->orWhere('phone', $rawPhone)->first();
 
-        if (!$rider || !$rider->isDelivery()) {
+        if (!$rider) {
             return response()->json(['message' => 'Delivery account not found.'], 404);
+        }
+
+        // Completing store-vehicle is the delivery signup step. Recover accounts
+        // that were overwritten to driver by earlier shared /driver/* endpoints.
+        if (!$rider->isDelivery()) {
+            if (!$this->isIncompleteCaptainSignup($rider)) {
+                return response()->json(['message' => 'Delivery account not found.'], 404);
+            }
+            $rider->role = 'delivery';
+            $rider->save();
         }
 
         if ($rider->phone !== $phone) {
@@ -919,9 +949,16 @@ class AuthController extends Controller
 
         $vehicle = $rider->riderVehicle;
         if (!$vehicle) {
-            return response()->json([
-                'message' => 'No vehicle type on file. Please restart signup and choose bike or motorcycle.',
-            ], 422);
+            $type = $request->input('vehicle_type');
+            if (!in_array($type, VehicleType::values(), true)) {
+                return response()->json([
+                    'message' => 'No vehicle type on file. Please restart signup and choose bike or motorcycle.',
+                ], 422);
+            }
+            $vehicle = RiderVehicle::create([
+                'rider_id' => $rider->id,
+                'type' => $type,
+            ]);
         }
 
         $type = $vehicle->type->value;
@@ -1048,5 +1085,54 @@ class AuthController extends Controller
         $template = $templates[array_rand($templates)];
 
         return $template;
+    }
+
+    /**
+     * Map the captain-app role field onto the stored users.role value.
+     * `rider` is treated as `delivery` because that is the product name
+     * used in the app UI.
+     */
+    private function normalizeCaptainRole(?string $role): ?string
+    {
+        return match (strtolower(trim((string) $role))) {
+            'delivery', 'rider' => 'delivery',
+            'driver' => 'driver',
+            default => null,
+        };
+    }
+
+    private function captainRoleFromRequest(Request $request, ?User $user = null): string
+    {
+        $requested = $this->normalizeCaptainRole($request->input('role'));
+        if ($requested) {
+            return $requested;
+        }
+
+        if ($user && $user->isDelivery()) {
+            return 'delivery';
+        }
+
+        return 'driver';
+    }
+
+    private function isIncompleteCaptainSignup(User $user): bool
+    {
+        $activity = $user->activity instanceof \App\Enums\ActivtyType
+            ? $user->activity->value
+            : (string) $user->activity;
+
+        return $activity === '' || $activity === ActivtyType::InProgress->value;
+    }
+
+    private function ensureRiderVehicle(User $user, ?string $vehicleType): void
+    {
+        if (!in_array($vehicleType, VehicleType::values(), true)) {
+            return;
+        }
+
+        RiderVehicle::firstOrCreate(
+            ['rider_id' => $user->id],
+            ['type' => $vehicleType]
+        );
     }
 }

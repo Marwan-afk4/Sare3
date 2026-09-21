@@ -7,8 +7,14 @@ use Illuminate\Foundation\Configuration\Middleware;
 $defaultStoragePath = dirname(__DIR__) . '/storage';
 $tempStoragePath = null;
 
-// If storage is not writable (e.g. Apache with ProtectHome=read-only), redirect to a writable path in /tmp
-if (php_sapi_name() !== 'cli' && (!is_writable($defaultStoragePath) || !is_writable($defaultStoragePath . '/framework/views') || !is_writable($defaultStoragePath . '/logs'))) {
+// If storage is not writable (Apache ProtectHome, CLI as a different user),
+// redirect to a writable path in /tmp so facades, views, and logs still work.
+$storageNeedsFallback = !is_writable($defaultStoragePath)
+    || !is_writable($defaultStoragePath . '/framework/views')
+    || !is_writable($defaultStoragePath . '/framework/cache')
+    || !is_writable($defaultStoragePath . '/logs');
+
+if ($storageNeedsFallback) {
     $tempStoragePath = '/tmp/laravel-storage-' . md5(dirname(__DIR__));
     if (!is_dir($tempStoragePath)) {
         mkdir($tempStoragePath, 0777, true);
