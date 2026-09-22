@@ -164,7 +164,21 @@ class RideController extends Controller
         $rideStatuses = RideStatus::labels();
         // Eager-load the offer audit trail so the show page can render
         // "which captain saw the request + what they did" without N+1.
-        $ride->load(['offers.driver', 'user', 'driver', 'driverCancelledBy']);
+        $ride->load(['offers.driver', 'user', 'driver', 'driverCancelledBy', 'profit']);
+
+        $finalFare = $ride->calculated_final_price !== null
+            ? round((float) $ride->calculated_final_price, 2)
+            : null;
+        $walletPaid = round((float) ($ride->wallet_paid_amount ?? 0), 2);
+        $cashPaid = $finalFare !== null ? round(max(0, $finalFare - $walletPaid), 2) : null;
+        $settlement = [
+            'wallet_paid' => $walletPaid,
+            'cash_paid' => $cashPaid,
+            'sarea_profit' => $ride->profit ? round((float) $ride->profit->admin_profit_amount, 2) : null,
+            'sarea_profit_percentage' => $ride->profit ? (float) $ride->profit->admin_profit_percentage : null,
+            'driver_collected' => $cashPaid !== null ? round($cashPaid + $walletPaid, 2) : null,
+            'driver_earnings' => $ride->profit ? round((float) $ride->profit->driver_amount, 2) : null,
+        ];
 
         $rideChatMessages = \App\Models\ChatMessage::query()
             ->whereHas('chat', fn ($query) => $query->where('ride_id', $ride->id))
@@ -172,7 +186,7 @@ class RideController extends Controller
             ->orderBy('created_at')
             ->get();
 
-        return view('rides.show', compact('ride', 'rideStatuses', 'rideChatMessages'));
+        return view('rides.show', compact('ride', 'rideStatuses', 'rideChatMessages', 'settlement'));
     }
 
     public function updateStatus(Request $request, Ride $ride)

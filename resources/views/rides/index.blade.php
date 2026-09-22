@@ -10,6 +10,13 @@
         vertical-align: middle;
         margin-top: -2px;
     }
+    .status-count-badge {
+        min-width: 1.75rem;
+        padding: 0.35em 0.55em;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+    }
     .list-group-item-action {
         transition: all 0.2s ease-in-out;
     }
@@ -63,9 +70,9 @@
                                         <span class="status-dot d-inline-block rounded-circle me-2" style="width: 10px; height: 10px; background-color: #{{ $status->color() }}; border: 1px solid #{{ request('status') === $status->value ? $status->textColor() : 'ced4da' }}"></span>
                                         {{ $status->label() }}
                                     </span>
-                                    <span class="badge rounded-pill {{ request('status') === $status->value ? 'bg-light text-dark' : 'bg-secondary' }}"
+                                    <span class="badge rounded-pill status-count-badge {{ request('status') === $status->value ? 'bg-light text-dark' : '' }}"
                                           @if(request('status') !== $status->value)
-                                          style="background-color: #f1f3f5; color: #495057;"
+                                          style="background-color: #{{ $status->color() }}; color: #{{ $status->textColor() }};"
                                           @endif>
                                         {{ $ridesStatusCounts[$status->value] ?? '0' }}
                                     </span>

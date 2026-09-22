@@ -189,6 +189,64 @@
             </div>
         @endif
 
+        <!-- Ride settlement: Sarea profit, passenger cash/wallet, captain collection -->
+        @php
+            $money = function ($amount) {
+                if ($amount === null) {
+                    return '—';
+                }
+
+                return '<span dir="ltr">$'.number_format($amount, 2).'</span>';
+            };
+        @endphp
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fa fa-wallet"></i> {{ __('Ride Settlement') }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6 col-xl-3">
+                        <div class="border rounded p-3 h-100">
+                            <div class="text-muted small">{{ __('Sarea Profit') }}</div>
+                            <div class="fs-4 fw-bold text-success mb-0">{!! $money($settlement['sarea_profit']) !!}</div>
+                            @if($settlement['sarea_profit_percentage'] !== null)
+                                <div class="small text-muted"><span dir="ltr">{{ number_format($settlement['sarea_profit_percentage'], 1) }}%</span></div>
+                            @else
+                                <div class="small text-muted">{{ __('Recorded when the ride is completed.') }}</div>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-xl-3">
+                        <div class="border rounded p-3 h-100">
+                            <div class="text-muted small">{{ __('Paid from Wallet') }}</div>
+                            <div class="fs-4 fw-bold text-primary mb-0">{!! $money($settlement['wallet_paid']) !!}</div>
+                            <div class="small text-muted">{{ __('Amount the passenger paid from his wallet') }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-xl-3">
+                        <div class="border rounded p-3 h-100">
+                            <div class="text-muted small">{{ __('Paid in Cash') }}</div>
+                            <div class="fs-4 fw-bold mb-0">{!! $money($settlement['cash_paid']) !!}</div>
+                            <div class="small text-muted">{{ __('Amount the passenger paid in cash') }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-xl-3">
+                        <div class="border rounded p-3 h-100">
+                            <div class="text-muted small">{{ __('Captain Collected') }}</div>
+                            <div class="fs-4 fw-bold mb-0">{!! $money($settlement['driver_collected']) !!}</div>
+                            <div class="small text-muted">{{ __('Cash collected from the passenger, plus the wallet amount transferred to the captain.') }}</div>
+                            @if($settlement['driver_earnings'] !== null)
+                                <div class="small mt-2">
+                                    <strong>{{ __('Captain earnings after Sarea profit') }}:</strong>
+                                    {!! $money($settlement['driver_earnings']) !!}
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Captain Tracking Details -->
         @php
             $ignoredOffersWithLocation = ($ride->offers ?? collect())->filter(
