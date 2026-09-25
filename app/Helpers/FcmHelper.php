@@ -28,7 +28,7 @@ class FcmHelper
         try {
             $startTime = microtime(true);
             
-            $credentialsPath = storage_path('firebase/sarea-adce3-5ed7f6334162.json');
+            $credentialsPath = storage_path('firebase/sarea-adce3-bde9c32ebddd.json');
             $scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
 
             $creds = new ServiceAccountCredentials($scopes, $credentialsPath);

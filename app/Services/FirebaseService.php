@@ -14,7 +14,7 @@ class FirebaseService
     {
         try {
             $firebase = (new Factory)
-                ->withServiceAccount(storage_path('firebase/sarea-adce3-firebase-adminsdk-fbsvc-892a07f354.json'))
+                ->withServiceAccount(storage_path('firebase/sarea-adce3-bde9c32ebddd.json'))
                 ->withDatabaseUri('https://sarea-adce3-default-rtdb.firebaseio.com')
                 ->createDatabase();
             
