@@ -178,6 +178,8 @@ class RideController extends Controller
             'sarea_profit_percentage' => $ride->profit ? (float) $ride->profit->admin_profit_percentage : null,
             'driver_collected' => $cashPaid !== null ? round($cashPaid + $walletPaid, 2) : null,
             'driver_earnings' => $ride->profit ? round((float) $ride->profit->driver_amount, 2) : null,
+            'user_wallet_before' => $ride->user_wallet_before !== null ? round((float) $ride->user_wallet_before, 2) : null,
+            'user_wallet_after' => $ride->user_wallet_after !== null ? round((float) $ride->user_wallet_after, 2) : null,
         ];
 
         $rideChatMessages = \App\Models\ChatMessage::query()
