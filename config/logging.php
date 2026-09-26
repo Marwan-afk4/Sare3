@@ -71,6 +71,13 @@ return [
             'level'  => 'info',
         ],
 
+        'kastana' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/kastana-otp.log'),
+            'level'  => 'info',
+            'replace_placeholders' => true,
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
