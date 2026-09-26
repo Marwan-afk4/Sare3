@@ -64,6 +64,7 @@
                     <td>{!! $agent->is_available ? '<span class="badge bg-success">'.__('Online').'</span>' : '<span class="badge bg-secondary">'.__('Offline').'</span>' !!}</td>
                     <td class="text-center">
                         <a href="{{ route('delivery-agents.show', $agent) }}" class="btn btn-subtle-primary btn-sm me-1">{{ __('Details') }} <i class="fa fa-eye"></i></a>
+                        <a href="{{ route('delivery-agents.edit', $agent) }}" class="btn btn-subtle-warning btn-sm me-1">{{ __('Edit') }} <i class="fa fa-edit"></i></a>
                         <form action="{{ route('delivery-agents.destroy', $agent) }}" method="POST" class="d-inline"
                             onsubmit="return confirm('{{ __('Are you sure?') }}')">
                             @csrf @method('DELETE')

@@ -8,7 +8,8 @@
 @section('content')
 <div class="container-fluid">
     <div class="mb-3">
-        <a href="{{ route('delivery-agents.index') }}" class="btn btn-secondary btn-sm"><i class="fa fa-arrow-right"></i> {{ __('Back') }}</a>
+        <a href="{{ route('delivery-agents.index') }}" class="btn btn-secondary btn-sm me-1"><i class="fa fa-arrow-right"></i> {{ __('Back') }}</a>
+        <a href="{{ route('delivery-agents.edit', $delivery_agent) }}" class="btn btn-warning btn-sm">{{ __('Edit') }} <i class="fa fa-edit"></i></a>
     </div>
 
     @if(session('success'))

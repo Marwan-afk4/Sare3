@@ -200,6 +200,8 @@ Route::domain(config('app.dashboard_domain'))->group(function () {
 
             // ─── Delivery (agents + orders + zone prices) ───────────────────
             Route::get('/delivery-agents', [\App\Http\Controllers\DeliveryAgentController::class, 'index'])->name('delivery-agents.index');
+            Route::get('/delivery-agents/{delivery_agent}/edit', [\App\Http\Controllers\DeliveryAgentController::class, 'edit'])->name('delivery-agents.edit');
+            Route::put('/delivery-agents/{delivery_agent}', [\App\Http\Controllers\DeliveryAgentController::class, 'update'])->name('delivery-agents.update');
             Route::get('/delivery-agents/{delivery_agent}', [\App\Http\Controllers\DeliveryAgentController::class, 'show'])->name('delivery-agents.show');
             Route::patch('/delivery-agents/{delivery_agent}/status', [\App\Http\Controllers\DeliveryAgentController::class, 'updateStatus'])->name('delivery-agents.status');
             Route::delete('/delivery-agents/{delivery_agent}', [\App\Http\Controllers\DeliveryAgentController::class, 'destroy'])->name('delivery-agents.destroy');

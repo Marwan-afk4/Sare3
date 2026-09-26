@@ -1344,5 +1344,17 @@
     "Identity photo": "صورة الهوية",
     "Motorcycle photo": "صورة الدراجة النارية",
     "Motorcycle license": "رخصة الدراجة النارية",
-    "Bike photo": "صورة الدراجة"
+    "Bike photo": "صورة الدراجة",
+    "Edit Delivery Agent": "تعديل مندوب التوصيل",
+    "Delivery agent updated successfully.": "تم تحديث مندوب التوصيل بنجاح.",
+    "Vehicle type": "نوع المركبة",
+    "These notes are never shown to the rider or in the mobile app.": "هذه الملاحظات لا تظهر للمندوب ولا في تطبيق الموبايل.",
+    "This rider currently has a password set.": "هذا المندوب لديه كلمة مرور حالياً.",
+    "This rider has no password and signs in using OTP only.": "هذا المندوب ليس لديه كلمة مرور ويسجل الدخول عبر رمز التحقق فقط.",
+    "Rider will sign in using OTP only.": "سيسجل المندوب الدخول عبر رمز التحقق فقط.",
+    "Required for motorcycles.": "مطلوبة للدراجات النارية.",
+    "The Vehicle type field is required.": "حقل نوع المركبة مطلوب.",
+    "The selected vehicle type is invalid.": "نوع المركبة المحدد غير صالح.",
+    "A motorcycle license image is required.": "صورة رخصة الدراجة النارية مطلوبة.",
+    "The Wallet field is required.": "حقل المحفظة مطلوب."
 }
