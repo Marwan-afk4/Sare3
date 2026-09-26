@@ -35,6 +35,15 @@ class DeliveryZonePrice extends Model
     }
 
     /**
+     * The single delivery price an admin set for this zone.
+     * Bike and motorcycle share it; if older rows differ, the latest edit wins.
+     */
+    public static function forZone(int|string $zoneId): ?self
+    {
+        return static::where('zone_id', $zoneId)->orderByDesc('updated_at')->first();
+    }
+
+    /**
      * Calculate a price for the given distance/time using this row's rates,
      * floored by min_price.
      */

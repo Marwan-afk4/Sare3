@@ -40,37 +40,33 @@ class ZoneController extends Controller
 
     public function edit(Zone $zone)
     {
-        $deliveryPrices = $zone->deliveryZonePrices()->get()->keyBy(fn ($p) => $p->vehicle_type->value);
-        return view('zones.edit', compact('zone', 'deliveryPrices'));
+        $deliveryPrice = DeliveryZonePrice::forZone($zone->id);
+        return view('zones.edit', compact('zone', 'deliveryPrice'));
     }
 
     /**
-     * Save the per-vehicle-type delivery prices for a zone (bike / motorcycle).
+     * Save the one delivery price for a zone. Bikes and motorcycles share it.
      */
     public function updateDeliveryPrices(Request $request, Zone $zone)
     {
         $validated = $request->validate([
-            'prices' => 'required|array',
-            'prices.*.base_price' => 'nullable|numeric|min:0',
-            'prices.*.price_per_km' => 'nullable|numeric|min:0',
-            'prices.*.price_per_min' => 'nullable|numeric|min:0',
-            'prices.*.min_price' => 'nullable|numeric|min:0',
+            'base_price' => 'nullable|numeric|min:0',
+            'price_per_km' => 'nullable|numeric|min:0',
+            'price_per_min' => 'nullable|numeric|min:0',
+            'min_price' => 'nullable|numeric|min:0',
         ]);
 
-        foreach (VehicleType::values() as $type) {
-            $row = $validated['prices'][$type] ?? null;
-            if ($row === null) {
-                continue;
-            }
+        $values = [
+            'base_price' => $validated['base_price'] ?? 0,
+            'price_per_km' => $validated['price_per_km'] ?? 0,
+            'price_per_min' => $validated['price_per_min'] ?? 0,
+            'min_price' => $validated['min_price'] ?? 0,
+        ];
 
+        foreach (VehicleType::values() as $type) {
             DeliveryZonePrice::updateOrCreate(
                 ['zone_id' => $zone->id, 'vehicle_type' => $type],
-                [
-                    'base_price' => $row['base_price'] ?? 0,
-                    'price_per_km' => $row['price_per_km'] ?? 0,
-                    'price_per_min' => $row['price_per_min'] ?? 0,
-                    'min_price' => $row['min_price'] ?? 0,
-                ]
+                $values
             );
         }
 

@@ -96,6 +96,7 @@ components:
 
     EstimateVehiclePrice:
       type: object
+      description: Both vehicle types return the same zone delivery price.
       properties:
         vehicle_type:
           $ref: '#/components/schemas/VehicleType'
@@ -107,6 +108,7 @@ components:
         estimated_price:
           type: number
           nullable: true
+          description: The single delivery price the admin set for the zone. Same value for bike and motorcycle.
           example: 3.75
 
     RiderSummary:
@@ -888,8 +890,11 @@ paths:
   /user/delivery/estimate:
     post:
       tags: [User Delivery]
-      summary: Estimate delivery prices
-      description: Returns km/time and prices for **both** bike and motorcycle in the zone. User does not pick a vehicle type.
+      summary: Estimate delivery price
+      description: |
+        Returns km/time and the **one** delivery price the admin set for the zone.
+        Bike and motorcycle share that price. `estimated_price` is that amount;
+        `data` lists both vehicle types with the same price.
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -916,6 +921,11 @@ paths:
                   message: { type: string }
                   estimated_km: { type: number }
                   estimated_time: { type: number }
+                  estimated_price:
+                    type: number
+                    nullable: true
+                    description: Single zone delivery price, shared by bike and motorcycle.
+                    example: 3.75
                   data:
                     type: array
                     items:
@@ -927,7 +937,8 @@ paths:
       summary: Create delivery
       description: |
         Pickup = shop / order pin. Dropoff = where the user is.
-        Assigns the nearest eligible rider to pickup. Vehicle type and price come from that rider.
+        Assigns the nearest eligible rider to pickup. The price is the zone's single delivery price (same for bike and motorcycle).
+        If the pickup-to-destination distance is more than 7 km, only motorcycle riders are searched.
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
