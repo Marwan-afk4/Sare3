@@ -127,8 +127,8 @@
                 </div>
                 <div class="text-end">
                     <div class="d-flex align-items-center gap-2">
-                        <span id="ws-status" class="badge bg-secondary me-2">⏳ Connecting...</span>
-                        <span class="badge bg-success" id="available-drivers-badge" style="font-size: 1.2rem; padding: 0.5rem 1rem;">
+                        <span id="ws-status" class="badge bg-secondary">{{ __('Connecting...') }}</span>
+                        <span class="badge bg-success" id="available-drivers-badge" dir="ltr" style="font-size: 1.2rem; padding: 0.5rem 1rem;">
                             <i class="fa fa-circle text-success me-1" style="font-size: 0.5rem;"></i>
                             {{ $availableDriversCount }} / {{ $driverCount }}
                         </span>
@@ -160,7 +160,7 @@
                 </div>
                 <div class="text-end">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-danger" id="unavailable-drivers-badge" style="font-size: 1.2rem; padding: 0.5rem 1rem;">
+                        <span class="badge bg-danger" id="unavailable-drivers-badge" dir="ltr" style="font-size: 1.2rem; padding: 0.5rem 1rem;">
                             <i class="fa fa-circle text-danger me-1" style="font-size: 0.5rem;"></i>
                             {{ $unavailableDriversCount }} / {{ $driverCount }}
                         </span>
@@ -417,8 +417,8 @@
     </script>
 
     <!-- Real-time driver map via Reverb WebSocket -->
-    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pusher-js@8.4.0/dist/web/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
     <script>
     (function () {
         // ─── Driver name lookup (server-rendered) ────────────────────────────────
@@ -628,6 +628,27 @@
         }
 
         // ─── Real-time: Laravel Echo → Reverb WebSocket ───────────────────────────
+        const wsLabels = {
+            connecting: @json(__('Connecting...')),
+            connected: @json(__('Live')),
+            disconnected: @json(__('Disconnected')),
+        };
+        function setWsStatus(state) {
+            const badge = document.getElementById('ws-status');
+            if (!badge) return;
+            const states = {
+                connected: ['badge bg-success', wsLabels.connected],
+                connecting: ['badge bg-secondary', wsLabels.connecting],
+                unavailable: ['badge bg-danger', wsLabels.disconnected],
+                failed: ['badge bg-danger', wsLabels.disconnected],
+                disconnected: ['badge bg-danger', wsLabels.disconnected],
+                error: ['badge bg-danger', wsLabels.disconnected],
+            };
+            const [cls, text] = states[state] || states.disconnected;
+            badge.className = cls;
+            badge.textContent = text;
+        }
+
         const _wsPort = window.location.port ? parseInt(window.location.port) : (window.location.protocol === 'https:' ? 443 : 80);
         const _useTLS = window.location.protocol === 'https:';
         const echoConfig = {
@@ -639,9 +660,15 @@
             forceTLS:          _useTLS,
             enabledTransports: ['ws', 'wss'],
         };
-        console.log('📡 Initializing Echo with config:', echoConfig);
-        
-        const echo = new Echo(echoConfig);
+
+        let echo;
+        try {
+            echo = new Echo(echoConfig);
+        } catch (err) {
+            console.error('WebSocket init failed:', err);
+            setWsStatus('failed');
+            return;
+        }
 
         // "driver-location" is a PUBLIC channel — no auth needed for admin dashboard
         echo.channel('driver-location')
@@ -664,25 +691,13 @@
                 }
             });
 
-        // ─── Connection status indicator ──────────────────────────────────────────
-        echo.connector.pusher.connection.bind('connected', () => {
-            console.log('✅ WebSocket Connected');
-            const badge = document.getElementById('ws-status');
-            if (badge) { badge.className = 'badge bg-success'; badge.textContent = '🟢 Live'; }
+        const wsConnection = echo.connector.pusher.connection;
+        wsConnection.bind('state_change', (states) => setWsStatus(states.current));
+        wsConnection.bind('error', (err) => {
+            console.error('WebSocket error:', err);
+            setWsStatus('error');
         });
-        echo.connector.pusher.connection.bind('disconnected', () => {
-            console.log('🔴 WebSocket Disconnected');
-            const badge = document.getElementById('ws-status');
-            if (badge) { badge.className = 'badge bg-danger'; badge.textContent = '🔴 Disconnected'; }
-        });
-        echo.connector.pusher.connection.bind('error', (err) => {
-            console.error('❌ WebSocket Error:', err);
-            const badge = document.getElementById('ws-status');
-            if (badge) { badge.className = 'badge bg-warning'; badge.textContent = '⚠️ Error'; }
-        });
-        echo.connector.pusher.connection.bind('connecting', () => {
-            console.log('⏳ WebSocket Connecting...');
-        });
+        setWsStatus(wsConnection.state);
     })();
     </script>
 @endpush

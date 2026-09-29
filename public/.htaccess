@@ -5,6 +5,18 @@
 
     RewriteEngine On
 
+    # Browser WebSocket (/app) must reach Reverb, not Laravel.
+    # Port must match REVERB_SERVER_PORT on the server.
+    <IfModule mod_proxy.c>
+        <IfModule mod_proxy_wstunnel.c>
+            RewriteCond %{HTTP:Upgrade} =websocket [NC]
+            RewriteRule ^app/(.*)$ ws://127.0.0.1:8170/app/$1 [P,L]
+        </IfModule>
+        <IfModule mod_proxy_http.c>
+            RewriteRule ^app/(.*)$ http://127.0.0.1:8170/app/$1 [P,L]
+        </IfModule>
+    </IfModule>
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
