@@ -44,6 +44,8 @@ class Ride extends Model
         'coupon_id',
         'coupon_discount',
         'wallet_paid_amount',
+        'user_wallet_before',
+        'user_wallet_after',
         'cancellation_reason_id',
         'zone_id',
         'reassigned_at',

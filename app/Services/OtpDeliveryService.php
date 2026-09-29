@@ -17,19 +17,21 @@ class OtpDeliveryService
     {
         $channel = AppSetting::getStoredPhoneVerificationMethod();
 
-        Log::info('[otp-trace] delivery started', [
+        $usingKastana = $channel === PhoneVerificationMethod::KastanaOtp->value;
+
+        $this->logDelivery($usingKastana, 'info', '[otp-trace] delivery started', [
             'phone' => $phone,
             'message' => $message,
             'channel' => $channel,
             'kastana_enum' => PhoneVerificationMethod::KastanaOtp->value,
-            'will_use_kastana' => $channel === PhoneVerificationMethod::KastanaOtp->value,
+            'will_use_kastana' => $usingKastana,
         ]);
 
-        if ($channel === PhoneVerificationMethod::KastanaOtp->value) {
+        if ($usingKastana) {
             try {
                 $response = $this->kastanaSms->send($phone, $message);
             } catch (\Throwable $e) {
-                Log::error('[otp-trace] Kastana HTTP client exception', [
+                $this->logDelivery(true, 'error', '[otp-trace] Kastana HTTP client exception', [
                     'phone' => $phone,
                     'exception' => $e::class,
                     'message' => $e->getMessage(),
@@ -42,7 +44,7 @@ class OtpDeliveryService
 
             $succeeded = $this->kastanaSms->succeeded($response);
 
-            Log::log($succeeded ? 'info' : 'error', '[otp-trace] Kastana delivery result', [
+            $this->logDelivery(true, $succeeded ? 'info' : 'error', '[otp-trace] Kastana delivery result', [
                 'phone' => $phone,
                 'succeeded' => $succeeded,
                 'http_failed' => $response->failed(),
@@ -67,5 +69,12 @@ class OtpDeliveryService
         Log::info('[otp-trace] WhatsApp dispatch finished', [
             'phone' => $phone,
         ]);
+    }
+
+    private function logDelivery(bool $kastana, string $level, string $message, array $context = []): void
+    {
+        $logger = $kastana ? Log::channel('kastana') : Log::channel(config('logging.default'));
+
+        $logger->log($level, $message, $context);
     }
 }

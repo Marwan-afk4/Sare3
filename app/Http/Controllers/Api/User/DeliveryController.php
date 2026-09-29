@@ -23,10 +23,13 @@ class DeliveryController extends Controller
     /** Default radius (km) to search for riders around the pickup pin. */
     const DEFAULT_PICKUP_RADIUS_KM = 5.0;
 
+    /** Trips longer than this are offered to motorcycle riders only. */
+    const BIKE_MAX_TRIP_KM = 7.0;
+
     /**
      * Estimate a delivery. Returns km/time (via Google when both points are
-     * present) and the price for BOTH vehicle types in the zone. The user
-     * does not pick a vehicle type; this is informational.
+     * present) and the one delivery price the admin set for the zone.
+     * Bikes and motorcycles share that price.
      */
     public function estimate(Request $request)
     {
@@ -62,18 +65,18 @@ class DeliveryController extends Controller
             $estimatedTime = $google['minutes'];
         }
 
-        $prices = DeliveryZonePrice::where('zone_id', $request->zone_id)->get();
+        $priceRow = DeliveryZonePrice::forZone($request->zone_id);
+        $estimatedPrice = $priceRow
+            ? round($priceRow->calculatePrice($estimatedKm, $estimatedTime), 2)
+            : null;
 
         $data = [];
         foreach (VehicleType::values() as $type) {
-            $priceRow = $prices->firstWhere('vehicle_type', $type)
-                ?? $prices->first(fn ($p) => $p->vehicle_type?->value === $type);
-
             $data[] = [
                 'vehicle_type' => $type,
                 'label' => VehicleType::labels()[$type],
-                'available' => (bool) $priceRow,
-                'estimated_price' => $priceRow ? round($priceRow->calculatePrice($estimatedKm, $estimatedTime), 2) : null,
+                'available' => $estimatedPrice !== null,
+                'estimated_price' => $estimatedPrice,
             ];
         }
 
@@ -81,6 +84,7 @@ class DeliveryController extends Controller
             'message' => 'Success',
             'estimated_km' => $estimatedKm,
             'estimated_time' => $estimatedTime,
+            'estimated_price' => $estimatedPrice,
             'data' => $data,
         ]);
     }
@@ -110,8 +114,24 @@ class DeliveryController extends Controller
             return response()->json(['message' => $validation->errors()->first()], 422);
         }
 
-        // Find nearest eligible rider around the PICKUP pin (any vehicle type).
-        $eligibleRiders = $this->getEligibleRiders($request->pickup_lat, $request->pickup_lng);
+        $estimatedKm = (float) ($request->estimated_km ?? 0);
+        $estimatedTime = (float) ($request->estimated_time ?? 0);
+        $tripKm = $this->tripDistanceKm(
+            $estimatedKm,
+            $request->pickup_lat,
+            $request->pickup_lng,
+            $request->dropoff_lat,
+            $request->dropoff_lng
+        );
+
+        // Nearest eligible rider around the pickup pin.
+        // Trips over 7 km are offered to motorcycle riders only.
+        $eligibleRiders = $this->getEligibleRiders(
+            $request->pickup_lat,
+            $request->pickup_lng,
+            [],
+            $tripKm
+        );
 
         if (empty($eligibleRiders)) {
             return response()->json(['message' => 'No delivery riders available in your area.'], 404);
@@ -132,20 +152,16 @@ class DeliveryController extends Controller
 
         $vehicleType = $rider->riderVehicle->type?->value;
 
-        // Lock the price from the rider's vehicle type in this zone.
-        $priceRow = DeliveryZonePrice::where('zone_id', $request->zone_id)
-            ->where('vehicle_type', $vehicleType)
-            ->first();
+        // One delivery price for the zone, shared by bikes and motorcycles.
+        $priceRow = DeliveryZonePrice::forZone($request->zone_id);
 
         if (!$priceRow) {
             return response()->json([
-                'message' => 'Delivery pricing is not configured for this zone / vehicle type.',
+                'message' => 'Delivery pricing is not configured for this zone.',
             ], 422);
         }
 
-        $estimatedKm = (float) ($request->estimated_km ?? 0);
-        $estimatedTime = (float) ($request->estimated_time ?? 0);
-        $price = round($priceRow->calculatePrice($estimatedKm, $estimatedTime), 2);
+        $price = round($priceRow->calculatePrice($tripKm, $estimatedTime), 2);
 
         $delivery = Delivery::create([
             'user_id' => $user->id,
@@ -160,7 +176,7 @@ class DeliveryController extends Controller
             'dropoff_lng' => $request->dropoff_lng,
             'dropoff_address' => $request->dropoff_address,
             'status' => 'pending',
-            'estimated_km' => $estimatedKm,
+            'estimated_km' => round($tripKm, 2),
             'estimated_time' => $estimatedTime,
             'calculated_initial_price' => $price,
             'rider_assigned_at' => now(),
@@ -306,8 +322,9 @@ class DeliveryController extends Controller
     /**
      * Riders eligible to receive an offer near the pickup pin: role=delivery,
      * approved, available, has GPS, wallet OK, within pickup radius.
+     * When the trip is longer than 7 km, bike riders are excluded.
      */
-    public function getEligibleRiders($pickupLat, $pickupLng, array $excludedRiderIds = []): array
+    public function getEligibleRiders($pickupLat, $pickupLng, array $excludedRiderIds = [], ?float $tripKm = null): array
     {
         try {
             $minWallet = \App\Models\AppSetting::getMinimumDriverWalletBalance();
@@ -326,6 +343,8 @@ class DeliveryController extends Controller
 
             $riders = $query->with('riderVehicle')->get();
 
+            $motorcycleOnly = $tripKm !== null && $tripKm > self::BIKE_MAX_TRIP_KM;
+
             $eligible = [];
             foreach ($riders as $rider) {
                 $cached = Cache::get("driver_location:{$rider->id}");
@@ -342,10 +361,15 @@ class DeliveryController extends Controller
                     continue;
                 }
 
+                $vehicleType = $rider->riderVehicle->type?->value;
+                if ($motorcycleOnly && $vehicleType !== VehicleType::Motorcycle->value) {
+                    continue;
+                }
+
                 $eligible[] = [
                     'id' => $rider->id,
                     'name' => $rider->name ?? '',
-                    'vehicle_type' => $rider->riderVehicle->type?->value,
+                    'vehicle_type' => $vehicleType,
                     'latitude' => $lat,
                     'longitude' => $lng,
                     'distance_to_pickup' => round($distance, 2),
@@ -376,10 +400,19 @@ class DeliveryController extends Controller
             // After a full cycle of rejections, reset and start over.
             $shouldCycle = count($excluded) > 12;
 
+            $tripKm = $this->tripDistanceKm(
+                (float) ($delivery->estimated_km ?? 0),
+                $delivery->pickup_lat,
+                $delivery->pickup_lng,
+                $delivery->dropoff_lat,
+                $delivery->dropoff_lng
+            );
+
             $candidates = $this->getEligibleRiders(
                 $delivery->pickup_lat,
                 $delivery->pickup_lng,
-                $shouldCycle ? [] : $excluded
+                $shouldCycle ? [] : $excluded,
+                $tripKm
             );
 
             // Drop riders currently on cooldown.
@@ -405,19 +438,9 @@ class DeliveryController extends Controller
             $rider = User::with('riderVehicle')->find($selected['id']);
             $vehicleType = $rider?->riderVehicle?->type?->value ?? $delivery->vehicle_type?->value;
 
-            // Re-price to the new rider's vehicle type in the same zone.
-            $price = $delivery->calculated_initial_price;
-            $priceRow = DeliveryZonePrice::where('zone_id', $delivery->zone_id)
-                ->where('vehicle_type', $vehicleType)
-                ->first();
-            if ($priceRow) {
-                $price = round($priceRow->calculatePrice((float) $delivery->estimated_km, (float) $delivery->estimated_time), 2);
-            }
-
             $delivery->update([
                 'rider_id' => $selected['id'],
                 'vehicle_type' => $vehicleType,
-                'calculated_initial_price' => $price,
                 'status' => 'pending',
                 'reassigned_at' => now(),
                 'rider_assigned_at' => now(),
@@ -508,6 +531,23 @@ class DeliveryController extends Controller
             Log::error('Delivery Google Distance error: ' . $e->getMessage());
             return ['error' => 'Error calling Google API', 'status' => 500];
         }
+    }
+
+    /**
+     * Pickup-to-destination distance. Prefer the estimate the client already
+     * has; otherwise fall back to straight-line distance between the pins.
+     */
+    private function tripDistanceKm(float $estimatedKm, $pickupLat, $pickupLng, $dropoffLat, $dropoffLng): float
+    {
+        if ($estimatedKm > 0) {
+            return $estimatedKm;
+        }
+
+        if ($pickupLat === null || $pickupLng === null || $dropoffLat === null || $dropoffLng === null) {
+            return 0.0;
+        }
+
+        return $this->haversineDistance($pickupLat, $pickupLng, $dropoffLat, $dropoffLng);
     }
 
     private function haversineDistance($lat1, $lon1, $lat2, $lon2): float

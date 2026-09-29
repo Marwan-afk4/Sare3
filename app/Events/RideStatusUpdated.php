@@ -80,6 +80,8 @@ class RideStatusUpdated implements ShouldBroadcastNow
                 'discount_amount' => $ride->discount_amount ? (float) $ride->discount_amount : 0.0,
                 'coupon_discount' => $ride->coupon_discount ? (float) $ride->coupon_discount : 0.0,
                 'wallet_paid_amount' => $ride->wallet_paid_amount ? (float) $ride->wallet_paid_amount : 0.0,
+                'user_wallet_before' => $ride->user_wallet_before !== null ? (float) $ride->user_wallet_before : null,
+                'user_wallet_after' => $ride->user_wallet_after !== null ? (float) $ride->user_wallet_after : null,
             ];
         }
     }

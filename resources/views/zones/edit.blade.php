@@ -116,41 +116,36 @@
 		</div>
 	</div>
 
-	{{-- Delivery prices per vehicle type (bike / motorcycle) --}}
+	{{-- One delivery price, shared by bikes and motorcycles --}}
 	<div class="main-card mb-3 card">
 		<div class="card-body">
-			<h5 class="mb-3">{{ __('Delivery Prices') }}</h5>
+			<h5 class="mb-1">{{ __('Delivery Prices') }}</h5>
+			<p class="text-muted mb-3">{{ __('This price applies to both bikes and motorcycles.') }}</p>
 			<form method="POST" action="{{ route('zones.delivery-prices', $zone->id) }}">
 				@csrf
 				<div class="row">
-					@foreach(['bike' => __('Bike'), 'motorcycle' => __('Motorcycle')] as $type => $label)
-						@php $price = ($deliveryPrices ?? collect())->get($type); @endphp
-						<div class="col-md-6 mb-3">
-							<div class="border rounded p-3 h-100">
-								<h6 class="mb-3">{{ $label }}</h6>
-								<div class="mb-2">
-									<label class="form-label">{{ __('Base Price') }}</label>
-									<input type="number" step="0.01" min="0" class="form-control"
-										name="prices[{{ $type }}][base_price]" value="{{ $price->base_price ?? '' }}">
-								</div>
-								<div class="mb-2">
-									<label class="form-label">{{ __('Price per km') }}</label>
-									<input type="number" step="0.01" min="0" class="form-control"
-										name="prices[{{ $type }}][price_per_km]" value="{{ $price->price_per_km ?? '' }}">
-								</div>
-								<div class="mb-2">
-									<label class="form-label">{{ __('Price per minute') }}</label>
-									<input type="number" step="0.01" min="0" class="form-control"
-										name="prices[{{ $type }}][price_per_min]" value="{{ $price->price_per_min ?? '' }}">
-								</div>
-								<div class="mb-2">
-									<label class="form-label">{{ __('Minimum Price') }}</label>
-									<input type="number" step="0.01" min="0" class="form-control"
-										name="prices[{{ $type }}][min_price]" value="{{ $price->min_price ?? '' }}">
-								</div>
-							</div>
+					<div class="col-md-6 mb-3">
+						<div class="mb-2">
+							<label class="form-label">{{ __('Base Price') }}</label>
+							<input type="number" step="0.01" min="0" class="form-control"
+								name="base_price" value="{{ $deliveryPrice?->base_price ?? '' }}">
 						</div>
-					@endforeach
+						<div class="mb-2">
+							<label class="form-label">{{ __('Price per km') }}</label>
+							<input type="number" step="0.01" min="0" class="form-control"
+								name="price_per_km" value="{{ $deliveryPrice?->price_per_km ?? '' }}">
+						</div>
+						<div class="mb-2">
+							<label class="form-label">{{ __('Price per minute') }}</label>
+							<input type="number" step="0.01" min="0" class="form-control"
+								name="price_per_min" value="{{ $deliveryPrice?->price_per_min ?? '' }}">
+						</div>
+						<div class="mb-2">
+							<label class="form-label">{{ __('Minimum Price') }}</label>
+							<input type="number" step="0.01" min="0" class="form-control"
+								name="min_price" value="{{ $deliveryPrice?->min_price ?? '' }}">
+						</div>
+					</div>
 				</div>
 				<button type="submit" class="btn btn-success btn-sm">{{ __('Save Delivery Prices') }}</button>
 			</form>

@@ -29,7 +29,7 @@ class KastanaSmsService
         $url = config('services.kastana.url');
         $safeQuery = $this->redactQuery($query);
 
-        Log::info('[otp-trace] Kastana request prepared', [
+        $this->log('info', '[otp-trace] Kastana request prepared', [
             'raw_number' => $number,
             'digits' => $digits,
             'recipients' => $recipients,
@@ -59,7 +59,7 @@ class KastanaSmsService
 
         $response = Http::accept('application/xml')
             ->beforeSending(function ($request) {
-                Log::info('[otp-trace] Kastana HTTP outgoing', [
+                $this->log('info', '[otp-trace] Kastana HTTP outgoing', [
                     'method' => $request->method(),
                     'url' => $this->redactUrl((string) $request->url()),
                     'headers' => $request->headers(),
@@ -68,7 +68,7 @@ class KastanaSmsService
             })
             ->get($url, $query);
 
-        Log::info('[otp-trace] Kastana HTTP returned', [
+        $this->log('info', '[otp-trace] Kastana HTTP returned', [
             'status' => $response->status(),
             'reason' => $response->reason(),
             'ok' => $response->ok(),
@@ -94,6 +94,11 @@ class KastanaSmsService
         }
 
         return false;
+    }
+
+    private function log(string $level, string $message, array $context = []): void
+    {
+        Log::channel('kastana')->log($level, $message, $context);
     }
 
     /**

@@ -212,11 +212,10 @@ class DeliveryActionsController extends Controller
         $startTime = $delivery->started_at ?? $delivery->accepted_at ?? $delivery->created_at;
         $durationMinutes = $startTime ? ceil(Carbon::parse($startTime)->floatDiffInMinutes(now())) : (int) ($delivery->estimated_time ?? 0);
 
-        // 3) Fare from zone + vehicle type pricing.
-        $vehicleType = $delivery->vehicle_type?->value;
-        $priceRow = DeliveryZonePrice::where('zone_id', $delivery->zone_id)
-            ->where('vehicle_type', $vehicleType)
-            ->first();
+        // 3) Fare from the zone's single delivery price (same for bike and motorcycle).
+        $priceRow = $delivery->zone_id
+            ? DeliveryZonePrice::forZone($delivery->zone_id)
+            : null;
 
         $fare = $priceRow
             ? round($priceRow->calculatePrice($distanceKm, $durationMinutes), 2)

@@ -243,6 +243,20 @@
                             @endif
                         </div>
                     </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 h-100">
+                            <div class="text-muted small">{{ __('Wallet before payment') }}</div>
+                            <div class="fs-4 fw-bold mb-0">{!! $money($settlement['user_wallet_before']) !!}</div>
+                            <div class="small text-muted">{{ __('Passenger wallet balance before paying for this ride') }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 h-100">
+                            <div class="text-muted small">{{ __('Wallet after payment') }}</div>
+                            <div class="fs-4 fw-bold mb-0">{!! $money($settlement['user_wallet_after']) !!}</div>
+                            <div class="small text-muted">{{ __('Passenger wallet balance after paying for this ride') }}</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

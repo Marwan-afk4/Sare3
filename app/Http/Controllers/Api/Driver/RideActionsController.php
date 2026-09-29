@@ -389,6 +389,8 @@ class RideActionsController extends Controller
         // Initialize wallet payment tracking
         $walletPaidAmount = 0;
         $remainingAmount = round($fare, 2);
+        $userWalletBefore = null;
+        $userWalletAfter = null;
         $walletCapAmount = max(0, AppSetting::getUserWalletPaymentAmount());
         $maxFromWallet = round(min($walletCapAmount, $fare), 2);
 
@@ -449,6 +451,12 @@ class RideActionsController extends Controller
                 );
             }
 
+            // Snapshot the passenger wallet before this ride's payment. Later
+            // top-ups must not change what the ride page shows.
+            if ($user && $ride->user_wallet_before === null) {
+                $userWalletBefore = round((float) $user->wallet, 3);
+            }
+
             // 7️⃣ Process wallet payment if user has wallet balance
             if ($user && $user->wallet > 0 && $fare > 0 && $maxFromWallet > 0) {
                 // Cap wallet payment to the admin-configured amount of the fare
@@ -490,8 +498,18 @@ class RideActionsController extends Controller
                     'max_from_wallet' => $maxFromWallet,
                     'remaining_amount' => $remainingAmount,
                     'final_fare' => $fare,
+                    'user_wallet_before' => $userWalletBefore,
                     'user_wallet_after' => $user->fresh()->wallet,
                     'driver_wallet_after' => $driver?->fresh()->wallet,
+                ]);
+            }
+
+            if ($userWalletBefore !== null) {
+                $user->refresh();
+                $userWalletAfter = round((float) $user->wallet, 3);
+                $ride->update([
+                    'user_wallet_before' => $userWalletBefore,
+                    'user_wallet_after' => $userWalletAfter,
                 ]);
             }
 
@@ -612,6 +630,8 @@ class RideActionsController extends Controller
             'wallet_deduction' => round($walletPaidAmount, 2), // Amount deducted from user wallet
             'transferred_to_driver' => round($walletPaidAmount, 2), // Same amount credited to driver wallet
             'remaining_amount_after_wallet' => round($remainingAmount, 2), // Amount remaining after wallet deduction (cash)
+            'user_wallet_before' => $userWalletBefore,
+            'user_wallet_after' => $userWalletAfter,
         ];
 
         $pricing = [
