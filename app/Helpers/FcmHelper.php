@@ -51,10 +51,42 @@ class FcmHelper
         }
     }
 
+    /**
+     * Only incoming offers wake the device. Status updates stay at normal priority.
+     */
+    private static function isOfferNotification(array $data): bool
+    {
+        $msgType = strtolower(trim((string) ($data['msg_type'] ?? '')));
+
+        return in_array($msgType, ['ride_request', 'delivery_request'], true);
+    }
+
+    /**
+     * FCM HTTP v1 rejects a data payload unless every value is a string.
+     */
+    private static function stringifyData(array $data): array
+    {
+        $stringData = [];
+
+        foreach ($data as $key => $value) {
+            if ($value === null) {
+                continue;
+            }
+
+            $stringData[$key] = is_array($value)
+                ? (string) json_encode($value)
+                : (string) $value;
+        }
+
+        return $stringData;
+    }
+
     public static function sendPushNotification($fcmToken, $title, $body, $data = [])
     {
         $startTime = microtime(true);
-        
+        $data = $data ?? [];
+        $highPriority = self::isOfferNotification($data);
+
         try {
             $accessToken = self::getAccessToken();
 
@@ -63,19 +95,46 @@ class FcmHelper
                 return ['error' => 'Failed to get access token'];
             }
 
+            $dataPayload = self::stringifyData(array_merge([
+                'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                'title' => $title,
+                'body' => $body,
+            ], $data));
+
+            $message = [
+                'token' => $fcmToken,
+                // Data-only on Android so the Flutter background handler still
+                // runs the loud channel, overlay, and offer sheet.
+                'data' => $dataPayload,
+            ];
+
+            if ($highPriority) {
+                $message['android'] = [
+                    'priority' => 'high',
+                    'direct_boot_ok' => true,
+                    'ttl' => '120s',
+                ];
+                $message['apns'] = [
+                    'headers' => [
+                        'apns-priority' => '10',
+                        'apns-push-type' => 'alert',
+                    ],
+                    'payload' => [
+                        'aps' => [
+                            'alert' => [
+                                'title' => (string) $title,
+                                'body' => (string) $body,
+                            ],
+                            'sound' => 'default',
+                            'interruption-level' => 'time-sensitive',
+                            'relevance-score' => 1.0,
+                        ],
+                    ],
+                ];
+            }
+
             $payload = [
-                'message' => [
-                    'token' => $fcmToken,
-                    // 'notification' => [
-                    //     'title' => $title,
-                    //     'body' => $body,
-                    // ],
-                    'data' => array_merge([
-                        'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
-                        'title' => $title,
-                        'body' => $body,
-                    ], $data ?? [])
-                ] 
+                'message' => $message,
             ];
 
             $response = Http::timeout(10) // 10 second timeout
@@ -92,12 +151,15 @@ class FcmHelper
                     'fcm_token' => substr($fcmToken, 0, 20) . '...',
                     'msg_type' => $data['msg_type'] ?? 'unknown',
                     'ride_id' => $data['ride_id'] ?? null,
+                    'high_priority' => $highPriority,
                 ]);
             } else {
                 Log::error("❌ FCM notification failed (took {$duration}ms)", [
                     'fcm_token' => substr($fcmToken, 0, 20) . '...',
                     'status' => $response->status(),
                     'error' => $result,
+                    'msg_type' => $data['msg_type'] ?? 'unknown',
+                    'high_priority' => $highPriority,
                 ]);
             }
 
@@ -106,6 +168,8 @@ class FcmHelper
             $duration = round((microtime(true) - $startTime) * 1000, 2);
             Log::error("❌ Exception sending FCM notification (took {$duration}ms): " . $e->getMessage(), [
                 'fcm_token' => substr($fcmToken, 0, 20) . '...',
+                'msg_type' => $data['msg_type'] ?? 'unknown',
+                'high_priority' => $highPriority,
             ]);
             return ['error' => $e->getMessage()];
         }
