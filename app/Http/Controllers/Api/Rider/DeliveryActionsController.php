@@ -13,6 +13,7 @@ use App\Services\DeliveryOfferService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -61,40 +62,51 @@ class DeliveryActionsController extends Controller
             ], 403);
         }
 
-        $delivery = Delivery::where('id', $request->delivery_id)
-            ->whereIn('status', ['pending', 'rejected'])
-            ->first();
+        DB::beginTransaction();
+        try {
+            $delivery = Delivery::where('id', $request->delivery_id)
+                ->where('status', 'pending')
+                ->where('rider_id', $rider->id)
+                ->lockForUpdate()
+                ->first();
 
-        if (!$delivery) {
-            return response()->json(['message' => 'Delivery not found or not available for acceptance.'], 404);
+            if (!$delivery) {
+                DB::rollBack();
+                return response()->json(['message' => 'Delivery not found or not available for acceptance.'], 404);
+            }
+
+            $acceptLat = $request->input('lat') ?? $rider->latitude;
+            $acceptLng = $request->input('lng') ?? $rider->longitude;
+
+            $updateData = [
+                'rider_id' => $rider->id,
+                'status' => 'accepted',
+                'accepted_at' => now(),
+                'started_at' => now(),
+            ];
+
+            if ($acceptLat !== null && $acceptLng !== null) {
+                $updateData['rider_accept_lat'] = (float) $acceptLat;
+                $updateData['rider_accept_lng'] = (float) $acceptLng;
+                $updateData['to_pickup_route_points'] = [[
+                    'lat'       => (float) $acceptLat,
+                    'lng'       => (float) $acceptLng,
+                    'bearing'   => (float) ($rider->bearing ?? 0),
+                    'timestamp' => now()->timestamp,
+                    'seq'       => 1,
+                    'phase'     => 'to_pickup',
+                ]];
+            }
+
+            $delivery->update($updateData);
+
+            app(DeliveryOfferService::class)->markAccepted($delivery, (int) $rider->id);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
         }
-
-        $acceptLat = $request->input('lat') ?? $rider->latitude;
-        $acceptLng = $request->input('lng') ?? $rider->longitude;
-
-        $updateData = [
-            'rider_id' => $rider->id,
-            'status' => 'accepted',
-            'accepted_at' => now(),
-            'started_at' => now(),
-        ];
-
-        if ($acceptLat !== null && $acceptLng !== null) {
-            $updateData['rider_accept_lat'] = (float) $acceptLat;
-            $updateData['rider_accept_lng'] = (float) $acceptLng;
-            $updateData['to_pickup_route_points'] = [[
-                'lat'       => (float) $acceptLat,
-                'lng'       => (float) $acceptLng,
-                'bearing'   => (float) ($rider->bearing ?? 0),
-                'timestamp' => now()->timestamp,
-                'seq'       => 1,
-                'phase'     => 'to_pickup',
-            ]];
-        }
-
-        $delivery->update($updateData);
-
-        app(DeliveryOfferService::class)->markAccepted($delivery, (int) $rider->id);
 
         return response()->json(['message' => 'Delivery accepted.']);
     }

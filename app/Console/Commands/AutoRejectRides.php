@@ -7,7 +7,6 @@ use App\Models\Ride;
 use App\Models\User;
 use App\Helpers\FcmHelper;
 use App\Http\Controllers\Api\User\RideEstimateController;
-use App\Events\RideStatusUpdated;
 use App\Events\NewRideRequest;
 use App\Services\RideOfferService;
 use Carbon\Carbon;
@@ -109,12 +108,6 @@ class AutoRejectRides extends Command
                     Log::info("No drivers available for ride {$ride->id}");
                     $ride->update(['driver_id' => null, 'status' => 'pending']);
 
-                    try {
-                        RideStatusUpdated::dispatch($ride, (int) $previousDriverId);
-                    } catch (Exception $e) {
-                        Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
-                    }
-
                     DB::commit();
                     continue;
                 }
@@ -168,11 +161,6 @@ class AutoRejectRides extends Command
                     if (empty($allDriversWithETA)) {
                         Log::info("All available drivers are currently on cooldown for ride {$ride->id}. Resetting driver_id.");
                         $ride->update(['driver_id' => null, 'status' => 'pending']);
-                        try {
-                            RideStatusUpdated::dispatch($ride, (int) $previousDriverId);
-                        } catch (Exception $e) {
-                            Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
-                        }
                         DB::commit();
                         continue;
                     }
@@ -284,14 +272,6 @@ class AutoRejectRides extends Command
                     Log::warning("AutoRejectRides Command: recordOffer failed: " . $offerEx->getMessage());
                 }
 
-                // ✅ Broadcast new driver assignment to passenger
-                try {
-                    RideStatusUpdated::dispatch($ride, (int) $previousDriverId);
-                    Log::info("📡 Broadcasted RideStatusUpdated event for reassigned ride {$ride->id} (old driver: {$previousDriverId})");
-                } catch (Exception $e) {
-                    Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
-                }
-
                 // ✅ Broadcast new ride request to the driver
                 try {
                     broadcast(new NewRideRequest($ride));
@@ -305,12 +285,12 @@ class AutoRejectRides extends Command
                 // Step 7: Send notification to new driver
                 $driver = User::find($driverId);
                 if ($driver && $driver->fcm_token) {
-                    $data = [
-                        'title'    => 'New Ride Request',
-                        'body'     => 'You have a new ride request!',
+                    $ride->loadMissing('user');
+                    $data = array_merge($ride->toOfferArray(), [
+                        'title' => 'New Ride Request',
+                        'body' => 'You have a new ride request!',
                         'msg_type' => 'ride_request',
-                        'ride_id'  => (string) $ride->id,
-                    ];
+                    ]);
 
                     $response = FcmHelper::sendPushNotification(
                         $driver->fcm_token,

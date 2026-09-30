@@ -13,7 +13,6 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Events\RideStatusUpdated;
 
 class AutoRejectRideJob implements ShouldQueue
 {
@@ -133,17 +132,7 @@ class AutoRejectRideJob implements ShouldQueue
 
             DB::commit();
 
-            // Broadcast and dispatch AFTER commit
             if ($alternativeDriver) {
-                // ✅ Broadcast new driver assignment to passenger AND dismiss ride from old driver
-                try {
-                    RideStatusUpdated::dispatch($ride, (int) $this->driverId);
-                    Log::info("📡 Broadcasted RideStatusUpdated event for reassigned ride {$ride->id} (old driver: {$this->driverId})");
-                } catch (\Exception $e) {
-                    Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
-                }
-
-                // Schedule another auto-reject job for the new driver
                 if ($driverId) {
                     AutoRejectRideJob::dispatch(
                         $ride->id,
@@ -154,13 +143,7 @@ class AutoRejectRideJob implements ShouldQueue
 
                 Log::info("✅ AutoRejectRideJob: Ride {$this->rideId} reassigned to driver {$driverId} (previous driver: {$this->driverId})");
             } else {
-                // ✅ Broadcast rejection to passenger AND dismiss ride from old driver
-                try {
-                    RideStatusUpdated::dispatch($ride, (int) $this->driverId);
-                    Log::info("📡 Broadcasted RideStatusUpdated event for rejected ride {$ride->id} (old driver: {$this->driverId})");
-                } catch (\Exception $e) {
-                    Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
-                }
+                Log::info("AutoRejectRideJob: Ride {$this->rideId} rejected with no alternative driver");
             }
 
         } catch (\Exception $e) {

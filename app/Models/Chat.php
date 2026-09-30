@@ -15,6 +15,7 @@ class Chat extends Model
         'waiting_user',
         'arrived',
         'in_progress',
+        'completed',
     ];
 
     protected $fillable = [
@@ -126,12 +127,8 @@ class Chat extends Model
 
     public function allowsSending(): bool
     {
-        if (!$this->is_active) {
-            return false;
-        }
-
         if (!$this->ride_id) {
-            return true;
+            return (bool) $this->is_active;
         }
 
         $ride = $this->relationLoaded('ride') ? $this->ride : Ride::find($this->ride_id);

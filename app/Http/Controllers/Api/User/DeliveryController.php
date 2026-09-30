@@ -489,12 +489,11 @@ class DeliveryController extends Controller
     private function sendFcm(User $rider, Delivery $delivery, ?User $user = null): void
     {
         $name = $user?->name ?? ($delivery->user?->name ?? 'عميل');
-        $data = [
+        $data = array_merge($delivery->toOfferArray(), [
             'title' => 'طلب توصيل جديد',
             'body' => 'لديك طلب توصيل جديد من ' . $name,
             'msg_type' => 'delivery_request',
-            'delivery_id' => (string) $delivery->id,
-        ];
+        ]);
         FcmHelper::sendPushNotification($rider->fcm_token, $data['title'], $data['body'], $data);
     }
 

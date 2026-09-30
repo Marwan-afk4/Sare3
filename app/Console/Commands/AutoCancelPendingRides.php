@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Helpers\FcmHelper;
 use Illuminate\Console\Command;
 use App\Models\Ride;
-use App\Events\RideStatusUpdated;
 use App\Services\RideOfferService;
 use Carbon\Carbon;
 
@@ -59,16 +58,6 @@ class AutoCancelPendingRides extends Command
                 } catch (\Throwable $offerEx) {
                     Log::warning("AutoCancelPendingRides: offer bookkeeping failed for ride {$ride->id}: " . $offerEx->getMessage());
                 }
-
-                // ✅ 3. Broadcast status update event to private-ride.{ride_id} channel
-                try {
-                    RideStatusUpdated::dispatch($ride);
-                    Log::info("📡 Broadcasted RideStatusUpdated event for cancelled ride {$ride->id}");
-                } catch (Exception $e) {
-                    Log::error("⚠️ Failed to broadcast RideStatusUpdated event for ride {$ride->id}: " . $e->getMessage());
-                }
-
-
 
                 // ✅ 4. Send notification to the user
                 $user = $ride->user; // assuming Ride has user() relationship

@@ -86,6 +86,47 @@ class Delivery extends Model
 
     public $timestamps = true;
 
+    /**
+     * Offer body shared by the rider WebSocket event, FCM, and delivery restore.
+     */
+    public function toOfferArray(): array
+    {
+        $user = $this->relationLoaded('user') ? $this->user : $this->user()->first();
+
+        $data = [
+            'id' => $this->id,
+            'delivery_id' => $this->id,
+            'ride_id' => $this->id,
+            'status' => $this->status?->value,
+            'rider_id' => $this->rider_id,
+            'driver_id' => $this->rider_id,
+            'vehicle_type' => $this->vehicle_type?->value,
+            'user' => $user ? [
+                'id' => $user->id,
+                'name' => $user->name,
+                'phone' => $user->phone,
+                'avatar' => $user->image_link,
+                'rating' => $user->average_rating,
+            ] : null,
+            'pickup_lat' => $this->pickup_lat !== null ? (float) $this->pickup_lat : null,
+            'pickup_lng' => $this->pickup_lng !== null ? (float) $this->pickup_lng : null,
+            'pickup_address' => $this->pickup_address,
+            'dropoff_address' => $this->dropoff_address,
+            'estimated_price' => $this->calculated_initial_price !== null
+                ? (float) $this->calculated_initial_price
+                : null,
+            'estimated_time' => $this->estimated_time,
+            'estimated_km' => $this->estimated_km !== null ? (float) $this->estimated_km : null,
+        ];
+
+        if ($this->dropoff_lat !== null && $this->dropoff_lng !== null) {
+            $data['dropoff_lat'] = (float) $this->dropoff_lat;
+            $data['dropoff_lng'] = (float) $this->dropoff_lng;
+        }
+
+        return $data;
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -69,13 +69,14 @@ class RiderActivityController extends Controller
     {
         $rider = $request->user();
 
-        $delivery = Delivery::whereNotIn('status', ['finshed', 'cancelled', 'rejected'])
+        $delivery = Delivery::with('user')
+            ->whereNotIn('status', ['finshed', 'finished', 'cancelled', 'rejected'])
             ->where('rider_id', $rider->id)
-            ->select('id', 'status')
+            ->latest('id')
             ->first();
 
         return response()->json([
-            'is_in_delivery' => $delivery,
+            'is_in_delivery' => $delivery?->toOfferArray(),
         ]);
     }
 

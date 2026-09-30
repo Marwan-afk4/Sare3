@@ -339,12 +339,11 @@ class RideEstimateController extends Controller
             
             // ─── Also send Push Notification (FCM) ───
             if ($driver->fcm_token) {
-                $data = [
-                    'title'   => 'طلب رحلة جديد',
-                    'body'    => 'لديك طلب رحلة جديد من ' . $user->name,
-                    'msg_type'    => 'ride_request',
-                    'ride_id' => (string) $ride->id,
-                ];
+                $data = array_merge($ride->toOfferArray(), [
+                    'title' => 'طلب رحلة جديد',
+                    'body' => 'لديك طلب رحلة جديد من ' . $user->name,
+                    'msg_type' => 'ride_request',
+                ]);
                 FcmHelper::sendPushNotification($driver->fcm_token, $data['title'], $data['body'], $data);
             }
         } catch (\Exception $e) {
@@ -866,12 +865,11 @@ class RideEstimateController extends Controller
             if ($driver && $driver->fcm_token) {
                 $passenger = $ride->user;
                 $passengerName = $passenger ? $passenger->name : 'عميل';
-                $data = [
-                    'title'   => 'طلب رحلة جديد',
-                    'body'    => 'لديك طلب رحلة جديد من ' . $passengerName,
-                    'msg_type'    => 'ride_request',
-                    'ride_id' => (string) $ride->id,
-                ];
+                $data = array_merge($ride->toOfferArray(), [
+                    'title' => 'طلب رحلة جديد',
+                    'body' => 'لديك طلب رحلة جديد من ' . $passengerName,
+                    'msg_type' => 'ride_request',
+                ]);
 
                 $response = FcmHelper::sendPushNotification(
                     $driver->fcm_token,

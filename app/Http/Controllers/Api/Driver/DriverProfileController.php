@@ -176,13 +176,14 @@ class DriverProfileController extends Controller
     {
         $driver = $request->user();
 
-        $driverRide = Ride::whereNotIn('status',['finshed', 'cancelled','rejected'])
+        $driverRide = Ride::with('user')
+            ->whereNotIn('status', ['finshed', 'finished', 'cancelled', 'rejected'])
             ->where('driver_id', $driver->id)
-            ->select('id', 'status')
+            ->latest('id')
             ->first();
 
         return response()->json([
-            'is_in_ride' => $driverRide
+            'is_in_ride' => $driverRide?->toOfferArray(),
         ]);
     }
 

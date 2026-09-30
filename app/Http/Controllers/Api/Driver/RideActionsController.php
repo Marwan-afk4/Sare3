@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\Driver;
 
 use App\Helpers\RideHelper;
 use App\Http\Controllers\Api\User\RideEstimateController;
-use App\Events\RideStatusUpdated;
+use App\Events\RideVerificationCodeIssued;
 use App\Http\Controllers\Controller;
 use App\Jobs\AutoRejectRideJob;
 use App\Models\AppSetting;
@@ -70,72 +70,71 @@ class RideActionsController extends Controller
         $driver = $request->user();
         $startTime = Carbon::now();
 
-        $ride = Ride::where('id', $request->ride_id)
-            ->whereIn('status', ['pending', 'rejected']) // Allow accepting rejected rides
-            ->first();
+        DB::beginTransaction();
+        try {
+            $ride = Ride::where('id', $request->ride_id)
+                ->where('status', 'pending')
+                ->where('driver_id', $driver->id)
+                ->lockForUpdate()
+                ->first();
 
-        if (!$ride) {
-            return response()->json(['message' => 'Ride not found or not available for acceptance.'], 404);
+            if (!$ride) {
+                DB::rollBack();
+                return response()->json(['message' => 'Ride not found or not available for acceptance.'], 404);
+            }
+
+            // Prefer the GPS fix from the app. Fall back to the last saved point.
+            $acceptLat = $request->input('lat');
+            $acceptLng = $request->input('lng');
+
+            if ($acceptLat === null || $acceptLng === null) {
+                $acceptLat = $driver->latitude;
+                $acceptLng = $driver->longitude;
+            }
+
+            $updateData = [
+                'driver_id' => $driver->id,
+                'started_at' => $startTime,
+                'status' => 'accepted',
+                'accepted_at' => $startTime,
+            ];
+
+            if ($acceptLat !== null && $acceptLng !== null) {
+                $updateData['driver_accept_lat'] = (float) $acceptLat;
+                $updateData['driver_accept_lng'] = (float) $acceptLng;
+
+                $updateData['to_pickup_route_points'] = [[
+                    'lat'       => (float) $acceptLat,
+                    'lng'       => (float) $acceptLng,
+                    'bearing'   => (float) ($driver->bearing ?? 0),
+                    'timestamp' => now()->timestamp,
+                    'seq'       => 1,
+                    'phase'     => 'to_pickup',
+                ]];
+            }
+
+            $ride->update($updateData);
+
+            app(RideOfferService::class)->markAccepted($ride, (int) $driver->id);
+
+            if (AppSetting::isRideVerificationEnabled() && !$ride->verification_code) {
+                $ride->generateVerificationCode();
+                $ride->refresh();
+            }
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
         }
-
-        // Capture driver's exact location at the moment of accepting so the
-        // admin dashboard can show it and draw the "on the way to passenger"
-        // path. Prefer the lat/lng coming from the mobile app (most accurate),
-        // fall back to the driver's last known location in Firebase.
-        $acceptLat = $request->input('lat');
-        $acceptLng = $request->input('lng');
-
-        if ($acceptLat === null || $acceptLng === null) {
-            $acceptLat = $driver->latitude;
-            $acceptLng = $driver->longitude;
-        }
-
-        $updateData = [
-            'driver_id' => $driver->id,
-            'started_at' => $startTime,
-            'status' => 'accepted',
-            'accepted_at' => $startTime,
-        ];
-
-        if ($acceptLat !== null && $acceptLng !== null) {
-            $updateData['driver_accept_lat'] = (float) $acceptLat;
-            $updateData['driver_accept_lng'] = (float) $acceptLng;
-
-            // Seed the "on the way to passenger" polyline with the accept
-            // location so the path has an anchor even before the first GPS ping.
-            $updateData['to_pickup_route_points'] = [[
-                'lat'       => (float) $acceptLat,
-                'lng'       => (float) $acceptLng,
-                'bearing'   => (float) ($driver->bearing ?? 0),
-                'timestamp' => now()->timestamp,
-                'seq'       => 1,
-                'phase'     => 'to_pickup',
-            ]];
-        }
-
-        $ride->update($updateData);
-
-        // Close out the pending offer for this captain as "accepted" in the
-        // audit trail used by the admin dashboard filters.
-        app(RideOfferService::class)->markAccepted($ride, (int) $driver->id);
-
-
 
         $response = ['message' => 'Ride accepted.'];
-
-        // Generate verification code if feature is enabled and code is not yet set
-        if (AppSetting::isRideVerificationEnabled() && !$ride->verification_code) {
-            $ride->generateVerificationCode();
-            $ride->refresh();
-        }
 
         if ($ride->verification_code) {
             $response['verification_required'] = true;
             $response['message'] = 'Ride accepted. Verification code generated for user.';
+            event(new RideVerificationCodeIssued($ride));
         }
-
-        // Broadcast status update via WebSocket (AFTER code generation)
-        event(new RideStatusUpdated($ride));
 
         return response()->json($response);
     }
@@ -181,9 +180,6 @@ class RideActionsController extends Controller
 
         $ride->update($updateData);
 
-        // Broadcast status update via WebSocket
-        event(new RideStatusUpdated($ride));
-
         return response()->json(['message' => 'Marked as arrived.']);
     }
 
@@ -204,11 +200,6 @@ class RideActionsController extends Controller
             'status' => 'in_progress',
             'trip_started_at' => now(),
         ]);
-
-        // Broadcast status update via WebSocket
-        event(new RideStatusUpdated($ride));
-
-
 
         return response()->json(['message' => 'Ride started.']);
     }
@@ -595,9 +586,6 @@ class RideActionsController extends Controller
                 ]);
             }
             
-            // Broadcast status update via WebSocket
-            event(new RideStatusUpdated($ride));
-
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
@@ -670,9 +658,7 @@ class RideActionsController extends Controller
 
         $ride->update(['status' => 'finshed']);
 
-
-
-        return response()->json(['message' => 'Ride started.']);
+        return response()->json(['message' => 'Ride finished.']);
     }
 
     //cancel ride
@@ -710,13 +696,15 @@ class RideActionsController extends Controller
             $request->input('lng')
         );
 
-        // Calculate time since ride was created/accepted
+        // Rejecting an offer that was never accepted must not charge a penalty.
+        $wasAccepted = !is_null($ride->accepted_at)
+            || in_array($ride->status->value, ['accepted', 'waiting_user', 'arrived', 'in_progress'], true);
+
         $rideCreatedAt = $ride->accepted_at ? Carbon::parse($ride->accepted_at) : Carbon::parse($ride->created_at);
         $minutesSinceBooking = ceil($rideCreatedAt->floatDiffInMinutes($now));
 
-        // Get zone-based cancellation policy for driver
         $selectedPolicy = null;
-        if ($ride->zone_id) {
+        if ($wasAccepted && $ride->zone_id) {
             $selectedPolicy = CancellationPolicy::where('status', 'active')
                 ->where('user_type', 'driver')
                 ->where('zone_id', $ride->zone_id)
@@ -783,7 +771,6 @@ class RideActionsController extends Controller
         // blank out the driver on the ride. If the captain had already
         // accepted (ride has accepted_at) this counts as a cancellation
         // after accept; otherwise it's a plain rejection.
-        $wasAccepted = !is_null($ride->accepted_at) || in_array($ride->status->value, ['accepted', 'waiting_user', 'in_progress']);
         $offerService = app(RideOfferService::class);
         if ($wasAccepted) {
             $offerService->markCancelledAfterAccept($ride, (int) $currentDriverId, $request->reason ? "reason_id:{$request->reason}" : null);
@@ -804,14 +791,6 @@ class RideActionsController extends Controller
 
             DB::commit();
 
-            // ✅ Broadcast initial cancellation status update via WebSocket (after commit)
-            try {
-                event(new RideStatusUpdated($ride, (int) $currentDriverId));
-                Log::info("📡 Broadcasted initial RideStatusUpdated event for ride {$ride->id} after driver cancel (old driver: {$currentDriverId})");
-            } catch (\Exception $e) {
-                Log::error("⚠️ Failed to broadcast initial RideStatusUpdated on driver cancel: " . $e->getMessage());
-            }
-
             // دور على بديل
             $rideEstimateController = new RideEstimateController();
             $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
@@ -830,14 +809,6 @@ class RideActionsController extends Controller
                     'cancellation_reason_id' => $request->reason ?? null,
                     'reassigned_at' => now(),
                 ]);
-
-                // ✅ Broadcast the reassignment to passenger
-                try {
-                    event(new RideStatusUpdated($ride, (int) $currentDriverId));
-                    Log::info("📡 Broadcasted RideStatusUpdated event for reassigned ride {$ride->id} (old driver: {$currentDriverId})");
-                } catch (\Exception $e) {
-                    Log::error("⚠️ Failed to broadcast RideStatusUpdated on driver cancel reassignment: " . $e->getMessage());
-                }
 
                 // Schedule auto-reject job for the new driver
                 $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);

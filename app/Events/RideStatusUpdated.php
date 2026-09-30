@@ -121,7 +121,6 @@ class RideStatusUpdated implements ShouldBroadcastNow
             'status' => $this->status,
             'driver_id' => $this->driver_id,
             'user_id' => $this->user_id,
-            'verification_code' => $this->verification_code,
             'driver' => $this->driver_data,
             'completed_details' => $this->completed_details,
             'updated_at' => now()->toIso8601String(),

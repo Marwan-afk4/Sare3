@@ -254,6 +254,64 @@ class Ride extends Model
     }
 
     /**
+     * Offer body shared by the driver WebSocket event, FCM, and ride restore.
+     * Never includes the passenger verification code.
+     */
+    public function toOfferArray(): array
+    {
+        $user = $this->relationLoaded('user') ? $this->user : $this->user()->first();
+
+        $data = [
+            'id' => $this->id,
+            'ride_id' => $this->id,
+            'status' => $this->status?->value,
+            'driver_id' => $this->driver_id,
+            'user' => $user ? [
+                'id' => $user->id,
+                'name' => $user->name,
+                'phone' => $user->phone,
+                'avatar' => $user->image_link,
+                'rating' => $user->average_rating,
+            ] : null,
+            'pickup_lat' => $this->pickup_lat !== null ? (float) $this->pickup_lat : null,
+            'pickup_lng' => $this->pickup_lng !== null ? (float) $this->pickup_lng : null,
+            'pickup_address' => $this->pickup_address,
+            'dropoff_address' => $this->dropoff_address,
+            'estimated_price' => $this->calculated_initial_price !== null
+                ? (float) $this->calculated_initial_price
+                : null,
+            'estimated_time' => $this->estimated_time,
+            'estimated_km' => $this->estimated_km !== null ? (float) $this->estimated_km : null,
+            'verification_required' => $this->driverMustVerify(),
+        ];
+
+        if ($this->dropoff_lat !== null && $this->dropoff_lng !== null) {
+            $data['dropoff_lat'] = (float) $this->dropoff_lat;
+            $data['dropoff_lng'] = (float) $this->dropoff_lng;
+        }
+
+        return $data;
+    }
+
+    /**
+     * The driver must enter the code before starting. The code itself stays on the passenger channel.
+     */
+    public function driverMustVerify(): bool
+    {
+        try {
+            if (!\App\Models\AppSetting::isRideVerificationEnabled()) {
+                return false;
+            }
+
+            return in_array($this->status?->value, ['accepted', 'waiting_user'], true)
+                && !empty($this->verification_code)
+                && !$this->verification_code_verified;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
      * Generate a 6-digit verification code
      */
     public function generateVerificationCode(): string
@@ -320,7 +378,8 @@ class Ride extends Model
             $shouldCloseChat = false;
 
             if ($ride->wasChanged('status')) {
-                $shouldCloseChat = in_array($ride->status->value, ['completed', 'finshed', 'cancelled'], true);
+                // Cash collection (completed) still allows chat. Close once the ride is finished or cancelled.
+                $shouldCloseChat = in_array($ride->status->value, ['finshed', 'finished', 'cancelled'], true);
             }
 
             if ($ride->wasChanged('driver_id')) {

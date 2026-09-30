@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Events\UserDriverChatMessageSeen;
 use App\Events\UserDriverChatMessageSent;
+use App\Helpers\FcmHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Chat;
 use App\Models\ChatMessage;
@@ -83,6 +84,21 @@ class UserDriverChatController extends Controller
             ]);
 
             broadcast(new UserDriverChatMessageSent($message))->toOthers();
+
+            if ($receiver->fcm_token) {
+                FcmHelper::sendPushNotification(
+                    $receiver->fcm_token,
+                    $sender->name ?: 'New message',
+                    $request->message,
+                    [
+                        'msg_type' => 'chat_message',
+                        'chat_id' => $chat->room_id,
+                        'ride_id' => (string) $ride->id,
+                        'sender_id' => (string) $sender->id,
+                        'message' => $request->message,
+                    ]
+                );
+            }
 
             return response()->json([
                 'success' => true,

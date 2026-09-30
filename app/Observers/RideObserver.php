@@ -13,6 +13,8 @@ class RideObserver
         Log::info("Ride {$ride->id} created. Status: {$ride->status->value}. Driver: {$ride->driver_id}");
         
         // Notify the driver and admin dashboard immediately
+        // Single broadcaster for ride status. Model updates already fire this,
+        // so controllers must not dispatch RideStatusUpdated again.
         try {
             event(new \App\Events\RideStatusUpdated($ride));
         } catch (\Throwable $e) {

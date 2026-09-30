@@ -3,39 +3,40 @@
 namespace App\Events;
 
 use App\Models\Ride;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class NewRideRequest implements ShouldBroadcastNow
+/**
+ * Passenger-only. The driver channels must not receive the code.
+ */
+class RideVerificationCodeIssued implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $ride;
-
-    public function __construct(Ride $ride)
+    public function __construct(public Ride $ride)
     {
-        $this->ride = $ride->load('user');
     }
 
     public function broadcastOn(): array
     {
-        // Broadcast specifically to the assigned driver
         return [
-            new PrivateChannel('driver.' . $this->ride->driver_id),
+            new PrivateChannel('user.' . $this->ride->user_id),
         ];
     }
 
     public function broadcastAs(): string
     {
-        return 'ride.request.new';
+        return 'verification.code.issued';
     }
 
     public function broadcastWith(): array
     {
-        return $this->ride->toOfferArray();
+        return [
+            'ride_id' => $this->ride->id,
+            'verification_code' => $this->ride->verification_code,
+        ];
     }
 }

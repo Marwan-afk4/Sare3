@@ -10,7 +10,6 @@ use App\Models\CancellationPolicy;
 use App\Models\Ride;
 use App\Models\Transaction;
 use App\Services\RideOfferService;
-use App\Events\RideStatusUpdated;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -132,14 +131,6 @@ class CancelationRide extends Controller
             'cancelled_before_accept' => $wasNeverAccepted,
         ]);
 
-        // ✅ Broadcast the cancellation update to the driver
-        try {
-            event(new RideStatusUpdated($ride));
-            Log::info("📡 Broadcasted RideStatusUpdated event on user cancellation for ride {$ride->id}");
-        } catch (\Exception $e) {
-            Log::error("⚠️ Failed to broadcast RideStatusUpdated event: " . $e->getMessage());
-        }
-
         // Close every still-pending offer as "cancelled_by_user" so the
         // audit trail on the admin dashboard is accurate.
         if ($wasNeverAccepted) {
@@ -234,14 +225,6 @@ class CancelationRide extends Controller
 
             DB::commit();
 
-            // ✅ Broadcast initial cancellation status update via WebSocket (after commit)
-            try {
-                event(new RideStatusUpdated($ride, (int) $currentDriverId));
-                Log::info("📡 Broadcasted initial RideStatusUpdated event for ride {$ride->id} after driver cancel (old driver: {$currentDriverId})");
-            } catch (\Exception $e) {
-                Log::error("⚠️ Failed to broadcast initial RideStatusUpdated on driver cancellation: " . $e->getMessage());
-            }
-
             // Search for alternative driver
             $rideEstimateController = new RideEstimateController();
             $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
@@ -262,14 +245,6 @@ class CancelationRide extends Controller
                     'status' => 'pending',
                     'reassigned_at' => now(),
                 ]);
-
-                // ✅ Broadcast the reassignment to passenger
-                try {
-                    event(new RideStatusUpdated($ride, (int) $currentDriverId));
-                    Log::info("📡 Broadcasted RideStatusUpdated event for reassigned ride {$ride->id} (old driver: {$currentDriverId})");
-                } catch (\Exception $e) {
-                    Log::error("⚠️ Failed to broadcast RideStatusUpdated on driver cancellation reassignment: " . $e->getMessage());
-                }
 
                 // Schedule auto-reject job for the new driver
                 $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);
