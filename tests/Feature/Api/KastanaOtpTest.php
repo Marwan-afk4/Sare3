@@ -25,6 +25,7 @@ class KastanaOtpTest extends TestCase
             'services.kastana.password' => 'secret',
             'services.kastana.sender_id' => 'Sareea',
             'services.kastana.language' => 'English',
+            'services.kastana.sending_time' => '2026-04-05 16:30:00',
         ]);
     }
 
@@ -64,6 +65,7 @@ class KastanaOtpTest extends TestCase
                 && ($query['Recipients'] ?? null) === '+962791234567'
                 && ($query['SenderID'] ?? null) === 'Sareea'
                 && ($query['Language'] ?? null) === 'English'
+                && ($query['SendingTime'] ?? null) === '2026-04-05 16:30:00'
                 && filled($query['Body'] ?? null)
                 && str_contains($query['Body'], $user->otp_code);
         });
@@ -85,7 +87,8 @@ class KastanaOtpTest extends TestCase
             parse_str(parse_url($request->url(), PHP_URL_QUERY) ?? '', $query);
 
             return ($query['Recipients'] ?? null) === '+962775126712'
-                && ($query['Password'] ?? null) === 'S@ree@20+26';
+                && ($query['Password'] ?? null) === 'S@ree@20+26'
+                && ($query['SendingTime'] ?? null) === '2026-04-05 16:30:00';
         });
     }
 

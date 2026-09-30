@@ -62,6 +62,8 @@ return [
         'password' => env('KASTANA_PASSWORD'),
         'sender_id' => env('KASTANA_SENDER_ID', 'Sareea'),
         'language' => env('KASTANA_LANGUAGE', 'English'),
+        // Fixed value per Kastana IT — do not substitute current time.
+        'sending_time' => env('KASTANA_SENDING_TIME', '2026-04-05 16:30:00'),
     ],
 
 ];

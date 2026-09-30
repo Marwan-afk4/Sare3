@@ -14,9 +14,8 @@ class KastanaSmsService
         $recipients = $digits === '' ? $number : '+'.$digits;
         $passwordFromConfig = (string) config('services.kastana.password');
         $password = $this->rawPassword($passwordFromConfig);
-        // Kastana receives a timezone-less dateTime. UTC prevents the provider
-        // from interpreting the application's local time as a future schedule.
-        $sendingTime = now('UTC')->format('Y-m-d H:i:s');
+        $sendingTime = (string) config('services.kastana.sending_time');
+        $sendingTimeForLogs = now('UTC')->format('Y-m-d H:i:s');
         $query = [
             'UserName'    => config('services.kastana.username'),
             'Password'    => $password,
@@ -37,7 +36,7 @@ class KastanaSmsService
             'query' => $safeQuery,
             'built_url' => $this->redactUrl($url.'?'.http_build_query($query)),
             'rfc3986_url' => $this->redactUrl($url.'?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986)),
-            'sending_time' => $sendingTime,
+            'sending_time' => $sendingTimeForLogs,
             'sending_time_timezone' => 'UTC',
             'application_timezone' => config('app.timezone'),
             'config' => [
