@@ -178,6 +178,28 @@ class User extends Authenticatable
         $this->attributes['password'] = Hash::make($value);
     }
 
+    /**
+     * Verify a plain-text password. Re-hashes legacy plain-text values stored in the database.
+     */
+    public function verifyPassword(string $plain): bool
+    {
+        if (blank($this->password)) {
+            return false;
+        }
+
+        try {
+            return Hash::check($plain, $this->password);
+        } catch (\RuntimeException) {
+            if (! hash_equals((string) $this->password, $plain)) {
+                return false;
+            }
+
+            $this->update(['password' => $plain]);
+
+            return true;
+        }
+    }
+
     public function documents()
     {
         return $this->hasMany(DriverDocument::class, 'driver_id');

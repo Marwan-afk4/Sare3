@@ -32,7 +32,7 @@ class AuthController extends Controller
         // echo Hash::make($request->password);
         // echo bcrypt($request->password);
         // die;
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!$user || ! $user->verifyPassword($request->password)) {
             return back()->withErrors(['error' => __('Mobile number or password is incorrect')])->withInput();
         }
 
