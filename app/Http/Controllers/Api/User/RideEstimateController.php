@@ -10,6 +10,7 @@ use App\Models\DriverRideSetting;
 use App\Models\Ride;
 use App\Models\RideEstimate;
 use App\Models\User;
+use App\Services\GoogleApiUsageService;
 use App\Services\RideService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -88,7 +89,11 @@ class RideEstimateController extends Controller
                 }
 
                 $data = $response->json();
-                
+
+                if (($data['status'] ?? '') === 'OK') {
+                    GoogleApiUsageService::recordDistanceMatrix(1, 1);
+                }
+
                 if (($data['status'] ?? '') !== 'OK') {
                     Log::error('Google API returned status error: ' . json_encode($data));
                     return response()->json(['message' => 'Google API Error: ' . ($data['status'] ?? 'Unknown status')], 520);
@@ -527,6 +532,10 @@ class RideEstimateController extends Controller
             $data = $response->json();
             $rows = $data['rows'] ?? [];
 
+            if (($data['status'] ?? '') === 'OK') {
+                GoogleApiUsageService::recordDistanceMatrix(count($originsArray), 1);
+            }
+
             // Attach ETA to each driver
             foreach ($eligibleDrivers as $i => &$driver) {
                 $elements = $rows[$i]['elements'] ?? [];
@@ -604,6 +613,10 @@ class RideEstimateController extends Controller
 
             $data = $response->json();
             $rows = $data['rows'] ?? [];
+
+            if (($data['status'] ?? '') === 'OK') {
+                GoogleApiUsageService::recordDistanceMatrix(count($originsArray), 1);
+            }
 
             // 🔍 Log raw Google API response for debugging
             Log::info("🌐 Google Distance Matrix API Response:", [

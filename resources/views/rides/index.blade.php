@@ -809,6 +809,7 @@ function drawDirectionsRoute(pickupLat, pickupLng, dropoffLat, dropoffLng) {
         destination: { lat: dropoffLat, lng: dropoffLng },
         travelMode: google.maps.TravelMode.DRIVING
     }, (result, status) => {
+        if (status === 'OK' && window.recordGoogleApiUsage) window.recordGoogleApiUsage(['directions']);
         if (status === 'OK' && activeRideId) {
             if (routePolyline) routePolyline.setMap(null);
 

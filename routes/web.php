@@ -35,6 +35,7 @@ use App\Http\Controllers\{
     WalletRequestController,
     ZoneController,
 };
+use App\Http\Controllers\Admin\GoogleApiUsageController;
 use App\Http\Controllers\Admin\ReferralController as AdminReferralController;
 use App\Http\Controllers\Admin\SupportChatController as AdminSupportChatController;
 
@@ -149,6 +150,9 @@ Route::domain(config('app.dashboard_domain'))->group(function () {
             Route::middleware(['can:إدارة التقارير المالية'])->prefix('financial-reports')->name('financial-reports.')->group(function () {
                 Route::get('/', [\App\Http\Controllers\Admin\FinancialReportsWebController::class, 'index'])->name('index');
             });
+
+            Route::get('/google-api-usage', [GoogleApiUsageController::class, 'index'])->name('google-api-usage.index');
+            Route::post('/google-api-usage', [GoogleApiUsageController::class, 'record'])->name('google-api-usage.record');
 
             // Referral Management routes
             Route::middleware(['can:إدارة الإحالات'])->prefix('referrals')->name('referrals.')->group(function () {

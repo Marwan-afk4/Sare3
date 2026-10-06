@@ -12,6 +12,7 @@ use App\Models\DeliveryZonePrice;
 use App\Models\User;
 use App\Models\Zone;
 use App\Services\DeliveryOfferService;
+use App\Services\GoogleApiUsageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -516,6 +517,11 @@ class DeliveryController extends Controller
             }
 
             $data = $response->json();
+
+            if (($data['status'] ?? '') === 'OK') {
+                GoogleApiUsageService::recordDistanceMatrix(1, 1);
+            }
+
             $element = $data['rows'][0]['elements'][0] ?? [];
 
             if (($data['status'] ?? '') !== 'OK' || ($element['status'] ?? '') !== 'OK') {

@@ -11,6 +11,34 @@
     <!-- ===============================================-->
     <title>{{ config('app.name') }} - @yield('title')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>
+        window.recordGoogleApiUsage = function (events) {
+            if (!events || !events.length) return;
+            var token = document.querySelector('meta[name="csrf-token"]');
+            fetch(@json(route('google-api-usage.record')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': token ? token.content : ''
+                },
+                body: JSON.stringify({ events: events }),
+                keepalive: true
+            }).catch(function () {});
+        };
+        document.addEventListener('DOMContentLoaded', function () {
+            var recorded = false;
+            function scanMaps() {
+                if (recorded) return;
+                if (document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]')) {
+                    recorded = true;
+                    window.recordGoogleApiUsage(['dynamic_maps']);
+                }
+            }
+            scanMaps();
+            setTimeout(scanMaps, 1500);
+        });
+    </script>
 
     <!-- ===============================================-->
     <!--    Favicons-->
