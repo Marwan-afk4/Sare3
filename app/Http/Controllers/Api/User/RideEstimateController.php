@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\User;
 
+use App\Enums\RideStatus;
 use App\Events\NewRideRequest;
 use App\Helpers\FcmHelper;
 use App\Http\Controllers\Controller;
@@ -168,6 +169,22 @@ class RideEstimateController extends Controller
     public function createRide(Request $request)
     {
         $user = $request->user();
+
+        $hasOpenRide = Ride::where('user_id', $user->id)
+            ->whereIn('status', [
+                RideStatus::Pending->value,
+                RideStatus::Accepted->value,
+                RideStatus::WaitingUser->value,
+                RideStatus::Arrived->value,
+                RideStatus::InProgress->value,
+            ])
+            ->exists();
+
+        if ($hasOpenRide) {
+            return response()->json([
+                'message' => 'You already have an open ride.',
+            ], 409);
+        }
 
         $validation = Validator::make($request->all(), [
             'zone_id' => 'required|exists:zones,id',
