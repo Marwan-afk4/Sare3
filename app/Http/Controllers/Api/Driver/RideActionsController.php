@@ -80,7 +80,9 @@ class RideActionsController extends Controller
 
             if (!$ride) {
                 DB::rollBack();
-                return response()->json(['message' => 'Ride not found or not available for acceptance.'], 404);
+                return response()->json([
+                    'message' => $this->acceptUnavailableMessage((int) $request->ride_id, (int) $driver->id),
+                ], 404);
             }
 
             // Prefer the GPS fix from the app. Fall back to the last saved point.
@@ -137,6 +139,38 @@ class RideActionsController extends Controller
         }
 
         return response()->json($response);
+    }
+
+    /**
+     * Why this captain can no longer accept. Shown directly on the driver app.
+     */
+    private function acceptUnavailableMessage(int $rideId, int $driverId): string
+    {
+        $ride = Ride::find($rideId);
+
+        if (!$ride) {
+            return 'هذه الرحلة لم تعد متاحة.';
+        }
+
+        if ($ride->isCancelled()) {
+            return 'ألغى الزبون الرحلة، ولا يمكنك قبولها.';
+        }
+
+        if ($ride->driver_id && (int) $ride->driver_id !== $driverId) {
+            return 'انتهى وقت الطلب وتحوّلت الرحلة إلى كابتن آخر.';
+        }
+
+        $status = $ride->status->value ?? (string) $ride->status;
+
+        if (in_array($status, ['accepted', 'waiting_user', 'arrived', 'in_progress'], true)) {
+            return 'تم قبول هذه الرحلة مسبقاً.';
+        }
+
+        if (in_array($status, ['completed', 'finshed'], true)) {
+            return 'هذه الرحلة انتهت.';
+        }
+
+        return 'انتهى وقت الطلب، ولم تعد الرحلة متاحة للقبول.';
     }
 
     //arrived
