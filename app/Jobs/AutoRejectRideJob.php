@@ -114,6 +114,13 @@ class AutoRejectRideJob implements ShouldQueue
             $rideEstimateController = new UserRideEstimateController();
             $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
 
+            $ride->refresh();
+            if ($ride->isCancelled()) {
+                DB::commit();
+                Log::info("AutoRejectRideJob: Ride {$this->rideId} was cancelled by the passenger, search stopped");
+                return;
+            }
+
             $driverId = null;
             if ($alternativeDriver) {
                 // Note: searchAlternativeDriver already updates the ride with the new driver_id
@@ -124,10 +131,13 @@ class AutoRejectRideJob implements ShouldQueue
             } else {
                 Log::warning("❌ AutoRejectRideJob: No alternative drivers found for ride {$this->rideId}, marking as rejected");
                 
-                // Mark ride as truly rejected if no alternative driver found
-                $ride->update([
-                    'status' => 'rejected',
-                ]);
+                // Mark ride as truly rejected if no alternative driver found.
+                // Never overwrite a passenger cancel.
+                if (!$ride->isCancelled()) {
+                    $ride->update([
+                        'status' => 'rejected',
+                    ]);
+                }
             }
 
             DB::commit();

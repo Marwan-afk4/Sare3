@@ -252,6 +252,13 @@ class AutoRejectRides extends Command
                     continue;
                 }
 
+                $ride->refresh();
+                if ($ride->isCancelled()) {
+                    Log::info("AutoRejectRides Command: Ride {$ride->id} cancelled by passenger, not reassigning");
+                    DB::commit();
+                    continue;
+                }
+
                 $ride->update([
                     'driver_id' => $driver->id,
                     'status' => 'pending',

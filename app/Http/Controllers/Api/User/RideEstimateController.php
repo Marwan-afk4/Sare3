@@ -24,6 +24,7 @@ use App\Services\RideOfferService;
 use App\Models\RideRequestTimeLimit;
 use App\Models\Zone;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -724,11 +725,38 @@ class RideEstimateController extends Controller
     }
 
     /**
+     * Write ride fields only while the passenger has not cancelled.
+     * The status check and the write share a row lock so a cancel that
+     * committed during driver lookup cannot be overwritten with pending.
+     */
+    private function updateIfStillSearching(Ride $ride, array $attributes): bool
+    {
+        return DB::transaction(function () use ($ride, $attributes) {
+            $locked = Ride::query()->whereKey($ride->id)->lockForUpdate()->first();
+
+            if (!$locked || $locked->isCancelled()) {
+                return false;
+            }
+
+            $locked->update($attributes);
+            $ride->refresh();
+
+            return true;
+        });
+    }
+
+    /**
      * Search for alternative driver when current driver rejects
      */
     public function searchAlternativeDriver(Ride $ride)
     {
         try {
+            $ride->refresh();
+            if ($ride->isCancelled()) {
+                Log::info("searchAlternativeDriver: ride {$ride->id} is cancelled, not searching");
+                return null;
+            }
+
             // Get excluded driver IDs (drivers who already rejected this ride)
             $excludedDriverIds = $ride->rejected_drivers ?? [];
 
@@ -754,12 +782,10 @@ class RideEstimateController extends Controller
             if (empty($allDrivers)) {
                 Log::info("No drivers available at all for ride {$ride->id}");
 
-                $ride->update([
+                $this->updateIfStillSearching($ride, [
                     'driver_id' => null,
                     'status' => 'pending',
                 ]);
-
-
 
                 return null;
             }
@@ -795,13 +821,12 @@ class RideEstimateController extends Controller
 
                 if (empty($allDriversWithETA)) {
                     Log::info("No drivers available (all on cooldown) for ride {$ride->id} in cycling mode");
-                    
-                    // Reset driver_id on the ride
-                    $ride->update([
+
+                    $this->updateIfStillSearching($ride, [
                         'driver_id' => null,
                         'status' => 'pending',
                     ]);
-                    
+
                     return null;
                 }
                 
@@ -867,13 +892,19 @@ class RideEstimateController extends Controller
             Log::info("Found driver {$driverId} for ride {$ride->id}" .
                 ($shouldCycleDrivers ? " (cycling after " . count($excludedDriverIds) . " rejections)" : ""));
 
-            // Update ride with new driver
-            $ride->update([
+            // Re-check under a row lock. The passenger may have cancelled while
+            // ETA lookup was in flight; that cancel must not be overwritten.
+            $assigned = $this->updateIfStillSearching($ride, [
                 'driver_id' => $driverId,
                 'status' => 'pending',
                 'reassigned_at' => now(),
                 'driver_assigned_at' => now(),
             ]);
+
+            if (!$assigned) {
+                Log::info("searchAlternativeDriver: ride {$ride->id} cancelled before assignment, driver {$driverId} was not offered");
+                return null;
+            }
 
             // Audit trail: record that this driver has now been offered the ride.
             app(RideOfferService::class)->recordOffer(
