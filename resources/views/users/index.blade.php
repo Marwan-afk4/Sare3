@@ -24,15 +24,24 @@
         </div>
 
         <div class="search-wrapper">
-            <form action="{{ route(Route::currentRouteName(),[],false) }}" method="GET" class="d-inline-block">
+            <form action="{{ route(Route::currentRouteName(), [], false) }}" method="GET" class="d-inline-block">
+                @foreach (request()->except(['keyword', 'page']) as $key => $value)
+                    @if (is_array($value))
+                        @foreach ($value as $item)
+                            <input type="hidden" name="{{ $key }}[]" value="{{ $item }}">
+                        @endforeach
+                    @else
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @endif
+                @endforeach
                 <div class="input-group">
-					@if (request('keyword'))
-						<div class="input-group-append">
-							<a class="btn btn-secondary" href="{{ route(Route::currentRouteName(),[],false) }}">
-								<i class="fa fa-times"></i>
-							</a>
-						</div>
-					@endif
+                    @if (request('keyword'))
+                        <div class="input-group-append">
+                            <a class="btn btn-secondary" href="{{ route(Route::currentRouteName(), request()->except('keyword')) }}">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    @endif
                     <input type="text" name="keyword" class="form-control" autocomplete="off" placeholder="{{ __('Keyword') }}..." value="{{ request('keyword') }}">
                     <div class="input-group-append">
                         <button type="submit" class="btn btn-primary">
@@ -44,13 +53,48 @@
         </div>
     </div>
 
+        <div class="mb-3">
+            <label class="form-label fw-bold">{{ __('New Today') }}</label>
+            <div class="d-flex flex-wrap gap-2">
+                @if (request('new_today'))
+                    <a href="{{ route('users.index', request()->except('new_today')) }}" class="btn btn-success btn-sm">
+                        {{ __('New Today') }} ({{ $newUsersTodayCount }})
+                    </a>
+                @else
+                    <a href="{{ route('users.index', array_merge(request()->except('new_today'), ['new_today' => 1])) }}"
+                        class="btn btn-outline-success btn-sm">
+                        {{ __('New Today') }} ({{ $newUsersTodayCount }})
+                    </a>
+                @endif
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">{{ __('Filter by Zone') }}</label>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ route('users.index', request()->except('zone')) }}" class="btn btn-outline-info btn-sm">
+                    {{ __('All Zones') }}
+                </a>
+                @foreach ($zones as $zone)
+                    <a href="{{ route('users.index', array_merge(request()->except('zone'), ['zone' => $zone->id])) }}"
+                        class="btn btn-sm {{ request('zone') == $zone->id ? 'btn-info' : 'btn-outline-info' }}">
+                        {{ $zone->name }} ({{ $zone->user_count }})
+                    </a>
+                @endforeach
+                <a href="{{ route('users.index', array_merge(request()->except('zone'), ['zone' => 'no_zone'])) }}"
+                    class="btn btn-sm {{ request('zone') === 'no_zone' ? 'btn-warning' : 'btn-outline-warning' }}">
+                    {{ __('No Zone') }} ({{ $usersWithNoZoneCount }})
+                </a>
+            </div>
+        </div>
+
         <div class='main-card mb-3 card'>
             <div class='card-body'>
                 <table class="mb-0 table table-hover">
                     <tr>
                         <th>
                             <a
-                                href="{{ route('users.index', ['sort' => 'id', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                href="{{ route('users.index', array_merge(request()->except(['sort', 'order']), ['sort' => 'id', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc'])) }}">
                                 {{ __('Id') }}
                                 @if ($sortField === 'id')
                                     <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
@@ -59,7 +103,7 @@
                         </th>
                         <th>
                             <a
-                                href="{{ route('users.index', ['sort' => 'name', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                href="{{ route('users.index', array_merge(request()->except(['sort', 'order']), ['sort' => 'name', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc'])) }}">
                                 {{ __('Name') }}
                                 @if ($sortField === 'name')
                                     <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
@@ -68,7 +112,7 @@
                         </th>
                         <th>
                             <a
-                                href="{{ route('users.index', ['sort' => 'email', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                href="{{ route('users.index', array_merge(request()->except(['sort', 'order']), ['sort' => 'email', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc'])) }}">
                                 {{ __('Email') }}
                                 @if ($sortField === 'email')
                                     <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
@@ -77,7 +121,7 @@
                         </th>
                         <th>
                             <a
-                                href="{{ route('users.index', ['sort' => 'phone', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                href="{{ route('users.index', array_merge(request()->except(['sort', 'order']), ['sort' => 'phone', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc'])) }}">
                                 {{ __('Phone') }}
                                 @if ($sortField === 'phone')
                                     <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
@@ -92,7 +136,7 @@
 					</th> --}}
                         <th>
                             <a
-                                href="{{ route('users.index', ['sort' => 'wallet', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                href="{{ route('users.index', array_merge(request()->except(['sort', 'order']), ['sort' => 'wallet', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc'])) }}">
                                 {{ __('Wallet') }}
                                 @if ($sortField === 'wallet')
                                     <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
@@ -107,7 +151,7 @@
 					</th> --}}
                         <th>
                             <a
-                                href="{{ route('users.index', ['sort' => 'activity', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                href="{{ route('users.index', array_merge(request()->except(['sort', 'order']), ['sort' => 'activity', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc'])) }}">
                                 {{ __('Activity') }}
                                 @if ($sortField === 'activity')
                                     <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
@@ -116,7 +160,7 @@
                         </th>
                         <th>
                             <a
-                                href="{{ route('users.index', ['sort' => 'zone_id', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                href="{{ route('users.index', array_merge(request()->except(['sort', 'order']), ['sort' => 'zone_id', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc'])) }}">
                                 {{ __('Zone') }}
                                 @if ($sortField === 'zone_id')
                                     <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
@@ -125,7 +169,7 @@
                         </th>
                         <th>
                             <a
-                                href="{{ route('users.index', ['sort' => 'created_at', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc']) }}">
+                                href="{{ route('users.index', array_merge(request()->except(['sort', 'order']), ['sort' => 'created_at', 'order' => $sortOrder === 'asc' ? 'desc' : 'asc'])) }}">
                                 {{ __('Created At') }}
                                 @if ($sortField === 'created_at')
                                     <i class="text-danger">{{ $sortOrder === 'asc' ? '▼' : '▲' }}</i>
