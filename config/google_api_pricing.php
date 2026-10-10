@@ -24,7 +24,7 @@ return [
                 ['up_to' => 100000, 'per_thousand' => 5.00],
                 ['up_to' => null, 'per_thousand' => 4.00],
             ],
-            'used_for' => 'Ride estimates, delivery distance, and sorting drivers by ETA. One element is one origin paired with one destination.',
+            'used_for' => 'Fallback fare distance when the app did not send km and minutes, and one ETA rank of the 3 closest drivers per search. One element is one origin paired with one destination.',
         ],
         'roads_snap' => [
             'name' => 'Roads — Route Traveled (Snap to Roads)',

@@ -64,10 +64,20 @@ class RideEstimateController extends Controller
         $dropoffLat = $request->dropoff_lat;
         $dropoffLng = $request->dropoff_lng ?? $request->dropoff_lang;
 
-        $estimatedKm = $request->estimated_km ?? 0;
-        $estimatedTime = $request->estimated_time ?? 0;
+        $estimatedKm = (float) ($request->estimated_km ?? 0);
+        $estimatedTime = (float) ($request->estimated_time ?? 0);
 
-        if ($pickupLat !== null && $pickupLng !== null && $dropoffLat !== null && $dropoffLng !== null) {
+        // The rider app already measured this pair with Directions. Re-buying it
+        // from Distance Matrix only duplicates the fare distance.
+        $hasClientEstimate = $estimatedKm > 0 && $estimatedTime > 0;
+
+        if (!$hasClientEstimate && $pickupLat !== null && $pickupLng !== null && $dropoffLat !== null && $dropoffLng !== null) {
+            $routeCacheKey = $this->routeEstimateCacheKey($pickupLat, $pickupLng, $dropoffLat, $dropoffLng);
+            $cachedRoute = Cache::get($routeCacheKey);
+            if (is_array($cachedRoute) && ($cachedRoute['km'] ?? 0) > 0) {
+                $estimatedKm = (float) $cachedRoute['km'];
+                $estimatedTime = (float) $cachedRoute['minutes'];
+            } else {
             $googleApiKey = config('services.google.maps_api_key');
 
             if (!$googleApiKey) {
@@ -114,10 +124,15 @@ class RideEstimateController extends Controller
 
                 $estimatedKm = round($distanceInMeters / 1000, 2);
                 $estimatedTime = round($durationInSeconds / 60, 2);
+                Cache::put($routeCacheKey, [
+                    'km' => $estimatedKm,
+                    'minutes' => $estimatedTime,
+                ], now()->addMinutes(5));
 
             } catch (\Exception $e) {
                 Log::error('Error calling Google Distance Matrix API: ' . $e->getMessage());
                 return response()->json(['message' => 'Error calling Google API: ' . $e->getMessage()], 500);
+            }
             }
         }
 
@@ -512,7 +527,8 @@ class RideEstimateController extends Controller
     }
 
     /**
-     * Get all drivers sorted by ETA (used for cycling)
+     * Straight-line order for cycling through drivers who already rejected.
+     * Road ETAs are not bought from Google on every lap.
      */
     public function getAllDriversSortedByETA($userPickupLat, $userPickupLng, $eligibleDrivers, $rideId = null)
     {
@@ -520,71 +536,27 @@ class RideEstimateController extends Controller
             return [];
         }
 
-        $googleApiKey = config('services.google.maps_api_key');
+        $drivers = array_values($eligibleDrivers);
+        usort($drivers, fn ($a, $b) => ($a['distance_to_pickup'] ?? 0) <=> ($b['distance_to_pickup'] ?? 0));
 
-        if (!$googleApiKey) {
-            Log::error('Google Maps API key not configured');
-            return [];
+        foreach ($drivers as &$driver) {
+            $driver = $this->withStraightLineEta($driver);
         }
+        unset($driver);
 
-        // Build origins (drivers' coordinates)
-        $originsArray = collect($eligibleDrivers)->map(
-            fn($driver) => $driver['latitude'] . ',' . $driver['longitude']
-        )->toArray();
-        
-        $origins = implode('|', $originsArray);
-        $destination = $userPickupLat . ',' . $userPickupLng;
+        Log::info('Sorted ' . count($drivers) . ' drivers by straight-line distance for cycling', [
+            'ride_id' => $rideId,
+        ]);
 
-        try {
-            $response = Http::get('https://maps.googleapis.com/maps/api/distancematrix/json', [
-                'origins' => $origins,
-                'destinations' => $destination,
-                'key' => $googleApiKey,
-            ]);
-
-            if (!$response->successful()) {
-                Log::error('Error from Google API: ' . $response->body());
-                return [];
-            }
-
-            $data = $response->json();
-            $rows = $data['rows'] ?? [];
-
-            if (($data['status'] ?? '') === 'OK') {
-                GoogleApiUsageService::recordDistanceMatrix(count($originsArray), 1);
-            }
-
-            // Attach ETA to each driver
-            foreach ($eligibleDrivers as $i => &$driver) {
-                $elements = $rows[$i]['elements'] ?? [];
-                if (!empty($elements) && ($elements[0]['status'] ?? '') === 'OK') {
-                    $driver['eta_time'] = $elements[0]['duration']['value']; // seconds
-                    $driver['eta_seconds'] = $elements[0]['duration']['value'];
-                    $driver['eta_minutes'] = round($elements[0]['duration']['value'] / 60, 1);
-                    $driver['distance_text'] = $elements[0]['distance']['text'] ?? 'N/A';
-                } else {
-                    $driver['eta_time'] = null;
-                }
-            }
-            unset($driver); // Break reference
-
-            // Filter out invalid ETAs
-            $validDrivers = array_filter($eligibleDrivers, fn($driver) => $driver['eta_time'] !== null);
-
-            // Sort by ETA ascending
-            usort($validDrivers, fn($a, $b) => $a['eta_time'] <=> $b['eta_time']);
-
-            Log::info("🔄 Sorted all " . count($validDrivers) . " drivers by ETA for cycling");
-
-            return array_values($validDrivers);
-        } catch (\Exception $e) {
-            Log::error('Error calling Google Distance Matrix API for cycling: ' . $e->getMessage());
-            return [];
-        }
+        return $drivers;
     }
 
     /**
-     * Find nearest driver by ETA using Google Distance Matrix API
+     * Next driver for a live search.
+     *
+     * The closest few drivers by straight line are ranked once with Distance
+     * Matrix and reused until that shortlist is exhausted. Later timeouts walk
+     * the saved order instead of calling Google again.
      */
     public function findNearestDriverByETA($userPickupLat, $userPickupLng, $eligibleDrivers, $rideId = null)
     {
@@ -592,135 +564,161 @@ class RideEstimateController extends Controller
             return null;
         }
 
-        $googleApiKey = config('services.google.maps_api_key');
-        Log::info('Google API Key loaded', ['key' => $googleApiKey]);
+        $eligibleDrivers = array_values($eligibleDrivers);
+        $allowedIds = array_map(fn ($driver) => (int) $driver['id'], $eligibleDrivers);
 
-        if (!$googleApiKey) {
-            Log::error('Google Maps API key not configured');
+        if ($rideId) {
+            $cached = Cache::get($this->driverShortlistCacheKey($rideId));
+            $next = $this->firstShortlistedDriver($cached, $allowedIds);
+            if ($next) {
+                Log::info("Using cached driver shortlist for ride {$rideId}", [
+                    'driver_id' => $next['id'] ?? null,
+                ]);
+                return $this->nearestDriverPayload($next);
+            }
+        }
+
+        usort($eligibleDrivers, fn ($a, $b) => ($a['distance_to_pickup'] ?? 0) <=> ($b['distance_to_pickup'] ?? 0));
+        $shortlist = array_slice($eligibleDrivers, 0, 3);
+        $ranked = $this->rankShortlistByRoadEta($userPickupLat, $userPickupLng, $shortlist);
+
+        if ($rideId && !empty($ranked)) {
+            Cache::put($this->driverShortlistCacheKey($rideId), $ranked, now()->addMinutes(10));
+        }
+
+        $nearest = $ranked[0] ?? null;
+        if (!$nearest) {
             return null;
         }
 
-        // Build origins (drivers' coordinates)
-        $originsArray = collect($eligibleDrivers)->map(
-            fn($driver) =>
-            $driver['latitude'] . ',' . $driver['longitude']
-        )->toArray();
-        
-        $origins = implode('|', $originsArray);
-        $destination = $userPickupLat . ',' . $userPickupLng;
+        Log::info('Selected nearest driver from shortlist', [
+            'ride_id' => $rideId,
+            'driver_id' => $nearest['id'] ?? null,
+            'eta_seconds' => $nearest['eta_time'] ?? null,
+            'shortlist' => count($ranked),
+        ]);
 
-        // 🔍 Log request details
-        Log::info("📡 Sending request to Google Distance Matrix API:");
-        Log::info("   Destination (pickup): {$destination}");
-        Log::info("   Origins (" . count($originsArray) . " drivers):");
-        foreach ($eligibleDrivers as $index => $driver) {
-            Log::info("      [{$index}] Driver {$driver['id']} ({$driver['name']}): {$originsArray[$index]}");
+        return $this->nearestDriverPayload($nearest);
+    }
+
+    private function routeEstimateCacheKey($pickupLat, $pickupLng, $dropoffLat, $dropoffLng): string
+    {
+        return sprintf(
+            'route_estimate:%s,%s:%s,%s',
+            round((float) $pickupLat, 4),
+            round((float) $pickupLng, 4),
+            round((float) $dropoffLat, 4),
+            round((float) $dropoffLng, 4),
+        );
+    }
+
+    private function driverShortlistCacheKey($rideId): string
+    {
+        return "ride_driver_shortlist:{$rideId}";
+    }
+
+    private function firstShortlistedDriver($cached, array $allowedIds): ?array
+    {
+        if (!is_array($cached)) {
+            return null;
         }
+
+        foreach ($cached as $driver) {
+            if (!is_array($driver)) {
+                continue;
+            }
+            if (in_array((int) ($driver['id'] ?? 0), $allowedIds, true)) {
+                return $driver;
+            }
+        }
+
+        return null;
+    }
+
+    private function nearestDriverPayload(array $driver): array
+    {
+        $seconds = $driver['eta_time'] ?? $driver['eta_seconds'] ?? null;
+
+        return [
+            'driver_id' => $driver['id'] ?? null,
+            'eta_seconds' => $seconds,
+            'eta_minutes' => $driver['eta_minutes'] ?? ($seconds ? round($seconds / 60, 1) : null),
+            'driver' => $driver,
+        ];
+    }
+
+    /**
+     * Same road factor the driver app uses when it does not call Google.
+     */
+    private function withStraightLineEta(array $driver): array
+    {
+        $roadKm = ((float) ($driver['distance_to_pickup'] ?? 0)) * 1.3;
+        $minutes = max(1, (int) ceil(($roadKm / 25) * 60));
+        $seconds = $minutes * 60;
+        $driver['eta_time'] = $seconds;
+        $driver['eta_seconds'] = $seconds;
+        $driver['eta_minutes'] = $minutes;
+        $driver['distance_text'] = round((float) ($driver['distance_to_pickup'] ?? 0), 1) . ' km';
+
+        return $driver;
+    }
+
+    private function rankShortlistByRoadEta($pickupLat, $pickupLng, array $shortlist): array
+    {
+        if (empty($shortlist)) {
+            return [];
+        }
+
+        $googleApiKey = config('services.google.maps_api_key');
+        if (!$googleApiKey) {
+            Log::error('Google Maps API key not configured');
+            return array_map(fn ($driver) => $this->withStraightLineEta($driver), $shortlist);
+        }
+
+        $origins = implode('|', array_map(
+            fn ($driver) => $driver['latitude'] . ',' . $driver['longitude'],
+            $shortlist
+        ));
 
         try {
             $response = Http::get('https://maps.googleapis.com/maps/api/distancematrix/json', [
                 'origins' => $origins,
-                'destinations' => $destination,
+                'destinations' => $pickupLat . ',' . $pickupLng,
                 'key' => $googleApiKey,
             ]);
 
-            if (!$response->successful()) {
-                Log::error('Error from Google API: ' . $response->body());
-                return null;
-            }
-
             $data = $response->json();
+            if (!$response->successful() || ($data['status'] ?? '') !== 'OK') {
+                Log::warning('Distance Matrix shortlist failed, using straight-line order', [
+                    'status' => $data['status'] ?? $response->status(),
+                ]);
+                return array_map(fn ($driver) => $this->withStraightLineEta($driver), $shortlist);
+            }
+
+            GoogleApiUsageService::recordDistanceMatrix(count($shortlist), 1);
+
             $rows = $data['rows'] ?? [];
-
-            if (($data['status'] ?? '') === 'OK') {
-                GoogleApiUsageService::recordDistanceMatrix(count($originsArray), 1);
-            }
-
-            // 🔍 Log raw Google API response for debugging
-            Log::info("🌐 Google Distance Matrix API Response:", [
-                'status' => $data['status'] ?? 'UNKNOWN',
-                'origin_addresses' => $data['origin_addresses'] ?? [],
-                'destination_addresses' => $data['destination_addresses'] ?? [],
-                'rows_count' => count($rows)
-            ]);
-
-            // Log each row result
-            foreach ($rows as $index => $row) {
-                $elements = $row['elements'] ?? [];
-                foreach ($elements as $elemIndex => $element) {
-                    Log::info("   Row {$index}, Element {$elemIndex}: Status=" . ($element['status'] ?? 'UNKNOWN') . 
-                              ", Duration=" . ($element['duration']['value'] ?? 'N/A') . 
-                              ", Distance=" . ($element['distance']['text'] ?? 'N/A'));
-                }
-            }
-
-            // Attach ETA to each driver
-            Log::info("🔗 Mapping Google API rows to drivers:");
-            foreach ($eligibleDrivers as $i => &$driver) {
-                $elements = $rows[$i]['elements'] ?? [];
-                $elementStatus = $elements[0]['status'] ?? 'MISSING';
-                
-                Log::info("   Index {$i}: Driver ID {$driver['id']} ({$driver['name']}) → Row {$i} Status: {$elementStatus}");
-                
-                if (!empty($elements) && ($elements[0]['status'] ?? '') === 'OK') {
-                    $driver['eta_time'] = $elements[0]['duration']['value']; // seconds
-                    $driver['distance_text'] = $elements[0]['distance']['text'] ?? 'N/A';
-                    $driver['distance_value'] = $elements[0]['distance']['value'] ?? 0; // meters
-                    Log::info("      ✅ Assigned ETA: {$driver['eta_time']} sec, Distance: {$driver['distance_text']}");
+            foreach ($shortlist as $i => &$driver) {
+                $element = $rows[$i]['elements'][0] ?? [];
+                if (($element['status'] ?? '') === 'OK') {
+                    $seconds = (int) ($element['duration']['value'] ?? 0);
+                    $driver['eta_time'] = $seconds;
+                    $driver['eta_seconds'] = $seconds;
+                    $driver['eta_minutes'] = round($seconds / 60, 1);
+                    $driver['distance_text'] = $element['distance']['text'] ?? 'N/A';
+                    $driver['distance_value'] = $element['distance']['value'] ?? 0;
                 } else {
-                    $driver['eta_time'] = null;
-                    $driver['distance_text'] = 'N/A';
-                    $driver['distance_value'] = 0;
-                    Log::warning("      ❌ Failed to get ETA - Status: {$elementStatus}");
+                    $driver = $this->withStraightLineEta($driver);
                 }
             }
-            unset($driver); // ✅ CRITICAL: Break the reference to prevent array corruption
+            unset($driver);
 
-            // 🔍 Log all drivers with their calculated ETAs
-            Log::info("📊 ETA calculation results for " . count($eligibleDrivers) . " drivers:");
-            foreach ($eligibleDrivers as $driver) {
-                $etaMinutes = $driver['eta_time'] ? round($driver['eta_time'] / 60, 1) : 'FAILED';
-                $status = $driver['eta_time'] ? '✅' : '❌';
-                Log::info("   {$status} Driver ID: {$driver['id']} | Name: {$driver['name']} | ETA: {$etaMinutes} min ({$driver['eta_time']} sec) | Distance: {$driver['distance_text']}");
-            }
+            usort($shortlist, fn ($a, $b) => ($a['eta_time'] ?? PHP_INT_MAX) <=> ($b['eta_time'] ?? PHP_INT_MAX));
 
-            // Filter out invalid ETAs
-            $validDrivers = array_filter($eligibleDrivers, fn($driver) => $driver['eta_time'] !== null);
-            
-            if (count($validDrivers) < count($eligibleDrivers)) {
-                Log::warning("⚠️ Filtered out " . (count($eligibleDrivers) - count($validDrivers)) . " drivers with invalid ETAs");
-            }
-
-            // Sort by ETA ascending
-            usort($validDrivers, fn($a, $b) => $a['eta_time'] <=> $b['eta_time']);
-
-            // 🏆 Log sorted drivers (best to worst)
-            Log::info("🏆 Drivers sorted by ETA (best first):");
-            foreach ($validDrivers as $index => $driver) {
-                $etaMinutes = round($driver['eta_time'] / 60, 1);
-                Log::info("   #" . ($index + 1) . " Driver ID: {$driver['id']} | Name: {$driver['name']} | ETA: {$etaMinutes} min | Distance: {$driver['distance_text']}");
-            }
-            
-            $eligibleDrivers = $validDrivers;
-
-            $nearestDriver = $eligibleDrivers[0] ?? null;
-
-            if (!$nearestDriver) {
-                return null;
-            }
-
-
-
-            // ✅ Return both driver ID and ETA
-            return [
-                'driver_id' => $nearestDriver['id'] ?? null,
-                'eta_seconds' => $nearestDriver['eta_time'],
-                'eta_minutes' => round($nearestDriver['eta_time'] / 60, 1),
-                'driver' => $nearestDriver, // optional full driver info
-            ];
+            return array_values($shortlist);
         } catch (\Exception $e) {
-            Log::error('Error calling Google Distance Matrix API: ' . $e->getMessage());
-            return null;
+            Log::error('Distance Matrix shortlist error: ' . $e->getMessage());
+            return array_map(fn ($driver) => $this->withStraightLineEta($driver), $shortlist);
         }
     }
 

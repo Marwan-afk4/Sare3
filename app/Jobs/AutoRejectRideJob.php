@@ -75,6 +75,14 @@ class AutoRejectRideJob implements ShouldQueue
                 return;
             }
 
+            // The every-15-seconds command can wake up on the same offer.
+            // One of them reassigns; the other leaves the ride alone.
+            if (!\Illuminate\Support\Facades\Cache::add("ride_auto_reassign:{$ride->id}", 1, now()->addSeconds(8))) {
+                DB::rollBack();
+                Log::info("AutoRejectRideJob: Ride {$this->rideId} is already being reassigned");
+                return;
+            }
+
             // Add current driver to rejected drivers list
             $rejectedDrivers = $ride->rejected_drivers ?? [];
             
