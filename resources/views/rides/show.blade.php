@@ -451,7 +451,12 @@
                                                 <span class="text-muted">-</span>
                                             @endif
                                         </td>
-                                        <td>{!! $offer->responseBadgeHtml() !!}</td>
+                                        <td>
+                                            {!! $offer->responseBadgeHtml() !!}
+                                            @if($reason = $offer->cancellationReasonLabel())
+                                                <div class="small mt-1">{{ $reason }}</div>
+                                            @endif
+                                        </td>
                                         <td>
                                             @if($offer->hasDriverLocation())
                                                 <a href="https://www.google.com/maps?q={{ $offer->driver_lat }},{{ $offer->driver_lng }}" target="_blank" class="small">
@@ -462,7 +467,7 @@
                                             @endif
                                         </td>
                                         <td><small>#{{ $offer->attempt }}</small></td>
-                                        <td><small class="text-muted">{{ $offer->note }}</small></td>
+                                        <td><small class="text-muted">{{ $offer->cancellationReasonLabel() ? '' : $offer->note }}</small></td>
                                     </tr>
                                 @endforeach
                             </tbody>

@@ -140,7 +140,9 @@ class CancelationRide extends Controller
                 'cancelled_before_accept' => $wasNeverAccepted,
             ]);
 
-            app(RideOfferService::class)->markAllPendingCancelledByUser($locked, 'passenger_cancelled');
+            $offerService = app(RideOfferService::class);
+            $offerService->markAllPendingCancelledByUser($locked, 'passenger_cancelled');
+            $offerService->markAcceptedCancelledByUser($locked, $request->input('reason'));
 
             $ride->refresh();
         });
@@ -204,10 +206,11 @@ class CancelationRide extends Controller
         // otherwise it's a plain rejection.
         $wasAccepted = !is_null($ride->accepted_at) || in_array($ride->status->value, ['accepted', 'waiting_user', 'in_progress']);
         $offerService = app(RideOfferService::class);
+        $reasonNote = $request->filled('reason') ? (string) $request->input('reason') : null;
         if ($wasAccepted) {
-            $offerService->markCancelledAfterAccept($ride, (int) $currentDriverId);
+            $offerService->markCancelledAfterAccept($ride, (int) $currentDriverId, $reasonNote);
         } else {
-            $offerService->markRejected($ride, (int) $currentDriverId);
+            $offerService->markRejected($ride, (int) $currentDriverId, $reasonNote);
         }
 
         // Add current driver to rejected drivers list

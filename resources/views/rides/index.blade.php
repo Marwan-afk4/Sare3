@@ -665,15 +665,18 @@ async function loadRouteDetails(rideId, pickupLat, pickupLng, dropoffLat, dropof
                 const item = document.createElement('div');
                 item.className = 'list-group-item p-2';
                 
-                // Color mapping for response states
-                let badgeClass = 'bg-secondary';
-                if (offer.response === 'accepted') badgeClass = 'bg-success';
-                else if (offer.response === 'rejected') badgeClass = 'bg-danger';
-                else if (offer.response === 'ignored') badgeClass = 'bg-warning text-dark'; // Timeout
-                else if (offer.response === 'cancelled_by_user') badgeClass = 'bg-dark';
+                const badges = (offer.badges && offer.badges.length)
+                    ? offer.badges
+                    : [{ label: offer.response_label, color: offer.response_color || 'secondary' }];
+                const badgesHtml = badges.map(badge =>
+                    `<span class="badge bg-${badge.color} p-1 me-1" style="font-size: 0.65rem;">${badge.label}</span>`
+                ).join('');
                 
                 const timeStr = offer.offered_at ? `<span class="text-muted float-end" style="font-size: 0.7rem;"><i class="fa fa-clock"></i> ${offer.offered_at}</span>` : '';
                 const durationStr = offer.response_seconds !== null ? `<div class="text-muted" style="font-size: 0.7rem;">{{ __('Response time') }}: ${offer.response_seconds}s</div>` : '';
+                const reasonStr = offer.cancellation_reason
+                    ? `<div class="small mt-1">${offer.cancellation_reason}</div>`
+                    : '';
                 const locationStr = (offer.lat != null && offer.lng != null)
                     ? `<div><a href="https://www.google.com/maps?q=${offer.lat},${offer.lng}" target="_blank" class="small"><i class="fa fa-map-marker-alt"></i> {{ __('Location') }}</a></div>`
                     : '';
@@ -684,9 +687,10 @@ async function loadRouteDetails(rideId, pickupLat, pickupLng, dropoffLat, dropof
                         ${timeStr}
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge ${badgeClass} p-1" style="font-size: 0.65rem;">${offer.response_label}</span>
+                        <span>${badgesHtml}</span>
                         ${durationStr}
                     </div>
+                    ${reasonStr}
                     ${locationStr}
                 `;
                 listGroup.appendChild(item);

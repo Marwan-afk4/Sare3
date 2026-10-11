@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\CancellationReason;
 use App\Models\Ride;
 use App\Models\RideOffer;
 use App\Models\User;
@@ -56,6 +57,11 @@ class RideOfferService
     public function markAccepted(Ride $ride, int $driverId, ?string $note = null): void
     {
         $this->finalizeOffer($ride, $driverId, RideOffer::RESPONSE_ACCEPTED, $note);
+
+        RideOffer::where('ride_id', $ride->id)
+            ->where('driver_id', $driverId)
+            ->where('response', RideOffer::RESPONSE_ACCEPTED)
+            ->update(['was_accepted' => true]);
     }
 
     public function markRejected(Ride $ride, int $driverId, ?string $note = null): void
@@ -70,7 +76,63 @@ class RideOfferService
 
     public function markCancelledAfterAccept(Ride $ride, int $driverId, ?string $note = null): void
     {
-        $this->finalizeOffer($ride, $driverId, RideOffer::RESPONSE_CANCELLED_AFTER_ACCEPT, $note);
+        $accepted = RideOffer::where('ride_id', $ride->id)
+            ->where('driver_id', $driverId)
+            ->where('response', RideOffer::RESPONSE_ACCEPTED)
+            ->latest('id')
+            ->first();
+
+        if (!$accepted) {
+            return;
+        }
+
+        $accepted->update([
+            'response' => RideOffer::RESPONSE_CANCELLED_AFTER_ACCEPT,
+            'was_accepted' => true,
+            'cancelled_at' => now(),
+            'note' => $this->reasonText($note) ?? $accepted->note,
+        ]);
+    }
+
+    /**
+     * The passenger cancelled after a captain had already accepted. The
+     * accept row is updated in place so the log does not end on "accepted"
+     * for a ride that is cancelled.
+     */
+    public function markAcceptedCancelledByUser(Ride $ride, ?string $note = null): void
+    {
+        RideOffer::where('ride_id', $ride->id)
+            ->where('response', RideOffer::RESPONSE_ACCEPTED)
+            ->get()
+            ->each(function (RideOffer $offer) use ($note) {
+                $offer->update([
+                    'response' => RideOffer::RESPONSE_CANCELLED_BY_USER,
+                    'was_accepted' => true,
+                    'cancelled_at' => now(),
+                    'note' => $this->reasonText($note) ?? $offer->note,
+                ]);
+            });
+    }
+
+    /**
+     * Turn a cancellation-reason id (or "reason_id:12") into the reason name.
+     * Free text is kept as written.
+     */
+    public function reasonText(?string $note): ?string
+    {
+        if ($note === null || trim($note) === '') {
+            return null;
+        }
+
+        $note = trim($note);
+
+        if (preg_match('/^reason_id:(\d+)$/', $note, $matches) || ctype_digit($note)) {
+            $id = $matches[1] ?? $note;
+
+            return CancellationReason::find($id)?->reason;
+        }
+
+        return $note;
     }
 
     /**

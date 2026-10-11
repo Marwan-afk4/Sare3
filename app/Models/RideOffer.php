@@ -21,6 +21,8 @@ class RideOffer extends Model
         'offered_at',
         'responded_at',
         'response',
+        'was_accepted',
+        'cancelled_at',
         'response_seconds',
         'attempt',
         'note',
@@ -31,6 +33,8 @@ class RideOffer extends Model
     protected $casts = [
         'offered_at' => 'datetime',
         'responded_at' => 'datetime',
+        'cancelled_at' => 'datetime',
+        'was_accepted' => 'boolean',
         'attempt' => 'integer',
         'response_seconds' => 'integer',
         'driver_lat' => 'float',
@@ -78,12 +82,69 @@ class RideOffer extends Model
         return self::responseLabels()[$this->response]['color'] ?? 'secondary';
     }
 
+    /**
+     * Accept followed by a cancel stays on one row: both outcomes are shown
+     * so the admin does not read a second captain as the one who cancelled.
+     *
+     * @return array<int, array{label: string, color: string}>
+     */
+    public function responseBadges(): array
+    {
+        $final = self::responseLabels()[$this->response] ?? ['label' => $this->response, 'color' => 'secondary'];
+
+        if ($this->was_accepted && $this->response !== self::RESPONSE_ACCEPTED) {
+            $accepted = self::responseLabels()[self::RESPONSE_ACCEPTED];
+
+            return [$accepted, $final];
+        }
+
+        return [$final];
+    }
+
+    /**
+     * The reason text for a cancel that happened after this captain accepted.
+     * Older rows stored "reason_id:12"; those are resolved to the reason name.
+     */
+    public function cancellationReasonLabel(): ?string
+    {
+        if (!$this->was_accepted || !in_array($this->response, [
+            self::RESPONSE_CANCELLED_AFTER_ACCEPT,
+            self::RESPONSE_CANCELLED_BY_USER,
+        ], true)) {
+            return null;
+        }
+
+        $note = trim((string) $this->note);
+        if ($note === '' || in_array($note, [
+            'passenger_cancelled',
+            'auto_timeout',
+            'auto_timeout_command',
+            'cycling',
+            'reassignment',
+            'initial_assignment',
+            'reassignment_command',
+            'cycling_command',
+        ], true)) {
+            return null;
+        }
+
+        if (preg_match('/^reason_id:(\d+)$/', $note, $matches)) {
+            return CancellationReason::find($matches[1])?->reason;
+        }
+
+        return $note;
+    }
+
     public function responseBadgeHtml(): string
     {
-        return sprintf(
-            '<span class="badge bg-%s">%s</span>',
-            e($this->responseColor()),
-            e($this->responseLabel())
-        );
+        return collect($this->responseBadges())
+            ->map(function (array $badge) {
+                return sprintf(
+                    '<span class="badge bg-%s me-1">%s</span>',
+                    e($badge['color']),
+                    e($badge['label'])
+                );
+            })
+            ->implode('');
     }
 }
