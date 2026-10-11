@@ -1362,7 +1362,6 @@
     "The selected vehicle type is invalid.": "نوع المركبة المحدد غير صالح.",
     "A motorcycle license image is required.": "صورة رخصة الدراجة النارية مطلوبة.",
     "The Wallet field is required.": "حقل المحفظة مطلوب.",
-<<<<<<< HEAD
     "Finished rides revenue": "إيرادات الرحلات المنتهية",
     "Final fare of every ride marked finished, grouped by the month it ended.": "أجرة كل رحلة حالتها منتهية، مجمّعة حسب شهر انتهائها.",
     "Year total": "إجمالي السنة",
@@ -1386,8 +1385,7 @@
     "September": "سبتمبر",
     "October": "أكتوبر",
     "November": "نوفمبر",
-    "December": "ديسمبر"
-=======
+    "December": "ديسمبر",
     "Google API usage": "استخدام واجهات جوجل",
     "Free caps reset at midnight Pacific Time on the 1st": "الحد المجاني يتجدد منتصف ليل توقيت المحيط الهادئ في أول كل شهر",
     "Previous month": "الشهر السابق",
@@ -1435,5 +1433,4 @@
     "Turning a map click into an address on the admin location picker.": "تحويل النقرة على الخريطة إلى عنوان في محدد الموقع.",
     "Address search on admin maps. Counted once when a suggestion is chosen. Google may bill a typing session instead of a single selection.": "البحث عن عنوان في خرائط لوحة التحكم. يُحسب مرة عند اختيار اقتراح. قد تحاسب جوجل جلسة الكتابة بدلاً من الاختيار الواحد.",
     "Push notifications to riders and drivers. FCM has no per-message charge.": "إشعارات للركاب والسائقين. لا توجد تكلفة لكل رسالة."
->>>>>>> cad41e38e8eb9f5d88500bb92452293238d9ab04
 }
