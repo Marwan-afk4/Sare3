@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\City;
 use App\Models\User;
 use App\Models\Ride;
+use App\Services\FinishedRideRevenueService;
 
 use Illuminate\Http\Request;
 
@@ -14,8 +15,13 @@ class HomePageController extends Controller
     {
     }
 
-    public function index()
+    public function index(FinishedRideRevenueService $finishedRideRevenue)
     {
+        $revenueYear = (int) request()->integer('revenue_year');
+        $finishedRevenue = $finishedRideRevenue->forYear(
+            $revenueYear > 0 ? $revenueYear : (int) now()->year
+        );
+
         $userCount = User::where('role', 'user')->count();
         $driverCount = User::where('role', 'driver')->count();
 
@@ -85,7 +91,8 @@ class HomePageController extends Controller
             'unavailableDriversCount',
             'driverNames',
             'citiesWithDriverCount',
-            'driversWithNoCityCount'
+            'driversWithNoCityCount',
+            'finishedRevenue'
         ));
     }
 

@@ -7,6 +7,8 @@
 @section('title', 'الصفحه الرئيسية')
 
 @section('content')
+    @include('home.partials.finished-revenue')
+
     <div class="main-card mb-3 card">
         <div class="card-body">
             <div class="row gx-4 gy-6 pb-5">
@@ -222,6 +224,85 @@
     .city-card-no-city:hover {
         border-color: var(--bs-warning, #f59e0b) !important;
     }
+    .revenue-stat,
+    .revenue-month {
+        border: 1px solid var(--phoenix-border-color, #e3e6ed);
+        border-radius: 0.85rem;
+        background: var(--phoenix-body-highlight-bg, #f5f7fa);
+        padding: 0.9rem 1rem;
+    }
+    .revenue-stat-icon {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(79, 70, 229, 0.08);
+    }
+    .revenue-amount,
+    .revenue-month-amount {
+        font-size: 1.35rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.2;
+    }
+    .revenue-month-amount {
+        font-size: 1rem;
+    }
+    .revenue-change {
+        font-size: 0.75rem;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 0.1rem 0.45rem;
+    }
+    .revenue-change.is-up {
+        color: #059669;
+        background: rgba(16, 185, 129, 0.14);
+    }
+    .revenue-change.is-down {
+        color: #dc2626;
+        background: rgba(239, 68, 68, 0.12);
+    }
+    .revenue-stat.is-current,
+    .revenue-month.is-current {
+        border-color: rgba(79, 70, 229, 0.55);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.08);
+    }
+    .revenue-month.is-best {
+        background: rgba(16, 185, 129, 0.08);
+    }
+    .revenue-best-badge {
+        background: rgba(16, 185, 129, 0.16);
+        color: #047857;
+        font-weight: 600;
+    }
+    .revenue-month-bar {
+        height: 0.35rem;
+        background: rgba(148, 163, 184, 0.25);
+    }
+    .revenue-month-bar .progress-bar {
+        background: #10b981;
+    }
+    .revenue-legend-swatch {
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 0.2rem;
+        display: inline-block;
+    }
+    .revenue-legend-swatch.is-month { background: #10b981; }
+    .revenue-legend-swatch.is-current { background: #4f46e5; }
+    .revenue-legend-swatch.is-best { background: #d97706; }
+    .revenue-month.is-current .revenue-month-bar .progress-bar {
+        background: #4f46e5;
+    }
+    html[data-bs-theme="dark"] .revenue-stat,
+    html[data-bs-theme="dark"] .revenue-month,
+    .dark .revenue-stat,
+    .dark .revenue-month {
+        background: rgba(255, 255, 255, 0.03);
+    }
 </style>
 @endpush
 
@@ -238,6 +319,15 @@
     @php
         $safeUserCounts = $userMonthlyCounts ?? [12, 15, 20, 18, 22, 30, 25, 28, 24, 26, 30, 33];
         $safeDriverCounts = $driverMonthlyCounts ?? [5, 7, 9, 6, 10, 12, 8, 11, 9, 13, 14, 16];
+        $revenueChart = [
+            'labels' => array_map(fn ($month) => __($month['label']), $finishedRevenue['months']),
+            'totals' => array_column($finishedRevenue['months'], 'total'),
+            'rides' => array_column($finishedRevenue['months'], 'rides'),
+            'currentIndex' => $finishedRevenue['current_month_index'],
+            'bestIndex' => $finishedRevenue['best_month_index'],
+            'seriesName' => __('Revenue'),
+            'ridesLabel' => __('Finished rides'),
+        ];
     @endphp
 
     <script>
@@ -372,6 +462,90 @@
             });
         }
 
+        function renderFinishedRevenueChart(payload) {
+            const el = document.querySelector('.echarts-finished-revenue');
+            if (!el || typeof echarts === 'undefined') return;
+
+            if (echarts.getInstanceByDom(el)) {
+                echarts.getInstanceByDom(el).dispose();
+            }
+
+            const isDark = localStorage.getItem('phoenixTheme') === 'dark';
+            const emerald = isDark ? '#34d399' : '#10b981';
+            const indigo = isDark ? '#818cf8' : '#4f46e5';
+            const amber = isDark ? '#fbbf24' : '#d97706';
+            const chart = echarts.init(el, null, { backgroundColor: 'transparent' });
+            const narrow = el.clientWidth < 720;
+
+            chart.setOption({
+                grid: { left: '2%', right: '2%', bottom: '3%', top: '12%', containLabel: true },
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                    borderColor: isDark ? '#334155' : '#e2e8f0',
+                    borderWidth: 1,
+                    padding: [8, 12],
+                    textStyle: {
+                        color: isDark ? '#f8fafc' : '#0f172a',
+                        fontFamily: 'Cairo, Inter, system-ui, sans-serif',
+                        fontSize: 12
+                    },
+                    extraCssText: 'box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border-radius: 8px;',
+                    formatter: function (params) {
+                        const point = params[0];
+                        const rides = payload.rides[point.dataIndex] ?? 0;
+                        const amount = Number(point.value).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                        return `
+                            <div style="font-weight: 700; margin-bottom: 4px;">${point.name}</div>
+                            <div>${payload.seriesName}: <strong>$${amount}</strong></div>
+                            <div style="color:${isDark ? '#94a3b8' : '#64748b'};">${payload.ridesLabel}: ${rides}</div>
+                        `;
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    data: payload.labels,
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    axisLabel: {
+                        color: isDark ? '#94a3b8' : '#64748b',
+                        fontSize: narrow ? 10 : 11,
+                        interval: 0,
+                        rotate: narrow ? 40 : 0
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    min: 0,
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    splitLine: { lineStyle: { color: isDark ? '#334155' : '#f1f5f9', type: 'dashed' } },
+                    axisLabel: {
+                        color: isDark ? '#94a3b8' : '#64748b',
+                        fontSize: 11,
+                        formatter: value => '$' + Number(value).toLocaleString('en-US')
+                    }
+                },
+                series: [{
+                    name: payload.seriesName,
+                    type: 'bar',
+                    data: payload.totals,
+                    barMaxWidth: 28,
+                    itemStyle: {
+                        borderRadius: [8, 8, 0, 0],
+                        color: function (params) {
+                            if (params.dataIndex === payload.currentIndex) return indigo;
+                            if (params.dataIndex === payload.bestIndex) return amber;
+                            return emerald;
+                        }
+                    }
+                }]
+            });
+        }
+
         function initHomePageScripts() {
             feather.replace();
 
@@ -380,7 +554,15 @@
 
             renderLineChart('.echarts-new-users', 'Users', userMonthlyCounts, 'blue');
             renderLineChart('.echarts-new-drivers', 'Drivers', driverMonthlyCounts, 'emerald');
+            renderFinishedRevenueChart(@json($revenueChart));
         }
+
+        window.addEventListener('resize', function () {
+            document.querySelectorAll('.echarts-new-users, .echarts-new-drivers, .echarts-finished-revenue').forEach(function (el) {
+                const instance = echarts.getInstanceByDom(el);
+                if (instance) instance.resize();
+            });
+        });
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initHomePageScripts);
