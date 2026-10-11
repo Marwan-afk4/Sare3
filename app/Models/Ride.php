@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\RideStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Ride extends Model
 {
@@ -114,6 +115,50 @@ class Ride extends Model
         }
 
         return $status === RideStatus::Cancelled->value;
+    }
+
+    /**
+     * The request is still looking for a captain. Accepted, cancelled, and
+     * in-progress rides must not be offered to anyone else.
+     */
+    public function isAwaitingDriver(): bool
+    {
+        $status = $this->status;
+
+        if ($status instanceof RideStatus) {
+            return $status === RideStatus::Pending;
+        }
+
+        return $status === RideStatus::Pending->value;
+    }
+
+    /**
+     * Update a ride that is still searching.
+     * With $onlyIfSameDriver, the write is skipped when another search has
+     * already handed the ride to a different captain. $expectedDriverId is
+     * null when this search started with nobody assigned.
+     */
+    public function updateWhileAwaiting(array $attributes, bool $onlyIfSameDriver = false, ?int $expectedDriverId = null): bool
+    {
+        return DB::transaction(function () use ($attributes, $onlyIfSameDriver, $expectedDriverId) {
+            $locked = static::query()->whereKey($this->id)->lockForUpdate()->first();
+
+            if (!$locked || !$locked->isAwaitingDriver()) {
+                return false;
+            }
+
+            if ($onlyIfSameDriver) {
+                $currentDriverId = $locked->driver_id ? (int) $locked->driver_id : null;
+                if ($currentDriverId !== $expectedDriverId) {
+                    return false;
+                }
+            }
+
+            $locked->update($attributes);
+            $this->refresh();
+
+            return true;
+        });
     }
 
     /**

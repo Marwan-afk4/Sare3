@@ -100,8 +100,15 @@ class AutoRejectRides extends Command
                     }
                 }
 
+                // Release the row before the Google lookup. A passenger cancel
+                // must not wait behind that call and then lose to the next offer.
+                DB::commit();
 
-
+                $ride->refresh();
+                if (!$ride->isAwaitingDriver()) {
+                    Log::info("AutoRejectRides Command: Ride {$ride->id} stopped searching before a new captain was chosen");
+                    continue;
+                }
 
                 // Step 3: Get all available drivers
                 $allDrivers = $rideEstimateController->getEligibleDrivers(
@@ -113,9 +120,10 @@ class AutoRejectRides extends Command
 
                 if (empty($allDrivers)) {
                     Log::info("No drivers available for ride {$ride->id}");
-                    $ride->update(['driver_id' => null, 'status' => 'pending']);
-
-                    DB::commit();
+                    $ride->updateWhileAwaiting([
+                        'driver_id' => null,
+                        'status' => 'pending',
+                    ], true, null);
                     continue;
                 }
 
@@ -156,7 +164,6 @@ class AutoRejectRides extends Command
                     
                     if (empty($allDriversWithETA)) {
                         Log::error("No drivers available with valid ETA for ride {$ride->id}");
-                        DB::commit();
                         continue;
                     }
 
@@ -167,8 +174,10 @@ class AutoRejectRides extends Command
 
                     if (empty($allDriversWithETA)) {
                         Log::info("All available drivers are currently on cooldown for ride {$ride->id}. Resetting driver_id.");
-                        $ride->update(['driver_id' => null, 'status' => 'pending']);
-                        DB::commit();
+                        $ride->updateWhileAwaiting([
+                            'driver_id' => null,
+                            'status' => 'pending',
+                        ], true, null);
                         continue;
                     }
 
@@ -204,7 +213,9 @@ class AutoRejectRides extends Command
                     // Clear rejected list if we've completed a full cycle
                     if ($nextIndex === 0 && $lastDriverIndex >= 0) {
                         Log::info("🔄 Full cycle completed, clearing rejected drivers list");
-                        $ride->update(['rejected_drivers' => []]);
+                        if (!$ride->updateWhileAwaiting(['rejected_drivers' => []], true, null)) {
+                            continue;
+                        }
                     }
                 } else {
                     // ✅ CRITICAL: Re-index array to have sequential keys [0,1,2...] instead of [0,2,4...]
@@ -247,7 +258,6 @@ class AutoRejectRides extends Command
                     $driverId = $nearestDriver['id'];
                 } else {
                     Log::warning("⚠️ Invalid nearest driver structure for ride {$ride->id}: " . json_encode($nearestDriver));
-                    DB::commit();
                     continue;
                 }
 
@@ -255,35 +265,45 @@ class AutoRejectRides extends Command
                 $driver = User::find($driverId);
                 if (!$driver) {
                     Log::warning("⚠️ Driver ID {$driverId} not found in database for ride {$ride->id}");
-                    DB::commit();
                     continue;
                 }
 
-                $ride->refresh();
-                if ($ride->isCancelled()) {
-                    Log::info("AutoRejectRides Command: Ride {$ride->id} cancelled by passenger, not reassigning");
-                    DB::commit();
-                    continue;
-                }
-
-                $ride->update([
+                $claimed = $ride->updateWhileAwaiting([
                     'driver_id' => $driver->id,
                     'status' => 'pending',
                     'driver_assigned_at' => now(),
                     'reassigned_at' => now(),
-                ]);
+                ], true, null);
+
+                if (!$claimed) {
+                    Log::info("AutoRejectRides Command: Ride {$ride->id} was cancelled, accepted, or already offered, not reassigning");
+                    continue;
+                }
 
                 // Audit trail: record that this driver has now been offered
                 // the ride, same as the queued AutoRejectRideJob does.
                 try {
-                    app(RideOfferService::class)->recordOffer(
+                    $offer = app(RideOfferService::class)->recordOffer(
                         $ride,
                         (int) $driver->id,
                         null,
                         $isCycling ? 'cycling_command' : 'reassignment_command'
                     );
+                    if (!$offer) {
+                        Log::info("AutoRejectRides Command: Ride {$ride->id} stopped searching before the offer was recorded");
+                        continue;
+                    }
                 } catch (\Throwable $offerEx) {
                     Log::warning("AutoRejectRides Command: recordOffer failed: " . $offerEx->getMessage());
+                    continue;
+                }
+
+                $ride->refresh();
+                if (!$ride->isAwaitingDriver() || (int) $ride->driver_id !== (int) $driver->id) {
+                    if ($ride->isCancelled()) {
+                        app(RideOfferService::class)->markAllPendingCancelledByUser($ride, 'passenger_cancelled');
+                    }
+                    continue;
                 }
 
                 // ✅ Broadcast new ride request to the driver
@@ -319,9 +339,10 @@ class AutoRejectRides extends Command
                 }
 
                 Log::info("✅ Reassigned ride {$ride->id} to driver {$driver->id}");
-                DB::commit();
             } catch (Exception $e) {
-                DB::rollBack();
+                if (DB::transactionLevel() > 0) {
+                    DB::rollBack();
+                }
                 Log::error("❌ Error processing ride {$ride->id}: " . $e->getMessage());
             }
         }

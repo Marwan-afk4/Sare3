@@ -17,6 +17,12 @@ class RideOfferService
     public function recordOffer(Ride $ride, int $driverId, ?int $attempt = null, ?string $note = null): ?RideOffer
     {
         try {
+            $ride->refresh();
+            if (!$ride->isAwaitingDriver()) {
+                Log::info("RideOfferService::recordOffer skipped, ride {$ride->id} is no longer searching");
+                return null;
+            }
+
             $existingPending = RideOffer::where('ride_id', $ride->id)
                 ->where('driver_id', $driverId)
                 ->where('response', RideOffer::RESPONSE_PENDING)

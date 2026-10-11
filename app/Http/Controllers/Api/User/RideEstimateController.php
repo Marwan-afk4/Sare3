@@ -723,24 +723,13 @@ class RideEstimateController extends Controller
     }
 
     /**
-     * Write ride fields only while the passenger has not cancelled.
-     * The status check and the write share a row lock so a cancel that
-     * committed during driver lookup cannot be overwritten with pending.
+     * Write ride fields only while this request is still searching.
+     * A passenger cancel or a captain accept that landed during driver
+     * lookup must not be overwritten with a new offer.
      */
-    private function updateIfStillSearching(Ride $ride, array $attributes): bool
+    private function updateIfStillSearching(Ride $ride, array $attributes, bool $onlyIfSameDriver = false, ?int $expectedDriverId = null): bool
     {
-        return DB::transaction(function () use ($ride, $attributes) {
-            $locked = Ride::query()->whereKey($ride->id)->lockForUpdate()->first();
-
-            if (!$locked || $locked->isCancelled()) {
-                return false;
-            }
-
-            $locked->update($attributes);
-            $ride->refresh();
-
-            return true;
-        });
+        return $ride->updateWhileAwaiting($attributes, $onlyIfSameDriver, $expectedDriverId);
     }
 
     /**
@@ -750,10 +739,15 @@ class RideEstimateController extends Controller
     {
         try {
             $ride->refresh();
-            if ($ride->isCancelled()) {
-                Log::info("searchAlternativeDriver: ride {$ride->id} is cancelled, not searching");
+            if (!$ride->isAwaitingDriver()) {
+                Log::info("searchAlternativeDriver: ride {$ride->id} is not searching, not offering it again");
                 return null;
             }
+
+            // Captain who held the ride when this search started. A later
+            // accept, cancel, or a parallel search that already offered it
+            // to someone else must win.
+            $expectedDriverId = $ride->driver_id ? (int) $ride->driver_id : null;
 
             // Get excluded driver IDs (drivers who already rejected this ride)
             $excludedDriverIds = $ride->rejected_drivers ?? [];
@@ -761,9 +755,12 @@ class RideEstimateController extends Controller
             // ✅ Add current driver to rejected list if not already
             if ($ride->driver_id && !in_array($ride->driver_id, $excludedDriverIds)) {
                 $excludedDriverIds[] = $ride->driver_id;
-                $ride->update([
-                    'rejected_drivers' => $excludedDriverIds
-                ]);
+                if (!$this->updateIfStillSearching($ride, [
+                    'rejected_drivers' => $excludedDriverIds,
+                ], true, $expectedDriverId)) {
+                    Log::info("searchAlternativeDriver: ride {$ride->id} left the search before a new captain was chosen");
+                    return null;
+                }
             }
 
             // Check if we need to cycle back to first drivers (after 12 rejections)
@@ -783,7 +780,7 @@ class RideEstimateController extends Controller
                 $this->updateIfStillSearching($ride, [
                     'driver_id' => null,
                     'status' => 'pending',
-                ]);
+                ], true, $expectedDriverId);
 
                 return null;
             }
@@ -823,7 +820,7 @@ class RideEstimateController extends Controller
                     $this->updateIfStillSearching($ride, [
                         'driver_id' => null,
                         'status' => 'pending',
-                    ]);
+                    ], true, $expectedDriverId);
 
                     return null;
                 }
@@ -859,7 +856,11 @@ class RideEstimateController extends Controller
                 // Clear rejected list if we've completed a full cycle
                 if ($nextIndex === 0 && $lastDriverIndex >= 0) {
                     Log::info("🔄 Full cycle completed, clearing rejected drivers list");
-                    $ride->update(['rejected_drivers' => []]);
+                    if (!$this->updateIfStillSearching($ride, [
+                        'rejected_drivers' => [],
+                    ], true, $expectedDriverId)) {
+                        return null;
+                    }
                 }
             } else {
                 // ✅ CRITICAL: Re-index array to have sequential keys [0,1,2...] instead of [0,2,4...]
@@ -890,27 +891,40 @@ class RideEstimateController extends Controller
             Log::info("Found driver {$driverId} for ride {$ride->id}" .
                 ($shouldCycleDrivers ? " (cycling after " . count($excludedDriverIds) . " rejections)" : ""));
 
-            // Re-check under a row lock. The passenger may have cancelled while
-            // ETA lookup was in flight; that cancel must not be overwritten.
+            // Re-check under a row lock. The passenger may have cancelled, or a
+            // captain may have accepted, while ETA lookup was in flight.
             $assigned = $this->updateIfStillSearching($ride, [
                 'driver_id' => $driverId,
                 'status' => 'pending',
                 'reassigned_at' => now(),
                 'driver_assigned_at' => now(),
-            ]);
+            ], true, $expectedDriverId);
 
             if (!$assigned) {
-                Log::info("searchAlternativeDriver: ride {$ride->id} cancelled before assignment, driver {$driverId} was not offered");
+                Log::info("searchAlternativeDriver: ride {$ride->id} was cancelled, accepted, or already offered, driver {$driverId} was not offered");
                 return null;
             }
 
             // Audit trail: record that this driver has now been offered the ride.
-            app(RideOfferService::class)->recordOffer(
+            $offer = app(RideOfferService::class)->recordOffer(
                 $ride,
                 (int) $driverId,
                 null,
                 $shouldCycleDrivers ? 'cycling' : 'reassignment'
             );
+
+            if (!$offer) {
+                Log::info("searchAlternativeDriver: ride {$ride->id} stopped searching before the offer was recorded");
+                return null;
+            }
+
+            $ride->refresh();
+            if (!$ride->isAwaitingDriver() || (int) $ride->driver_id !== (int) $driverId) {
+                if ($ride->isCancelled()) {
+                    app(RideOfferService::class)->markAllPendingCancelledByUser($ride, 'passenger_cancelled');
+                }
+                return null;
+            }
 
             // Broadcast the new ride request to the newly assigned driver via WebSockets (Reverb)
             try {

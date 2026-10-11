@@ -66,10 +66,12 @@ class AutoRejectRideJob implements ShouldQueue
         DB::beginTransaction();
 
         try {
-            // 🔒 Lock the ride row for update to prevent race conditions (e.g., passenger canceling)
+            // Lock only long enough to retire this captain. The driver search
+            // hits Google and must not keep the row locked, or a passenger
+            // cancel waits and the next captain is still offered the ride.
             $ride = Ride::where('id', $this->rideId)->lockForUpdate()->first();
 
-            if (!$ride || $ride->status->value !== 'pending' || $ride->driver_id !== $this->driverId) {
+            if (!$ride || !$ride->isAwaitingDriver() || (int) $ride->driver_id !== (int) $this->driverId) {
                 DB::rollBack();
                 Log::info("AutoRejectRideJob: Ride {$this->rideId} status changed, driver changed, or cancelled by user during execution.");
                 return;
@@ -111,63 +113,52 @@ class AutoRejectRideJob implements ShouldQueue
                 Log::warning("AutoRejectRideJob: offer bookkeeping failed: " . $offerEx->getMessage());
             }
 
-            Log::info("AutoRejectRideJob: Reset ride {$this->rideId}, driver {$this->driverId} added to rejected list: " . json_encode($rejectedDrivers));
-
-
-
-            // Reload the ride to get fresh data
-            $ride->refresh();
-
-            // Search for alternative driver
-            $rideEstimateController = new UserRideEstimateController();
-            $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
-
-            $ride->refresh();
-            if ($ride->isCancelled()) {
-                DB::commit();
-                Log::info("AutoRejectRideJob: Ride {$this->rideId} was cancelled by the passenger, search stopped");
-                return;
-            }
-
-            $driverId = null;
-            if ($alternativeDriver) {
-                // Note: searchAlternativeDriver already updates the ride with the new driver_id
-                // Just need to reload
-                $ride->refresh();
-                
-                $driverId = $alternativeDriver['driver_id'] ?? $alternativeDriver['id'] ?? null;
-            } else {
-                Log::warning("❌ AutoRejectRideJob: No alternative drivers found for ride {$this->rideId}, marking as rejected");
-                
-                // Mark ride as truly rejected if no alternative driver found.
-                // Never overwrite a passenger cancel.
-                if (!$ride->isCancelled()) {
-                    $ride->update([
-                        'status' => 'rejected',
-                    ]);
-                }
-            }
-
             DB::commit();
 
-            if ($alternativeDriver) {
-                if ($driverId) {
-                    AutoRejectRideJob::dispatch(
-                        $ride->id,
-                        $driverId,
-                        $ride->updated_at->format('Y-m-d H:i:s')
-                    )->delay(now()->addSeconds(15));
-                }
-
-                Log::info("✅ AutoRejectRideJob: Ride {$this->rideId} reassigned to driver {$driverId} (previous driver: {$this->driverId})");
-            } else {
-                Log::info("AutoRejectRideJob: Ride {$this->rideId} rejected with no alternative driver");
-            }
-
+            Log::info("AutoRejectRideJob: Reset ride {$this->rideId}, driver {$this->driverId} added to rejected list: " . json_encode($rejectedDrivers));
         } catch (\Exception $e) {
             DB::rollback();
             Log::error("❌ AutoRejectRideJob failed for ride {$this->rideId}: " . $e->getMessage());
             throw $e;
+        }
+
+        $ride->refresh();
+        if (!$ride->isAwaitingDriver()) {
+            Log::info("AutoRejectRideJob: Ride {$this->rideId} stopped searching before a new captain was chosen");
+            return;
+        }
+
+        // Search for alternative driver outside the row lock.
+        $rideEstimateController = new UserRideEstimateController();
+        $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
+
+        $ride->refresh();
+        if (!$ride->isAwaitingDriver()) {
+            Log::info("AutoRejectRideJob: Ride {$this->rideId} was cancelled or accepted, search stopped");
+            return;
+        }
+
+        if (!$alternativeDriver) {
+            Log::warning("❌ AutoRejectRideJob: No alternative drivers found for ride {$this->rideId}, marking as rejected");
+
+            // Never overwrite a passenger cancel or an accept.
+            $ride->updateWhileAwaiting([
+                'status' => 'rejected',
+            ], true, null);
+
+            Log::info("AutoRejectRideJob: Ride {$this->rideId} rejected with no alternative driver");
+            return;
+        }
+
+        $driverId = $alternativeDriver['driver_id'] ?? $alternativeDriver['id'] ?? null;
+        if ($driverId && (int) $ride->driver_id === (int) $driverId) {
+            AutoRejectRideJob::dispatch(
+                $ride->id,
+                $driverId,
+                $ride->updated_at->format('Y-m-d H:i:s')
+            )->delay(now()->addSeconds(15));
+
+            Log::info("✅ AutoRejectRideJob: Ride {$this->rideId} reassigned to driver {$driverId} (previous driver: {$this->driverId})");
         }
     }
 

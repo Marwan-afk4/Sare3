@@ -183,6 +183,13 @@ class CancelationRide extends Controller
             ]);
         }
 
+        if ((int) $ride->driver_id !== (int) $driver->id) {
+            return response()->json([
+                'message' => 'Ride is no longer assigned to you',
+                'status' => $ride->status->value,
+            ]);
+        }
+
         $currentDriverId = $driver->id;
         $now = now();
 
@@ -232,11 +239,13 @@ class CancelationRide extends Controller
 
         try {
             $locked = Ride::query()->whereKey($ride->id)->lockForUpdate()->first();
-            if (!$locked || $locked->isCancelled()) {
+            if (!$locked || $locked->isCancelled() || (int) $locked->driver_id !== (int) $currentDriverId) {
                 DB::rollBack();
                 return response()->json([
-                    'message' => 'Ride already canceled',
-                    'status' => 'cancelled',
+                    'message' => $locked && $locked->isCancelled()
+                        ? 'Ride already canceled'
+                        : 'Ride is no longer assigned to you',
+                    'status' => $locked?->isCancelled() ? 'cancelled' : ($locked?->status->value),
                 ]);
             }
 
@@ -268,7 +277,11 @@ class CancelationRide extends Controller
 
                 $keptSearching = DB::transaction(function () use ($ride, $driverId) {
                     $locked = Ride::query()->whereKey($ride->id)->lockForUpdate()->first();
-                    if (!$locked || $locked->isCancelled()) {
+                    if (!$locked || !$locked->isAwaitingDriver()) {
+                        return false;
+                    }
+
+                    if ($locked->driver_id && (int) $locked->driver_id !== (int) $driverId) {
                         return false;
                     }
 
@@ -283,9 +296,10 @@ class CancelationRide extends Controller
                 });
 
                 if (!$keptSearching) {
+                    $ride->refresh();
                     return response()->json([
-                        'message' => 'Ride already canceled',
-                        'status' => 'cancelled',
+                        'message' => $ride->isCancelled() ? 'Ride already canceled' : 'Ride is no longer searching',
+                        'status' => $ride->status->value,
                     ]);
                 }
 
