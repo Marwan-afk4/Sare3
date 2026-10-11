@@ -503,10 +503,20 @@ async function loadRouteDetails(rideId, pickupLat, pickupLng, dropoffLat, dropof
             data.offers.forEach(offer => {
                 const logDiv = document.createElement('div');
                 logDiv.className = 'd-flex justify-content-between align-items-center mb-2 pb-2 border-bottom';
+                const badges = (offer.badges && offer.badges.length)
+                    ? offer.badges
+                    : [{ label: offer.response_label, color: offer.response_color || 'secondary' }];
+                const badgesHtml = badges.map(badge =>
+                    `<span class="badge bg-${badge.color} px-2 py-0.5 me-1" style="font-size: 0.65rem;">${badge.label}</span>`
+                ).join('');
+                const reasonHtml = offer.cancellation_reason
+                    ? `<div class="small mt-1">${offer.cancellation_reason}</div>`
+                    : '';
                 logDiv.innerHTML = `
                     <div>
                         <strong class="d-block small text-dark">${offer.driver_name}</strong>
-                        <span class="badge bg-${offer.response_color} px-2 py-0.5" style="font-size: 0.65rem;">${offer.response_label}</span>
+                        ${badgesHtml}
+                        ${reasonHtml}
                     </div>
                     <div class="text-end">
                         <span class="d-block small text-muted">${offer.offered_at || '-'}</span>

@@ -327,6 +327,8 @@ class RideTrackingController extends Controller
                 'response' => $offer->response,
                 'response_label' => $offer->responseLabel(),
                 'response_color' => $offer->responseColor(),
+                'badges' => $offer->responseBadges(),
+                'cancellation_reason' => $offer->cancellationReasonLabel(),
                 'response_seconds' => $offer->response_seconds,
                 'offered_at' => $offer->offered_at ? $offer->offered_at->translatedFormat('h:i:s A') : null,
                 'lat' => $offer->driver_lat !== null ? (float) $offer->driver_lat : null,
