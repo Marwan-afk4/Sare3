@@ -102,6 +102,21 @@ class Ride extends Model
     }
 
     /**
+     * Passenger cancel is terminal. Nothing may offer this ride to another
+     * captain or move it back to pending after this is true.
+     */
+    public function isCancelled(): bool
+    {
+        $status = $this->status;
+
+        if ($status instanceof RideStatus) {
+            return $status === RideStatus::Cancelled;
+        }
+
+        return $status === RideStatus::Cancelled->value;
+    }
+
+    /**
      * Persist the captain's GPS at cancel time (whether the passenger or the
      * driver cancelled). Prefer coordinates from the request; otherwise use
      * the driver's last known location. No-op when there is no driver and no

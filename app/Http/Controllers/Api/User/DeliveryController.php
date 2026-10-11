@@ -12,6 +12,7 @@ use App\Models\DeliveryZonePrice;
 use App\Models\User;
 use App\Models\Zone;
 use App\Services\DeliveryOfferService;
+use App\Services\GoogleApiUsageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -48,8 +49,23 @@ class DeliveryController extends Controller
         $estimatedKm = (float) ($request->estimated_km ?? 0);
         $estimatedTime = (float) ($request->estimated_time ?? 0);
 
-        if ($request->pickup_lat !== null && $request->pickup_lng !== null
+        // Directions on the client already returned km and minutes. Distance
+        // Matrix is only the fallback when that pair has not been measured.
+        if (!($estimatedKm > 0 && $estimatedTime > 0)
+            && $request->pickup_lat !== null && $request->pickup_lng !== null
             && $request->dropoff_lat !== null && $request->dropoff_lng !== null) {
+            $routeCacheKey = sprintf(
+                'route_estimate:%s,%s:%s,%s',
+                round((float) $request->pickup_lat, 4),
+                round((float) $request->pickup_lng, 4),
+                round((float) $request->dropoff_lat, 4),
+                round((float) $request->dropoff_lng, 4),
+            );
+            $cachedRoute = Cache::get($routeCacheKey);
+            if (is_array($cachedRoute) && ($cachedRoute['km'] ?? 0) > 0) {
+                $estimatedKm = (float) $cachedRoute['km'];
+                $estimatedTime = (float) $cachedRoute['minutes'];
+            } else {
             $google = $this->googleDistance(
                 $request->pickup_lat,
                 $request->pickup_lng,
@@ -63,6 +79,11 @@ class DeliveryController extends Controller
 
             $estimatedKm = $google['km'];
             $estimatedTime = $google['minutes'];
+            Cache::put($routeCacheKey, [
+                'km' => $estimatedKm,
+                'minutes' => $estimatedTime,
+            ], now()->addMinutes(5));
+            }
         }
 
         $priceRow = DeliveryZonePrice::forZone($request->zone_id);
@@ -516,6 +537,11 @@ class DeliveryController extends Controller
             }
 
             $data = $response->json();
+
+            if (($data['status'] ?? '') === 'OK') {
+                GoogleApiUsageService::recordDistanceMatrix(1, 1);
+            }
+
             $element = $data['rows'][0]['elements'][0] ?? [];
 
             if (($data['status'] ?? '') !== 'OK' || ($element['status'] ?? '') !== 'OK') {

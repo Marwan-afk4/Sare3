@@ -290,7 +290,10 @@ class SimpleRideTracker {
                 travelMode: google.maps.TravelMode.DRIVING
             };
             this.directionsService.route(request, (result, status) => {
-                if (status === 'OK') this.directionsRenderer.setDirections(result);
+                if (status === 'OK') {
+                    if (window.recordGoogleApiUsage) window.recordGoogleApiUsage(['directions']);
+                    this.directionsRenderer.setDirections(result);
+                }
             });
         }
 
@@ -322,7 +325,10 @@ class SimpleRideTracker {
                 travelMode: google.maps.TravelMode.DRIVING
             };
             this.directionsService.route(request, (result, status) => {
-                if (status === 'OK') this.directionsRenderer.setDirections(result);
+                if (status === 'OK') {
+                    if (window.recordGoogleApiUsage) window.recordGoogleApiUsage(['directions']);
+                    this.directionsRenderer.setDirections(result);
+                }
             });
         }
     }

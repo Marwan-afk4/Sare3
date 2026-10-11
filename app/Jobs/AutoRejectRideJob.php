@@ -75,6 +75,14 @@ class AutoRejectRideJob implements ShouldQueue
                 return;
             }
 
+            // The every-15-seconds command can wake up on the same offer.
+            // One of them reassigns; the other leaves the ride alone.
+            if (!\Illuminate\Support\Facades\Cache::add("ride_auto_reassign:{$ride->id}", 1, now()->addSeconds(8))) {
+                DB::rollBack();
+                Log::info("AutoRejectRideJob: Ride {$this->rideId} is already being reassigned");
+                return;
+            }
+
             // Add current driver to rejected drivers list
             $rejectedDrivers = $ride->rejected_drivers ?? [];
             
@@ -114,6 +122,13 @@ class AutoRejectRideJob implements ShouldQueue
             $rideEstimateController = new UserRideEstimateController();
             $alternativeDriver = $rideEstimateController->searchAlternativeDriver($ride);
 
+            $ride->refresh();
+            if ($ride->isCancelled()) {
+                DB::commit();
+                Log::info("AutoRejectRideJob: Ride {$this->rideId} was cancelled by the passenger, search stopped");
+                return;
+            }
+
             $driverId = null;
             if ($alternativeDriver) {
                 // Note: searchAlternativeDriver already updates the ride with the new driver_id
@@ -124,10 +139,13 @@ class AutoRejectRideJob implements ShouldQueue
             } else {
                 Log::warning("❌ AutoRejectRideJob: No alternative drivers found for ride {$this->rideId}, marking as rejected");
                 
-                // Mark ride as truly rejected if no alternative driver found
-                $ride->update([
-                    'status' => 'rejected',
-                ]);
+                // Mark ride as truly rejected if no alternative driver found.
+                // Never overwrite a passenger cancel.
+                if (!$ride->isCancelled()) {
+                    $ride->update([
+                        'status' => 'rejected',
+                    ]);
+                }
             }
 
             DB::commit();

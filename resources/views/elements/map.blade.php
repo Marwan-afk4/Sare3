@@ -129,6 +129,7 @@
         autocomplete.bindTo('bounds', map);
 
         autocomplete.addListener('place_changed', function () {
+            if (window.recordGoogleApiUsage) window.recordGoogleApiUsage(['places_autocomplete']);
             const place = autocomplete.getPlace();
             if (!place.geometry) {
                 alert("No details available for input: '" + place.name + "'");
@@ -154,6 +155,7 @@
             if (lngInput) lngInput.value = event.latLng.lng();
 
             geocoder.geocode({ 'location': event.latLng }, function (results, status) {
+                if (status === 'OK' && window.recordGoogleApiUsage) window.recordGoogleApiUsage(['geocoding']);
                 if (status === 'OK') {
                     if (results[0]) {
                         // Optionally use address

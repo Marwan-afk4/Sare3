@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Zone;
 use App\Models\Rating;
 use App\Helpers\RideHelper;
 use App\Helpers\ExcelExportHelper;
@@ -20,11 +21,31 @@ class UserController extends Controller
         $sortField = $request->get('sort', 'id');
         $sortOrder = $request->get('order', 'DESC');
 
+        $zones = Zone::withCount(['users as user_count' => function ($query) {
+            $query->where('role', 'user');
+        }])->orderBy('name')->get();
+
+        $usersWithNoZoneCount = User::where('role', 'user')
+            ->whereNull('zone_id')
+            ->count();
+
+        $newUsersTodayCount = User::where('role', 'user')
+            ->whereDate('created_at', today())
+            ->count();
+
         $users = $this->filteredUsersQuery($request)
             ->orderBy($sortField, $sortOrder)
-            ->paginate(30);
+            ->paginate(30)
+            ->withQueryString();
 
-        return view('users.index', compact('users', 'sortField', 'sortOrder'));
+        return view('users.index', compact(
+            'users',
+            'sortField',
+            'sortOrder',
+            'zones',
+            'usersWithNoZoneCount',
+            'newUsersTodayCount'
+        ));
     }
 
     public function export(Request $request): StreamedResponse
@@ -81,6 +102,7 @@ class UserController extends Controller
     protected function filteredUsersQuery(Request $request)
     {
         $keyword = $request->get('keyword');
+        $zoneId = $request->get('zone');
 
         return User::where('role', 'user')
             ->with('zone')
@@ -90,6 +112,16 @@ class UserController extends Controller
                         ->orWhere('email', 'LIKE', "%{$keyword}%")
                         ->orWhere('phone', 'LIKE', "%{$keyword}%");
                 });
+            })
+            ->when($zoneId !== null && $zoneId !== '', function ($query) use ($zoneId) {
+                if ($zoneId === 'no_zone') {
+                    $query->whereNull('zone_id');
+                } else {
+                    $query->where('zone_id', $zoneId);
+                }
+            })
+            ->when($request->boolean('new_today'), function ($query) {
+                $query->whereDate('created_at', today());
             });
     }
 

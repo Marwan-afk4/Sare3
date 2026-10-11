@@ -80,7 +80,9 @@ class RideActionsController extends Controller
 
             if (!$ride) {
                 DB::rollBack();
-                return response()->json(['message' => 'Ride not found or not available for acceptance.'], 404);
+                return response()->json([
+                    'message' => $this->acceptUnavailableMessage((int) $request->ride_id, (int) $driver->id),
+                ], 404);
             }
 
             // Prefer the GPS fix from the app. Fall back to the last saved point.
@@ -137,6 +139,38 @@ class RideActionsController extends Controller
         }
 
         return response()->json($response);
+    }
+
+    /**
+     * Why this captain can no longer accept. Shown directly on the driver app.
+     */
+    private function acceptUnavailableMessage(int $rideId, int $driverId): string
+    {
+        $ride = Ride::find($rideId);
+
+        if (!$ride) {
+            return 'هذه الرحلة لم تعد متاحة.';
+        }
+
+        if ($ride->isCancelled()) {
+            return 'ألغى الزبون الرحلة، ولا يمكنك قبولها.';
+        }
+
+        if ($ride->driver_id && (int) $ride->driver_id !== $driverId) {
+            return 'انتهى وقت الطلب وتحوّلت الرحلة إلى كابتن آخر.';
+        }
+
+        $status = $ride->status->value ?? (string) $ride->status;
+
+        if (in_array($status, ['accepted', 'waiting_user', 'arrived', 'in_progress'], true)) {
+            return 'تم قبول هذه الرحلة مسبقاً.';
+        }
+
+        if (in_array($status, ['completed', 'finshed'], true)) {
+            return 'هذه الرحلة انتهت.';
+        }
+
+        return 'انتهى وقت الطلب، ولم تعد الرحلة متاحة للقبول.';
     }
 
     //arrived
@@ -674,6 +708,15 @@ class RideActionsController extends Controller
         }
 
         $ride = Ride::findOrFail($request->ride_id);
+
+        // A passenger cancel is final. Rejecting a stale offer must not
+        // put the ride back into search.
+        if ($ride->isCancelled()) {
+            return response()->json([
+                'message' => 'Ride already canceled',
+                'status' => 'cancelled',
+            ]);
+        }
         
         // Prevent canceling completed rides
         if (in_array($ride->status->value, ['completed', 'finshed'])) {
@@ -781,13 +824,23 @@ class RideActionsController extends Controller
         DB::beginTransaction();
 
         try {
+            $locked = Ride::query()->whereKey($ride->id)->lockForUpdate()->first();
+            if (!$locked || $locked->isCancelled()) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Ride already canceled',
+                    'status' => 'cancelled',
+                ]);
+            }
+
             // Update ride: reset driver_id, add to rejected drivers
-            $ride->update([
+            $locked->update([
                 'driver_id' => null,
                 'rejected_drivers' => $rejectedDrivers,
                 'canceled_at' => now()->toIso8601String(),
                 'status' => 'pending',
             ]);
+            $ride = $locked;
 
             DB::commit();
 
@@ -803,12 +856,29 @@ class RideActionsController extends Controller
                     return response()->json(['message' => 'Failed to find alternative driver'], 500);
                 }
 
-                $ride->update([
-                    'driver_id' => $driverId,
-                    'status' => 'pending',
-                    'cancellation_reason_id' => $request->reason ?? null,
-                    'reassigned_at' => now(),
-                ]);
+                $keptSearching = DB::transaction(function () use ($ride, $driverId, $request) {
+                    $locked = Ride::query()->whereKey($ride->id)->lockForUpdate()->first();
+                    if (!$locked || $locked->isCancelled()) {
+                        return false;
+                    }
+
+                    $locked->update([
+                        'driver_id' => $driverId,
+                        'status' => 'pending',
+                        'cancellation_reason_id' => $request->reason ?? null,
+                        'reassigned_at' => now(),
+                    ]);
+                    $ride->refresh();
+
+                    return true;
+                });
+
+                if (!$keptSearching) {
+                    return response()->json([
+                        'message' => 'Ride already canceled',
+                        'status' => 'cancelled',
+                    ]);
+                }
 
                 // Schedule auto-reject job for the new driver
                 $timeoutSeconds = config('ride.auto_reject_timeout_seconds', 15);

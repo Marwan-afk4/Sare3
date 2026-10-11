@@ -2,7 +2,7 @@
     // Determine which group should be open by default based on $currentPage
     $activeGroup = null;
     $groupMap = [
-        'main'        => ['home', 'leaderboard', 'support-chat', 'ads', 'notifications'],
+        'main'        => ['home', 'leaderboard', 'support-chat', 'ads', 'notifications', 'google-api-usage'],
         'users'       => ['users', 'drivers', 'drivers-under-monitoring', 'admins', 'roles', 'signup-gifts'],
         'rides'       => ['rides', 'cancelation-rides', 'zones', 'abnormal-rides', 'cities'],
         'fleet'       => ['car-categories', 'car-models', 'car-types'],
@@ -38,6 +38,16 @@
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="home"></span></span>
                                 <span class="nav-link-text-wrapper"><span class="nav-link-text">{{ __('Home') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'google-api-usage' ? 'active' : '' }}"
+                            href="{{ route('google-api-usage.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="activity"></span></span>
+                                <span class="nav-link-text-wrapper"><span class="nav-link-text">{{ __('Google API usage') }}</span></span>
                             </div>
                         </a>
                     </div>

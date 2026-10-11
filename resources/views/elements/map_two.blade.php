@@ -148,6 +148,7 @@
         const autocomplete1 = new google.maps.places.Autocomplete(document.getElementById("pac-input-1"));
         autocomplete1.bindTo("bounds", map);
         autocomplete1.addListener("place_changed", function() {
+            if (window.recordGoogleApiUsage) window.recordGoogleApiUsage(['places_autocomplete']);
             const place = autocomplete1.getPlace();
             if (!place.geometry) return;
             sourceMarker.setPosition(place.geometry.location);
@@ -161,6 +162,7 @@
         const autocomplete2 = new google.maps.places.Autocomplete(document.getElementById("pac-input-2"));
         autocomplete2.bindTo("bounds", map);
         autocomplete2.addListener("place_changed", function() {
+            if (window.recordGoogleApiUsage) window.recordGoogleApiUsage(['places_autocomplete']);
             const place = autocomplete2.getPlace();
             if (!place.geometry) return;
             destinationMarker.setPosition(place.geometry.location);
@@ -188,6 +190,9 @@
             travelMode: google.maps.TravelMode.DRIVING,
             optimizeWaypoints: true
         }, function(result, status) {
+            if (status === google.maps.DirectionsStatus.OK && window.recordGoogleApiUsage) {
+                window.recordGoogleApiUsage(['directions']);
+            }
             if (status === google.maps.DirectionsStatus.OK) {
                 directionsRenderer.setDirections(result);
                 latestRouteResult = result;

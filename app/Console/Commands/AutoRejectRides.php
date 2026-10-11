@@ -51,6 +51,13 @@ class AutoRejectRides extends Command
                 }
                 $ride = $freshRide;
 
+                // AutoRejectRideJob owns this offer when the queue is running.
+                if (!\Illuminate\Support\Facades\Cache::add("ride_auto_reassign:{$ride->id}", 1, now()->addSeconds(8))) {
+                    DB::rollBack();
+                    Log::info("AutoRejectRides Command: Ride {$ride->id} is already being reassigned, skipping.");
+                    continue;
+                }
+
                 // // Step 1: Reject the current driver
                 // $ride->update(['status' => 'rejected', 'driver_id' => null]);
                 // Log::info("Auto-rejected ride ID {$ride->id} (driver ID: {$ride->driver_id})");
@@ -248,6 +255,13 @@ class AutoRejectRides extends Command
                 $driver = User::find($driverId);
                 if (!$driver) {
                     Log::warning("⚠️ Driver ID {$driverId} not found in database for ride {$ride->id}");
+                    DB::commit();
+                    continue;
+                }
+
+                $ride->refresh();
+                if ($ride->isCancelled()) {
+                    Log::info("AutoRejectRides Command: Ride {$ride->id} cancelled by passenger, not reassigning");
                     DB::commit();
                     continue;
                 }

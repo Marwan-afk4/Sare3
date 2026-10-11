@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use App\Models\CarCategory;
+use App\Services\GoogleApiUsageService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -210,6 +211,7 @@ class RideHelper
                 $resp = Http::timeout(self::$httpTimeout)->get($url);
 
                 if ($resp->successful()) {
+                    GoogleApiUsageService::record('roads_snap', 1, 1);
                     $data = $resp->json();
                     $pointsApi = $data['snappedPoints'] ?? [];
                     foreach ($pointsApi as $p) {

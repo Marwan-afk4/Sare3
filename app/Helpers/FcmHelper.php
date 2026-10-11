@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use App\Services\GoogleApiUsageService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -147,6 +148,7 @@ class FcmHelper
             $result = $response->json();
             
             if ($response->successful()) {
+                GoogleApiUsageService::record('fcm', 1, 1);
                 Log::info("✅ FCM notification sent successfully (took {$duration}ms)", [
                     'fcm_token' => substr($fcmToken, 0, 20) . '...',
                     'msg_type' => $data['msg_type'] ?? 'unknown',
