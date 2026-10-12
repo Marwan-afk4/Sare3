@@ -10,6 +10,7 @@ use App\Models\CarCategory;
 use App\Models\City;
 
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreRideRequest;
 use App\Http\Requests\UpdateRideRequest;
@@ -30,33 +31,71 @@ class RideController extends Controller
     {
         $sortField = $request->get('sort', 'id');
         $sortOrder = $request->get('order', 'desc');
-        $keyword   = $request->get('keyword');
-        $minKm     = $request->get('min_km');
-        $maxKm     = $request->get('max_km');
         $dateFrom  = $request->get('date_from');
         $dateTo    = $request->get('date_to');
 
-        // New filters for requirements 12 & 13.
-        // - accepted_after_seconds: rides where the accepting captain took at
-        //   least N seconds to accept ("accepted after a long time").
-        // - cancelled_before_accept: rides the passenger gave up on before
-        //   any captain accepted.
-        // - min_offers: rides that cycled through at least N captains.
+        $ridesQuery = $this->applyRidesIndexFilters(
+            Ride::with(['user', 'driver.city', 'carCategory', 'coupon'])
+                ->withCount([
+                    'offers',
+                    'offers as rejected_count' => function ($query) {
+                        $query->where('response', \App\Models\RideOffer::RESPONSE_REJECTED);
+                    },
+                    'offers as timeout_count' => function ($query) {
+                        $query->where('response', \App\Models\RideOffer::RESPONSE_IGNORED);
+                    }
+                ]),
+            $request,
+            includeStatusFilter: true
+        )->orderBy($sortField, $sortOrder);
+
+        $rides = $ridesQuery->paginate(30)->appends($request->query());
+
+        // Status sidebar counts respect the same filters as the table (except status).
+        $ridesStatusCounts = $this->applyRidesIndexFilters(Ride::query(), $request, includeStatusFilter: false)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
+        // Count of rides cancelled before any captain accepted — surfaced
+        // next to the filter toggle so support can see the total at a glance.
+        $cancelledBeforeAcceptCount = $this->applyRidesIndexFilters(Ride::query(), $request, includeStatusFilter: false)
+            ->cancelledBeforeAccept()
+            ->count();
+
+        $rideStatuses = \App\Enums\RideStatus::cases();
+        $cities = City::orderBy('name')->get(['id', 'name']);
+
+        return view('rides.index', compact(
+            'rides',
+            'sortField',
+            'sortOrder',
+            'ridesStatusCounts',
+            'rideStatuses',
+            'cancelledBeforeAcceptCount',
+            'dateFrom',
+            'dateTo',
+            'cities'
+        ));
+    }
+
+    /**
+     * Apply rides index filters shared by the list, status counts, and aggregate badges.
+     */
+    private function applyRidesIndexFilters(Builder $query, Request $request, bool $includeStatusFilter = true): Builder
+    {
+        $keyword = $request->get('keyword');
+        $minKm = $request->get('min_km');
+        $maxKm = $request->get('max_km');
+        $dateFrom = $request->get('date_from');
+        $dateTo = $request->get('date_to');
         $acceptedAfterSeconds = $request->get('accepted_after_seconds');
         $cancelledBeforeAccept = $request->boolean('cancelled_before_accept');
         $minOffers = $request->get('min_offers');
         $cityId = $request->get('city');
 
-        $ridesQuery = Ride::with(['user', 'driver.city', 'carCategory', 'coupon'])
-            ->withCount([
-                'offers',
-                'offers as rejected_count' => function ($query) {
-                    $query->where('response', \App\Models\RideOffer::RESPONSE_REJECTED);
-                },
-                'offers as timeout_count' => function ($query) {
-                    $query->where('response', \App\Models\RideOffer::RESPONSE_IGNORED);
-                }
-            ])
+        return $query
             ->when($keyword, function ($query, $keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->where('id', 'LIKE', "%{$keyword}%")
@@ -73,7 +112,7 @@ class RideController extends Controller
                         });
                 });
             })
-            ->when($request->filled('status'), function ($query) use ($request) {
+            ->when($includeStatusFilter && $request->filled('status'), function ($query) use ($request) {
                 $query->where('status', $request->status);
             })
             ->when($minKm !== null && $minKm !== '', function ($query) use ($minKm) {
@@ -110,39 +149,8 @@ class RideController extends Controller
                         $driverQuery->where('city_id', $cityId);
                     });
                 }
-            })
-            ->orderBy($sortField, $sortOrder);
-
-        $rides = $ridesQuery->paginate(30)->appends($request->query());
-
-        // Count per status
-        $ridesStatusCounts = Ride::query()
-            ->selectRaw('status, COUNT(*) as count')
-            ->groupBy('status')
-            ->pluck('count', 'status')
-            ->toArray();
-
-        // Count of rides cancelled before any captain accepted — surfaced
-        // next to the filter toggle so support can see the total at a glance.
-        $cancelledBeforeAcceptCount = Ride::cancelledBeforeAccept()->count();
-
-        $rideStatuses = \App\Enums\RideStatus::cases();
-        $cities = City::orderBy('name')->get(['id', 'name']);
-
-        return view('rides.index', compact(
-            'rides',
-            'sortField',
-            'sortOrder',
-            'ridesStatusCounts',
-            'rideStatuses',
-            'cancelledBeforeAcceptCount',
-            'dateFrom',
-            'dateTo',
-            'cities'
-        ));
+            });
     }
-
-
 
     public function create()
     {
