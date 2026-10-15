@@ -373,15 +373,19 @@ class RideHelper
                     'car_color' => optional($car)->car_color,
                     'car_image_link' => optional($car)->car_image_link,
                 ],
-                'pickup_address' => $ride->pickup_address,
+                // The shipped user app assigns these fields without conversion.
+                // A numeric price or a null address throws and leaves the splash screen up.
+                'pickup_address' => (string) ($ride->pickup_address ?? ''),
                 'dropoff_address' => $ride->dropoff_address,
                 'started_at' => $ride->started_at,
                 'ended_at' => $ride->ended_at,
-                'status' => is_object($ride->status) ? ($ride->status instanceof \BackedEnum ? $ride->status->value : (method_exists($ride->status, 'value') ? $ride->status->value : '')) : (string) $ride->status,
-                'calculated_final_price' => $ride->calculated_final_price,
+                'status' => is_object($ride->status) ? ($ride->status instanceof \BackedEnum ? $ride->status->value : (method_exists($ride->status, 'value') ? $ride->status->value : '')) : (string) ($ride->status ?? ''),
+                'calculated_final_price' => $ride->calculated_final_price === null
+                    ? null
+                    : (string) $ride->calculated_final_price,
                 'total_distance_in_km' => $ride->total_distance_in_km,
                 'time_taken' => $ride->time_taken,
-                'created_at' => $ride->created_at,
+                'created_at' => $ride->created_at ?? '',
             ];
         })->values()->toArray();
     }
