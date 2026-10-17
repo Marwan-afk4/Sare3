@@ -157,6 +157,12 @@
             </div>
         </div>
 
+        @include('partials.otp-usage', [
+            'account' => $driver,
+            'defaultOtpLimit' => $defaultOtpLimit,
+            'updateRoute' => route('drivers.otp-usage.update', $driver),
+        ])
+
         {{-- Driver cars --}}
         <div class="card mt-4">
             <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">

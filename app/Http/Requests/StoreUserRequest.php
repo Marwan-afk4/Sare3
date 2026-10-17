@@ -33,7 +33,7 @@ class StoreUserRequest extends FormRequest
             'activity' => 'required|in:active,inactive',
             'wallet' => 'nullable|numeric',
             'role' => 'required|in:admin,driver,user',
-            'password' => 'nullable|string|min:6',
+            'password' => 'required|string|min:8|confirmed',
         ];
     }
 
@@ -47,7 +47,10 @@ class StoreUserRequest extends FormRequest
             'phone.unique' => __('The Phone has already been taken.'),
             'phone.required' => __('The Phone field is required.'),
             'role.required' => __('The Role field is required.'),
-            'password.min' => __('The Password must be at least 6 characters.'),
+            'password.required' => __('The Password field is required.'),
+            'password.string' => __('The Password must be a string.'),
+            'password.min' => __('The Password must be at least 8 characters.'),
+            'password.confirmed' => __('The Password confirmation does not match.'),
         ];
     }
 

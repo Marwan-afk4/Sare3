@@ -172,10 +172,10 @@ class User extends Authenticatable
         if (blank($value)) {
             $this->attributes['password'] = null;
 
-            return;
+            return null;
         }
 
-        $this->attributes['password'] = Hash::make($value);
+        return $this->attributes['password'] = Hash::make($value);
     }
 
     /**

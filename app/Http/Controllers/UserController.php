@@ -8,6 +8,7 @@ use App\Models\Rating;
 use App\Helpers\RideHelper;
 use App\Helpers\ExcelExportHelper;
 use App\Models\AppSetting;
+use App\Models\OtpLimit;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
@@ -134,7 +135,23 @@ class UserController extends Controller
     {
         $request->setRole('user');
 
-        User::create($request->validated());
+        $user = User::create($request->validated());
+        $user->refresh();
+
+        if (empty($user->getAttributes()['password'])) {
+            $user->password = $request->input('password');
+            $user->save();
+            $user->refresh();
+        }
+
+        if (empty($user->getAttributes()['password'])) {
+            $user->delete();
+
+            return back()
+                ->withErrors(['password' => __('Failed to save password. Please try again.')])
+                ->withInput();
+        }
+
         return redirect()->route('users.index')->with('success',  __('Created successfully'));
     }
 
@@ -159,8 +176,38 @@ class UserController extends Controller
         // Get recent rides (last 10)
         $recentRides = RideHelper::formatUserRideHistory($user->userRides->take(10));
         $signupGiftAmount = AppSetting::getSignupGiftAmount();
+        $defaultOtpLimit = (int) (OtpLimit::where('type', 'user')->value('otp_limit') ?? 5);
 
-        return view('users.show', compact('user', 'userRating', 'rideStatistics', 'recentRides', 'signupGiftAmount'));
+        return view('users.show', compact('user', 'userRating', 'rideStatistics', 'recentRides', 'signupGiftAmount', 'defaultOtpLimit'));
+    }
+
+    public function updateOtpUsage(Request $request, User $user)
+    {
+        if ($user->role !== 'user') {
+            abort(404);
+        }
+
+        if ($request->input('otp_action') === 'reset') {
+            $user->otp_used = 0;
+            $user->save();
+
+            return redirect()
+                ->route('users.show', $user)
+                ->with('otp_success', __('OTP usage reset successfully.'));
+        }
+
+        $data = $request->validate([
+            'otp_used' => 'required|integer|min:0|max:100000',
+            'otp_limit' => 'required|integer|min:0|max:1000',
+        ]);
+
+        $user->otp_used = $data['otp_used'];
+        $user->otp_limit = $data['otp_limit'];
+        $user->save();
+
+        return redirect()
+            ->route('users.show', $user)
+            ->with('otp_success', __('OTP usage updated successfully.'));
     }
 
     public function rideHistory(User $user, Request $request)
@@ -194,11 +241,37 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        return view('users.edit', compact('user'));
+        $hasPassword = ! empty($user->getAttributes()['password']);
+
+        return view('users.edit', compact('user', 'hasPassword'));
     }
 
     public function update(UpdateUserRequest $request, User $user)
     {
+        if ($request->filled('_password_action')) {
+            if ($request->input('_password_action') === 'remove') {
+                $user->forceFill(['password' => null])->save();
+
+                return redirect()
+                    ->route('users.edit', $user)
+                    ->with('success', __('Password removed successfully.'));
+            }
+
+            $user->password = $request->input('user_password');
+            $user->save();
+            $user->refresh();
+
+            if (empty($user->getAttributes()['password'])) {
+                return back()
+                    ->withErrors(['user_password' => __('Failed to save password. Please try again.')])
+                    ->withInput(['_password_action' => 'set']);
+            }
+
+            return redirect()
+                ->route('users.edit', $user)
+                ->with('success', __('Password updated successfully.'));
+        }
+
         $user->update($request->validated());
         return redirect()->route('users.index')->with('success',  __('Updated successfully.'));
     }

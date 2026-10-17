@@ -83,6 +83,12 @@
             </div>
         </div>
 
+        @include('partials.otp-usage', [
+            'account' => $user,
+            'defaultOtpLimit' => $defaultOtpLimit,
+            'updateRoute' => route('users.otp-usage.update', $user),
+        ])
+
         {{-- Ride Statistics Card --}}
         <div class="card mt-4">
             <div class="card-header">

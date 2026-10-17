@@ -14,6 +14,19 @@ class UpdateUserRequest extends FormRequest
 
     public function rules()
     {
+        if ($this->filled('_password_action')) {
+            if ($this->input('_password_action') === 'remove') {
+                return [
+                    '_password_action' => 'required|in:remove',
+                ];
+            }
+
+            return [
+                '_password_action' => 'required|in:set',
+                'user_password' => 'required|string|min:8|confirmed',
+            ];
+        }
+
         return [
             'email' => 'nullable|email|unique:users,email,' . $this->user->id,
             'phone' => 'nullable|unique:users,phone,' . $this->user->id,
@@ -29,6 +42,9 @@ class UpdateUserRequest extends FormRequest
         return [
             'email.unique' => __('Email already exists'),
             'phone.unique' => __('Phone number already exists'),
+            'user_password.required' => __('The Password field is required.'),
+            'user_password.min' => __('The Password must be at least 8 characters.'),
+            'user_password.confirmed' => __('The Password confirmation does not match.'),
             'wallet.numeric' => __('Wallet must be a number'),
             'wallet.min' => __('Wallet must be at least 0'),
             'activity.in' => __('Activity must be either active or inactive'),

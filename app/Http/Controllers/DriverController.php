@@ -9,6 +9,7 @@ use App\Http\Requests\StoreDriverRequest;
 use App\Http\Requests\UpdateDriverRequest;
 use App\Models\DriverDocument;
 use App\Models\DocumentType;
+use App\Models\OtpLimit;
 use App\Models\User;
 use App\Models\Rating;
 use App\Models\RideOffer;
@@ -412,8 +413,38 @@ class DriverController extends Controller
 
         $isAvailable = $driver->is_available;
         $driverLocation = $this->resolveDriverLocation($driver);
+        $defaultOtpLimit = (int) (OtpLimit::where('type', 'driver')->value('otp_limit') ?? 5);
 
-        return view('drivers.show', compact('driver', 'driverRating', 'rideStatistics', 'recentRides', 'isAvailable', 'driverLocation'));
+        return view('drivers.show', compact('driver', 'driverRating', 'rideStatistics', 'recentRides', 'isAvailable', 'driverLocation', 'defaultOtpLimit'));
+    }
+
+    public function updateOtpUsage(Request $request, User $driver)
+    {
+        if ($driver->role !== 'driver') {
+            abort(404);
+        }
+
+        if ($request->input('otp_action') === 'reset') {
+            $driver->otp_used = 0;
+            $driver->save();
+
+            return redirect()
+                ->route('drivers.show', $driver)
+                ->with('otp_success', __('OTP usage reset successfully.'));
+        }
+
+        $data = $request->validate([
+            'otp_used' => 'required|integer|min:0|max:100000',
+            'otp_limit' => 'required|integer|min:0|max:1000',
+        ]);
+
+        $driver->otp_used = $data['otp_used'];
+        $driver->otp_limit = $data['otp_limit'];
+        $driver->save();
+
+        return redirect()
+            ->route('drivers.show', $driver)
+            ->with('otp_success', __('OTP usage updated successfully.'));
     }
 
     public function rideHistory(User $driver, Request $request)

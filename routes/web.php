@@ -78,6 +78,7 @@ Route::domain(config('app.dashboard_domain'))->group(function () {
                 Route::get('/users/export-phones', [UserController::class, 'exportPhones'])->name('users.export-phones');
                 Route::resource('/users', UserController::class);
                 Route::get('/users/{user}/ride-history', [UserController::class, 'rideHistory'])->name('users.ride-history');
+                Route::put('/users/{user}/otp-usage', [UserController::class, 'updateOtpUsage'])->name('users.otp-usage.update');
 
                 Route::prefix('signup-gifts')->name('signup-gifts.')->group(function () {
                     Route::get('/', [SignupGiftController::class, 'index'])->name('index');
@@ -92,6 +93,7 @@ Route::domain(config('app.dashboard_domain'))->group(function () {
                 Route::get('/drivers/under-monitoring', [DriverController::class, 'underMonitoring'])->name('drivers.under-monitoring');
                 Route::resource('/drivers', DriverController::class);
                 Route::put('/drivers/{driver}/notes', [DriverController::class, 'updateNotes'])->name('drivers.notes.update');
+                Route::put('/drivers/{driver}/otp-usage', [DriverController::class, 'updateOtpUsage'])->name('drivers.otp-usage.update');
                 Route::get('/drivers/{driver}/documents', [DriverController::class, 'documents'])->name('drivers.documents');
                 Route::get('/drivers/{driver}/cars', [DriverController::class, 'cars'])->name('drivers.cars');
                 Route::get('/drivers/{driver}/ride-history', [DriverController::class, 'rideHistory'])->name('drivers.ride-history');
