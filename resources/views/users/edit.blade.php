@@ -49,7 +49,8 @@
                     name="wallet"
                     type="number"
                     label="{{__('Wallet')}}"
-                    :value="$user->wallet ?? ''"
+                    :value="isset($user->wallet) ? (string) $user->wallet : ''"
+                    :attrs="['step' => 'any', 'inputmode' => 'decimal']"
                 />
 				<x-form-select
 					name="activity"
