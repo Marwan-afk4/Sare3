@@ -284,6 +284,139 @@ class Ride extends Model
             ->all();
     }
 
+    /**
+     * Markers for the admin ride-details map.
+     *
+     * path: the stored trip line, with S at the first point and F at the last
+     *       once the ride has finished.
+     * cancelled_assigned: the passenger and the last captain who accepted.
+     * cancelled_unanswered: the passenger and the three closest captains who
+     *       were offered the ride and never accepted or rejected it.
+     *
+     * @return array{mode: string, captains: array<int, array{lat: float, lng: float, name: ?string, label: string}>}
+     */
+    public function detailsMapPayload(): array
+    {
+        $cancelled = $this->status?->value === RideStatus::Cancelled->value;
+        $someoneAccepted = $this->accepted_at !== null
+            || $this->offers->contains(fn (RideOffer $offer) => (bool) $offer->was_accepted
+                || $offer->response === RideOffer::RESPONSE_ACCEPTED);
+
+        if ($cancelled && ($this->cancelled_before_accept || !$someoneAccepted)) {
+            return [
+                'mode' => 'cancelled_unanswered',
+                'captains' => $this->nearestUnansweredCaptainMarkers(),
+            ];
+        }
+
+        if ($cancelled) {
+            return [
+                'mode' => 'cancelled_assigned',
+                'captains' => array_values(array_filter([$this->lastAssignedCaptainMarker()])),
+            ];
+        }
+
+        return [
+            'mode' => 'path',
+            'captains' => [],
+        ];
+    }
+
+    /**
+     * @return array<int, array{lat: float, lng: float, name: ?string, label: string}>
+     */
+    private function nearestUnansweredCaptainMarkers(): array
+    {
+        if ($this->pickup_lat === null || $this->pickup_lng === null) {
+            return [];
+        }
+
+        $pickupLat = (float) $this->pickup_lat;
+        $pickupLng = (float) $this->pickup_lng;
+        $noAction = [
+            RideOffer::RESPONSE_IGNORED,
+            RideOffer::RESPONSE_PENDING,
+            RideOffer::RESPONSE_CANCELLED_BY_USER,
+        ];
+        $byDriver = [];
+
+        foreach ($this->offers as $offer) {
+            if ($offer->was_accepted || !in_array($offer->response, $noAction, true)) {
+                continue;
+            }
+
+            $lat = $offer->driver_lat ?? $offer->driver?->latitude;
+            $lng = $offer->driver_lng ?? $offer->driver?->longitude;
+            if ($lat === null || $lng === null) {
+                continue;
+            }
+
+            $distance = $this->distanceKm($pickupLat, $pickupLng, (float) $lat, (float) $lng);
+            $driverId = (int) $offer->driver_id;
+            if (isset($byDriver[$driverId]) && $distance >= $byDriver[$driverId]['distance_km']) {
+                continue;
+            }
+
+            $byDriver[$driverId] = [
+                'lat' => (float) $lat,
+                'lng' => (float) $lng,
+                'name' => $offer->driver?->name,
+                'distance_km' => $distance,
+            ];
+        }
+
+        $nearest = array_values($byDriver);
+        usort($nearest, fn (array $a, array $b) => $a['distance_km'] <=> $b['distance_km']);
+        $nearest = array_slice($nearest, 0, 3);
+        $labels = ['D', 'D2', 'D3'];
+
+        foreach ($nearest as $index => &$captain) {
+            $captain['label'] = $labels[$index];
+            unset($captain['distance_km']);
+        }
+        unset($captain);
+
+        return $nearest;
+    }
+
+    /**
+     * @return array{lat: float, lng: float, name: ?string, label: string}|null
+     */
+    private function lastAssignedCaptainMarker(): ?array
+    {
+        $offer = $this->offers
+            ->filter(fn (RideOffer $offer) => (bool) $offer->was_accepted
+                || $offer->response === RideOffer::RESPONSE_ACCEPTED)
+            ->sortByDesc('id')
+            ->first();
+
+        $driver = $offer?->driver ?? $this->driver;
+        $lat = $this->driver_cancel_lat ?? $this->driver_accept_lat ?? $driver?->latitude;
+        $lng = $this->driver_cancel_lng ?? $this->driver_accept_lng ?? $driver?->longitude;
+
+        if ($lat === null || $lng === null) {
+            return null;
+        }
+
+        return [
+            'lat' => (float) $lat,
+            'lng' => (float) $lng,
+            'name' => $driver?->name ?? $this->driverCancelledBy?->name,
+            'label' => 'D',
+        ];
+    }
+
+    private function distanceKm(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $earthRadius = 6371;
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+        $a = sin($dLat / 2) ** 2
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+
+        return $earthRadius * 2 * atan2(sqrt($a), sqrt(1 - $a));
+    }
+
     public function chats()
     {
         return $this->hasMany(Chat::class);

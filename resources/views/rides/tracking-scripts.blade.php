@@ -38,6 +38,7 @@ class SimpleRideTracker {
         this.toPickupEndMarker = null;
         this.tripStartMarker = null;
         this.tripEndMarker = null;
+        this.detailsMarkers = [];
         this.trackingInterval = null;
         this.echoChannel = null;
         this.echoStatusChannel = null;
@@ -61,6 +62,13 @@ class SimpleRideTracker {
 
         try {
             this.initMap();
+
+            if (this.rideData.mapMode === 'details') {
+                this.renderDetailsMap();
+                this.fetchTrackingData();
+                return;
+            }
+
             this.setupMarkers();
 
             // Render stored accept/arrived/cancel positions immediately (don't wait for API).
@@ -343,6 +351,15 @@ class SimpleRideTracker {
             if (!resp.ok) return;
             const data = await resp.json();
 
+            if (this.rideData.mapMode === 'details') {
+                if (Array.isArray(data.trip_route_points)) {
+                    this.rideData.routePoints = data.trip_route_points;
+                    this.rideData.tripPointsFromApi = true;
+                }
+                this.renderDetailsMap();
+                return;
+            }
+
             this.renderAcceptMarker(data.driver_accept_location || this.rideData.driverAcceptLocation);
             this.renderArrivedMarker(data.driver_arrived_location || this.rideData.driverArrivedLocation);
             this.renderCancelMarker(data.driver_cancel_location || this.rideData.driverCancelLocation);
@@ -364,6 +381,213 @@ class SimpleRideTracker {
         } catch (err) {
             console.warn('Failed to load enriched tracking data:', err);
         }
+    }
+
+    /**
+     * Ride-details map: the stored trip only, or the cancel markers.
+     * S is the first GPS point of the trip. F is the last point once the
+     * ride has finished. Cancelled rides show the passenger and red captain
+     * pins instead of the other letters.
+     */
+    renderDetailsMap() {
+        if (!this.map) return;
+
+        if (this.directionsRenderer) {
+            this.directionsRenderer.setMap(null);
+        }
+
+        (this.detailsMarkers || []).forEach(marker => marker && marker.setMap(null));
+        this.detailsMarkers = [];
+        if (this.tripPolyline) {
+            this.tripPolyline.setMap(null);
+            this.tripPolyline = null;
+        }
+
+        const mode = (this.rideData.detailsMap && this.rideData.detailsMap.mode) || 'path';
+        const bounds = new google.maps.LatLngBounds();
+        let hasBounds = false;
+        const extend = (lat, lng) => {
+            if (lat == null || lng == null) return;
+            bounds.extend({ lat: parseFloat(lat), lng: parseFloat(lng) });
+            hasBounds = true;
+        };
+
+        if (mode === 'cancelled_unanswered' || mode === 'cancelled_assigned') {
+            this.addDetailsUserMarker(extend);
+            const captains = (this.rideData.detailsMap && this.rideData.detailsMap.captains) || [];
+            captains.forEach(captain => this.addDetailsCaptainMarker(captain, extend));
+
+            if (mode === 'cancelled_assigned') {
+                this.drawDetailsTripLine(extend, false, false);
+            }
+        } else {
+            const finished = ['completed', 'finshed', 'finished'].includes(this.rideData.status);
+            this.drawDetailsTripLine(extend, true, finished);
+        }
+
+        if (hasBounds) {
+            this.map.fitBounds(bounds);
+            if (this.detailsMarkers.length === 1 && !(this.tripPolyline)) {
+                this.map.setZoom(15);
+            }
+        }
+    }
+
+    drawDetailsTripLine(extend, showStart, showFinish) {
+        const points = this.detailsTripPoints();
+        if (points.length < 1) return;
+
+        const path = points.map(point => ({
+            lat: parseFloat(point.lat),
+            lng: parseFloat(point.lng)
+        })).filter(point => !Number.isNaN(point.lat) && !Number.isNaN(point.lng));
+
+        if (path.length < 1) return;
+
+        path.forEach(point => extend(point.lat, point.lng));
+
+        if (path.length >= 2) {
+            this.tripPolyline = new google.maps.Polyline({
+                path,
+                geodesic: true,
+                strokeColor: '#4CAF50',
+                strokeOpacity: 1,
+                strokeWeight: 4,
+                map: this.map,
+                zIndex: 1
+            });
+        }
+
+        const start = path[0];
+        const end = path[path.length - 1];
+        if (showStart) {
+            this.detailsMarkers.push(this.createLetterMarker(
+                start,
+                'S',
+                '#4CAF50',
+                'Ride start',
+                'Ride started here'
+            ));
+        }
+
+        const samePoint = path.length === 1
+            || (Math.abs(start.lat - end.lat) < 1e-7 && Math.abs(start.lng - end.lng) < 1e-7);
+
+        if (showFinish && !samePoint) {
+            this.detailsMarkers.push(this.createLetterMarker(
+                end,
+                'F',
+                '#1565C0',
+                'Ride finish',
+                'Ride finished here'
+            ));
+        }
+    }
+
+    detailsTripPoints() {
+        const points = this.rideData.routePoints || [];
+        if (this.rideData.tripPointsFromApi) {
+            return points.filter(point => point && point.lat != null && point.lng != null && point.phase !== 'to_pickup');
+        }
+
+        const startedAt = this.rideData.tripStartedAt
+            ? Number(this.rideData.tripStartedAt)
+            : null;
+
+        return points.filter(point => {
+            if (!point || point.lat == null || point.lng == null) return false;
+            if (point.phase === 'to_pickup') return false;
+            if (point.phase === 'trip') return true;
+            if (startedAt && point.timestamp) {
+                return Number(point.timestamp) >= startedAt;
+            }
+            return !point.phase;
+        });
+    }
+
+    addDetailsUserMarker(extend) {
+        const pickup = this.rideData.pickup || {};
+        if (pickup.lat == null || pickup.lng == null) return;
+
+        extend(pickup.lat, pickup.lng);
+        const name = this.rideData.userName || 'Passenger';
+        const marker = new google.maps.Marker({
+            position: { lat: parseFloat(pickup.lat), lng: parseFloat(pickup.lng) },
+            map: this.map,
+            title: name,
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 9,
+                fillColor: '#1E88E5',
+                fillOpacity: 1,
+                strokeColor: 'white',
+                strokeWeight: 2
+            },
+            zIndex: 800
+        });
+        const info = new google.maps.InfoWindow({
+            content: `<div><strong>${this.escapeHtml(name)}</strong><br><small>Passenger</small></div>`
+        });
+        marker.addListener('click', () => info.open(this.map, marker));
+        this.detailsMarkers.push(marker);
+    }
+
+    addDetailsCaptainMarker(captain, extend) {
+        if (!captain || captain.lat == null || captain.lng == null) return;
+
+        extend(captain.lat, captain.lng);
+        const label = captain.label || 'D';
+        const name = captain.name || 'Captain';
+        const marker = this.createLetterMarker(
+            captain,
+            label,
+            '#E53935',
+            name,
+            name
+        );
+        if (marker) this.detailsMarkers.push(marker);
+    }
+
+    createLetterMarker(point, label, color, title, infoHtml) {
+        if (!point || point.lat == null || point.lng == null) return null;
+
+        const position = { lat: parseFloat(point.lat), lng: parseFloat(point.lng) };
+        const marker = new google.maps.Marker({
+            position,
+            map: this.map,
+            title,
+            icon: this.letterIcon(label, color),
+            zIndex: 900
+        });
+        const info = new google.maps.InfoWindow({
+            content: `<div><strong>${this.escapeHtml(infoHtml)}</strong><br><small>${position.lat.toFixed(6)}, ${position.lng.toFixed(6)}</small></div>`
+        });
+        marker.addListener('click', () => info.open(this.map, marker));
+        return marker;
+    }
+
+    letterIcon(text, fill) {
+        const label = String(text || '');
+        const width = Math.max(28, 14 + label.length * 9);
+        const height = 28;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">`
+            + `<rect rx="14" width="${width}" height="${height}" fill="${fill}" stroke="white" stroke-width="2"/>`
+            + `<text x="50%" y="54%" text-anchor="middle" fill="white" font-size="12" font-weight="700" font-family="Arial, sans-serif">${label}</text>`
+            + `</svg>`;
+
+        return {
+            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+            scaledSize: new google.maps.Size(width, height),
+            anchor: new google.maps.Point(width / 2, height / 2)
+        };
+    }
+
+    escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
     }
 
     renderAcceptMarker(accept) {

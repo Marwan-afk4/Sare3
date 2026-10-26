@@ -61,10 +61,15 @@
                 <h5><i class="fa fa-route"></i> {{ __('Trip Route') }}</h5>
                 <p>{{ __('Showing the completed trip route') }}</p>
             </div>
-        @elseif(in_array($ride->status->value, ['cancelled', 'rejected']) && $ride->driver_accept_lat && $ride->driver_accept_lng)
+        @elseif($ride->status->value === 'cancelled' && ($ride->cancelled_before_accept || $ride->accepted_at === null))
             <div class="tracking-status tracking-completed">
-                <h5><i class="fa fa-map-marker-alt"></i> {{ __('Ride Route History') }}</h5>
-                <p>{{ __('Showing pickup, dropoff, and where the captain accepted the ride') }}</p>
+                <h5><i class="fa fa-map-marker-alt"></i> {{ __('Cancelled before accept') }}</h5>
+                <p>{{ __('Showing the passenger and the nearest captains who received the ride and did not respond') }}</p>
+            </div>
+        @elseif($ride->status->value === 'cancelled')
+            <div class="tracking-status tracking-completed">
+                <h5><i class="fa fa-map-marker-alt"></i> {{ __('Cancelled ride') }}</h5>
+                <p>{{ __('Showing the passenger and the last captain who was assigned') }}</p>
             </div>
         @endif
 
@@ -80,17 +85,26 @@
                                 <i class="fa fa-route text-success"></i> {{ __('Trip Route') }}
                             @endif
                         </h5>
+                        @php
+                            $detailsMap = $ride->detailsMapPayload();
+                        @endphp
                         <div class="small text-muted d-flex flex-wrap gap-3 mt-1">
-                            <span><span class="badge" style="background:#FF9800">A</span> {{ __('Captain accept location') }}</span>
-                            <span><span class="badge" style="background:#E53935">X</span> {{ __('Captain cancel location') }}</span>
-                            <span><span style="display:inline-block;width:24px;border-top:3px dashed #FF9800;vertical-align:middle"></span> {{ __('On the way to passenger') }}</span>
-                            <span><span class="badge" style="background:#FF9800">S</span> {{ __('To-pickup start') }}</span>
-                            <span><span class="badge" style="background:#FF9800">E</span> {{ __('To-pickup end') }}</span>
-                            <span><span class="badge" style="background:#4CAF50">P</span> {{ __('Pickup') }}</span>
-                            <span><span style="display:inline-block;width:24px;border-top:3px solid #4CAF50;vertical-align:middle"></span> {{ __('Trip path') }}</span>
-                            <span><span class="badge" style="background:#4CAF50">S</span> {{ __('Trip start') }}</span>
-                            <span><span class="badge" style="background:#4CAF50">E</span> {{ __('Trip end') }}</span>
-                            <span><span class="badge" style="background:#2196F3"><i class="fa fa-location-arrow"></i></span> {{ __('Captain live') }}</span>
+                            @if($detailsMap['mode'] === 'path')
+                                <span><span class="badge" style="background:#4CAF50">S</span> {{ __('Ride start') }}</span>
+                                <span><span class="badge" style="background:#1565C0">F</span> {{ __('Ride finish') }}</span>
+                                <span><span style="display:inline-block;width:24px;border-top:3px solid #4CAF50;vertical-align:middle"></span> {{ __('Actual ride path') }}</span>
+                            @elseif($detailsMap['mode'] === 'cancelled_assigned')
+                                <span><span class="badge" style="background:#1E88E5">&nbsp;</span> {{ __('Passenger') }}</span>
+                                <span><span class="badge" style="background:#E53935">D</span> {{ __('Last assigned captain') }}</span>
+                                @if(!empty($ride->route_points))
+                                    <span><span style="display:inline-block;width:24px;border-top:3px solid #4CAF50;vertical-align:middle"></span> {{ __('Actual ride path') }}</span>
+                                @endif
+                            @else
+                                <span><span class="badge" style="background:#1E88E5">&nbsp;</span> {{ __('Passenger') }}</span>
+                                <span><span class="badge" style="background:#E53935">D</span> {{ __('Nearest captain') }}</span>
+                                <span><span class="badge" style="background:#E53935">D2</span> {{ __('Second nearest') }}</span>
+                                <span><span class="badge" style="background:#E53935">D3</span> {{ __('Third nearest') }}</span>
+                            @endif
                         </div>
                     </div>
                     <div class="card-body p-0">
@@ -639,6 +653,10 @@
 const rideData = {
     id: {{ $ride->id }},
     status: '{{ $ride->status->value }}',
+    mapMode: 'details',
+    userName: @json($ride->user?->name),
+    tripStartedAt: @json(optional($ride->trip_started_at)->timestamp),
+    detailsMap: @json($ride->detailsMapPayload()),
     pickup: {
         lat: {{ $ride->pickup_lat ?? 'null' }},
         lng: {{ $ride->pickup_lng ?? 'null' }},
