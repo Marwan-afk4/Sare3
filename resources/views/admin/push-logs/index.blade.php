@@ -23,6 +23,36 @@
         </div>
     </div>
 
+    <div class="card mb-3">
+        <div class="card-body">
+            <h2 class="h5 mb-1">{{ __('Send a test ride alert') }}</h2>
+            <p class="text-body-secondary small mb-3">{{ __('Choose a driver, put the driver app in the background, then send. This uses the same loud ride alert as a real offer. It does not create a ride, and the driver cannot accept it.') }}</p>
+            <form method="POST" action="{{ route('push-logs.test-ride') }}" class="row g-2 align-items-end">
+                @csrf
+                <div class="col-md-6">
+                    <label class="form-label" for="test_driver_id">{{ __('Driver') }}</label>
+                    <select class="form-select @error('driver_id') is-invalid @enderror" id="test_driver_id" name="driver_id" required>
+                        <option value="">{{ __('Choose a driver') }}</option>
+                        @foreach ($drivers as $driver)
+                            <option value="{{ $driver->id }}" @selected(old('driver_id') == $driver->id)>
+                                {{ $driver->name }} — {{ $driver->phone }}
+                                @if (!$driver->fcm_token)
+                                    ({{ __('no token') }})
+                                @endif
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('driver_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary" type="submit">{{ __('Send') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="alert alert-info">
         {{ __('Firebase accepted means Google took the message. It does not mean the phone showed it. Not sent means this server never called Firebase, usually because that account has no saved token. Firebase rejected means the token is dead or Google refused the message. A driver can still receive the ride while the app is open, because that path uses the live connection and not this push.') }}
     </div>
@@ -204,3 +234,21 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const driverSelect = document.querySelector('#test_driver_id');
+            if (driverSelect && typeof Choices !== 'undefined') {
+                new Choices(driverSelect, {
+                    searchEnabled: true,
+                    searchPlaceholderValue: @json(__('Search drivers...')),
+                    noResultsText: @json(__('No results found')),
+                    itemSelectText: '',
+                    shouldSort: false,
+                    allowHTML: false,
+                });
+            }
+        });
+    </script>
+@endpush

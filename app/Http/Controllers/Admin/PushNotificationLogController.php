@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Helpers\FcmHelper;
 use App\Http\Controllers\Controller;
 use App\Models\PushNotificationLog;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class PushNotificationLogController extends Controller
@@ -61,9 +63,15 @@ class PushNotificationLogController extends Controller
             ->orderBy('msg_type')
             ->pluck('msg_type');
 
+        $drivers = User::query()
+            ->where('role', 'driver')
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone', 'fcm_token']);
+
         return view('admin.push-logs.index', [
             'currentPage' => 'push-logs',
             'logs' => $logs,
+            'drivers' => $drivers,
             'counts' => $counts,
             'msgTypes' => $msgTypes,
             'filters' => [
@@ -76,5 +84,53 @@ class PushNotificationLogController extends Controller
                 'q' => $search,
             ],
         ]);
+    }
+
+    public function sendTestRide(Request $request)
+    {
+        $data = $request->validate([
+            'driver_id' => ['required', 'integer'],
+        ]);
+
+        $driver = User::query()
+            ->where('role', 'driver')
+            ->whereKey($data['driver_id'])
+            ->first();
+
+        if (!$driver) {
+            return back()->with('error', __('Choose a driver.'));
+        }
+
+        $title = 'طلب رحلة جديد';
+        $body = 'إشعار تجريبي من لوحة التحكم. لا توجد رحلة للقبول.';
+        $result = FcmHelper::sendPushNotification(
+            $driver->fcm_token,
+            $title,
+            $body,
+            [
+                'msg_type' => 'ride_request',
+                'test' => '1',
+            ],
+            [
+                'recipient_id' => $driver->id,
+                'recipient_role' => 'driver',
+            ]
+        );
+
+        if (is_array($result) && isset($result['name']) && !isset($result['error'])) {
+            return back()->with('success', __('Firebase accepted the test ride alert for :name. Ask the driver if the phone showed it.', [
+                'name' => $driver->name,
+            ]));
+        }
+
+        if (($result['error'] ?? null) === 'No FCM token') {
+            return back()->with('error', __(':name has no saved notification token, so the test was not sent.', [
+                'name' => $driver->name,
+            ]));
+        }
+
+        return back()->with('error', __('Firebase did not accept the test ride alert for :name. The row below has the reason.', [
+            'name' => $driver->name,
+        ]));
     }
 }

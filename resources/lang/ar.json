@@ -1457,5 +1457,13 @@
     "Message id": "رقم الرسالة",
     "Priority": "الأولوية",
     "Error": "الخطأ",
-    "Courier": "مندوب التوصيل"
+    "Courier": "مندوب التوصيل",
+    "Send a test ride alert": "إرسال إشعار رحلة تجريبي",
+    "Choose a driver, put the driver app in the background, then send. This uses the same loud ride alert as a real offer. It does not create a ride, and the driver cannot accept it.": "اختر السائق، ضع تطبيق السائق في الخلفية، ثم أرسل. يستخدم هذا نفس تنبيه الرحلة الصوتي للعرض الحقيقي. لا ينشئ رحلة، ولا يستطيع السائق قبولها.",
+    "Choose a driver": "اختر السائق",
+    "no token": "بدون رمز",
+    "Firebase accepted the test ride alert for :name. Ask the driver if the phone showed it.": "قبل Firebase إشعار الرحلة التجريبي لـ :name. اسأل السائق إن كان الهاتف أظهره.",
+    ":name has no saved notification token, so the test was not sent.": "لا يوجد رمز إشعار محفوظ لـ :name، لذلك لم يُرسل الاختبار.",
+    "Firebase did not accept the test ride alert for :name. The row below has the reason.": "لم يقبل Firebase إشعار الرحلة التجريبي لـ :name. الصف بالأسفل يوضح السبب.",
+    "Choose a driver.": "اختر السائق."
 }

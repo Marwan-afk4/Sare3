@@ -106,6 +106,7 @@ Route::domain(config('app.dashboard_domain'))->group(function () {
             Route::middleware(['can:إدارة أنواع السيارات'])->resource('/car-types', CarTypeController::class);
             Route::middleware(['can:إدارة الرحلات'])->get('/rides/abnormal', [RideController::class, 'abnormal'])->name('rides.abnormal');
             Route::middleware(['can:إدارة الرحلات'])->get('/push-logs', [PushNotificationLogController::class, 'index'])->name('push-logs.index');
+            Route::middleware(['can:إدارة الرحلات'])->post('/push-logs/test-ride', [PushNotificationLogController::class, 'sendTestRide'])->name('push-logs.test-ride');
             Route::middleware(['can:إدارة الرحلات'])->resource('/rides', RideController::class);
             Route::middleware(['can:إدارة طرق الدفع'])->resource('/paymenent-methods', PaymenentMethodController::class);
             Route::middleware(['can:إدارة سياسات الإلغاء'])->resource('/cancellation-policies', CancellationPolicyController::class);
