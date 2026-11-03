@@ -85,18 +85,33 @@ class UserDriverChatController extends Controller
 
             broadcast(new UserDriverChatMessageSent($message))->toOthers();
 
+            $chatData = [
+                'msg_type' => 'chat_message',
+                'chat_id' => $chat->room_id,
+                'ride_id' => (string) $ride->id,
+                'sender_id' => (string) $sender->id,
+                'message' => $request->message,
+            ];
+            $chatContext = [
+                'recipient_id' => $receiver->id,
+                'recipient_role' => $receiver->role,
+                'ride_id' => $ride->id,
+            ];
             if ($receiver->fcm_token) {
                 FcmHelper::sendPushNotification(
                     $receiver->fcm_token,
                     $sender->name ?: 'New message',
                     $request->message,
-                    [
-                        'msg_type' => 'chat_message',
-                        'chat_id' => $chat->room_id,
-                        'ride_id' => (string) $ride->id,
-                        'sender_id' => (string) $sender->id,
-                        'message' => $request->message,
-                    ]
+                    $chatData,
+                    $chatContext
+                );
+            } else {
+                FcmHelper::recordSkipped(
+                    $sender->name ?: 'New message',
+                    $request->message,
+                    $chatData,
+                    $chatContext,
+                    'No FCM token saved for this account'
                 );
             }
 

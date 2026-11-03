@@ -480,9 +480,7 @@ class DeliveryController extends Controller
                 Log::error("Failed to broadcast alternative delivery request: " . $e->getMessage());
             }
 
-            if ($rider && $rider->fcm_token) {
-                $this->sendFcm($rider, $delivery);
-            }
+            $this->sendFcm($rider, $delivery);
 
             return (int) $selected['id'];
         } catch (\Exception $e) {
@@ -499,15 +497,14 @@ class DeliveryController extends Controller
     {
         try {
             broadcast(new NewDeliveryRequest($delivery))->toOthers();
-            if ($rider->fcm_token) {
-                $this->sendFcm($rider, $delivery, $user);
-            }
         } catch (\Exception $e) {
-            Log::error("Failed to notify rider: " . $e->getMessage());
+            Log::error("Failed to broadcast delivery {$delivery->id} to rider {$rider->id}: " . $e->getMessage());
         }
+
+        $this->sendFcm($rider, $delivery, $user);
     }
 
-    private function sendFcm(User $rider, Delivery $delivery, ?User $user = null): void
+    private function sendFcm(?User $rider, Delivery $delivery, ?User $user = null): void
     {
         $name = $user?->name ?? ($delivery->user?->name ?? 'عميل');
         $data = array_merge($delivery->toOfferArray(), [
@@ -515,7 +512,24 @@ class DeliveryController extends Controller
             'body' => 'لديك طلب توصيل جديد من ' . $name,
             'msg_type' => 'delivery_request',
         ]);
-        FcmHelper::sendPushNotification($rider->fcm_token, $data['title'], $data['body'], $data);
+        $context = [
+            'recipient_id' => $rider?->id,
+            'recipient_role' => $rider?->role ?: 'rider',
+            'delivery_id' => $delivery->id,
+        ];
+
+        if ($rider && $rider->fcm_token) {
+            FcmHelper::sendPushNotification($rider->fcm_token, $data['title'], $data['body'], $data, $context);
+            return;
+        }
+
+        FcmHelper::recordSkipped(
+            $data['title'],
+            $data['body'],
+            $data,
+            $context,
+            $rider ? 'No FCM token saved for this rider' : 'Rider account was not found'
+        );
     }
 
     private function googleDistance($fromLat, $fromLng, $toLat, $toLng): array

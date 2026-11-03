@@ -39,6 +39,9 @@
         <div class="mb-3">
             <a href="{{ route('rides.index') }}" class="btn btn-secondary btn-sm me-1"> <i class="fa fa-arrow-right"></i>
                 {{ __('Back to') }} {{ __('Rides') }}</a>
+            <a href="{{ route('push-logs.index', ['ride_id' => $ride->id]) }}" class="btn btn-outline-primary btn-sm me-1">
+                <i class="fa fa-bell"></i> {{ __('Push log') }}
+            </a>
             @if($ride->pickup_lat && $ride->pickup_lng)
                 <a href="{{ route('rides.track', $ride) }}" class="btn btn-success btn-sm me-1">
                     @if(in_array($ride->status->value, ['in_progress', 'accepted', 'waiting_user']))

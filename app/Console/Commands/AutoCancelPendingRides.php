@@ -60,24 +60,36 @@ class AutoCancelPendingRides extends Command
                 }
 
                 // ✅ 4. Send notification to the user
-                $user = $ride->user; // assuming Ride has user() relationship
+                $user = $ride->user;
+                $data = [
+                    'title'    => 'Ride Cancelled',
+                    'body'     => 'Your ride has been cancelled because no drivers were available.',
+                    'msg_type' => 'ride_cancelled',
+                    'ride_id'  => (string) $ride->id,
+                ];
+                $context = [
+                    'recipient_id' => $user?->id,
+                    'recipient_role' => 'user',
+                    'ride_id' => $ride->id,
+                ];
                 if ($user && $user->fcm_token) {
-                    $data = [
-                        'title'    => 'Ride Cancelled',
-                        'body'     => 'Your ride has been cancelled because no drivers were available.',
-                        'msg_type' => 'ride_cancelled',
-                        'ride_id'  => (string) $ride->id,
-                    ];
-
                     $response = FcmHelper::sendPushNotification(
                         $user->fcm_token,
                         $data['title'],
                         $data['body'],
-                        $data
+                        $data,
+                        $context
                     );
 
                     Log::info("📩 Notification sent to user {$user->id} for cancelled ride {$ride->id}", ['response' => $response]);
                 } else {
+                    FcmHelper::recordSkipped(
+                        $data['title'],
+                        $data['body'],
+                        $data,
+                        $context,
+                        $user ? 'No FCM token saved for this passenger' : 'Passenger account was not found'
+                    );
                     Log::warning("⚠️ No FCM token found for user of ride {$ride->id}");
                 }
 

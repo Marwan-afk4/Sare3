@@ -326,8 +326,14 @@ class BonusService
                 'message' => $body,
             ]);
 
+            $context = [
+                'recipient_id' => $driver->id,
+                'recipient_role' => 'driver',
+            ];
             if ($driver->fcm_token) {
-                FcmHelper::sendPushNotification($driver->fcm_token, $title, $body, $data);
+                FcmHelper::sendPushNotification($driver->fcm_token, $title, $body, $data, $context);
+            } else {
+                FcmHelper::recordSkipped($title, $body, $data, $context, 'No FCM token saved for this driver');
             }
         } catch (\Exception $e) {
             Log::error("Failed to notify driver {$driver->id} about bonus: " . $e->getMessage());

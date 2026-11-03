@@ -371,23 +371,32 @@ class RideEstimateController extends Controller
             }
         }
 
-        // ─── NEW: Broadcast to Driver via WebSockets (Reverb) ─────────────────────
+        // Broadcast and push are independent. A websocket failure must not skip the push.
         try {
             broadcast(new NewRideRequest($ride))->toOthers();
-            
-            // ─── Also send Push Notification (FCM) ───
+        } catch (\Exception $e) {
+            Log::error("Failed to broadcast ride {$ride->id} to driver {$driverId}: " . $e->getMessage());
+        }
+
+        try {
+            $data = array_merge($ride->toOfferArray(), [
+                'title' => 'طلب رحلة جديد',
+                'body' => 'لديك طلب رحلة جديد من ' . $user->name,
+                'msg_type' => 'ride_request',
+            ]);
+            $context = [
+                'recipient_id' => $driver->id,
+                'recipient_role' => 'driver',
+                'ride_id' => $ride->id,
+            ];
             if ($driver->fcm_token) {
-                $data = array_merge($ride->toOfferArray(), [
-                    'title' => 'طلب رحلة جديد',
-                    'body' => 'لديك طلب رحلة جديد من ' . $user->name,
-                    'msg_type' => 'ride_request',
-                ]);
-                FcmHelper::sendPushNotification($driver->fcm_token, $data['title'], $data['body'], $data);
+                FcmHelper::sendPushNotification($driver->fcm_token, $data['title'], $data['body'], $data, $context);
+            } else {
+                FcmHelper::recordSkipped($data['title'], $data['body'], $data, $context, 'No FCM token saved for this driver');
             }
         } catch (\Exception $e) {
-            Log::error("Failed to notify driver: " . $e->getMessage());
+            Log::error("Failed to push ride {$ride->id} to driver {$driverId}: " . $e->getMessage());
         }
-        // ─── END NOTIFICATION ─────────────────────────────────────────────────────
 
         // Schedule auto-reject job. Without this, the ride's very first
         // driver assignment had no queued timeout at all and relied solely
@@ -935,24 +944,37 @@ class RideEstimateController extends Controller
 
             // ✅ Send push notification to new driver
             $driver = User::find($driverId);
-            if ($driver && $driver->fcm_token) {
-                $passenger = $ride->user;
-                $passengerName = $passenger ? $passenger->name : 'عميل';
-                $data = array_merge($ride->toOfferArray(), [
-                    'title' => 'طلب رحلة جديد',
-                    'body' => 'لديك طلب رحلة جديد من ' . $passengerName,
-                    'msg_type' => 'ride_request',
-                ]);
+            $passenger = $ride->user;
+            $passengerName = $passenger ? $passenger->name : 'عميل';
+            $data = array_merge($ride->toOfferArray(), [
+                'title' => 'طلب رحلة جديد',
+                'body' => 'لديك طلب رحلة جديد من ' . $passengerName,
+                'msg_type' => 'ride_request',
+            ]);
+            $context = [
+                'recipient_id' => $driver?->id ?? $driverId,
+                'recipient_role' => 'driver',
+                'ride_id' => $ride->id,
+            ];
 
+            if ($driver && $driver->fcm_token) {
                 $response = FcmHelper::sendPushNotification(
                     $driver->fcm_token,
                     $data['title'],
                     $data['body'],
-                    $data
+                    $data,
+                    $context
                 );
 
                 Log::info("Notification sent to driver {$driver->id}", ['response' => $response]);
             } else {
+                FcmHelper::recordSkipped(
+                    $data['title'],
+                    $data['body'],
+                    $data,
+                    $context,
+                    $driver ? 'No FCM token saved for this driver' : 'Driver account was not found'
+                );
                 Log::warning("No FCM token found for driver {$driverId}");
             }
 

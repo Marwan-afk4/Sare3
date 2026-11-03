@@ -36,6 +36,7 @@ use App\Http\Controllers\{
     ZoneController,
 };
 use App\Http\Controllers\Admin\GoogleApiUsageController;
+use App\Http\Controllers\Admin\PushNotificationLogController;
 use App\Http\Controllers\Admin\ReferralController as AdminReferralController;
 use App\Http\Controllers\Admin\SupportChatController as AdminSupportChatController;
 
@@ -104,6 +105,7 @@ Route::domain(config('app.dashboard_domain'))->group(function () {
             Route::middleware(['can:إدارة نماذج السيارات'])->resource('/car-models', CarModelController::class);
             Route::middleware(['can:إدارة أنواع السيارات'])->resource('/car-types', CarTypeController::class);
             Route::middleware(['can:إدارة الرحلات'])->get('/rides/abnormal', [RideController::class, 'abnormal'])->name('rides.abnormal');
+            Route::middleware(['can:إدارة الرحلات'])->get('/push-logs', [PushNotificationLogController::class, 'index'])->name('push-logs.index');
             Route::middleware(['can:إدارة الرحلات'])->resource('/rides', RideController::class);
             Route::middleware(['can:إدارة طرق الدفع'])->resource('/paymenent-methods', PaymenentMethodController::class);
             Route::middleware(['can:إدارة سياسات الإلغاء'])->resource('/cancellation-policies', CancellationPolicyController::class);

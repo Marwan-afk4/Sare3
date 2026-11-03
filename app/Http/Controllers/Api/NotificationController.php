@@ -46,6 +46,18 @@ class NotificationController extends Controller
             ->toArray();
 
         if (empty($tokens)) {
+            $account = User::find($driverId);
+            FcmHelper::recordSkipped(
+                $request->data['title'],
+                $request->data['body'],
+                $request->data,
+                [
+                    'recipient_id' => $driverId,
+                    'recipient_role' => $account->role ?? null,
+                    'ride_id' => $rideId,
+                ],
+                'No FCM token saved for this account'
+            );
             \Illuminate\Support\Facades\Log::warning("No FCM token found for driver {$driverId}");
             return response()->json(['error' => 'No FCM tokens found'], 404);
         }

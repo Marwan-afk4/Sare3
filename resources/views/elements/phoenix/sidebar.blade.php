@@ -4,7 +4,7 @@
     $groupMap = [
         'main'        => ['home', 'leaderboard', 'support-chat', 'ads', 'notifications', 'google-api-usage'],
         'users'       => ['users', 'drivers', 'drivers-under-monitoring', 'admins', 'roles', 'signup-gifts'],
-        'rides'       => ['rides', 'cancelation-rides', 'zones', 'abnormal-rides', 'cities'],
+        'rides'       => ['rides', 'cancelation-rides', 'zones', 'abnormal-rides', 'cities', 'push-logs'],
         'fleet'       => ['car-categories', 'car-models', 'car-types'],
         'finance'     => ['wallet-requests', 'financial-reports', 'profit-statistics', 'profit-history', 'referrals', 'coupons', 'paymenent-methods'],
         'settings'    => ['document-types', 'cancellation-policies', 'cancellation-reasons', 'ride-request-time-limits', 'otp-limits', 'settings'],
@@ -223,6 +223,15 @@
                             <div class="d-flex align-items-center">
                                 <span class="nav-link-icon"><span data-feather="navigation"></span></span>
                                 <span class="nav-link-text-wrapper"><span class="nav-link-text">{{ __('Rides') }}</span></span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="nav-item-wrapper">
+                        <a class="nav-link label-1 {{ isset($currentPage) && $currentPage == 'push-logs' ? 'active' : '' }}"
+                            href="{{ route('push-logs.index') }}">
+                            <div class="d-flex align-items-center">
+                                <span class="nav-link-icon"><span data-feather="send"></span></span>
+                                <span class="nav-link-text-wrapper"><span class="nav-link-text">{{ __('Push log') }}</span></span>
                             </div>
                         </a>
                     </div>

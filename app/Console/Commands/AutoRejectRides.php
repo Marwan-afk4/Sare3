@@ -318,24 +318,36 @@ class AutoRejectRides extends Command
 
                 // Step 7: Send notification to new driver
                 $driver = User::find($driverId);
+                $ride->loadMissing('user');
+                $data = array_merge($ride->toOfferArray(), [
+                    'title' => 'New Ride Request',
+                    'body' => 'You have a new ride request!',
+                    'msg_type' => 'ride_request',
+                ]);
+                $context = [
+                    'recipient_id' => $driver?->id ?? $driverId,
+                    'recipient_role' => 'driver',
+                    'ride_id' => $ride->id,
+                ];
                 if ($driver && $driver->fcm_token) {
-                    $ride->loadMissing('user');
-                    $data = array_merge($ride->toOfferArray(), [
-                        'title' => 'New Ride Request',
-                        'body' => 'You have a new ride request!',
-                        'msg_type' => 'ride_request',
-                    ]);
-
                     $response = FcmHelper::sendPushNotification(
                         $driver->fcm_token,
                         $data['title'],
                         $data['body'],
-                        $data
+                        $data,
+                        $context
                     );
 
                     Log::info("📩 Notification sent to driver {$driver->id}", ['response' => $response]);
                 } else {
-                    Log::warning("No FCM token found for driver {$driver->id}");
+                    FcmHelper::recordSkipped(
+                        $data['title'],
+                        $data['body'],
+                        $data,
+                        $context,
+                        $driver ? 'No FCM token saved for this driver' : 'Driver account was not found'
+                    );
+                    Log::warning("No FCM token found for driver {$driverId}");
                 }
 
                 Log::info("✅ Reassigned ride {$ride->id} to driver {$driver->id}");

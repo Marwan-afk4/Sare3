@@ -295,12 +295,19 @@ class SignupGiftService
                 'message' => $body,
             ]);
 
+            $data = [
+                'msg_type' => 'signup_gift',
+                'amount' => (string) $amount,
+                'wallet' => (string) $user->wallet,
+            ];
+            $context = [
+                'recipient_id' => $user->id,
+                'recipient_role' => $user->role ?: 'user',
+            ];
             if ($user->fcm_token) {
-                FcmHelper::sendPushNotification($user->fcm_token, $title, $body, [
-                    'msg_type' => 'signup_gift',
-                    'amount' => (string) $amount,
-                    'wallet' => (string) $user->wallet,
-                ]);
+                FcmHelper::sendPushNotification($user->fcm_token, $title, $body, $data, $context);
+            } else {
+                FcmHelper::recordSkipped($title, $body, $data, $context, 'No FCM token saved for this account');
             }
         } catch (\Throwable $e) {
             Log::error("Failed to notify user {$user->id} about signup gift: ".$e->getMessage());

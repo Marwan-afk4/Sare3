@@ -110,19 +110,25 @@ class WalletRequestController extends Controller
             ]);
 
             // Send Firebase notification to the specific driver
-            if ($walletRequest->driver && $walletRequest->driver->fcm_token) {
-                $extraData = [
-                    'wallet_request_id' => $walletRequest->id,
-                    'action' => 'wallet_approved',
-                    'amount' => $walletRequest->amount,
-                    'click_action' => 'FLUTTER_NOTIFICATION_CLICK'
-                ];
+            $extraData = [
+                'wallet_request_id' => $walletRequest->id,
+                'action' => 'wallet_approved',
+                'amount' => $walletRequest->amount,
+                'msg_type' => 'wallet_approved',
+                'click_action' => 'FLUTTER_NOTIFICATION_CLICK'
+            ];
+            $pushContext = [
+                'recipient_id' => $walletRequest->driver_id,
+                'recipient_role' => 'driver',
+            ];
 
+            if ($walletRequest->driver && $walletRequest->driver->fcm_token) {
                 $response = \App\Helpers\FcmHelper::sendPushNotification(
                     $walletRequest->driver->fcm_token,
                     $validated['title'],
                     $validated['message'],
-                    $extraData
+                    $extraData,
+                    $pushContext
                 );
 
                 return response()->json([
@@ -131,6 +137,13 @@ class WalletRequestController extends Controller
                     'fcm_response' => $response
                 ]);
             } else {
+                \App\Helpers\FcmHelper::recordSkipped(
+                    $validated['title'],
+                    $validated['message'],
+                    $extraData,
+                    $pushContext,
+                    'No FCM token saved for this driver'
+                );
                 return response()->json([
                     'success' => false,
                     'message' => __('Driver FCM token not found')
@@ -160,20 +173,30 @@ class WalletRequestController extends Controller
             ]);
 
             // Optionally send a Firebase notification to the driver about the new message
-            if ($walletRequest->driver && $walletRequest->driver->fcm_token) {
-                $extraData = [
-                    'wallet_request_id' => $walletRequest->id,
-                    'action' => 'new_message',
-                    'message_type' => 'admin_message',
-                    'click_action' => 'FLUTTER_NOTIFICATION_CLICK'
-                ];
+            $extraData = [
+                'wallet_request_id' => $walletRequest->id,
+                'action' => 'new_message',
+                'message_type' => 'admin_message',
+                'msg_type' => 'wallet_message',
+                'click_action' => 'FLUTTER_NOTIFICATION_CLICK'
+            ];
+            $pushContext = [
+                'recipient_id' => $walletRequest->driver_id,
+                'recipient_role' => 'driver',
+            ];
+            $pushTitle = __('New Message from Admin');
+            $pushBody = __('You have a new message regarding your wallet request #:id', ['id' => $walletRequest->id]);
 
+            if ($walletRequest->driver && $walletRequest->driver->fcm_token) {
                 \App\Helpers\FcmHelper::sendPushNotification(
                     $walletRequest->driver->fcm_token,
-                    __('New Message from Admin'),
-                    __('You have a new message regarding your wallet request #:id', ['id' => $walletRequest->id]),
-                    $extraData
+                    $pushTitle,
+                    $pushBody,
+                    $extraData,
+                    $pushContext
                 );
+            } else {
+                \App\Helpers\FcmHelper::recordSkipped($pushTitle, $pushBody, $extraData, $pushContext, 'No FCM token saved for this driver');
             }
 
             return redirect()->route('wallet-requests.show', $walletRequest)
