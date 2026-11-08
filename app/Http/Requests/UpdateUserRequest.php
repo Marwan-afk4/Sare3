@@ -28,6 +28,7 @@ class UpdateUserRequest extends FormRequest
         }
 
         return [
+            'name' => 'nullable|string|max:255',
             'email' => 'nullable|email|unique:users,email,' . $this->user->id,
             'phone' => 'nullable|unique:users,phone,' . $this->user->id,
             // 'image' => 'nullable',
@@ -40,6 +41,8 @@ class UpdateUserRequest extends FormRequest
     public function messages()
     {
         return [
+            'name.string' => __('The Name must be a string.'),
+            'name.max' => __('The Name may not be greater than 255 characters.'),
             'email.unique' => __('Email already exists'),
             'phone.unique' => __('Phone number already exists'),
             'user_password.required' => __('The Password field is required.'),
