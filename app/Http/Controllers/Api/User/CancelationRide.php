@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\User;
 
+use App\Helpers\FcmHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\User\RideEstimateController;
 use App\Jobs\AutoRejectRideJob;
@@ -119,6 +120,8 @@ class CancelationRide extends Controller
             && in_array($ride->status->value, ['pending', 'rejected']);
 
         $assignedDriver = $ride->driver;
+        $notifyAcceptedDriver = $ride->driver_id
+            && in_array($ride->status->value, ['accepted', 'arrived', 'waiting_user', 'in_progress'], true);
 
         // Lock the row so an in-flight reassignment cannot commit "pending"
         // after this cancel. Pending offers are always closed, including one
@@ -160,7 +163,9 @@ class CancelationRide extends Controller
             'reason' => $request->input('reason'),
         ]);
 
-
+        if ($notifyAcceptedDriver && $assignedDriver) {
+            $this->notifyDriverRideCancelledByUser($ride, $assignedDriver);
+        }
 
         return response()->json([
             'message' => 'Ride canceled successfully',
@@ -170,6 +175,48 @@ class CancelationRide extends Controller
             'penalty_applied' => $penaltyAmount > 0,
             'penalty_amount' => round($penaltyAmount, 2),
         ]);
+    }
+
+    /**
+     * Wake the assigned captain when the passenger cancels after accept.
+     * msg_type is what the driver app uses to play the cancel ringtone.
+     */
+    private function notifyDriverRideCancelledByUser(Ride $ride, $driver): void
+    {
+        $data = [
+            'title' => 'تم إلغاء الرحلة',
+            'body' => 'قام الراكب بإلغاء الرحلة',
+            'msg_type' => 'ride_cancelled_by_user',
+            'ride_id' => (string) $ride->id,
+            'status' => 'cancelled',
+        ];
+        $context = [
+            'recipient_id' => $driver->id,
+            'recipient_role' => 'driver',
+            'ride_id' => $ride->id,
+        ];
+
+        try {
+            if ($driver->fcm_token) {
+                FcmHelper::sendPushNotification(
+                    $driver->fcm_token,
+                    $data['title'],
+                    $data['body'],
+                    $data,
+                    $context
+                );
+            } else {
+                FcmHelper::recordSkipped(
+                    $data['title'],
+                    $data['body'],
+                    $data,
+                    $context,
+                    'No FCM token saved for this driver'
+                );
+            }
+        } catch (\Throwable $e) {
+            Log::error("Failed to push passenger cancel for ride {$ride->id} to driver {$driver->id}: " . $e->getMessage());
+        }
     }
 
     /**

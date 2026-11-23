@@ -65,6 +65,22 @@ class FcmHelper
     }
 
     /**
+     * Offers and a passenger cancel after accept must wake the device so the
+     * driver app can play a ringtone while it is backgrounded.
+     */
+    private static function isWakeNotification(array $data): bool
+    {
+        return self::isOfferNotification($data) || self::isPassengerCancelNotification($data);
+    }
+
+    private static function isPassengerCancelNotification(array $data): bool
+    {
+        $msgType = strtolower(trim((string) ($data['msg_type'] ?? '')));
+
+        return $msgType === 'ride_cancelled_by_user';
+    }
+
+    /**
      * FCM HTTP v1 rejects a data payload unless every value is a string.
      */
     private static function stringifyData(array $data): array
@@ -93,7 +109,7 @@ class FcmHelper
             'status' => 'skipped',
             'has_token' => false,
             'error_message' => $reason,
-            'high_priority' => self::isOfferNotification($data ?? []),
+            'high_priority' => self::isWakeNotification($data ?? []),
         ]);
     }
 
@@ -101,7 +117,7 @@ class FcmHelper
     {
         $startTime = microtime(true);
         $data = $data ?? [];
-        $highPriority = self::isOfferNotification($data);
+        $highPriority = self::isWakeNotification($data);
 
         if (!$fcmToken) {
             self::recordSkipped($title, $body, $data, $context, 'No FCM token saved for this account');
@@ -154,7 +170,9 @@ class FcmHelper
                                 'title' => (string) $title,
                                 'body' => (string) $body,
                             ],
-                            'sound' => 'default',
+                            'sound' => self::isPassengerCancelNotification($data)
+                                ? 'cancel_ringtone.wav'
+                                : 'default',
                             'interruption-level' => 'time-sensitive',
                             'relevance-score' => 1.0,
                         ],
