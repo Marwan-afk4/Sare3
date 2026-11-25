@@ -17,6 +17,8 @@ class ZoneCarCategories extends Component
     public $price_per_min = '';
     public $min_price = '';
 
+    public ?int $editingCategoryId = null;
+
     public array $carCategories = [];
     public $zoneCategories;
 
@@ -36,6 +38,10 @@ class ZoneCarCategories extends Component
 
     public function saveCategory()
     {
+        if ($this->editingCategoryId) {
+            $this->car_category_id = (string) $this->editingCategoryId;
+        }
+
         $this->validate([
             'car_category_id' => 'required|exists:car_categories,id',
             'base_price' => 'required|numeric|min:0',
@@ -44,7 +50,21 @@ class ZoneCarCategories extends Component
             'min_price' => 'required|numeric|min:0',
         ]);
 
-        // check if exists already
+        $prices = [
+            'base_price' => $this->base_price,
+            'price_per_km' => $this->price_per_km,
+            'price_per_min' => $this->price_per_min,
+            'min_price' => $this->min_price,
+        ];
+
+        if ($this->editingCategoryId) {
+            $this->zone->carCategories()->updateExistingPivot($this->editingCategoryId, $prices);
+            $this->cancelEdit();
+            $this->updateZoneCategories();
+
+            return;
+        }
+
         $exists = $this->zoneCategories->firstWhere('id', $this->car_category_id);
 
         if ($exists) {
@@ -53,22 +73,47 @@ class ZoneCarCategories extends Component
         }
 
         $this->zone->carCategories()->syncWithoutDetaching([
-            $this->car_category_id => [
-                'base_price'   => $this->base_price,
-                'price_per_km' => $this->price_per_km,
-                'price_per_min'=> $this->price_per_min,
-                'min_price'    => $this->min_price,
-            ]
+            $this->car_category_id => $prices,
         ]);
-
 
         $this->reset(['car_category_id', 'base_price', 'price_per_km', 'price_per_min', 'min_price']);
         $this->updateZoneCategories();
     }
 
+    public function editCategory($carCategoryId)
+    {
+        $this->updateZoneCategories();
+
+        $category = $this->zoneCategories->firstWhere('id', (int) $carCategoryId);
+
+        if (! $category) {
+            return;
+        }
+
+        $this->editingCategoryId = (int) $category->id;
+        $this->car_category_id = (string) $category->id;
+        $this->base_price = (string) $category->pivot->base_price;
+        $this->price_per_km = (string) $category->pivot->price_per_km;
+        $this->price_per_min = (string) $category->pivot->price_per_min;
+        $this->min_price = (string) ($category->pivot->min_price ?? '');
+        $this->resetValidation();
+    }
+
+    public function cancelEdit()
+    {
+        $this->editingCategoryId = null;
+        $this->reset(['car_category_id', 'base_price', 'price_per_km', 'price_per_min', 'min_price']);
+        $this->resetValidation();
+    }
+
     public function deleteCategory($carCategoryId)
     {
         $this->zone->carCategories()->detach($carCategoryId);
+
+        if ((int) $this->editingCategoryId === (int) $carCategoryId) {
+            $this->cancelEdit();
+        }
+
         $this->updateZoneCategories();
     }
 
