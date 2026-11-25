@@ -4,33 +4,33 @@
 @endphp
 @section('title', $zone->name)
 @section('content')
-    <div class="container-fluid">
-        <h1>{{ $zone->name }}</h1>
-        <div class="mb-3">
-            <a href="{{ route('zones.index') }}" class="btn btn-secondary btn-sm me-1"> <i class="fa fa-arrow-right"></i>
+    <div class="container-fluid zone-show px-2 px-md-3">
+        <h1 class="zone-show-title mb-2">{{ $zone->name }}</h1>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <a href="{{ route('zones.index') }}" class="btn btn-secondary btn-sm"> <i class="fa fa-arrow-right"></i>
                 {{ __('Back to') }} {{ __('Zones') }}</a>
-            <a href='{{ route('zones.edit', $zone) }}' class="btn btn-warning btn-sm me-1">{{ __('Edit') }} <i
+            <a href='{{ route('zones.edit', $zone) }}' class="btn btn-warning btn-sm">{{ __('Edit') }} <i
                     class="fa fa-edit"></i></a>
         </div>
 
-        <div class="row">
+        <div class="row g-3">
             <!-- Zone Details -->
-            <div class="col-md-4">
+            <div class="col-12 col-lg-4">
                 <div class="card">
                     <div class="card-header">
                         <h5 class="card-title mb-0">{{ __('Zone Details') }}</h5>
                     </div>
                     <div class="card-body">
                         <ul class="list-group list-group-flush">
-                            <li class="list-group-item d-flex justify-content-between">
+                            <li class="list-group-item d-flex justify-content-between flex-wrap gap-2">
                                 <strong>{{ __('ID') }}:</strong>
                                 <span>{{ $zone->id }}</span>
                             </li>
-                            <li class="list-group-item d-flex justify-content-between">
+                            <li class="list-group-item d-flex justify-content-between flex-wrap gap-2">
                                 <strong>{{ __('Name') }}:</strong>
                                 <span>{{ $zone->name }}</span>
                             </li>
-                            <li class="list-group-item d-flex justify-content-between">
+                            <li class="list-group-item d-flex justify-content-between flex-wrap gap-2">
                                 <strong>{{ __('Admin Profit') }}:</strong>
                                 <span>
                                     @if($zone->admin_profit_percentage !== null)
@@ -40,7 +40,7 @@
                                     @endif
                                 </span>
                             </li>
-                            <li class="list-group-item d-flex justify-content-between">
+                            <li class="list-group-item d-flex justify-content-between flex-wrap gap-2">
                                 <strong>{{ __('Zone Type') }}:</strong>
                                 <span>
                                     @if (is_array($zone->polygon_coordinates))
@@ -63,11 +63,11 @@
                                     </div>
                                 </li>
                             @endif
-                            <li class="list-group-item d-flex justify-content-between">
+                            <li class="list-group-item d-flex justify-content-between flex-wrap gap-2">
                                 <strong>{{ __('Created') }}:</strong>
                                 <span>{{ $zone->created_at?->diffForHumans() ?? '-' }}</span>
                             </li>
-                            <li class="list-group-item d-flex justify-content-between">
+                            <li class="list-group-item d-flex justify-content-between flex-wrap gap-2">
                                 <strong>{{ __('Updated') }}:</strong>
                                 <span>{{ $zone->updated_at?->diffForHumans() ?? '-' }}</span>
                             </li>
@@ -77,7 +77,7 @@
             </div>
 
             <!-- Zone Map -->
-            <div class="col-md-8">
+            <div class="col-12 col-lg-8">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">{{ __('Zone Map') }}</h5>
@@ -90,7 +90,7 @@
                     </div>
                     <div class="card-body p-0">
                         @if (config('services.google_maps.api_key'))
-                            <div id="zoneMap" style="height: 500px; width: 100%; position: relative;">
+                            <div id="zoneMap" class="zone-show-map">
                                 <div id="mapLoading"
                                     style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
                                     <div class="text-center">
@@ -112,10 +112,45 @@
             </div>
         </div>
 
-        <br>
         {{-- Car Categories --}}
-        <livewire:zone-car-categories :zone="$zone" />
+        <div class="row g-3 mt-1">
+            <livewire:zone-car-categories :zone="$zone" />
+        </div>
     </div>
+
+    <style>
+        .zone-show {
+            max-width: 100%;
+        }
+
+        .zone-show-title {
+            font-size: 1.35rem;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .zone-show-map {
+            height: 260px;
+            width: 100%;
+            position: relative;
+        }
+
+        @media (min-width: 768px) {
+            .zone-show-title {
+                font-size: 2rem;
+            }
+
+            .zone-show-map {
+                height: 420px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .zone-show-map {
+                height: 500px;
+            }
+        }
+    </style>
 
     @if (config('services.google_maps.api_key'))
         @push('scripts')
